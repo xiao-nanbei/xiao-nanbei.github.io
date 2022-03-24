@@ -1,0 +1,587 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="在这一关要求实现一个TCPConnection类，基于TCP的有限状态机，将send和recieve封装起来。也就是说，作为一个TCP客户端，我们有自己的sender和receiver，现在要用这个客户端与其他主机进行联系，所以我们要实现TCP的各种FSM。 在tests文件夹中，我们可以看到很多关于fsm的测试文件，这些就是基于不同的有限状态机的测试，因此，我们掌握了TCP的有限状态机，才能将这">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Stanford_CS144_Lab4">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2022/01/13/Stanford-CS144-Lab4/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="在这一关要求实现一个TCPConnection类，基于TCP的有限状态机，将send和recieve封装起来。也就是说，作为一个TCP客户端，我们有自己的sender和receiver，现在要用这个客户端与其他主机进行联系，所以我们要实现TCP的各种FSM。 在tests文件夹中，我们可以看到很多关于fsm的测试文件，这些就是基于不同的有限状态机的测试，因此，我们掌握了TCP的有限状态机，才能将这">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://tva4.sinaimg.cn/large/007SD2TBly1gwp74pmbcrj30jv0dgmz0.jpg">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cDovL2ltZy5ibG9nLmNzZG4ubmV0LzIwMTcwNjA2MDg0ODUxMjcy?x-oss-process=image/format,png">
+<meta property="article:published_time" content="2022-01-13T00:39:30.000Z">
+<meta property="article:modified_time" content="2022-03-23T17:38:31.814Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="standford_cs144_lab">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://tva4.sinaimg.cn/large/007SD2TBly1gwp74pmbcrj30jv0dgmz0.jpg">
+  
+  
+  <title>Stanford_CS144_Lab4 - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>databrains</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Stanford_CS144_Lab4">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2022-01-13 08:39" pubdate>
+        2022年1月13日 早上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      4k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      34 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Stanford_CS144_Lab4</h1>
+            
+            <div class="markdown-body">
+              <p>在这一关要求实现一个TCPConnection类，基于TCP的有限状态机，将send和recieve封装起来。也就是说，作为一个TCP客户端，我们有自己的sender和receiver，现在要用这个客户端与其他主机进行联系，所以我们要实现TCP的各种FSM。</p>
+<p>在tests文件夹中，我们可以看到很多关于fsm的测试文件，这些就是基于不同的有限状态机的测试，因此，我们掌握了TCP的有限状态机，才能将这个实验完成。我们就先来讲讲这些fsm：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>fsm_ack_rst</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>我们先来看看到底要实现哪些类</p>
+<p>在上述代码中，可以看到有一个之前没有接触过的类——<code>TCPConfig</code>，所以我们首先来了解一下<code>TCPConfig</code>。我们到<code>TCPConfig</code>类中可以看到，它是对一些相关参数设置默认大小，如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></div></td><td class="code"><pre><code class="hljs c++"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TCPConfig</span> &#123;</span><br>  <span class="hljs-keyword">public</span>:<br>    <span class="hljs-keyword">static</span> <span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">size_t</span> DEFAULT_CAPACITY = <span class="hljs-number">64000</span>;  <span class="hljs-comment">//!&lt; Default capacity</span><br>    <span class="hljs-keyword">static</span> <span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">size_t</span> MAX_PAYLOAD_SIZE = <span class="hljs-number">1000</span>;   <span class="hljs-comment">//!&lt; Conservative max payload size for real Internet</span><br>    <span class="hljs-keyword">static</span> <span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">uint16_t</span> TIMEOUT_DFLT = <span class="hljs-number">1000</span>;     <span class="hljs-comment">//!&lt; Default re-transmit timeout is 1 second</span><br>    <span class="hljs-keyword">static</span> <span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">unsigned</span> MAX_RETX_ATTEMPTS = <span class="hljs-number">8</span>;   <span class="hljs-comment">//!&lt; Maximum re-transmit attempts before giving up</span><br><br>    <span class="hljs-keyword">uint16_t</span> rt_timeout = TIMEOUT_DFLT;       <span class="hljs-comment">//!&lt; Initial value of the retransmission timeout, in milliseconds</span><br>    <span class="hljs-keyword">size_t</span> recv_capacity = DEFAULT_CAPACITY;  <span class="hljs-comment">//!&lt; Receive capacity, in bytes</span><br>    <span class="hljs-keyword">size_t</span> send_capacity = DEFAULT_CAPACITY;  <span class="hljs-comment">//!&lt; Sender capacity, in bytes</span><br>    std::optional&lt;WrappingInt32&gt; fixed_isn&#123;&#125;;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>在<code>_receiver</code>等变量中通过<code>TCPConfig</code>默认大小。刚看到<code>TCPConnection</code>类时可能无从下手，我们先运行一下check程序，从第一个faild入手（没错，本懒狗是边做lab边写博客，面向tests编程）。</p>
+<p>我们可以看到第一个faild出现在第35个测试，也就是fsm_passive_close，这个测试检测的是有限状态机中的初始状态（？）我们在项目中找到指定位置，开始debug，发现是<code>void TCPConnection::connect()</code>方法的错误，当我们要建立连接的时候，我们想到的还是三次握手，如下图：</p>
+<p><img src="http://tva4.sinaimg.cn/large/007SD2TBly1gwp74pmbcrj30jv0dgmz0.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>（还是以客户端为例子）首先，我们要进行第一次握手，也就是客户端发送SYN报文，在TCPSender类中，我们实现了fill_window方法，里面包含了三次握手中第一次握手的过程。在TCPConnection中，有相关的建立连接的方法，即<code>void TCPConnection::connect()</code>方法，于是我们将sender中的握手的过程加入函数当中，如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">TCPConnection::connect</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-comment">// send SYN</span><br>    _sender.<span class="hljs-built_in">fill_window</span>();<br>    <span class="hljs-built_in">real_send</span>();<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这就是第一次握手时的场景，调用了fill_window()，在没有预设参数的情况下，fill_window会默认是第一次握手，从而设置对用的syn和seqno值。这样就完成了建立连接的第一步。为了使得发送报文可以模块化操作，实现real_send函数，real_send函数负责将_sender.segment_out队列中的报文拿出来，放入到 _segment_out队列中，代码如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">TCPConnection::real_send</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">bool</span> isSend = <span class="hljs-literal">false</span>;<br>    <span class="hljs-keyword">while</span> (!_sender.<span class="hljs-built_in">segments_out</span>().<span class="hljs-built_in">empty</span>()) &#123;<br>        isSend = <span class="hljs-literal">true</span>;<br>        TCPSegment segment = _sender.<span class="hljs-built_in">segments_out</span>().<span class="hljs-built_in">front</span>();<br>        _sender.<span class="hljs-built_in">segments_out</span>().<span class="hljs-built_in">pop</span>();<br>        <span class="hljs-built_in">set_ack_and_windowsize</span>(segment);<br>        _segments_out.<span class="hljs-built_in">push</span>(segment);<br>    &#125;<br>    <span class="hljs-keyword">return</span> isSend;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>当收到服务器的第二次握手时，就会调用TCPConnection中的<code>void TCPConnection::segment_received(const TCPSegment &amp;seg)</code>函数，这个函数的参数是收到的segment，当收到这个segment的时候，客户端就要进行第三次握手，当然，我们的第三次握手就可以看成正常的发送报文了。那么我们来看看收到报文之后应该如何处理。首先，我们将segment给到我们的 _receiver中：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">// give the segment to receiver</span><br>_receiver.<span class="hljs-built_in">segment_received</span>(seg);<br></code></pre></td></tr></table></figure>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cDovL2ltZy5ibG9nLmNzZG4ubmV0LzIwMTcwNjA2MDg0ODUxMjcy?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>在TCP协议中，rst用来异常的关闭连接。在TCP的设计中它是不可或缺的，发送rst段关闭连接时，不必等缓冲区的数据都发送出去，直接丢弃缓冲区中的数据，而接收端收到rst后，也不必发送ack来确认。在以下情况下会发送rst段：</p>
+<ol>
+<li>目标端口未监听，链接一个未监听的端口，则被连接方会发送一个rst段。</li>
+<li>向已经关闭的链接发送FIN，cli.close关闭服务端连接，当前服务端连接处于FIN_WAIT2状态，等待对端的FIN段。服务端的连接在FIN_WAIT2状态超时，当前服务端的连接实际上已经消逝，此时，客户端调用sock.close()关闭连接，则服务端产生rst。</li>
+</ol>
+<p>什么时候发送RST包</p>
+<ol>
+<li>建立连接的SYN到达某端口，但是该端口上没有正在 监听的服务。</li>
+<li>TCP收到了一个根本不存在的连接上的分节。</li>
+<li>请求超时。 使用setsockopt的SO_RCVTIMEO选项设置recv的超时时间。接收数据超时时，会发送RST包。</li>
+</ol>
+<p>当收到的segment的rst段为1，那么我们直接断开连接（非正常关闭），如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">if</span> (seg.<span class="hljs-built_in">header</span>().rst) &#123;<br>    _sender.<span class="hljs-built_in">stream_in</span>().<span class="hljs-built_in">set_error</span>();<br>    _receiver.<span class="hljs-built_in">stream_out</span>().<span class="hljs-built_in">set_error</span>();<br>    _active = <span class="hljs-literal">false</span>;<br>    <span class="hljs-keyword">return</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>在<code>write</code>函数中，我们需要将数据写入到stream中，然后返回写入stream的data的长度，如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">TCPConnection::write</span><span class="hljs-params">(<span class="hljs-keyword">const</span> string &amp;data)</span> </span>&#123;<br>    <span class="hljs-comment">//如果data的为空则直接返回</span><br>    <span class="hljs-keyword">if</span> (data.<span class="hljs-built_in">empty</span>()) <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    <span class="hljs-comment">//否则将数据写入_sender的stream_in，等待fill_window将其封装为报文</span><br>    <span class="hljs-keyword">size_t</span> actually_write = _sender.<span class="hljs-built_in">stream_in</span>().<span class="hljs-built_in">write</span>(data);<br>    <span class="hljs-comment">//封装data为segment</span><br>    _sender.<span class="hljs-built_in">fill_window</span>();<br>    <span class="hljs-built_in">real_send</span>();<br>    <span class="hljs-comment">//返回实际长度</span><br>    <span class="hljs-keyword">return</span> actually_write;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>在关闭TCP连接也就是“四次握手”的时候，我们会有一个<code>TIME_WAIT</code>的状态，在这个状态下客户端会等待2MSL才断开，这其实有两个原因：</p>
+<ol>
+<li>保证全双工的连接能够可靠关闭。</li>
+<li>保证这次连接的数据段彻底从网络中消失。</li>
+</ol>
+<hr>
+<h5 id="TCP可靠传输"><a href="#TCP可靠传输" class="headerlink" title="TCP可靠传输"></a>TCP可靠传输</h5><p>做到这里，我们的TCP也就算实现了基本功能，我们也就知道了TCP协议如何保证可靠传输：</p>
+<ol>
+<li>流量控制：TCP连接双方都有固定大小的缓冲空间，TCP接收端只允许发送端发送接收端缓冲区能接纳的数据。当接收方来不及处理发送方的数据的时候，就提示发送方降低发送的速率。</li>
+<li>拥塞控制：当网络拥塞时，减少数据的发送（这个在lab中没有什么体现）。</li>
+<li>超时重传：当TCP发出一个段后，就会启动一个定时器，如果不能及时收到确认，就重发这个报文段。</li>
+<li>校验和：（这个好像在后面的实验中有体现）。</li>
+</ol>
+<p>再补充一个知识点——<code>socket</code></p>
+<h5 id="TCP长连接"><a href="#TCP长连接" class="headerlink" title="TCP长连接"></a>TCP长连接</h5><p>在HTTP1.0中，默认使用的是短连接。也就是说，浏览器和服务器每进行一次HTTP操作，就建立一次连接，但任务结束后就中断连接。但从HTTP1.1开始，默认使用长连接，用以保持连接特性。使用长连接的HTTP协议，会在响应头加入如下字段:</p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs armasm"><span class="hljs-symbol">Connection:</span><span class="hljs-meta">keep</span>-alive<br></code></pre></td></tr></table></figure>
+<p>HTTP协议的长连接和短连接，实质上是TCP协议的长连接和短连接。</p>
+<h6 id="TCP保活机制"><a href="#TCP保活机制" class="headerlink" title="TCP保活机制"></a>TCP保活机制</h6><p>保活功能主要为服务器应用提供，服务器应用希望知道客户主机是否崩溃，从而可以代表客户使用资源。如果客户已经消失，使得服务器上保留一个半开放的连接，而服务器又在等待来自客户端的数据，则服务器将应远等待客户端的数据，保活功能就是试图在服务器端检测到这种半开放的连接。对于设置了keepalive来说，当<strong>tcp</strong>检测到对端<strong>socket</strong>不再可用时<strong>(</strong>不能发出探测包<strong>,</strong>或探测包没有收到<strong>ACK</strong>的响应包<strong>),select</strong>会返回<strong>socket</strong>可读<strong>,</strong>并且在<strong>recv</strong>时返回<strong>-1,</strong>同时置上<strong>errno</strong>为ETIMEDOUT。此时TCP的状态是断开的。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">计算机网络</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/standford-cs144-lab/">standford_cs144_lab</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/01/19/MIT-6-s081-labs-pages/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">MIT_6.s081_lab3_pagetables</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/01/10/xv6-%E5%AE%9E%E9%AA%8C%E5%8F%82%E8%80%83%E4%B9%A6%E8%A7%A3%E6%9E%90/">
+                        <span class="hidden-mobile">xv6-实验参考书解析</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+        typing(title);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+  
+
+  
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        },
+        loader: {
+          load: ['ui/lazy']
+        },
+        options: {
+          renderActions: {
+            findScript: [10, doc => {
+              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+                const display = !!node.type.match(/; *mode=display/);
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                const text = document.createTextNode('');
+                node.parentNode.replaceChild(text, node);
+                math.start = { node: text, delim: '', n: 0 };
+                math.end = { node: text, delim: '', n: 0 };
+                doc.math.push(math);
+              });
+            }, '', false],
+            insertedScript: [200, () => {
+              document.querySelectorAll('mjx-container').forEach(node => {
+                let target = node.parentNode;
+                if (target.nodeName.toLowerCase() === 'li') {
+                  target.parentNode.classList.add('has-jax');
+                }
+              });
+            }, '', false]
+          }
+        }
+      };
+    </script>
+
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

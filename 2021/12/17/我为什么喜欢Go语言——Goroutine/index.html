@@ -1,0 +1,597 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Go语言中实现了两种并发模型，一种是依赖于共享内存实现的线程-锁并发模型，另一种则是CSP。作为Go并发核心编程核心的CSP理论的核心概念只有一个：同步通信。 Goroutine是由Go运行时管理的轻量级线程（协程）。Goroutine和操作系统线程相比，Goroutine的资源占用和使用代价非常小，大小默认是2K字节。Goroutine调度的切换也不在操作系统的内部完成，代价很低。所以一个Go程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Goroutine">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2021/12/17/%E6%88%91%E4%B8%BA%E4%BB%80%E4%B9%88%E5%96%9C%E6%AC%A2Go%E8%AF%AD%E8%A8%80%E2%80%94%E2%80%94Goroutine/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="Go语言中实现了两种并发模型，一种是依赖于共享内存实现的线程-锁并发模型，另一种则是CSP。作为Go并发核心编程核心的CSP理论的核心概念只有一个：同步通信。 Goroutine是由Go运行时管理的轻量级线程（协程）。Goroutine和操作系统线程相比，Goroutine的资源占用和使用代价非常小，大小默认是2K字节。Goroutine调度的切换也不在操作系统的内部完成，代价很低。所以一个Go程">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a22b3af8462e41f8adb601eb34c22bb6~tplv-k3u1fbpfcp-watermark.awebp">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008qL1EEly1gza4dbce63j30ab02s0su.jpg">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/10436675-a29a641d8a384787.png?imageMogr2/auto-orient/strip|imageView2/2/w/400/format/webp">
+<meta property="article:published_time" content="2021-12-17T08:44:45.000Z">
+<meta property="article:modified_time" content="2022-03-11T04:51:51.640Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="Goroutine">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a22b3af8462e41f8adb601eb34c22bb6~tplv-k3u1fbpfcp-watermark.awebp">
+  
+  
+  <title>Goroutine - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>databrains</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Goroutine">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-12-17 16:44" pubdate>
+        2021年12月17日 下午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      5.6k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      47 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Goroutine</h1>
+            
+            <div class="markdown-body">
+              <p>Go语言中实现了两种并发模型，一种是依赖于共享内存实现的线程-锁并发模型，另一种则是CSP。作为Go并发核心编程核心的CSP理论的核心概念只有一个：同步通信。</p>
+<p>Goroutine是由Go运行时管理的轻量级线程（协程）。Goroutine和操作系统线程相比，Goroutine的资源占用和使用代价非常小，大小默认是2K字节。Goroutine调度的切换也不在操作系统的内部完成，代价很低。所以一个Go程序可以创建成千上万个并发的Goroutine，而把这些Goroutine按照一定算法放到cpu上执行的程序，就成了Goroutine调度器。</p>
+<p>开发go程序的时候，时常需要使用goroutine并发处理任务，有时候这些goroutine是相互独立的，而有的时候，多个goroutine之间常常是需要同步与通信的，值得注意的是，有时候主goroutine需要控制它所属的子goroutine。</p>
+<h5 id="Goroutine和Coroutine的区别"><a href="#Goroutine和Coroutine的区别" class="headerlink" title="Goroutine和Coroutine的区别"></a>Goroutine和Coroutine的区别</h5><hr>
+<p>补充一下常见的面经：</p>
+<h6 id="进程、线程、协程的区别："><a href="#进程、线程、协程的区别：" class="headerlink" title="进程、线程、协程的区别："></a>进程、线程、协程的区别：</h6><p>进程是系统进行资源调度和分配的单位，线程是程序执行的单位，也就是CPU调度和分配的单位，线程作为进程下属的单位，可以享用进程被分配的资源，一个进程下的多个线程可以共享该进程的资源。而进程之间是不能共享资源的，进程间想要互相通信，必须通过进程间通信。</p>
+<p>协程是一种用户态的轻量级线程，协程的调度完全由用户控制，协程拥有自己的寄存器上下文和栈。一个线程可以有多个协程，一个进程也可以有多个协程。进程线程都是同步机制，而协程是异步机制。线程是抢占式，而协程是非抢占式，所以需要用户自己释放使用权来切换到其他协程。</p>
+<p>如下图所示，我们可以更好的理解协程和线程的关系，<a target="_blank" rel="noopener" href="https://juejin.cn/post/6995091405563494431">图片来源</a>。</p>
+<p><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a22b3af8462e41f8adb601eb34c22bb6~tplv-k3u1fbpfcp-watermark.awebp" srcset="/img/loading.gif" lazyload alt=""></p>
+<h6 id="同步与异步的区别："><a href="#同步与异步的区别：" class="headerlink" title="同步与异步的区别："></a>同步与异步的区别：</h6><p>同步是阻塞模式，而异步是非阻塞模式：</p>
+<ul>
+<li><p>同步就是指一个进程在执行某个请求的时候，若该请求需要一段时间才能返回信息，那么这个请求就会一直等待下去，直到收到返回信息才继续执行下去。</p>
+</li>
+<li><p>异步是进程不需要一直等下去，而是继续执行下面的操作，不管其他进程的状态。当有消息返回时系统会通知进程处理，这样可以提高执行的效率。</p>
+<p>知乎上这个<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/67452727">文章</a>说得很好，分享给大家：</p>
+<blockquote>
+<p>同步异步 ， 举个例子来说，一家餐厅吧来了5个客人，<strong>同步</strong>的意思就是说，来第一个点菜，点了个鱼，好， 厨师去捉鱼杀鱼，过了半小时鱼好了给第一位客人，开始下位一位客人，就这样一个一个来，按<strong>顺序</strong>来相同， <strong>异步</strong>呢，异步的意思就是来第一位客人，点什么，点鱼，给它一个牌子，让他去一边等吧，下一位客人接着点菜，点完接着点让厨师做去吧，哪个的菜先好就先端出来。</p>
+<p>同步的优点是：同步是按照顺序一个一个来，不会乱掉，更不会出现上面代码没有执行完就执行下面的代码， 缺点：是解析的速度没有异步的快；</p>
+<p>异步的优点是：异步是接取一个任务，直接给后台，在接下一个任务，一直一直这样，谁的先读取完先执行谁的， 缺点：没有顺序 ，谁先读取完先执行谁的 ，会出现上面的代码还没出来下面的就已经出来了，会报错。</p>
+</blockquote>
+</li>
+</ul>
+<hr>
+<p>goroutine 来自协程的概念，让一组可复用的函数运行在一组线程之上，即使有协程阻塞，该线程的其他协程也可以被 runtime 调度，转移到其他可运行的线程上。最关键的是，程序员看不到这些底层的细节，这就降低了编程的难度，提供了更容易的并发。</p>
+<p>Go 中，协程被称为 goroutine，它非常轻量，一个 goroutine 只占几 KB，并且这几 KB 就足够 goroutine 运行完，这就能在有限的内存空间内支持大量 goroutine，支持了更多的并发。虽然一个 goroutine 的栈只占几 KB，但实际是可伸缩的，如果需要更多内容，runtime 会自动为 goroutine 分配。</p>
+<p>C#、Lua、Python 语言都支持 coroutine 特性。coroutine 与 goroutine 在名字上类似，都可以将函数或者语句在独立的环境中运行，但是它们之间有两点不同：</p>
+<ul>
+<li>goroutine 可能发生并行执行；</li>
+<li>但 coroutine 始终顺序执行。</li>
+</ul>
+<p>goroutine意味着并行（或者可以以并行方式部署），coroutine一般来说不是这样。狭义的说，goroutine可能发生在多线程环境下，coroutine始终发生在单线程。goroutine间使用channel通信，coroutine使用yield和resume操作。coroutine的运行机制属于协作式任务处理，goroutine属于抢占式任务处理。</p>
+<h4 id="channel之于Goroutine"><a href="#channel之于Goroutine" class="headerlink" title="channel之于Goroutine"></a>channel之于Goroutine</h4><h5 id="无缓冲channel和有缓冲channel"><a href="#无缓冲channel和有缓冲channel" class="headerlink" title="无缓冲channel和有缓冲channel"></a>无缓冲channel和有缓冲channel</h5><p>无缓冲channel发送动作和接收动作是同时发生的，例如 <code>ch := make(chan int)</code> ，如果没 <code>goroutine</code> 读取接收者<code>&lt;-ch</code> ，那么发送者<code>ch&lt;-</code> 就会一直阻塞，<strong>缓冲</strong> <code>channel</code> 类似一个队列，只有队列满了才可能发送阻塞。</p>
+<h5 id="如何优化channel"><a href="#如何优化channel" class="headerlink" title="如何优化channel"></a>如何优化channel</h5><p>和学长聊到这个问题，深夜无眠，写一下自己的理解。</p>
+<p>channel 的构造语句 <code>make(chan int)</code>，将会被 golang 编译器翻译为 <code>runtime.makechan</code> 函数, 其函数签名如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">makechan</span><span class="hljs-params">(t *chantype, size <span class="hljs-keyword">int</span>)</span> *<span class="hljs-title">hchan</span></span><br></code></pre></td></tr></table></figure>
+<p>其中，<code>t *chantype</code> 即构造 channel 时传入的元素类型。<code>size int</code> 即用户指定的 channel 缓冲区大小，不指定则为 0。该函数的返回值是 <code>*hchan</code>。hchan 则是 channel 在 golang 中的内部实现。其定义如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> hchan <span class="hljs-keyword">struct</span> &#123;<br>	qcount   <span class="hljs-keyword">uint</span>           <span class="hljs-comment">// buffer 中已放入的元素个数</span><br>	dataqsiz <span class="hljs-keyword">uint</span>           <span class="hljs-comment">// 用户构造 channel 时指定的 buf 大小</span><br>	buf      unsafe.Pointer <span class="hljs-comment">// buffer</span><br>	elemsize <span class="hljs-keyword">uint16</span>         <span class="hljs-comment">// buffer 中每个元素的大小</span><br>	closed   <span class="hljs-keyword">uint32</span>         <span class="hljs-comment">// channel 是否关闭，== 0 代表未 closed</span><br>	elemtype *_type         <span class="hljs-comment">// channel 元素的类型信息</span><br>	sendx    <span class="hljs-keyword">uint</span>           <span class="hljs-comment">// buffer 中已发送的索引位置 send index</span><br>	recvx    <span class="hljs-keyword">uint</span>           <span class="hljs-comment">// buffer 中已接收的索引位置 receive index</span><br>	recvq    waitq          <span class="hljs-comment">// 等待接收的 goroutine  list of recv waiters</span><br>	sendq    waitq          <span class="hljs-comment">// 等待发送的 goroutine list of send waiters</span><br><br>	lock mutex<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>我们可以知道，hchan中定义了悲观锁来进行互斥，channel是一个用于同步和通信的有锁队列。</p>
+<h6 id="channel回比mutex低效吗？"><a href="#channel回比mutex低效吗？" class="headerlink" title="channel回比mutex低效吗？"></a>channel回比mutex低效吗？</h6><p>今晚我被这个问题折磨了很久，查了很多资料才有了一些答案。</p>
+<p>Golang中的channel，发送一个数据到channel和从channel接收一个数据都是原子性的。Go语言线程的设计模式就是<strong>不要通过共享内存的方式进行通信，而是应该通过通信的方式共享内存。</strong>这种设计思想有明显的好处，那就是逻辑简单，但是实现成本较高，我觉得这里的实现成本较高是因为channel不但用到了锁，还需要执行调度，会比一般的互斥锁成本更高。两者之间的取舍就是（效率+低可维护性）和（相对低效率+高可维护性）。当然这只是我非常片面的看法，应该还要涉及到具体的使用场景。</p>
+<p><strong><em>更新</em></strong></p>
+<hr>
+<p><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000017890174">https://segmentfault.com/a/1190000017890174</a></p>
+<p>我在看了上述博文之后对channel和mutex的选择有了一些认识，摘录如下：</p>
+<blockquote>
+<p>面对一个并发问题的时候，应当选择合适的并发方式：channel还是mutex。<strong>选择的依据是他们的能力/特性：channel的能力是让数据流动起来，擅长的是数据流动的场景</strong>，<strong>mutex的能力是数据不动，某段时间只给一个协程访问数据的权限擅长数据位置固定的场景</strong>。</p>
+</blockquote>
+<hr>
+<h6 id="无锁队列ring-buffer"><a href="#无锁队列ring-buffer" class="headerlink" title="无锁队列ring buffer"></a>无锁队列ring buffer</h6><p>按照上述我的想法来看加锁的损耗较高，对于某些特殊的情况，可以采用简单的无锁ring buffer来实现。</p>
+<p><img src="https://tva1.sinaimg.cn/large/008qL1EEly1gza4dbce63j30ab02s0su.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>在ring buffer中，设置两个指针，head指向的是下一次读的位置，而tail指向的是下一次写的位置，由于是ring buffer，可以将buffer的最后一个单元不存储数据。所以，如果head == tail，那么说明buffer为空。如果 head == tail + 1 ，那么说明buffer满了。</p>
+<p>在进行读操作时，我们只修改head的值，而在写操作时我们只修改tail的值，在写操作时，我们在写入内容到buffer之后才修改tail的值；而在进行读操作的时候，我们会读取tail的值并将其赋值给copyTail。</p>
+<p>赋值操作是原子操作。所以在读到copyTail之后，从head到copyTail之间一定是有数据可以读的，不会出现数据没有写入就进行读操作的情况。同样的，读操作完成之后，才会修改head的数值；而在写操作之前会读取head的值判断是否有空间可以用来写数据。</p>
+<p>所以，这时候tail到head - 1之间一定是有空间可以写数据的，而不会出现一个位置的数据还没有读出就被写操作覆盖的情况。这样就保证了RingBuffer的线程安全性。（参考博文<a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1561232">无锁ring buffer</a>）</p>
+<p>下面是我自己实现的无锁队列ring buffer，大伙看个热闹：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs go"><br></code></pre></td></tr></table></figure>
+<h6 id="分段锁"><a href="#分段锁" class="headerlink" title="分段锁"></a>分段锁</h6><p>分段锁提高channel效率思想的思想就是<strong>使用带有协调机制的独占锁，这些机制允许更高的并发性</strong>。</p>
+<p>用白话说就是给buffer中的不同数据段上不同的锁，那么当多个Goroutine访问不同数据段的数据时，就不会存在锁竞争，从而可以有效的提高并发访问效率。</p>
+<p>但是这只是ConcurrentHashMap所使用的锁分段技术，我查了很多遍也没有在网上看到有人用这个思路优化channel，这也许只是我个人的脑洞。</p>
+<h6 id="官方大佬的答案"><a href="#官方大佬的答案" class="headerlink" title="官方大佬的答案"></a>官方大佬的答案</h6><p>Go 语言社区也在 2014 年提出了无锁 Channel 的实现方案，该方案将 Channel 分成了以下三种类型：</p>
+<ul>
+<li>同步 Channel — 不需要缓冲区，发送方会直接将数据交给（Handoff）接收方；</li>
+<li>异步 Channel — 基于环形缓存的传统生产者消费者模型；</li>
+<li>chan struct{} 类型的异步 Channel — struct{} 类型不占用内存空间，不需要实现缓冲区和直接发送（Handoff）的语义；</li>
+</ul>
+<p>这个方案可以在一些关键路径上通过无锁提升channel的性能，但这玩意最后被搁浅了，我也不知道为啥。</p>
+<h6 id="channel一些问题"><a href="#channel一些问题" class="headerlink" title="channel一些问题"></a>channel一些问题</h6><ul>
+<li>channel关闭了写入会怎样？</li>
+</ul>
+<p>​        会发生panic。</p>
+<ul>
+<li>从关闭的channel读取会怎样？</li>
+</ul>
+<p>​        从已经关闭的channel中读取数据是没有问题的，但读取完channel的数据后再次读取会        返回false和默认值0。</p>
+<ul>
+<li><p>channel怎么判断是否关闭了？</p>
+<p>如果返回值是true就是没有关闭，如果返回值是false就是关闭了。</p>
+</li>
+</ul>
+<h5 id="Goroutine调度原理"><a href="#Goroutine调度原理" class="headerlink" title="Goroutine调度原理"></a>Goroutine调度原理</h5><h6 id="GMP调度模型"><a href="#GMP调度模型" class="headerlink" title="GMP调度模型"></a>GMP调度模型</h6><ul>
+<li><p>M代表内核级线程，一个M就是一个线程，Goroutine就是运行在M之上，M是一个很大的结构，里面维护当前执行的goroutine等信息。</p>
+</li>
+<li><p>G代表一个Goroutine，它有自己的栈，instruction pointer和其他信息。</p>
+</li>
+<li>P代表Processor，它的主要用途就是用来执行Goroutine的，它维护一个Goroutine队列，里面存储了所有需要它来执行的Goroutine。</li>
+</ul>
+<p>也就是说，一个G的执行需要M和P的支持，一个M在与一个P关联后形成一个有效的G的运行环境[内核环境+上下文环境]。每个P都会包含一个可运行的G的队列。</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/10436675-a29a641d8a384787.png?imageMogr2/auto-orient/strip|imageView2/2/w/400/format/webp" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>从上图中看，有2个物理线程M，每一个M都拥有一个处理器P，每一个也都有一个正在运行的Goroutine。默认的P的数量等于CPU的个数，P的数量可以通过GOMAXPROCS()来设置，它其实也就代表了真正的并发度，即有多少个Goroutine可以同时运行。上图中灰色的代表Goroutine并没有运行，而是处于ready的就绪态，正在等待被调度，P维护这个队列。</p>
+<p>在go语言中，一旦执行go function，runqueue队列就会在其末尾加入一个Goroutine。在下一个调度点，就从runqueue中取出一个goroutine执行。系统中这么多P，具体会加到哪个P中，要看具体的调度策略。（补充：其实还有一个全局队列，如果P中队列满了，就会存放在全局队列中。）</p>
+<h6 id="P-和-M-何时会被创建"><a href="#P-和-M-何时会被创建" class="headerlink" title="P 和 M 何时会被创建"></a>P 和 M 何时会被创建</h6><p>1、P 何时创建：在确定了 P 的最大数量 n 后，运行时系统会根据这个数量创建 n 个 P。</p>
+<p>2、M 何时创建：没有足够的 M 来关联 P 并运行其中的可运行的 G。比如所有的 M 此时都阻塞住了，而 P 中还有很多就绪任务，就会去寻找空闲的 M，而没有空闲的，就会去创建新的 M。</p>
+<h6 id="调度过程"><a href="#调度过程" class="headerlink" title="调度过程"></a>调度过程</h6><ol>
+<li>通过go func()创建一个goroutine；</li>
+<li>新创建的G会保存在P的本地队列中，如果P的本地队列已经满了就会保存在全局的队列中；</li>
+<li>G只能运行在M中，一个M必须持有一个P。M会从P的本地队列中弹出一个可执行状态的G来执行，如果P的本地队列为空，就会向其他的M-P组合中偷取一个可执行的G来执行；</li>
+<li>循环执行；</li>
+<li>当M执行某一个G的时候如果发生了系统调用或者阻塞操作，M会阻塞，如果当前有一个G在执行，runtime会把这个线程M从P中摘除，然后再创建一个新的内核线程来服务于这个P；</li>
+<li>当M系统调用结束后，这个G会尝试获取一个空闲的P执行，并放到这个P的本地队列，如果获取不到P，那么这个线程M就会变成休眠状态，加入到空闲线程中，然后这个G会被放到全局队列中。</li>
+</ol>
+<p>GMP的数量都是有限制的，摘自<a target="_blank" rel="noopener" href="https://juejin.cn/post/6947589840187686920">博客</a></p>
+<h6 id="M的限制"><a href="#M的限制" class="headerlink" title="M的限制"></a>M的限制</h6><p>在协程的执行中，真正干活的是GMP中的M，M的默认数量限制是10000，如果超出就会报错。通常只有在Goroutine出现阻塞的时候才会出现这种情况。</p>
+<h6 id="G的限制"><a href="#G的限制" class="headerlink" title="G的限制"></a>G的限制</h6><p>Goroutine的创建数量理论上没有限制，但是我们的内存是有上限的，所以实际是有限制的。</p>
+<h6 id="P的限制"><a href="#P的限制" class="headerlink" title="P的限制"></a>P的限制</h6><p>P的数量受环境变量GOMAXPROCS的直接影响。</p>
+<h6 id="GMP中为什么要有P"><a href="#GMP中为什么要有P" class="headerlink" title="GMP中为什么要有P"></a>GMP中为什么要有P</h6>
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Go%E8%AF%AD%E8%A8%80/">Go语言</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Goroutine/">Goroutine</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/01/10/MIT-s-081-Lab2-system-calls/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">MIT-6.s081-Lab2-system calls</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/12/16/%E6%88%91%E4%B8%BA%E4%BB%80%E4%B9%88%E5%96%9C%E6%AC%A2Go%E8%AF%AD%E8%A8%80%E2%80%94%E2%80%94%E8%87%AA%E5%8A%A8%E7%AE%A1%E7%90%86%E5%86%85%E5%AD%98/">
+                        <span class="hidden-mobile">Go自动管理内存</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+        typing(title);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+  
+
+  
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        },
+        loader: {
+          load: ['ui/lazy']
+        },
+        options: {
+          renderActions: {
+            findScript: [10, doc => {
+              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+                const display = !!node.type.match(/; *mode=display/);
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                const text = document.createTextNode('');
+                node.parentNode.replaceChild(text, node);
+                math.start = { node: text, delim: '', n: 0 };
+                math.end = { node: text, delim: '', n: 0 };
+                doc.math.push(math);
+              });
+            }, '', false],
+            insertedScript: [200, () => {
+              document.querySelectorAll('mjx-container').forEach(node => {
+                let target = node.parentNode;
+                if (target.nodeName.toLowerCase() === 'li') {
+                  target.parentNode.classList.add('has-jax');
+                }
+              });
+            }, '', false]
+          }
+        }
+      };
+    </script>
+
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

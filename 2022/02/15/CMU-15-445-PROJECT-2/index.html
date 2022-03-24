@@ -1,0 +1,928 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="这个实验2真的是折磨死我了。 Tree Index索引是对数据库表中一个或多个列进行排序的结构，是帮助数据库高效查询数据的数据结构。 与hash table相比，hash table的时间复杂度是$O(1)$，最坏的时间复杂度是$O(n)$。在B+ Tree中，因为它是平衡的，所以它的时间复杂度始终是$O(log n)$，也就是说，对于一个叶子结点上的任何key来说，不管它距离根节点有多远，时间复">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CMU_15-445_PROJECT#2">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2022/02/15/CMU-15-445-PROJECT-2/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="这个实验2真的是折磨死我了。 Tree Index索引是对数据库表中一个或多个列进行排序的结构，是帮助数据库高效查询数据的数据结构。 与hash table相比，hash table的时间复杂度是$O(1)$，最坏的时间复杂度是$O(n)$。在B+ Tree中，因为它是平衡的，所以它的时间复杂度始终是$O(log n)$，也就是说，对于一个叶子结点上的任何key来说，不管它距离根节点有多远，时间复">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://tvax4.sinaimg.cn/large/008qL1EEly1gzgq69nxvwj309h02nwel.jpg">
+<meta property="og:image" content="http://tvax4.sinaimg.cn/large/008qL1EEly1gzgqdxtu0ij309t02tglt.jpg">
+<meta property="og:image" content="http://tva3.sinaimg.cn/large/008qL1EEly1gzgq69sd1nj30cj05zaau.jpg">
+<meta property="og:image" content="http://tva1.sinaimg.cn/large/008qL1EEly1gzgqivcxnhj30g605egmn.jpg">
+<meta property="og:image" content="http://tva4.sinaimg.cn/large/008qL1EEly1gzgqf9hz9xj30fv07mjss.jpg">
+<meta property="og:image" content="http://tva3.sinaimg.cn/large/008qL1EEly1gzgqkj96wuj30kc09z777.jpg">
+<meta property="og:image" content="http://tvax3.sinaimg.cn/large/008qL1EEly1gzgqkj96wuj30kc09z777.jpg">
+<meta property="og:image" content="http://tvax1.sinaimg.cn/large/008qL1EEly1gzgqn1jtv6j30kc097wh4.jpg">
+<meta property="og:image" content="http://tvax3.sinaimg.cn/large/008qL1EEly1gzgqngoe2bj30kc0bdwi0.jpg">
+<meta property="og:image" content="http://tvax2.sinaimg.cn/large/008qL1EEly1gzgqngtxitj30kc092dij.jpg">
+<meta property="og:image" content="http://tva2.sinaimg.cn/large/008qL1EEly1gzgqot9ctcj30kc092q5y.jpg">
+<meta property="og:image" content="http://tvax4.sinaimg.cn/large/008qL1EEly1gzgqotdmt2j30kc09476w.jpg">
+<meta property="og:image" content="http://tva3.sinaimg.cn/large/008qL1EEly1gzgqqllp4vj30hg09y411.jpg">
+<meta property="og:image" content="http://tva2.sinaimg.cn/large/008qL1EEly1gzgqqlox85j309s04a0t2.jpg">
+<meta property="og:image" content="http://tva3.sinaimg.cn/large/008qL1EEly1gzgqqmspi7j30f206qab4.jpg">
+<meta property="og:image" content="http://tvax3.sinaimg.cn/large/008qL1EEly1gzgqqo09usj30gq065my9.jpg">
+<meta property="og:image" content="http://tvax1.sinaimg.cn/large/008qL1EEly1gzgqqpbi2yj30j306x75u.jpg">
+<meta property="og:image" content="http://tvax3.sinaimg.cn/large/008qL1EEly1gzgqqqrlisj30kc06rdi1.jpg">
+<meta property="og:image" content="http://tvax1.sinaimg.cn/large/008qL1EEly1gzgqqs09qyj30kc06sq54.jpg">
+<meta property="og:image" content="http://tva1.sinaimg.cn/large/008qL1EEly1gzgqqtk9yvj30kc07wmzg.jpg">
+<meta property="og:image" content="http://tva1.sinaimg.cn/large/008qL1EEly1gzgqqvn3nkj30kc080wgw.jpg">
+<meta property="og:image" content="http://tvax1.sinaimg.cn/large/008qL1EEly1gzgqqs09qyj30kc06sq54.jpg">
+<meta property="og:image" content="http://tva3.sinaimg.cn/large/008qL1EEly1gzgqqmspi7j30f206qab4.jpg">
+<meta property="og:image" content="http://tvax4.sinaimg.cn/large/008qL1EEly1gzngf1wxepj30yp0zkaeb.jpg">
+<meta property="og:image" content="http://tvax3.sinaimg.cn/large/008qL1EEly1gzgqqo09usj30gq065my9.jpg">
+<meta property="og:image" content="http://tvax1.sinaimg.cn/large/008qL1EEly1gzgqqpbi2yj30j306x75u.jpg">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20201012221558584.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20201012221656748.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20201012221749942.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20201012221919398.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20201012221956330.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20201012222108813.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20201012222151930.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20201012222350984.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20201012222504107.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20201012222542426.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
+<meta property="article:published_time" content="2022-02-14T20:08:37.000Z">
+<meta property="article:modified_time" content="2022-03-23T17:46:01.402Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="CMU_15-455">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://tvax4.sinaimg.cn/large/008qL1EEly1gzgq69nxvwj309h02nwel.jpg">
+  
+  
+  <title>CMU_15-445_PROJECT#2 - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>databrains</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="CMU_15-445_PROJECT#2">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2022-02-15 04:08" pubdate>
+        2022年2月15日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      20k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      170 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">CMU_15-445_PROJECT#2</h1>
+            
+            <div class="markdown-body">
+              <p>这个实验2真的是折磨死我了。</p>
+<h4 id="Tree-Index"><a href="#Tree-Index" class="headerlink" title="Tree Index"></a>Tree Index</h4><p>索引是对数据库表中一个或多个列进行排序的结构，是帮助数据库高效查询数据的数据结构。</p>
+<p>与hash table相比，hash table的时间复杂度是$O(1)$，最坏的时间复杂度是$O(n)$。在B+ Tree中，因为它是平衡的，所以它的时间复杂度始终是$O(log n)$，也就是说，对于一个叶子结点上的任何key来说，不管它距离根节点有多远，时间复杂度始终是$O(logn)$，不管我们删除多少次，插入多少次，修改周围的东西，它始终是$O(logn)$。对于一个多路查找树（M-way search tree）而言，在树中的每个节点处，它可以通过$&gt;=M$条不同的路线到达其他节点，它是完美平衡的，当我在对树进行修改时，该数据结构会始终保持平衡性，也就是说任何叶子节点到根节点始终是$O(logn)$，我们还要维护的一件事是，保证每个节点至少都是半满的状态。</p>
+<h5 id="B树"><a href="#B树" class="headerlink" title="B树"></a>B树</h5><p>B树是一种多路平衡查找树，其定义如下：</p>
+<ul>
+<li>每个节点最多有m-1个关键字</li>
+<li>根节点最少可以只有1个关键字</li>
+<li>非根节点至少有m/2个关键字</li>
+<li>每个节点中的关键字都按照从小到大的顺序排列，每个关键字的左子树中的所有关键字都小于它，而右子树中的所有关键字都大于它</li>
+<li>所有叶子节点都位于同一层，或者说根节点到每个叶子节点的长度都相同</li>
+<li>每个节点都存有索引和数据，也就是对应的key和value</li>
+</ul>
+<p>所以，根节点的关键字数量范围：$1&lt;=k&lt;=m-1$，非根节点的关键字数量范围：$m/2&lt;=k&lt;=m-1$，其中m为阶数，表示了一个节点最多有多少个孩子节点。比如有一个5阶的B树，根节点数量范围：$1&lt;=k&lt;=4$，非根节点数量范围：$2&lt;=k&lt;=4$。</p>
+<h6 id="B树插入操作"><a href="#B树插入操作" class="headerlink" title="B树插入操作"></a>B树插入操作</h6><p>插入的时候，我们需要记住一个规则：判断当前节点key的个数是否小于等于m-1，如果满足，直接插入即可，如果不满足，用节点的中间key将这个节点分为左右两部分，中间的节点放到父节点中即可。如下例子（例子来源于<a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000020416577">博客</a>)：</p>
+<p>在5阶B树中，节点最多有4个key，最少有2个key。</p>
+<ul>
+<li><p>插入18，70，50，40</p>
+<p><img src="http://tvax4.sinaimg.cn/large/008qL1EEly1gzgq69nxvwj309h02nwel.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+</li>
+<li><p>插入22</p>
+<p><img src="http://tvax4.sinaimg.cn/large/008qL1EEly1gzgqdxtu0ij309t02tglt.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+</li>
+</ul>
+<p>插入22时，发现这个节点的关键字已经大于4了，所以需要进行分裂，分裂的规则在上面已经讲了。分裂之后如下：</p>
+<p><img src="http://tva3.sinaimg.cn/large/008qL1EEly1gzgq69sd1nj30cj05zaau.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<ul>
+<li><p>接着插入23，25，39</p>
+<p><img src="http://tva1.sinaimg.cn/large/008qL1EEly1gzgqivcxnhj30g605egmn.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+</li>
+<li><p>分裂之后如下：</p>
+<p><img src="http://tva4.sinaimg.cn/large/008qL1EEly1gzgqf9hz9xj30fv07mjss.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+</li>
+</ul>
+<h6 id="B树删除操作"><a href="#B树删除操作" class="headerlink" title="B树删除操作"></a>B树删除操作</h6><p>B树的删除操作相对于一个插入操作是相对复杂一些的，如下面例子：</p>
+<ul>
+<li><p>现在有一个初始状态是下面这样的B树，然后进行删除操作：</p>
+<p><img src="http://tva3.sinaimg.cn/large/008qL1EEly1gzgqkj96wuj30kc09z777.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+</li>
+<li><p>删除15，这种情况是删除叶子节点的元素，如果删除之后，节点数还是大于m/2，这种情况只要直接删除即可。</p>
+<p><img src="http://tvax3.sinaimg.cn/large/008qL1EEly1gzgqkj96wuj30kc09z777.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+</li>
+</ul>
+<p>​    <img src="http://tvax1.sinaimg.cn/large/008qL1EEly1gzgqn1jtv6j30kc097wh4.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<ul>
+<li><p>接着，我们把22删除，这种情况的规则，22是非叶子节点，对于非叶子节点的删除，我们需要用后继key（元素）覆盖要删除的key，然后在后续key所在的子支中删除该后继key。对于删除22，需要将后继元素24移动到被删除的22所在的节点。对于删除22,需要将后继元素24移到被删除的22所在的节点。</p>
+<p><img src="http://tvax3.sinaimg.cn/large/008qL1EEly1gzgqngoe2bj30kc0bdwi0.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><img src="http://tvax2.sinaimg.cn/large/008qL1EEly1gzgqngtxitj30kc092dij.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+</li>
+<li><p>此时我们发现26所在的节点只有一个元素，小于2（m/2)个，这个节点不符合要求，这时候的规则就是向兄弟节点借元素，如下图所示：</p>
+<p><img src="http://tva2.sinaimg.cn/large/008qL1EEly1gzgqot9ctcj30kc092q5y.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+</li>
+<li><p>移动之后，跟兄弟节点合并</p>
+<p><img src="http://tvax4.sinaimg.cn/large/008qL1EEly1gzgqotdmt2j30kc09476w.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+</li>
+</ul>
+<h5 id="B-树"><a href="#B-树" class="headerlink" title="B+树"></a>B+树</h5><p>B+树其实和B树是非常相似的，我们可以看看相同点。</p>
+<ul>
+<li>根节点至少一个元素</li>
+<li>非跟节点元素范围：$m/2&lt;=k&lt;=m-1$</li>
+</ul>
+<h6 id="不同点"><a href="#不同点" class="headerlink" title="不同点"></a>不同点</h6><ul>
+<li>B+树有两种类型的节点：内部节点和叶子节点，内部节点就是非叶子节点，内部节点不存储数据，只存储索引，数据都存储在叶子节点。</li>
+<li>内部节点的key都按照从小到大的顺序排列，对于内部节点中的一个key，左树中的所有key都小于它，右子树中的key都大于等于它。叶子节点中的记录也按照key的大小排列。</li>
+<li>每个叶子节点都存有相邻叶子节点的指针，叶子节点本身依关键字的大小自小而大顺序链接。</li>
+<li>父节点存有右孩子第一个元素的索引。</li>
+</ul>
+<p>如下图所示：</p>
+<p><img src="http://tva3.sinaimg.cn/large/008qL1EEly1gzgqqllp4vj30hg09y411.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<h6 id="插入操作"><a href="#插入操作" class="headerlink" title="插入操作"></a>插入操作</h6><p>对于插入操作很简单，只需要记住一个技巧即可：当节点元素数量大于m-1的时候，按中间元素分裂成左右两部分，中间元素分裂到父节点当作索引存储，但是，本身中间元素还是分裂右边这一部分。</p>
+<p>下面以一颗5阶B+树的插入过程为例，5阶B+树的节点最少2个元素，最多4个元素。</p>
+<ul>
+<li><p>插入5，10，15，20</p>
+<p><img src="http://tva2.sinaimg.cn/large/008qL1EEly1gzgqqlox85j309s04a0t2.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+</li>
+<li><p>插入25，此时元素数量大于4个了，分裂</p>
+<p><img src="http://tva3.sinaimg.cn/large/008qL1EEly1gzgqqmspi7j30f206qab4.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+</li>
+<li><p>接着插入26，30，继续分裂</p>
+<p><img src="http://tvax3.sinaimg.cn/large/008qL1EEly1gzgqqo09usj30gq065my9.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+</li>
+</ul>
+<p>​    <img src="http://tvax1.sinaimg.cn/large/008qL1EEly1gzgqqpbi2yj30j306x75u.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<h6 id="删除操作"><a href="#删除操作" class="headerlink" title="删除操作"></a>删除操作</h6><p>对于删除操作是比B树简单一些的，因为叶子节点有指针的存在，向兄弟节点借元素时，不需要通过父节点了，而是可以通过兄弟节点移动即可（前提是兄弟节点的元素大于m/2），然后更新父节点的索引；如果兄弟节点的元素不大于m/2（兄弟节点也没有多余的元素），则将当前节点和兄弟节点合并，并且删除父节点中的key，下面我们看看具体的实现：</p>
+<ul>
+<li><p>初始状态</p>
+<p><img src="http://tvax3.sinaimg.cn/large/008qL1EEly1gzgqqqrlisj30kc06rdi1.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+</li>
+<li><p>删除10，删除后，不满足要求，发现左边兄弟节点有多余的元素，所以去借元素，最后，修改父节点索引。</p>
+<p><img src="http://tvax1.sinaimg.cn/large/008qL1EEly1gzgqqs09qyj30kc06sq54.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+</li>
+<li><p>删除元素5，发现不满足要求，并且发现左右兄弟节点都没有多余的元素，所以，可以选择和兄弟节点合并，最后修改父节点索引。</p>
+<p><img src="http://tva1.sinaimg.cn/large/008qL1EEly1gzgqqtk9yvj30kc07wmzg.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+</li>
+<li><p>发现父节点索引也不满足条件，所以，需要做跟上面一步一样的操作</p>
+<p><img src="http://tva1.sinaimg.cn/large/008qL1EEly1gzgqqvn3nkj30kc080wgw.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+</li>
+</ul>
+<p>B+树相对于B树有一些优势，如下：</p>
+<ul>
+<li>单一节点存储的元素更多，使得查询的IO次数更多，所以也就使得它更适合作为数据库MySQL的底层数据结构。</li>
+<li>所有的查询都要查找到叶子节点，查询性能是稳定的，而B树每个节点都可以查找到数据，所以不稳定。</li>
+<li>所有的叶子节点形成了一个有序链表，更便于查找。</li>
+<li>B+树的空间利用率更高，可减少I/O次数，磁盘读写代价更低。</li>
+<li>增删文件时，效率更高，因为B+树的叶子节点包含所有关键字，并以有序的链表结构存储，这样可以很好的增删效率。</li>
+</ul>
+<h5 id="PostgreSQL中的B-树"><a href="#PostgreSQL中的B-树" class="headerlink" title="PostgreSQL中的B+树"></a>PostgreSQL中的B+树</h5><p>现在几乎所有有关PostgreSQL的文档描述PostgreSQL底层结构都是用的B-树这个名词。但我们学了Andy教授的课程都知道，其实这里的B-树是指的B+树。</p>
+<h5 id="InnoDB中的B-树"><a href="#InnoDB中的B-树" class="headerlink" title="InnoDB中的B+树"></a>InnoDB中的B+树</h5><p>存储引擎（Storage engine）：MySQL中的数据，索引以及其他对象是如何存储的，是一套文件系统的实现。</p>
+<p>在InnoDB引擎中，提供了对数据库ACID事务的支持。并且还提供了行级锁和外键的约束。它的设计的目标就是处理大数据容量的数据库系统。</p>
+<p>让我们把视角放到宏观，InnoDB会通过index来实现行锁，如：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><pre><code class="hljs c">select * from tab_with_index where id = <span class="hljs-number">1</span> <span class="hljs-keyword">for</span> update;<br></code></pre></td></tr></table></figure>
+<p>id是有索引的列，如果id不是索引键那么InnoDB将完成表锁。</p>
+<hr>
+<p>在这里插入红黑树：</p>
+<p>要理解红黑树，我觉得还是要和二叉搜索树、AVL树结合起来理解。</p>
+<p>我们都知道，二叉搜索树的性质是顺序存储，缺点是不平衡，在极端情况下会变成链表；AVL树的性质是平衡，如果我们将二者的性质结合起来，就成了红黑树的雏形，红黑树按照顺序存储，还可以保持一定的平衡（放弃了AVL树绝对平衡的性质，而是根据自身红黑的性质保持相对平衡，插入与删除时会比AVL树更方便），这样就稳定了查询时间。</p>
+<p>红黑树是一种含有红黑结点并能自平衡的二叉查找树。它必须满足下面性质：</p>
+<p>性质1：每个节点要么是黑色，要么是红色。</p>
+<p>性质2：根节点是黑色。</p>
+<p>性质3：每个叶子节点（NIL）是黑色。 </p>
+<p>性质4：每个红色结点的两个子结点一定都是黑色。</p>
+<p>性质5：任意一结点到每个叶子结点的路径都包含数量相同的黑结点。（保证这棵树尽量是平衡的。）</p>
+<hr>
+<h5 id="TASK-1-B-TREE-PAGES"><a href="#TASK-1-B-TREE-PAGES" class="headerlink" title="TASK #1 - B+TREE PAGES"></a>TASK #1 - B+TREE PAGES</h5><p>我们首先要了解B+树中的key-value映射，key是我们要找的关键字，value指向下一个节点。内部节点的key都按照从小到大的顺序排列，对于内部节点中的一个key，左树中的所有key都小于它，右子树中的key都大于等于它。叶子节点中的记录也按照key的大小排列。父节点存有右孩子第一个元素的索引。</p>
+<h6 id="B-TREE-PARENT-PAGE"><a href="#B-TREE-PARENT-PAGE" class="headerlink" title="B+TREE PARENT PAGE"></a>B+TREE PARENT PAGE</h6><p>这是内部页和叶页都继承的父类，它只包含两个子类共享的信息。<strong>即所有的节点都复用一个header数据域类，其定义在b_plus_tree_page.h中</strong>，我们先来看看如下定义：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Variable Name</th>
+<th>Size</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>page<em>type</em></td>
+<td>4</td>
+<td>Page Type (internal or leaf)//页面类型，内部页或者叶子页</td>
+</tr>
+<tr>
+<td>lsn_</td>
+<td>4</td>
+<td>Log sequence number (Used in Project 4)//日志序列号？</td>
+</tr>
+<tr>
+<td>size_</td>
+<td>4</td>
+<td>Number of Key &amp; Value pairs in page//页面键值对的数量</td>
+</tr>
+<tr>
+<td>max<em>size</em></td>
+<td>4</td>
+<td>Max number of Key &amp; Value pairs in page//键值对最大数</td>
+</tr>
+<tr>
+<td>parent<em>page_id</em></td>
+<td>4</td>
+<td>Parent Page Id//父页面ID</td>
+</tr>
+<tr>
+<td>page<em>id</em></td>
+<td>4</td>
+<td>Self Page Id//页面ID</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>在这里我们要实现一些简单的set和get函数，因为非常简单，所以就不列举出来了，但是有一个函数不太简单，那就是<code>GetMinSize</code>函数，正如我们在前面所说的，根节点可以拥有少于半数的元素，而且根节点也有可能是叶节点。我们知道，内部节点的array中的第一个键值对中的键是不可用的，正如下图所示：</p>
+<p><img src="http://tvax1.sinaimg.cn/large/008qL1EEly1gzgqqs09qyj30kc06sq54.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>我们发现键总是比值少一个。所以说，如果是根节点且根节点是内部节点，那么可以拥有最少2个数组项，其中第0项是无效key的那个；如果是根节点且根节点是叶子节点，那么最少有1个数组项。</p>
+<p>在这种情况下，要想实现就很难了，所以我一开始直接简单粗暴的用内部节点来编写这个函数，如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">BPlusTreePage::GetMinSize</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123;<span class="hljs-keyword">return</span> max_size_/<span class="hljs-number">2</span>;&#125;<br></code></pre></td></tr></table></figure>
+<p>不出意外是会在后续的测试中出错，所以我们改一下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">BPlusTreePage::GetMinSize</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123;<br>  <span class="hljs-keyword">if</span>(<span class="hljs-built_in">IsRootPage</span>())&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-built_in">IsLeafPage</span>()?<span class="hljs-number">1</span>:<span class="hljs-number">2</span>;<br>  &#125;<br>  <span class="hljs-keyword">if</span>(<span class="hljs-built_in">IsLeafPage</span>())&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-built_in">ceil</span>(max_size_);<br>  &#125;<br>  <span class="hljs-keyword">return</span> <span class="hljs-built_in">ceil</span>(max_size_<span class="hljs-number">-1</span>)/<span class="hljs-number">2</span>+<span class="hljs-number">1</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h6 id="B-TREE-INTERNAL-PAGE"><a href="#B-TREE-INTERNAL-PAGE" class="headerlink" title="B+TREE INTERNAL PAGE"></a>B+TREE INTERNAL PAGE</h6><p>我们可以先了解一下内部节点的声明，如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Store n indexed keys and n+1 child pointers (page_id) within internal page.</span><br><span class="hljs-comment"> * Pointer PAGE_ID(i) points to a subtree in which all keys K satisfy:</span><br><span class="hljs-comment"> * K(i) &lt;= K &lt; K(i+1).</span><br><span class="hljs-comment"> * <span class="hljs-doctag">NOTE:</span> since the number of keys does not equal to number of child pointers,</span><br><span class="hljs-comment"> * the first key always remains invalid. That is to say, any search/lookup</span><br><span class="hljs-comment"> * should ignore the first key.</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * Internal page format (keys are stored in increasing order):</span><br><span class="hljs-comment"> *  --------------------------------------------------------------------------</span><br><span class="hljs-comment"> * | HEADER | KEY(1)+PAGE_ID(1) | KEY(2)+PAGE_ID(2) | ... | KEY(n)+PAGE_ID(n) |</span><br><span class="hljs-comment"> *  --------------------------------------------------------------------------</span><br><span class="hljs-comment"> */</span><br></code></pre></td></tr></table></figure>
+<p>在这个声明当中，我们可以得知，内部节点会有n个key和n+1个page_id，所以，为了使得key和value对应，第一个key是无效的，任何的search/lookup必须忽略第一个key。其实啊，这第一个key我们可以理解为header，父节点的指针就是指向这里。</p>
+<ul>
+<li><p>获取/设置key的函数，如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function">KeyType <span class="hljs-title">B_PLUS_TREE_INTERNAL_PAGE_TYPE::KeyAt</span><span class="hljs-params">(<span class="hljs-keyword">int</span> index)</span> <span class="hljs-keyword">const</span> </span>&#123;<br>  <span class="hljs-comment">// replace with your own code</span><br>  KeyType key=array_[index].first;<br>  <span class="hljs-keyword">return</span> key;<br>&#125;<br><br><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">B_PLUS_TREE_INTERNAL_PAGE_TYPE::SetKeyAt</span><span class="hljs-params">(<span class="hljs-keyword">int</span> index, <span class="hljs-keyword">const</span> KeyType &amp;key)</span> </span>&#123;<br>  array_[index].first=key;<br>&#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>接着是通过value获取index和通过index获取value，如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueIndex</span><span class="hljs-params">(<span class="hljs-keyword">const</span> ValueType &amp;value)</span> <span class="hljs-keyword">const</span> </span>&#123;<br>  <span class="hljs-keyword">int</span> index=<span class="hljs-number">0</span>;<br>  <span class="hljs-keyword">while</span>(array_[index].second!=value)&#123;<br>    index++;<br>  &#125;<br>  <span class="hljs-keyword">return</span> index;<br>&#125;<br><br><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function">ValueType <span class="hljs-title">B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueAt</span><span class="hljs-params">(<span class="hljs-keyword">int</span> index)</span> <span class="hljs-keyword">const</span> </span>&#123;<br>  ValueType value=array_[index].second;<br>  <span class="hljs-keyword">return</span> value;<br>&#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>接着是通过key从当前节点查找下一节点，如下所示（具体实现看代码注释）：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function">ValueType <span class="hljs-title">B_PLUS_TREE_INTERNAL_PAGE_TYPE::Lookup</span><span class="hljs-params">(<span class="hljs-keyword">const</span> KeyType &amp;key, <span class="hljs-keyword">const</span> KeyComparator &amp;comparator)</span> <span class="hljs-keyword">const</span> </span>&#123;<br>  <span class="hljs-comment">//采用二分查找</span><br>  <span class="hljs-keyword">int</span> left=<span class="hljs-number">1</span>;<br>  <span class="hljs-keyword">int</span> right=<span class="hljs-built_in">GetSize</span>()<span class="hljs-number">-1</span>;<br>  <span class="hljs-keyword">int</span> mid;<br>  <span class="hljs-keyword">while</span>(left&lt;=right)&#123;<br>    mid=left+(right-left)/<span class="hljs-number">2</span>;<br>    <span class="hljs-keyword">int</span> res=<span class="hljs-built_in">comparator</span>(array_[mid].first,key);<br>    <span class="hljs-keyword">if</span>(res==<span class="hljs-number">0</span>)&#123;<span class="hljs-comment">//如果找到直接返回</span><br>      <span class="hljs-keyword">return</span> array_[mid].second;<br>    &#125;<br>    <span class="hljs-keyword">if</span>(res&lt;<span class="hljs-number">0</span>)&#123;<br>      left=mid+<span class="hljs-number">1</span>;<br>    &#125;<br>    <span class="hljs-keyword">if</span>(res&gt;<span class="hljs-number">0</span>)&#123;<br>      right=mid<span class="hljs-number">-1</span>;<br>    &#125;<br>  &#125;<br>  <span class="hljs-keyword">int</span> target=left;<br>  <span class="hljs-comment">//如果key比array中的所有key都大，就返回最后一个key的value</span><br>  <span class="hljs-keyword">if</span>(target&gt;=<span class="hljs-built_in">GetSize</span>())&#123;<br>    <span class="hljs-keyword">return</span> array_[<span class="hljs-built_in">GetSize</span>()<span class="hljs-number">-1</span>].second;<br>  &#125;<br>  <span class="hljs-comment">//否则返回target-1的value</span><br>  <span class="hljs-keyword">return</span> array_[target<span class="hljs-number">-1</span>].second;<br>&#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>我们先来实现<code>CopyNFrom</code>函数，这个函数的意思就是最简单的插入操作，至于其他更复杂的操作则在其他函数实现。那么这就很简单了，我们可以直接将key-value插入进去。在这里我们用到了copy函数，我们来说一说:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c++">std::<span class="hljs-built_in">copy</span>(iterator source_first, iterator source_end, iterator target_start);<br></code></pre></td></tr></table></figure>
+<p>在这里，我们设置<code>source_first=items</code>，设置<code>source_end=items+size</code>，设置目标迭代器为array_，这样我们就将items到items+size的元素复制到了array。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">B_PLUS_TREE_INTERNAL_PAGE_TYPE::CopyNFrom</span><span class="hljs-params">(MappingType *items, <span class="hljs-keyword">int</span> size, BufferPoolManager *buffer_pool_manager)</span> </span>&#123;<br>  std::<span class="hljs-built_in">copy</span>(items,items+size,array_);<br>  <span class="hljs-built_in">IncreaseSize</span>(size);<br>&#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>然后是<code>PopulateNewRoot</code>函数，这里模拟的是新建一个root页面，在上面我们已经将过了，直接贴代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">B_PLUS_TREE_INTERNAL_PAGE_TYPE::PopulateNewRoot</span><span class="hljs-params">(<span class="hljs-keyword">const</span> ValueType &amp;old_value, <span class="hljs-keyword">const</span> KeyType &amp;new_key,<span class="hljs-keyword">const</span> ValueType &amp;new_value)</span> </span>&#123;<br>  <span class="hljs-comment">//oldvalue为第一个值</span><br>  array_[<span class="hljs-number">0</span>].second=old_value;<br>  <span class="hljs-comment">//后面一对键值对</span><br>  <span class="hljs-built_in">SetKeyAt</span>(<span class="hljs-number">1</span>,new_key);<br>  array_[<span class="hljs-number">1</span>].second=new_value;<br>  <span class="hljs-built_in">IncreaseSize</span>(<span class="hljs-number">2</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p><code>InsertNodeAfter</code>函数，在old_value后面加入新的key-value对，如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">B_PLUS_TREE_INTERNAL_PAGE_TYPE::InsertNodeAfter</span><span class="hljs-params">(<span class="hljs-keyword">const</span> ValueType &amp;old_value, <span class="hljs-keyword">const</span> KeyType &amp;new_key,<span class="hljs-keyword">const</span> ValueType &amp;new_value)</span> </span>&#123;<br>  <span class="hljs-comment">//在旧的value之后插入新的key-value</span><br>  <span class="hljs-keyword">int</span> index= <span class="hljs-built_in">ValueIndex</span>(old_value);<br>  <span class="hljs-keyword">for</span>(<span class="hljs-keyword">int</span> i=<span class="hljs-built_in">GetSize</span>()<span class="hljs-number">-1</span>;i&gt;index;i--)&#123;<br>    array_[i+<span class="hljs-number">1</span>]=array_[i];<br>  &#125;<br>  array_[index+<span class="hljs-number">1</span>]=&#123;new_key,new_value&#125;;<br>  <span class="hljs-built_in">IncreaseSize</span>(<span class="hljs-number">1</span>);<br>  <span class="hljs-keyword">return</span> <span class="hljs-built_in">GetSize</span>();<br>&#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>然后我们来实现分裂操作，也就是节点中元素数量大于Max_Size时，我们需要做的操作，如下图所示。</p>
+<p><img src="http://tva3.sinaimg.cn/large/008qL1EEly1gzgqqmspi7j30f206qab4.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">B_PLUS_TREE_INTERNAL_PAGE_TYPE::MoveHalfTo</span><span class="hljs-params">(BPlusTreeInternalPage *recipient,BufferPoolManager *buffer_pool_manager)</span> </span>&#123;<br>	  <span class="hljs-comment">// 拷贝</span><br>  <span class="hljs-keyword">int</span> last_index = <span class="hljs-built_in">GetSize</span>() - <span class="hljs-number">1</span>;<br>  <span class="hljs-keyword">int</span> start = last_index / <span class="hljs-number">2</span> + <span class="hljs-number">1</span>;<br>  <span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>;<br>  <span class="hljs-keyword">int</span> j = start;<br>  <span class="hljs-keyword">while</span> (j &lt;= last_index) &#123;<br>    recipient-&gt;array_[i].first = array_[j].first;<br>    recipient-&gt;array_[i].second = array_[j].second;<br>    i++;<br>    j++;<br>  &#125;<br><br>  <span class="hljs-comment">// 维护size</span><br>  <span class="hljs-built_in">SetSize</span>(start);<br>  recipient-&gt;<span class="hljs-built_in">SetSize</span>(last_index - start + <span class="hljs-number">1</span>);<br><br>  <span class="hljs-comment">// 维护孩子节点的parent_page_id</span><br>  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; recipient-&gt;<span class="hljs-built_in">GetSize</span>(); i++) &#123;<br>    <span class="hljs-keyword">auto</span> page_id = recipient-&gt;<span class="hljs-built_in">ValueAt</span>(i);<br>    <span class="hljs-keyword">auto</span> page = buffer_pool_manager-&gt;<span class="hljs-built_in">FetchPage</span>(page_id);<br>    BPlusTreePage *bp = <span class="hljs-keyword">reinterpret_cast</span>&lt;BPlusTreePage *&gt;(page-&gt;<span class="hljs-built_in">GetData</span>());<br>    bp-&gt;<span class="hljs-built_in">SetParentPageId</span>(recipient-&gt;<span class="hljs-built_in">GetPageId</span>());<br>    buffer_pool_manager-&gt;<span class="hljs-built_in">UnpinPage</span>(page_id, <span class="hljs-literal">true</span>);<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>对于删除操作，我们首先要实现<code>Remove</code>函数，利用<code>copy</code>函数实现，这里就不贴代码了。</p>
+</li>
+<li><p>接下来我们重点要实现的就是这几个Move函数，对于这几个函数，我们会用到第一个实验中的buffer_pool_manager，我们挑一个函数进行讲解。</p>
+<p>对于<code>MoveAllTo</code>函数，我们要将节点中的所有键值对删除到“收件人”节点。此外我们还要将孩子节点的父节点转化为recipient，如下图所示：</p>
+<p><img src="http://tvax4.sinaimg.cn/large/008qL1EEly1gzngf1wxepj30yp0zkaeb.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+</li>
+</ul>
+<p>​        除此之外，我们还要将该节点的父节点的子节点换成recipient。代码如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">B_PLUS_TREE_INTERNAL_PAGE_TYPE::MoveAllTo</span><span class="hljs-params">(BPlusTreeInternalPage *recipient, <span class="hljs-keyword">const</span> KeyType &amp;middle_key,</span></span><br><span class="hljs-params"><span class="hljs-function">                                               BufferPoolManager *buffer_pool_manager)</span> </span>&#123;<br>  <span class="hljs-keyword">auto</span> parent_page = <span class="hljs-keyword">reinterpret_cast</span>&lt;B_PLUS_TREE_INTERNAL_PAGE_TYPE *&gt;<br>  (buffer_pool_manager-&gt;<span class="hljs-built_in">FetchPage</span>(<span class="hljs-built_in">GetParentPageId</span>())-&gt;<span class="hljs-built_in">GetData</span>());<br><br>  <span class="hljs-keyword">for</span>(<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i&lt; <span class="hljs-built_in">GetSize</span>(); i++)&#123;<br>    <span class="hljs-comment">//获取孩子节点页面</span><br>    <span class="hljs-keyword">auto</span> page = buffer_pool_manager-&gt;<span class="hljs-built_in">FetchPage</span>(array_[i].second);<br>    <span class="hljs-keyword">auto</span> child_page = <span class="hljs-keyword">reinterpret_cast</span>&lt;BPlusTreePage *&gt;(page-&gt;<span class="hljs-built_in">GetData</span>());<br>    <span class="hljs-comment">//将孩子节点页面的父节点转换为recipient</span><br>    child_page-&gt;<span class="hljs-built_in">SetParentPageId</span>(recipient-&gt;<span class="hljs-built_in">GetPageId</span>());<br>    buffer_pool_manager-&gt;<span class="hljs-built_in">UnpinPage</span>(child_page-&gt;<span class="hljs-built_in">GetPageId</span>(), <span class="hljs-literal">true</span>);<br>  &#125;<br><br><br>  <span class="hljs-keyword">int</span> prior_size = recipient-&gt;<span class="hljs-built_in">GetSize</span>();<br>  recipient-&gt;<span class="hljs-built_in">SetKeyAt</span>(prior_size, middle_key);<br>  recipient-&gt;<span class="hljs-built_in">SetValueAt</span>(prior_size, <span class="hljs-built_in">ValueAt</span>(<span class="hljs-number">0</span>));<br>  recipient-&gt;<span class="hljs-built_in">IncreaseSize</span>(<span class="hljs-number">1</span>); <span class="hljs-comment">//注意别忘了更新</span><br><br>  recipient-&gt;<span class="hljs-built_in">CopyNFrom</span>(array_+<span class="hljs-number">1</span>, <span class="hljs-built_in">GetSize</span>()<span class="hljs-number">-1</span>, buffer_pool_manager);<br>  <span class="hljs-built_in">SetSize</span>(<span class="hljs-number">0</span>);<br>  buffer_pool_manager-&gt;<span class="hljs-built_in">UnpinPage</span>(parent_page-&gt;<span class="hljs-built_in">GetPageId</span>(), <span class="hljs-literal">true</span>);<br>&#125;<br>	<br></code></pre></td></tr></table></figure>
+<h6 id="B-TREE-LEAF-PAGE"><a href="#B-TREE-LEAF-PAGE" class="headerlink" title="B+TREE LEAF PAGE"></a>B+TREE LEAF PAGE</h6><p>在这里leafpage的value是RID，什么是RID呢？RID=page_id + slot number。</p>
+<ul>
+<li><p>一些简单的set/get函数，代码如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function"><span class="hljs-keyword">page_id_t</span> <span class="hljs-title">B_PLUS_TREE_LEAF_PAGE_TYPE::GetNextPageId</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> next_page_id_; &#125;<br><br><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">B_PLUS_TREE_LEAF_PAGE_TYPE::SetNextPageId</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> next_page_id)</span> </span>&#123;<br>  next_page_id_=next_page_id;<br>&#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>KeyIndex函数要求我们找到第一个大于key的元素的索引，我们还是可以用二分法进行查找，代码如下所示，这里就不写注释了：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">B_PLUS_TREE_LEAF_PAGE_TYPE::KeyIndex</span><span class="hljs-params">(<span class="hljs-keyword">const</span> KeyType &amp;key, <span class="hljs-keyword">const</span> KeyComparator &amp;comparator)</span> <span class="hljs-keyword">const</span> </span>&#123;<br>  <span class="hljs-keyword">int</span> left=<span class="hljs-number">0</span>;<br>  <span class="hljs-keyword">int</span> right=<span class="hljs-built_in">GetSize</span>()<span class="hljs-number">-1</span>;<br>  <span class="hljs-keyword">while</span>(left&lt;=right)&#123;<br>    <span class="hljs-keyword">int</span> mid=left+(right-left)/<span class="hljs-number">2</span>;<br>    <span class="hljs-keyword">int</span> res=<span class="hljs-built_in">comparator</span>(key,array_[mid].first);<br>    <span class="hljs-keyword">if</span>(res==<span class="hljs-number">0</span>)&#123;<br>      <span class="hljs-keyword">return</span> mid;<br>    &#125;<br>    <span class="hljs-keyword">if</span>(res&gt;<span class="hljs-number">0</span>)&#123;<br>      left=mid+<span class="hljs-number">1</span>;<br>    &#125;<span class="hljs-keyword">else</span>&#123;<br>      right=mid<span class="hljs-number">-1</span>;<br>    &#125;<br>  &#125;<br>  <span class="hljs-keyword">return</span> left;<br>&#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>返回index对应的key，以及返回index对应的key-value对，如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function">KeyType <span class="hljs-title">B_PLUS_TREE_LEAF_PAGE_TYPE::KeyAt</span><span class="hljs-params">(<span class="hljs-keyword">int</span> index)</span> <span class="hljs-keyword">const</span> </span>&#123;<br>  <span class="hljs-comment">// replace with your own code</span><br>  KeyType key = array[index].first;<br>  <span class="hljs-keyword">return</span> key;<br>&#125;<br><br><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function"><span class="hljs-keyword">const</span> MappingType &amp;<span class="hljs-title">B_PLUS_TREE_LEAF_PAGE_TYPE::GetItem</span><span class="hljs-params">(<span class="hljs-keyword">int</span> index)</span> </span>&#123;<br>  <span class="hljs-keyword">return</span> array[index];<br>&#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>leafpage的插入操作，我们用上文中的<code>KeyIndex</code>函数找到相应的index，然后插入进去，代码如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">B_PLUS_TREE_LEAF_PAGE_TYPE::Insert</span><span class="hljs-params">(<span class="hljs-keyword">const</span> KeyType &amp;key, <span class="hljs-keyword">const</span> ValueType &amp;value, <span class="hljs-keyword">const</span> KeyComparator &amp;comparator)</span> </span>&#123;<br>  <span class="hljs-keyword">int</span> index=<span class="hljs-built_in">KeyIndex</span>(key,comparator);<br>  <span class="hljs-keyword">for</span>(<span class="hljs-keyword">int</span> i=<span class="hljs-built_in">GetSize</span>()<span class="hljs-number">-1</span>;i&gt;=index;i--)&#123;<br>    array_[i+<span class="hljs-number">1</span>]=array_[i];<br>  &#125;<br>  array_[index].first=key;<br>  array_[index].second=value;<br>  <span class="hljs-built_in">IncreaseSize</span>(<span class="hljs-number">1</span>);<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p><code>MoveFirstToEndOf</code>函数：将此页面中的第一个键值对删除到recipient页面。</p>
+<p>在这个函数中要调用<code>CopyLastFrom</code>函数，我们将第一个键值读取出来用<code>CopyLastFrom</code>函数写入recipient中，然后用copy函数将当前page array向右边移动一格。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">B_PLUS_TREE_LEAF_PAGE_TYPE::MoveFirstToEndOf</span><span class="hljs-params">(BPlusTreeLeafPage *recipient)</span> </span>&#123;<br>  MappingType item=array_[<span class="hljs-number">0</span>];<br>  recipient-&gt;<span class="hljs-built_in">CopyLastFrom</span>(item);<br>  std::<span class="hljs-built_in">copy</span>(array_+<span class="hljs-number">1</span>, array_+<span class="hljs-built_in">GetSize</span>(), array_);<span class="hljs-comment">//当前page元素均向右移动一格</span><br>  <span class="hljs-built_in">IncreaseSize</span>(<span class="hljs-number">-1</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>相同的道理，<code>MoveLastToFrontOf</code>如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">B_PLUS_TREE_LEAF_PAGE_TYPE::MoveLastToFrontOf</span><span class="hljs-params">(BPlusTreeLeafPage *recipient)</span> </span>&#123;<br>      <span class="hljs-comment">/*</span><br><span class="hljs-comment">      * 更新recipient page的信息</span><br><span class="hljs-comment">      */</span><br>  MappingType item=array_[<span class="hljs-built_in">GetSize</span>()<span class="hljs-number">-1</span>];<br>  recipient-&gt;<span class="hljs-built_in">CopyFirstFrom</span>(item);<br>  <span class="hljs-built_in">IncreaseSize</span>(<span class="hljs-number">-1</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+</li>
+</ul>
+<h5 id="TASK-2-A-B-TREE-DATA-STRUCTURE-INSERTION-amp-POINT-SEARCH"><a href="#TASK-2-A-B-TREE-DATA-STRUCTURE-INSERTION-amp-POINT-SEARCH" class="headerlink" title="TASK #2.A - B+TREE DATA STRUCTURE (INSERTION &amp; POINT SEARCH)"></a>TASK #2.A - B+TREE DATA STRUCTURE (INSERTION &amp; POINT SEARCH)</h5><p>在这个任务中我们要实现<code>b_plus_tree.cpp</code>中的函数，才能完成一个完整的b+树结构。</p>
+<p>我们还是先来分析一下给定的<code>b_plus_tree</code>类中的数据结构，如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">// member variable</span><br>std::string index_name_;<span class="hljs-comment">//</span><br><span class="hljs-keyword">page_id_t</span> root_page_id_;<span class="hljs-comment">//root_page_id,用来引导整个b+树</span><br>BufferPoolManager *buffer_pool_manager_;<span class="hljs-comment">//</span><br>KeyComparator comparator_;<br><span class="hljs-keyword">int</span> leaf_max_size_;<span class="hljs-comment">//b+树的叶子节点的最大容量</span><br><span class="hljs-keyword">int</span> internal_max_size_;<span class="hljs-comment">//中间节点的最大容量</span><br></code></pre></td></tr></table></figure>
+<ul>
+<li><p>首先是<code>IsEmpty</code>函数，对于该函数，我们只要判断root_page_id是否有效就可以判断b+树是否为空，代码如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">BPLUSTREE_TYPE::IsEmpty</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123;<br>  <span class="hljs-keyword">return</span> root_page_id_==INVALID_PAGE_ID;<br>&#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p><code>IsEmpty</code>函数往往与<code>StartNewTree</code>函数一起调用，对于<code>StartNewTree</code>函数来说，我们首先将root_page_id对应的页面写到buffer pool，然后然后对其进行初始化，将key-value插入进去，最后unpin。关键代码如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++">Page *new_page = buffer_pool_manager_-&gt;<span class="hljs-built_in">NewPage</span>(&amp;root_page_id_)<span class="hljs-comment">//to buffer pool</span><br>LeafPage *leaf_page = <span class="hljs-keyword">reinterpret_cast</span>&lt;LeafPage *&gt;(new_page);<br>leaf_page-&gt;<span class="hljs-built_in">Init</span>(root_page_id_,INVALID_PAGE_ID,leaf_max_size_);<span class="hljs-comment">//初始化</span><br>leaf_page-&gt;<span class="hljs-built_in">Insert</span>(key, value, comparator_);<span class="hljs-comment">//insert</span><br>buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(root_page_id_, <span class="hljs-literal">true</span>);  <span class="hljs-comment">// unpin</span><br></code></pre></td></tr></table></figure>
+</li>
+<li><p><code>InsertIntoLeaf</code>函数，将常量键值对插入叶页，用户需要先找到正确的叶子页面作为插入目标，然后再看通过叶子页面查看插入键是否存在。 如果存在，返回，否则插入条目。 如有必要，请记住处理拆分。因为我们只支持唯一键，如果用户尝试插入重复键返回 false，否则返回 true。注意，我们这里判断是否分裂用的是<code>if (leaf_page-&gt;GetSize() == maxSize(leaf_page) + 1)</code>。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">//如果需要新建树</span><br>  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">IsEmpty</span>()) &#123;<br>    <span class="hljs-built_in">StartNewTree</span>(key, value);<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>  &#125;<br>  <span class="hljs-comment">// 1. if insert key is exist</span><br>  <span class="hljs-keyword">if</span> (leaf_page-&gt;<span class="hljs-built_in">Lookup</span>(key, <span class="hljs-literal">nullptr</span>, comparator_)) &#123;<br>    buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(leaf_page-&gt;<span class="hljs-built_in">GetPageId</span>(), <span class="hljs-literal">false</span>); <span class="hljs-comment">// unpined page</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br>  <span class="hljs-comment">// 1. if insert key is exist</span><br>  <span class="hljs-keyword">if</span> (leaf_page-&gt;<span class="hljs-built_in">Lookup</span>(key, <span class="hljs-literal">nullptr</span>, comparator_)) &#123;<br>    buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(leaf_page-&gt;<span class="hljs-built_in">GetPageId</span>(), <span class="hljs-literal">false</span>); <span class="hljs-comment">// unpined page</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br>   <span class="hljs-comment">// 2. insert entry</span><br>  leaf_page-&gt;<span class="hljs-built_in">Insert</span>(key, value, comparator_);<br>  <br>   <span class="hljs-keyword">if</span> (leaf_page-&gt;<span class="hljs-built_in">GetSize</span>() == <span class="hljs-built_in">maxSize</span>(leaf_page) + <span class="hljs-number">1</span>) &#123;<br>    LeafPage *new_leaf = <span class="hljs-built_in">Split</span>(leaf_page);<br>    <span class="hljs-built_in">InsertIntoParent</span>(leaf_page, new_leaf-&gt;<span class="hljs-built_in">KeyAt</span>(<span class="hljs-number">0</span>), new_leaf, transaction);<br>  &#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>我们在<code>Split</code>函数中有可能用到<code>InsertIntoParent</code>，我们用下面两幅图来解释这个过程：</p>
+<p><img src="http://tvax3.sinaimg.cn/large/008qL1EEly1gzgqqo09usj30gq065my9.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><img src="http://tvax1.sinaimg.cn/large/008qL1EEly1gzgqqpbi2yj30j306x75u.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>在这里，如果说old_node是根节点，那么整棵树直接升高一层，我们创建一个新节点R作为根节点，其关键字为key，左右孩子分别为old_node和new_node，如上图所示。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">if</span> (old_node-&gt;<span class="hljs-built_in">IsRootPage</span>()) &#123;  <span class="hljs-comment">// old node为根结点</span><br>   <span class="hljs-keyword">page_id_t</span> new_page_id = INVALID_PAGE_ID;<br>   <span class="hljs-comment">//拿一个新的页面到buffer pool，最为新的根节点写入</span><br>   Page *new_page = buffer_pool_manager_-&gt;<span class="hljs-built_in">NewPage</span>(&amp;new_page_id);<br>   root_page_id_ = new_page_id;<br><span class="hljs-comment">// 注意初始化parent page id和max_size</span><br>   InternalPage *new_root_node = <span class="hljs-keyword">reinterpret_cast</span>&lt;InternalPage *&gt;(new_page-&gt;<span class="hljs-built_in">GetData</span>());<br>   new_root_node-&gt;<span class="hljs-built_in">Init</span>(new_page_id, INVALID_PAGE_ID, internal_max_size_);  <br>   <span class="hljs-comment">// 修改新的根结点的孩子指针，即array[0].second指向old_node，array[1].second指向new_node；对于array[1].first则赋值为key</span><br>   new_root_node-&gt;<span class="hljs-built_in">PopulateNewRoot</span>(old_node-&gt;<span class="hljs-built_in">GetPageId</span>(), key, new_node-&gt;<span class="hljs-built_in">GetPageId</span>());<br>   <span class="hljs-comment">// 修改old_node和new_node的父指针</span><br>   old_node-&gt;<span class="hljs-built_in">SetParentPageId</span>(new_page_id);<br>   new_node-&gt;<span class="hljs-built_in">SetParentPageId</span>(new_page_id);<br><span class="hljs-comment">// dirty置为true</span><br>   buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(new_page-&gt;<span class="hljs-built_in">GetPageId</span>(), <span class="hljs-literal">true</span>);  <br>  <br>   <span class="hljs-built_in">UpdateRootPageId</span>(<span class="hljs-number">0</span>); <br>   <span class="hljs-keyword">return</span>; <br> &#125;<br></code></pre></td></tr></table></figure>
+<p>如果说old_node不是根结点，我们找到old_node的父节点进行操作，先直接插入<code>(key,new_node-&gt;page_id)</code>到父节点，如果插入后父节点满了，则需要对父结点再进行拆分(Split)，并继续递归。</p>
+</li>
+<li><p><code>Split</code>函数中，用户拆分输入页面并返回新创建的页面。使用模板 N 表示内部页面或叶子页面。用户需要首先向缓冲池管理器请求新页面（注意：抛出如果返回值为 nullptr，则会出现“内存不足”异常），然后从输入页面移动一半键值对到新创建页面。</p>
+<ul>
+<li>这里说的抛出很好理解：</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c++">Page *new_page = buffer_pool_manager_-&gt;<span class="hljs-built_in">NewPage</span>(&amp;root_page_id_);<br>  <span class="hljs-keyword">if</span> (new_page == <span class="hljs-literal">nullptr</span>) &#123;<br>    <span class="hljs-keyword">throw</span> <span class="hljs-string">&quot;out of memory&quot;</span>;<br>  &#125;<br></code></pre></td></tr></table></figure>
+<ul>
+<li><p>对于叶子节点来说，我们除了要<code>movehalfto</code>绑定相应的父节点，还要对叶子节点链表进行更新，如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c++">new_leaf_node-&gt;<span class="hljs-built_in">SetNextPageId</span>(leaf_node-&gt;<span class="hljs-built_in">GetNextPageId</span>());<br>leaf_node-&gt;<span class="hljs-built_in">SetNextPageId</span>(new_leaf_node-&gt;<span class="hljs-built_in">GetPageId</span>());<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>对于内部节点，我们则只进行<code>movehalfto</code>和绑定相应的父节点：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c++">new_internal_node-&gt;<span class="hljs-built_in">Init</span>(new_page_id, internal_node-&gt;<span class="hljs-built_in">GetParentPageId</span>(),internal_max_size_);<br>   internal_node-&gt;<span class="hljs-built_in">MoveHalfTo</span>(new_internal_node,buffer_pool_manager_);<br></code></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>实现GET，分为3步，第一步找到那个叶子的page，在叶子page里找这个key，找到这个key之后放入result中，用完最后unpin 这个page。</p>
+</li>
+<li><p>对于Insert函数，如果树里面还没有数据，调用StartNewTree函数新建，否则调用InsertIntoLeaf函数插入。</p>
+</li>
+<li><p>对于FindLeafPage函数，他的参数为key和leftmost，我们要找到包含key的节点，如果leftmost为true，那么就不管key，而去找到最左边的叶子节点，否则，找到包含key的叶子节点。</p>
+<p>这里我们就可以分成true和false两种情况，如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">page_id_t</span> next_page_id = leftMost ? internal_node-&gt;<span class="hljs-built_in">ValueAt</span>(<span class="hljs-number">0</span>) : internal_node-&gt;<span class="hljs-built_in">Lookup</span>(key, comparator_);<br></code></pre></td></tr></table></figure>
+</li>
+</ul>
+<h5 id="TASK-2-B-B-TREE-DATA-STRUCTURE-DELETION"><a href="#TASK-2-B-B-TREE-DATA-STRUCTURE-DELETION" class="headerlink" title="TASK #2.B - B+TREE DATA STRUCTURE (DELETION)"></a>TASK #2.B - B+TREE DATA STRUCTURE (DELETION)</h5><p>如果删除导致某些页面低于占用率阈值，您的 B+Tree 索引应该正确执行合并或重新分配。</p>
+<ul>
+<li><code>Coalesce</code>函数，将所有键值对从一个页面移动到其兄弟页面，并通知缓冲池管理器删除此页。 父页面必须调整为<ul>
+<li>考虑删除信息。 记得处理 coalesce 或</li>
+<li>必要时递归重新分配。</li>
+<li>使用模板 N 表示内部页面或叶子页面。</li>
+<li>@param neighbor_node 输入“节点”的兄弟页面</li>
+<li>@param 来自方法 coalesceOrRedistribute() 的节点输入</li>
+<li>@param parent 输入“节点”的父页面</li>
+<li>@return true 表示要删除父节点，false 表示不删除</li>
+<li>发生</li>
+</ul>
+</li>
+</ul>
+<h5 id="TASK-3-INDEX-ITERATOR"><a href="#TASK-3-INDEX-ITERATOR" class="headerlink" title="TASK #3 - INDEX ITERATOR"></a>TASK #3 - INDEX ITERATOR</h5><p>我们都知道，在B+树中，叶子节点link起来，可以实现快速range scan。在这个任务中，我们要构建一个通用索引迭代器来有效地检索所有叶子页面。其中，Begin函数返回一个状态为初始化的迭代器对象，End返回一个指向结束的迭代器对象。</p>
+<ul>
+<li><p>对于Begin函数，我们先直接用FindLeafPage找到最左边的节点，如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c++">Page *leaf_page = <span class="hljs-built_in">FindLeafPage</span>(<span class="hljs-built_in">KeyType</span>(), <span class="hljs-literal">true</span>);<br><span class="hljs-keyword">return</span> <span class="hljs-built_in">INDEXITERATOR_TYPE</span>(buffer_pool_manager_, leaf_page, <span class="hljs-number">0</span>);  <br></code></pre></td></tr></table></figure>
+</li>
+<li><p>对于End函数，入参为void，构造一个代表结束的索引迭代器，叶节点中的键/值对，return : 索引迭代器。我们先找到最左边的叶子节点，然后从最左边移动到最右边。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c++">Page *leaf_page = <span class="hljs-built_in">FindLeafPage</span>(<span class="hljs-built_in">KeyType</span>(), <span class="hljs-literal">true</span>);<br>LeafPage *leaf_node = <span class="hljs-keyword">reinterpret_cast</span>&lt;LeafPage *&gt;(leaf_page-&gt;<span class="hljs-built_in">GetData</span>());<br><br><span class="hljs-keyword">while</span> (leaf_node-&gt;<span class="hljs-built_in">GetNextPageId</span>() != INVALID_PAGE_ID) &#123;<br>    <span class="hljs-keyword">page_id_t</span> next_page_id = leaf_node-&gt;<span class="hljs-built_in">GetNextPageId</span>();<br>    buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(leaf_node-&gt;<span class="hljs-built_in">GetPageId</span>(), <span class="hljs-literal">false</span>);  <span class="hljs-comment">// page unpinned</span><br><br>    Page *next_page = buffer_pool_manager_-&gt;<span class="hljs-built_in">FetchPage</span>(next_page_id);  <span class="hljs-comment">// next_page pinned</span><br>    leaf_node = <span class="hljs-keyword">reinterpret_cast</span>&lt;LeafPage *&gt;(next_page-&gt;<span class="hljs-built_in">GetData</span>());<br>  &#125;<br><span class="hljs-keyword">return</span> <span class="hljs-built_in">INDEXITERATOR_TYPE</span>(buffer_pool_manager_, leaf_page, leaf_node-&gt;<span class="hljs-built_in">GetSize</span>());<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>重载++</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c++">index_++;  <br><span class="hljs-keyword">if</span> (index_ == leaf_-&gt;<span class="hljs-built_in">GetSize</span>() &amp;&amp; leaf_-&gt;<span class="hljs-built_in">GetNextPageId</span>() != INVALID_PAGE_ID) &#123;<span class="hljs-comment">//如果index等于节点的长度，且节点不是最后一个节点，那么我们就要跳到下一个节点</span><br>    Page *next_page = buffer_pool_manager_-&gt;<span class="hljs-built_in">FetchPage</span>(leaf_-&gt;<span class="hljs-built_in">GetNextPageId</span>());  <span class="hljs-comment">// pin next leaf page</span><br>    buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(page_-&gt;<span class="hljs-built_in">GetPageId</span>(), <span class="hljs-literal">false</span>);  <span class="hljs-comment">//unpin当前page</span><br>    <br>    page_ = next_page;<br>    leaf_ = <span class="hljs-keyword">reinterpret_cast</span>&lt;LeafPage *&gt;(page_-&gt;<span class="hljs-built_in">GetData</span>());  <span class="hljs-comment">// 更新到下一个节点</span><br>    index_ = <span class="hljs-number">0</span>;                                              <span class="hljs-comment">// 重置index</span><br>  &#125;<br>  <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>重载*</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">return</span> leaf_-&gt;<span class="hljs-built_in">GetItem</span>(index_);<span class="hljs-comment">//这个没啥好说的，返回相应的key-value就行</span><br></code></pre></td></tr></table></figure>
+</li>
+</ul>
+<h5 id="TASK-4-CONCURRENT-INDEX"><a href="#TASK-4-CONCURRENT-INDEX" class="headerlink" title="TASK #4 - CONCURRENT INDEX"></a>TASK #4 - CONCURRENT INDEX</h5><p>在这部分，您需要更新您原来的单线程 B+Tree 索引，使其能够支持并发操作。我们将使用课堂和教科书中描述的闩锁技术。</p>
+<h6 id="如何实现并发"><a href="#如何实现并发" class="headerlink" title="如何实现并发"></a>如何实现并发</h6><p>我们来看看Andy在lab中怎么说的（机器翻译）：</p>
+<ul>
+<li>搜索：从根页面开始，抓住子页面上的读取（R）闩锁，然后在您登陆子页面后立即释放父页面上的闩锁。</li>
+<li>插入：从根页面开始，抓住子页面的写（W）锁存器。一旦孩子被锁定，检查它是否安全，在这种情况下，不是满的。如果孩子是安全的，则释放祖先的所有锁。</li>
+<li>删除：从根页面开始，抓住子页面的写（W）锁存器。一旦孩子被锁定，检查它是否安全，在这种情况下，至少半满。 （注意：对于根页面，我们需要用不同的标准检查）如果孩子是安全的，释放所有祖先的锁。</li>
+</ul>
+<hr>
+<p>我们来填一下之前的坑，锁（lock）和闩（latch）的区别：</p>
+<ul>
+<li>Locks<ul>
+<li>从其它事务中保护数据库的逻辑内容</li>
+<li>在事务执行期间保留</li>
+<li>需要能够回滚之前的改变</li>
+</ul>
+</li>
+<li>Latches<ul>
+<li>从多线程中保护DBMS关键的数据结构</li>
+<li>在操作期间保留</li>
+<li>不需要回滚的能力</li>
+</ul>
+</li>
+</ul>
+<p>操作缓冲池汇总的LRU列表，删除、添加、移动LRU列表中的元素，为了保证一致性，必须有锁的介入，这就是latch锁。latch一般称为闩锁（轻量级别的锁），因为其要求锁定的时间必须非常短。若持续的时间长，则应用的性能会非常差。latch的一个例子：</p>
+<blockquote>
+<p>当我们在执行select时，数据是缓存在buffer pool中的，多个线程并发访问或者修改这个数据必然需要一个并发控制机制，这个就是latch。</p>
+</blockquote>
+<p>而lock对象是事务，用来锁定的是数据库中的对象，如表、行、页。</p>
+<hr>
+<p>我们在B+树的并发控制中要保证以下结果的正确性：</p>
+<ul>
+<li><strong>逻辑正确性</strong>：能否看到应该看到的结果？</li>
+<li><strong>物理正确性</strong>：内部的数据结构表示是否被保护？（比如，在对B+树索引遍历时，当一个线程需要跳转到下一节点时，其它线程有可能会改变B+树的结构，使得指针指向为无效地址）</li>
+</ul>
+<h6 id="LATCH-CRABBING-COUPLING"><a href="#LATCH-CRABBING-COUPLING" class="headerlink" title="LATCH CRABBING / COUPLING"></a>LATCH CRABBING / COUPLING</h6><p>这是一个允许多线程同时访问/修改B+树的协议。其基本思想为：</p>
+<ul>
+<li>获得父节点的latch</li>
+<li>获得子节点的latch</li>
+<li>当安全的情况下才释放父节点的latch</li>
+</ul>
+<p>在读写锁中，当有一个 线程获得写锁定，其它无论是读锁定还是写锁定都将阻塞直到写解锁；当有一个线程获得读锁定，其它读锁定仍然可以继续；当有一个或任意多个读锁定，写锁定将等待所有读锁定解锁之后才能够进行写锁定。</p>
+<ol>
+<li>同时只能有一个线程能够获得写锁定。</li>
+<li>同时可以有任意多个线程获得读锁定。</li>
+<li>同时只能存在写锁定或读锁定（读和写互斥）。</li>
+<li>加入<code>MaxReader</code>，来防止写进程饥饿，也就是读进程太多以至于等待时间过长而对写进程造成明显影响。</li>
+</ol>
+<hr>
+<p>补充个go面经，互斥锁和读写锁。</p>
+<h6 id="互斥锁Mutex"><a href="#互斥锁Mutex" class="headerlink" title="互斥锁Mutex"></a>互斥锁Mutex</h6><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c++">type Mutex <span class="hljs-class"><span class="hljs-keyword">struct</span> &#123;</span><br>	state int32<br>	sema  uint32<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>其中，state采用不同位表示不同含义的方式作为状态位：</p>
+<ol>
+<li>第一位表示加锁状态：0表示未加锁，1表示已加锁</li>
+<li>第二位表示唤醒状态：0表示未设置被唤醒状态，1表示已设置被唤醒状态</li>
+<li>第三位表示运行状态：0表示正常状态，1表示饥饿状态</li>
+<li>第四位以及其他字节位：表示等待获取锁的数目</li>
+</ol>
+<p>另外的sema为信号量，通过P/V操作实现锁的等待和唤醒。</p>
+<h6 id="读写锁RWMutex"><a href="#读写锁RWMutex" class="headerlink" title="读写锁RWMutex"></a>读写锁RWMutex</h6><p>当有一个 goroutine 获得写锁定，其它无论是读锁定还是写锁定都将阻塞直到写解锁；当有一个 goroutine 获得读锁定，其它读锁定仍然可以继续；当有一个或任意多个读锁定，写锁定将等待所有读锁定解锁之后才能够进行写锁定。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(rw *RWMutex)</span> <span class="hljs-title">RLock</span><span class="hljs-params">()</span>//读锁，当有写锁时，无法加载读锁，当只有读锁或者没有锁时，可以加载读锁，读锁可以加载多个，所以适用于“读多写少”的场景。</span><br></code></pre></td></tr></table></figure>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(rw *RWMutex)</span> <span class="hljs-title">RUnlock</span><span class="hljs-params">()</span>//读锁解锁，<span class="hljs-title">RUnlock</span> 撤销单次<span class="hljs-title">RLock</span>调用，它对于其它同时存在的读取器则没有效果。若<span class="hljs-title">rw</span>并没有为读取而锁定，调用<span class="hljs-title">RUnlock</span>就会引发一个运行时错误。</span><br></code></pre></td></tr></table></figure>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(rw *RWMutex)</span> <span class="hljs-title">Lock</span><span class="hljs-params">()</span>//写锁，如果在添加写锁之前已经有其他的读锁和写锁，则<span class="hljs-title">Lock</span>就会阻塞直到该锁可用，为确保该锁最终可用，已阻塞的<span class="hljs-title">Lock</span>调用会从获得的锁中排除新的读取锁，即写锁权限高于读锁，有写锁时优先进行写锁定。</span><br></code></pre></td></tr></table></figure>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(rw *RWMutex)</span> <span class="hljs-title">Unlock</span><span class="hljs-params">()</span>//写锁解锁，如果没有进行写锁定，则就会引起一个运行时错误。</span><br></code></pre></td></tr></table></figure>
+<hr>
+<p>我们来看读写锁在B+树中的具体表现：</p>
+<p>查找38，给根节点上读锁：</p>
+<p><img src="https://img-blog.csdnimg.cn/20201012221558584.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>当我们来到下一个B节点，给B上了读锁，确保已经安全，释放A的读锁。</p>
+<p><img src="https://img-blog.csdnimg.cn/20201012221656748.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<p><img src="https://img-blog.csdnimg.cn/20201012221749942.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>以此类推，找到38。</p>
+<p><img src="https://img-blog.csdnimg.cn/20201012221919398.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><img src="https://img-blog.csdnimg.cn/20201012221956330.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>当我们要删除时，因为我们有可能修改了叶子节点之后会修改内部节点甚至是根节点，因此我们给每一个访问的节点都上写锁。</p>
+<p><img src="https://img-blog.csdnimg.cn/20201012222108813.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>子节点并没超过半满，所以是不安全的，不能释放父节点的锁。</p>
+<p><img src="https://img-blog.csdnimg.cn/20201012222151930.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>我们发现此时节点已经超过半满，可以释放祖先节点。</p>
+<p><img src="https://img-blog.csdnimg.cn/20201012222350984.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>以此类推，直到删除数据并释放所有写锁。</p>
+<p><img src="https://img-blog.csdnimg.cn/20201012222504107.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><img src="https://img-blog.csdnimg.cn/20201012222542426.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>插入操作同理，我们如果发现节点没有半满，就可以释放祖先节点的写锁。</p>
+<p>值得注意的是，<strong>释放锁时，我们应当从上往下释放，这样可以让等待的线程尽早执行</strong>。</p>
+<p>这样做可以实现并发，但是实现不了高并发，要实现高并发还是得优化算法：</p>
+<hr>
+<p>在上面介绍的操作过程中我们发现：</p>
+<p>我们只有在知道了子孙节点是满足特定条件的情况下才能释放祖先节点的写锁，这样可能会造成不必要的阻塞。</p>
+<p>我们可以一开始就使用读锁，如果找到一个满足状态的节点就说明该节点的所有祖先节点都不用使用写锁，否则就要使用写锁。</p>
+<p>可以使用一个队列，将每次访问的节点入队，给每个节点设置一个标志位，即它的儿子节点是否满足条件。访问完叶子节点之后，我们根据标志位将节点出队。</p>
+<p>我们看到上面那副图，我们依次访问ABDH节点，A的儿子节点B不满足条件，将A的标志位设置为0，B的儿子节点满足条件，将B的标志位设置为0，D的儿子节点满足条件，将D的标志位设置为1，叶子节点H的标志位始终为0。这样我们就得到了序列0110（从叶子节点到根节点），我们再搜索一次，找到离叶子节点最近的那个1，设置一个计数器safe_count，这个1和之前的节点都是安全的，然后我们根据计数器再次从根节点访问，就像上面那副图，其实ABD都不用上写锁，我们直接就把队列中110对应的节点DBA都上读锁且访问下一个节点之前马上释放，这样我们就只给最后一个叶子节点上了写锁。</p>
+<hr>
+<p>改进：</p>
+<p>我们可以设置一个缓冲队列，将节点的指针放进去，比如A通过A-&gt;array[1].second访问B节点，我们就把这个指针放进去，然后，一旦遇到节点安全，我怕们就把访问这个节点的指针之前入队的指针出队，只留下这个访问这个节点的指针，我们搜索完一遍之后直接通过这个指针搜索这个节点，从这个节点开始上写锁，这样也达到了相同的目的，且开销更小。</p>
+<hr>
+<p>这样看似操作更多，但是我们上的是读锁，只是为了防止被其他进程写入，比第一种方案一直上写锁要更好我觉得，特别是在数据量很大和读进程更多的时候。</p>
+<p>如果我们存储的数据量足够大，我觉得我这个相较于Andy讲的基础算法算是实现了高并发的。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/CMU-15-455/">CMU_15-455</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/02/21/MIT-6-s081-Lab5-lazy-page-allocation/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">MIT_6.s081_Lab5_lazy page allocation</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/02/03/CMU-15-445-PROJECT-0-1/">
+                        <span class="hidden-mobile">CMU_15-445_PROJECT#0&1</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+        typing(title);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+  
+
+  
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        },
+        loader: {
+          load: ['ui/lazy']
+        },
+        options: {
+          renderActions: {
+            findScript: [10, doc => {
+              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+                const display = !!node.type.match(/; *mode=display/);
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                const text = document.createTextNode('');
+                node.parentNode.replaceChild(text, node);
+                math.start = { node: text, delim: '', n: 0 };
+                math.end = { node: text, delim: '', n: 0 };
+                doc.math.push(math);
+              });
+            }, '', false],
+            insertedScript: [200, () => {
+              document.querySelectorAll('mjx-container').forEach(node => {
+                let target = node.parentNode;
+                if (target.nodeName.toLowerCase() === 'li') {
+                  target.parentNode.classList.add('has-jax');
+                }
+              });
+            }, '', false]
+          }
+        }
+      };
+    </script>
+
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

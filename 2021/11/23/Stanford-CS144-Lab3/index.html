@@ -1,0 +1,560 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="在这个实验中我们要完成tcp_sender的部分。由于我们实现的是简易的TCP，因此在测试集对于拥塞控制并没有太多要求，且计时器我们也只用实现重传计时器。 我们先来理解bytes_in_flight，bytes_in_flight是发送但还未确认的数据长度。根据概念，这段长度等于_next_seqno减去base。因此我们定义一个base用来维护基序号，同时也可以完成bytes_in_flight">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Stanford_CS144_Lab3">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2021/11/23/Stanford-CS144-Lab3/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="在这个实验中我们要完成tcp_sender的部分。由于我们实现的是简易的TCP，因此在测试集对于拥塞控制并没有太多要求，且计时器我们也只用实现重传计时器。 我们先来理解bytes_in_flight，bytes_in_flight是发送但还未确认的数据长度。根据概念，这段长度等于_next_seqno减去base。因此我们定义一个base用来维护基序号，同时也可以完成bytes_in_flight">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://tva4.sinaimg.cn/large/007SD2TBly1gwp74pmbcrj30jv0dgmz0.jpg">
+<meta property="og:image" content="http://tvax2.sinaimg.cn/large/007SD2TBly1gwp7wnrwe6j30kw0ddjtu.jpg">
+<meta property="article:published_time" content="2021-11-23T09:33:46.000Z">
+<meta property="article:modified_time" content="2022-03-24T05:00:04.143Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="standford_cs144_lab">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://tva4.sinaimg.cn/large/007SD2TBly1gwp74pmbcrj30jv0dgmz0.jpg">
+  
+  
+  <title>Stanford_CS144_Lab3 - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>databrains</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Stanford_CS144_Lab3">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-11-23 17:33" pubdate>
+        2021年11月23日 下午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      15k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      123 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Stanford_CS144_Lab3</h1>
+            
+            <div class="markdown-body">
+              <p>在这个实验中我们要完成tcp_sender的部分。由于我们实现的是简易的TCP，因此在测试集对于拥塞控制并没有太多要求，且计时器我们也只用实现重传计时器。</p>
+<p>我们先来理解bytes_in_flight，bytes_in_flight是发送但还未确认的数据长度。根据概念，这段长度等于_next_seqno减去base。因此我们定义一个base用来维护基序号，同时也可以完成bytes_in_flight函数。代码如下:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">uint64_t</span> <span class="hljs-title">TCPSender::bytes_in_flight</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123;    <span class="hljs-keyword">return</span> _next_seqno-base;&#125;<br></code></pre></td></tr></table></figure>
+<h4 id="TCP连接与释放（三次握手与四次挥手）"><a href="#TCP连接与释放（三次握手与四次挥手）" class="headerlink" title="TCP连接与释放（三次握手与四次挥手）"></a>TCP连接与释放（三次握手与四次挥手）</h4><p>在这个实验中我们同样要用到三次握手的知识，为了更好的解释实现过程，我们用以下图示解释。</p>
+<p><img src="http://tva4.sinaimg.cn/large/007SD2TBly1gwp74pmbcrj30jv0dgmz0.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>在介绍三次握手之前，先要说说TCP头部的一些常用字段（这也是我们实验中要用到的）。</p>
+<ul>
+<li>序号：seqno，占32位，用来标识从发送端到接收端的字节流；</li>
+<li>确认号：ackno，占32位，只有ACK标志位为1时，确认号才有效，ackno=seqno+1；</li>
+<li>标志位：<ul>
+<li>SYN：发起一个连接；</li>
+<li>FIN：释放一个连接；</li>
+<li>ACK：确认序号有效。</li>
+</ul>
+</li>
+</ul>
+<p>我们可以将sender理解为将要发送syn报文的client(事实上，client和server都有sender和receiver，我们将在lab4中具体组装sender和receiver）。至此，我们的lab都是单向通信。发送方只有一个TCPsender，接收方只有一个TCPReceiver，由TCPsender发送的和TCPReceiver返回的都是TCPsegment格式的TCP报文段，只不过由于单向通信，所以发送方的TCPsegment中只包含序列号seqno、 Payload、SYN 和 FIN，接收方返回的TCPsegment中只包含ackno和window size。作为绝对序号，_next_seqno的初始值为0，此时我们必须发送SYN报文建立连接，也就是第一次握手，seqno为 _isn（即上图的x，这是系统赋予的），syn为true，payload置空，报文准备好后，我们将其写入到定义好的队列 _segments_out，等待系统调用，同时，我们为了实现重传，定义了一个 _segments_out_cache,作为缓冲区，用于缓存报文，在特定的情况下将报文重传。当然，我们也要维护GBN中的滑动窗口，因此定义一个curr_window_size，用来维护当前可用窗口的大小。代码如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">if</span>(_next_seqno==<span class="hljs-number">0</span>)&#123;<br>    TCPSegment seg;<br>    seg.<span class="hljs-built_in">header</span>().seqno=_isn;<br>    seg.<span class="hljs-built_in">header</span>().syn= <span class="hljs-literal">true</span>;<br>    _next_seqno=<span class="hljs-number">1</span>;<br>    curr_window_size--;<span class="hljs-comment">//当前可用窗口减1</span><br>    _segments_out.<span class="hljs-built_in">push</span>(seg);<br>    _segments_out_cache.<span class="hljs-built_in">push</span>(seg);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>当client接收第二次握手时传入的内容，即ack=x+1，也即ackno_64=1的内容，将会调用ack_received函数，ack_received函数的定义——<code>ack_received(const WrappingInt32 ackno, const uint16_t window_size)</code>，此时ackno=_isn+1，我们会执行如下操作：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">if</span>(base==<span class="hljs-number">0</span>&amp;&amp;ackno_64==<span class="hljs-number">1</span>)&#123;    <br>    base=<span class="hljs-number">1</span>;    <br>    _segments_out_cache.<span class="hljs-built_in">pop</span>();    <br>    _consecutive_remission=<span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>将base置为1，也就是将基序号+1；将缓冲队列出队（此时对方已经确认，我们不需要了）；连续重传此时对于sender来说，我们可以进行正常的报文发送了，也就是第三次握手。</p>
+<p>无独有偶，实验中也要用到四次挥手的知识，为了更好的解释该过程，我们用下图解释。</p>
+<p><img src="http://tvax2.sinaimg.cn/large/007SD2TBly1gwp7wnrwe6j30kw0ddjtu.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>在该实验中，当数据传输完成时，即 _stream.eof等于1时，我们要进行挥手，此时sender发送fin报文，即fin为1。如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">if</span>(_stream.<span class="hljs-built_in">eof</span>())&#123;<br>    fin_flag=<span class="hljs-literal">true</span>;<br>    TCPSegment seg;<br>    <span class="hljs-comment">//将syn设置为false，将fin设置为true</span><br>    seg.<span class="hljs-built_in">header</span>().syn= <span class="hljs-literal">false</span>;<br>    seg.<span class="hljs-built_in">header</span>().fin=<span class="hljs-literal">true</span>;<br>    seg.<span class="hljs-built_in">header</span>().seqno= <span class="hljs-built_in">wrap</span>(_next_seqno,_isn);<br>    _next_seqno++;<br>    <span class="hljs-comment">//维护窗口</span><br>    curr_window_size--;<br>    _segments_out_cache.<span class="hljs-built_in">push</span>(seg);<br>    _segments_out.<span class="hljs-built_in">push</span>(seg);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>在该实验中，我们有两种情况发送fin包，第一种是恰好 _stream.eof为1，即刚好将 _stream中的数据全部读取完毕，这个时候我们发送一个fin值为1，payload为空的报文。第二种情况是发送窗口大于 _stream.size，此时也可以将 _stream中的报文读完。此时我们将最后一个报文(读取 _stream之后 _stream为空）的fin值置为1。值得注意的是，当fin值为1是要占用一个序号。因为有MAX_PAYLOAD_SIZE的限制，我们将用while进行循环读取。代码如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">else</span> &#123;<br>    <span class="hljs-keyword">while</span> (!_stream.<span class="hljs-built_in">buffer_empty</span>()&amp;&amp;curr_window_size&gt;<span class="hljs-number">0</span>)&#123;<br>        <span class="hljs-comment">//这里会有两种状况，一种是_stream为空但窗口不为空；一种是窗口为空但_stream不为空。</span><br>        <span class="hljs-comment">//我们找到_stream curr_window_size以及payload中的最小值，作为发送报文的长度</span><br>        <span class="hljs-keyword">uint64_t</span> lens_byte=std::<span class="hljs-built_in">min</span>(_stream.<span class="hljs-built_in">buffer_size</span>(),<span class="hljs-built_in">uint64_t</span> (curr_window_size));<br>        lens_byte=std::<span class="hljs-built_in">min</span>(lens_byte,TCPConfig::MAX_PAYLOAD_SIZE);<br>        TCPSegment seg;<br>        <span class="hljs-comment">//对header中的字段进行赋值</span><br>        seg.<span class="hljs-built_in">header</span>().seqno= <span class="hljs-built_in">wrap</span>(_next_seqno,_isn);<br>        seg.<span class="hljs-built_in">header</span>().syn=<span class="hljs-literal">false</span>;<br>        seg.<span class="hljs-built_in">payload</span>()=_stream.<span class="hljs-built_in">read</span>(lens_byte);<br>        _next_seqno+=lens_byte;<br>        <span class="hljs-comment">//将curr_window_size减去lens_byte</span><br>        curr_window_size-=lens_byte;<br>        <span class="hljs-comment">//如果_stream已经空了，那么我们就进行第一次挥手</span><br>        <span class="hljs-keyword">if</span>(_stream.<span class="hljs-built_in">eof</span>()&amp;&amp;curr_window_size&gt;<span class="hljs-number">0</span>)&#123;<br>            seg.<span class="hljs-built_in">header</span>().fin= <span class="hljs-literal">true</span>;<br>            fin_flag= <span class="hljs-literal">true</span>;<br>            curr_window_size--;<br>            _next_seqno++;<br>        &#125;<br>        _segments_out.<span class="hljs-built_in">push</span>(seg);<br>        _segments_out_cache.<span class="hljs-built_in">push</span>(seg);<br>        <span class="hljs-keyword">if</span>(fin_flag)&#123;<span class="hljs-comment">//开始挥手之后就可以退出</span><br>            <span class="hljs-keyword">break</span>;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h4 id="TCP重传机制"><a href="#TCP重传机制" class="headerlink" title="TCP重传机制"></a>TCP重传机制</h4><p>在每次发送报文之后，都会启动一个定时器，如果在定时器时间内没有收到，则进行重传。而重传的超时时间，则称为RTO（Retransmission TimeOut），我们就要开始计时，将初始超时重传时间 _time_out设置 _initial_retransmission_timeout，如果发生超时，将 _time_out设置x2。这个跟我们在《计算机网络黑皮书》上学到的不一样，是最新的标准。上述过程用time_waiting标志位进行维护。代码如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">if</span>(!time_waiting)&#123;<br>    _time_out=_initial_retransmission_timeout;<br>    time_waiting=<span class="hljs-literal">true</span>;<span class="hljs-comment">//为true的时候表示我们正在计时</span><br>    _total_time=<span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>那么这个tick函数就很好做了，每次调用tick函数，_total_time加上 ms_since_last_tick，如果总时间大于超时时间，那么我们就可以进行重传，并将重传的次数+1，我们的 TCPConnection 将使用此信息来决定连接是否无望（连续重传过多）并需要中止，如果window size不为0，那么我们将RTO的值翻倍，称为指数退避。将总计时时间置为0。</p>
+<figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs sqf">void TCPSender::tick(const size_t ms_since_last_tick) &#123;<br>    DUMMY_CODE(ms_since_last_tick);<br>    <span class="hljs-variable">_total_time</span>+=ms_since_last_tick;<br>    <span class="hljs-comment">//如果缓冲队列不为空，停等时间在运行，且总时间大于超时</span><br>    <span class="hljs-keyword">if</span>(!<span class="hljs-variable">_segments_out_cache</span>.empty()&amp;&amp;time_waiting&amp;&amp;<span class="hljs-variable">_total_time</span>&gt;=<span class="hljs-variable">_time_out</span>)&#123;<br>        <span class="hljs-variable">_segments_out</span>.push(<span class="hljs-variable">_segments_out_cache</span>.front());<br>        <span class="hljs-comment">//重传次数增加</span><br>        <span class="hljs-variable">_consecutive_remission</span>++;<br>        <span class="hljs-keyword">if</span>(!window_zero)&#123;<br>            <span class="hljs-variable">_time_out</span>*=<span class="hljs-number">2</span>;<br>        &#125;<br>        <span class="hljs-variable">_total_time</span>=<span class="hljs-number">0</span>;<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<p>值得注意的是，TCP中有7种定时器，我们在这里只实现了重传定时器：</p>
+<ul>
+<li>建立连接定时器(connection-establishment timer)</li>
+<li>重传定时器(retransmission timer)</li>
+<li>延迟应答定时器(delayed ACK timer)</li>
+<li>坚持定时器(persist timer)</li>
+<li>保活定时器(keepalive timer)</li>
+<li>FIN_WAIT_2定时器(FIN_WAIT_2 timer)</li>
+<li>TIME_WAIT定时器 (TIME_WAIT timer, 也叫2MSL timer)</li>
+</ul>
+<h4 id="ack-received"><a href="#ack-received" class="headerlink" title="ack_received"></a>ack_received</h4><p>1.如果 ackno_64大于 _next_seqno，就会触发SYN_SENT状态，按照常理来说，ackno_64是不应该大于 _next_seqno,如果ackno_64大于 _next_seqno，我们将其定为“<em>stream started but nothing acknowledged</em>“，直接返回即可，等待下一次传入的ackno，至于为什么会出现ackno_64大于 _next_seqno我们并不关心。代码如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs cpp">uint <span class="hljs-keyword">64_t</span> ackno_64= <span class="hljs-built_in">unwrap</span>(ackno,_isn,base);<br><span class="hljs-keyword">if</span>(ackno_64&gt;_next_seqno)&#123;<br>    <span class="hljs-keyword">return</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>2.对于三次握手中的第二次握手，也就是我们客户端收到确认报文这个情况，对于发送方的窗口而言，我们应当这样实现：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">if</span>(base==<span class="hljs-number">0</span>&amp;&amp;ackno_64==<span class="hljs-number">1</span>)&#123;<br>       base=<span class="hljs-number">1</span>;<br>       _segments_out_cache.<span class="hljs-built_in">pop</span>();<br>       _consecutive_remission=<span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>3.如果是正常的接收确认报文，对于窗口而言，我们应当这样实现，代码如下（详解在注释中）：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">//下面代码就是在模拟GBN,根据接收到的ackno，删除窗口中base和ackno之间的数据</span><br><span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (!_segments_out_cache.<span class="hljs-built_in">empty</span>() &amp;&amp; ackno_64 &gt;= base + _segments_out_cache.<span class="hljs-built_in">front</span>().<span class="hljs-built_in">length_in_sequence_space</span>()) &#123;<span class="hljs-comment">//收到的确认号大于base+发送的报文的长度</span><br>        <span class="hljs-comment">//缓冲队列第一个元素的序号</span><br>        <span class="hljs-keyword">uint64_t</span> copy_seg_seqno = <span class="hljs-built_in">unwrap</span>(_segments_out_cache.<span class="hljs-built_in">front</span>().<span class="hljs-built_in">header</span>().seqno, _isn, base);<br>        <span class="hljs-comment">//缓冲队列第一个元素的长度</span><br>        <span class="hljs-keyword">uint64_t</span> copy_seg_len = _segments_out_cache.<span class="hljs-built_in">front</span>().<span class="hljs-built_in">length_in_sequence_space</span>();<br>        <span class="hljs-comment">//序号加长度小于等于确认号，就一个一个删除</span><br>        <span class="hljs-keyword">while</span> (copy_seg_seqno + copy_seg_len &lt;= ackno_64) &#123;<br>            base += _segments_out_cache.<span class="hljs-built_in">front</span>().<span class="hljs-built_in">length_in_sequence_space</span>();<br>            _segments_out_cache.<span class="hljs-built_in">pop</span>();<br>            <span class="hljs-keyword">if</span> (_segments_out_cache.<span class="hljs-built_in">empty</span>()) <span class="hljs-keyword">break</span>;<br>            copy_seg_seqno = <span class="hljs-built_in">unwrap</span>(_segments_out_cache.<span class="hljs-built_in">front</span>().<span class="hljs-built_in">header</span>().seqno, _isn, base);<br>            copy_seg_len = _segments_out_cache.<span class="hljs-built_in">front</span>().<span class="hljs-built_in">length_in_sequence_space</span>();<br>        &#125;<br>        _time_out = _initial_retransmission_timeout;<br>        _total_time = <span class="hljs-number">0</span>;<br>        _consecutive_remission = <span class="hljs-number">0</span>;<br><br>    &#125;<br></code></pre></td></tr></table></figure>
+<p>4.对于流量控制，我们需要用接收方的窗口大小来维护发送方的窗口大小，如果说<code>_next_seqno-base&gt;=window_size</code>，那么此时我们肯定是不能发送报文的，在这种情况下，说明我们发送出去但还没有确认的报文的长度大于接收窗口的长度，这种情况下我们如果再次发送报文可能会导致接收方接收出现问题。代码如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">if</span>(_next_seqno-base&gt;=window_size)&#123;<br>        curr_window_size=<span class="hljs-number">0</span>;<br>        <span class="hljs-keyword">return</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这里的curr_window_size就是活动窗口中待发送的长度，这个长度是根据接收窗口维护的。</p>
+<p><code>tcp_sender.hh</code></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-meta-keyword">ifndef</span> SPONGE_LIBSPONGE_TCP_SENDER_HH</span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SPONGE_LIBSPONGE_TCP_SENDER_HH</span><br><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;byte_stream.hh&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;tcp_config.hh&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;tcp_segment.hh&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;wrapping_integers.hh&quot;</span></span><br><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;functional&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;queue&gt;</span></span><br><br><span class="hljs-comment">//! \brief The &quot;sender&quot; part of a TCP implementation.</span><br><br><span class="hljs-comment">//! Accepts a ByteStream, divides it up into segments and sends the</span><br><span class="hljs-comment">//! segments, keeps track of which segments are still in-flight,</span><br><span class="hljs-comment">//! maintains the Retransmission Timer, and retransmits in-flight</span><br><span class="hljs-comment">//! segments if the retransmission timer expires.</span><br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TCPSender</span> &#123;</span><br>  <span class="hljs-keyword">private</span>:<br>    <span class="hljs-comment">//! our initial sequence number, the number for our SYN.</span><br>    WrappingInt32 _isn;<br><br>    <span class="hljs-keyword">uint64_t</span> base&#123;<span class="hljs-number">0</span>&#125;;<br><br>    <span class="hljs-comment">//! outbound queue of segments that the TCPSender wants sent</span><br>    std::queue&lt;TCPSegment&gt; _segments_out&#123;&#125;;<br>    std::queue&lt;TCPSegment&gt; _segments_out_cache&#123;&#125;;<br>    <span class="hljs-comment">//! retransmission timer for the connection</span><br>    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> _initial_retransmission_timeout;<br><br>    <span class="hljs-comment">//! outgoing stream of bytes that have not yet been sent</span><br>    ByteStream _stream;<br><br>    <span class="hljs-comment">//! the (absolute) sequence number for the next byte to be sent</span><br>    <span class="hljs-keyword">uint64_t</span> _next_seqno&#123;<span class="hljs-number">0</span>&#125;;<br>    <span class="hljs-keyword">uint16_t</span> curr_window_size;<br>    <span class="hljs-keyword">bool</span> fin_flag;<br>    <span class="hljs-keyword">size_t</span> _total_time;<br>    <span class="hljs-keyword">bool</span> time_waiting;<br>    <span class="hljs-keyword">int</span> _consecutive_remission;<br>    <span class="hljs-keyword">size_t</span> _time_out;<br>    <span class="hljs-keyword">bool</span> window_zero;<br>  <span class="hljs-keyword">public</span>:<br>    <span class="hljs-comment">//! Initialize a TCPSender</span><br>    <span class="hljs-built_in">TCPSender</span>(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> capacity = TCPConfig::DEFAULT_CAPACITY,<br>              <span class="hljs-keyword">const</span> <span class="hljs-keyword">uint16_t</span> retx_timeout = TCPConfig::TIMEOUT_DFLT,<br>              <span class="hljs-keyword">const</span> std::optional&lt;WrappingInt32&gt; fixed_isn = &#123;&#125;);<br><br>    <span class="hljs-comment">//! \name &quot;Input&quot; interface for the writer</span><br>    <span class="hljs-comment">//!@&#123;</span><br>    <span class="hljs-function">ByteStream &amp;<span class="hljs-title">stream_in</span><span class="hljs-params">()</span> </span>&#123; <span class="hljs-keyword">return</span> _stream; &#125;<br>    <span class="hljs-function"><span class="hljs-keyword">const</span> ByteStream &amp;<span class="hljs-title">stream_in</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> _stream; &#125;<br>    <span class="hljs-comment">//!@&#125;</span><br><br>    <span class="hljs-comment">//! \name Methods that can cause the TCPSender to send a segment</span><br>    <span class="hljs-comment">//!@&#123;</span><br><br>    <span class="hljs-comment">//! \brief A new acknowledgment was received</span><br>    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">ack_received</span><span class="hljs-params">(<span class="hljs-keyword">const</span> WrappingInt32 ackno, <span class="hljs-keyword">const</span> <span class="hljs-keyword">uint16_t</span> window_size)</span></span>;<br><br>    <span class="hljs-comment">//! \brief Generate an empty-payload segment (useful for creating empty ACK segments)</span><br>    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">send_empty_segment</span><span class="hljs-params">()</span></span>;<br><br>    <span class="hljs-comment">//! \brief create and send segments to fill as much of the window as possible</span><br>    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">fill_window</span><span class="hljs-params">()</span></span>;<br><br>    <span class="hljs-comment">//! \brief Notifies the TCPSender of the passage of time</span><br>    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">tick</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> ms_since_last_tick)</span></span>;<br>    <span class="hljs-comment">//!@&#125;</span><br><br>    <span class="hljs-comment">//! \name Accessors</span><br>    <span class="hljs-comment">//!@&#123;</span><br><br>    <span class="hljs-comment">//! \brief How many sequence numbers are occupied by segments sent but not yet acknowledged?</span><br>    <span class="hljs-comment">//! \note count is in &quot;sequence space,&quot; i.e. SYN and FIN each count for one byte</span><br>    <span class="hljs-comment">//! (see TCPSegment::length_in_sequence_space())</span><br>    <span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">bytes_in_flight</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;<br><br>    <span class="hljs-comment">//! \brief Number of consecutive retransmissions that have occurred in a row</span><br>    <span class="hljs-comment">//连续发生的重传次数</span><br>    <span class="hljs-function"><span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> <span class="hljs-title">consecutive_retransmissions</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;<br><br>    <span class="hljs-comment">//! \brief TCPSegments that the TCPSender has enqueued for transmission.</span><br>    <span class="hljs-comment">//! \note These must be dequeued and sent by the TCPConnection,</span><br>    <span class="hljs-comment">//! which will need to fill in the fields that are set by the TCPReceiver</span><br>    <span class="hljs-comment">//! (ackno and window size) before sending.</span><br>    <span class="hljs-function">std::queue&lt;TCPSegment&gt; &amp;<span class="hljs-title">segments_out</span><span class="hljs-params">()</span> </span>&#123; <span class="hljs-keyword">return</span> _segments_out; &#125;<br>    <span class="hljs-comment">//!@&#125;</span><br><br>    <span class="hljs-comment">//! \name What is the next sequence number? (used for testing)</span><br>    <span class="hljs-comment">//!@&#123;</span><br><br>    <span class="hljs-comment">//! \brief absolute seqno for the next byte to be sent</span><br>    <span class="hljs-function"><span class="hljs-keyword">uint64_t</span> <span class="hljs-title">next_seqno_absolute</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> _next_seqno; &#125;<br><br>    <span class="hljs-comment">//! \brief relative seqno for the next byte to be sent</span><br>    <span class="hljs-function">WrappingInt32 <span class="hljs-title">next_seqno</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> <span class="hljs-built_in">wrap</span>(_next_seqno, _isn); &#125;<br>    <span class="hljs-comment">//!@&#125;</span><br>&#125;;<br><br><span class="hljs-meta">#<span class="hljs-meta-keyword">endif</span>  <span class="hljs-comment">// SPONGE_LIBSPONGE_TCP_SENDER_HH</span></span><br></code></pre></td></tr></table></figure>
+<p><code>tcp_sender.cc</code></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;tcp_sender.hh&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;iostream&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;tcp_config.hh&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;random&gt;</span></span><br><br><span class="hljs-comment">// Dummy implementation of a TCP sender</span><br><br><span class="hljs-comment">// For Lab 3, please replace with a real implementation that passes the</span><br><span class="hljs-comment">// automated checks run by `make check_lab3`.</span><br><br><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span>... Targs&gt;<br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">DUMMY_CODE</span><span class="hljs-params">(Targs &amp;&amp;... <span class="hljs-comment">/* unused */</span>)</span> </span>&#123;&#125;<br><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><br><span class="hljs-comment">//! \param[in] capacity the capacity of the outgoing byte stream</span><br><span class="hljs-comment">//! \param[in] retx_timeout the initial amount of time to wait before retransmitting the oldest outstanding segment</span><br><span class="hljs-comment">//! \param[in] fixed_isn the Initial Sequence Number to use, if set (otherwise uses a random ISN)</span><br>TCPSender::<span class="hljs-built_in">TCPSender</span>(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> capacity, <span class="hljs-keyword">const</span> <span class="hljs-keyword">uint16_t</span> retx_timeout, <span class="hljs-keyword">const</span> std::optional&lt;WrappingInt32&gt; fixed_isn)<br>    : _isn(fixed_isn.<span class="hljs-built_in">value_or</span>(WrappingInt32&#123;<span class="hljs-built_in">random_device</span>()()&#125;))<br>    ,<span class="hljs-built_in">base</span>(<span class="hljs-number">0</span>)<br>    , _initial_retransmission_timeout&#123;retx_timeout&#125;<br>    , _stream(capacity)<br>    , <span class="hljs-built_in">curr_window_size</span>(<span class="hljs-number">1</span>)<br>    , <span class="hljs-built_in">fin_flag</span>(<span class="hljs-literal">false</span>)<br>    , _total_time(<span class="hljs-number">0</span>)<br>    , <span class="hljs-built_in">time_waiting</span>(<span class="hljs-literal">false</span>)<br>    , _consecutive_remission(<span class="hljs-number">0</span>)<br>    , _time_out(<span class="hljs-number">0</span>)<br>    , <span class="hljs-built_in">window_zero</span>(<span class="hljs-literal">false</span>)<br>    &#123;<br><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">uint64_t</span> <span class="hljs-title">TCPSender::bytes_in_flight</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> _next_seqno-base;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">TCPSender::fill_window</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">if</span>(curr_window_size==<span class="hljs-number">0</span>||fin_flag)&#123;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    <span class="hljs-keyword">if</span>(_next_seqno==<span class="hljs-number">0</span>)&#123;<br>        TCPSegment seg;<br>        seg.<span class="hljs-built_in">header</span>().seqno=_isn;<br>        seg.<span class="hljs-built_in">header</span>().syn= <span class="hljs-literal">true</span>;<br>        _next_seqno=<span class="hljs-number">1</span>;<br>        curr_window_size--;<br>        _segments_out.<span class="hljs-built_in">push</span>(seg);<br>        _segments_out_cache.<span class="hljs-built_in">push</span>(seg);<br>    &#125;<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(_stream.<span class="hljs-built_in">eof</span>())&#123;<br>        fin_flag=<span class="hljs-literal">true</span>;<br>        TCPSegment seg;<br>        seg.<span class="hljs-built_in">header</span>().syn= <span class="hljs-literal">false</span>;<br>        seg.<span class="hljs-built_in">header</span>().fin=<span class="hljs-literal">true</span>;<br>        seg.<span class="hljs-built_in">header</span>().seqno= <span class="hljs-built_in">wrap</span>(_next_seqno,_isn);<br>        _next_seqno++;<br>        curr_window_size--;<br>        _segments_out_cache.<span class="hljs-built_in">push</span>(seg);<br>        _segments_out.<span class="hljs-built_in">push</span>(seg);<br>    &#125;<br>    <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-keyword">while</span> (!_stream.<span class="hljs-built_in">buffer_empty</span>()&amp;&amp;curr_window_size&gt;<span class="hljs-number">0</span>)&#123;<br>            <span class="hljs-keyword">uint64_t</span> lens_byte=std::<span class="hljs-built_in">min</span>(_stream.<span class="hljs-built_in">buffer_size</span>(),<span class="hljs-built_in">uint64_t</span> (curr_window_size));<br>            lens_byte=std::<span class="hljs-built_in">min</span>(lens_byte,TCPConfig::MAX_PAYLOAD_SIZE);<br>            TCPSegment seg;<br>            seg.<span class="hljs-built_in">header</span>().seqno= <span class="hljs-built_in">wrap</span>(_next_seqno,_isn);<br>            seg.<span class="hljs-built_in">header</span>().syn=<span class="hljs-literal">false</span>;<br>            seg.<span class="hljs-built_in">payload</span>()=_stream.<span class="hljs-built_in">read</span>(lens_byte);<br>            _next_seqno+=lens_byte;<br>            curr_window_size-=lens_byte;<br>            <span class="hljs-keyword">if</span>(_stream.<span class="hljs-built_in">eof</span>()&amp;&amp;curr_window_size&gt;<span class="hljs-number">0</span>)&#123;<br>                seg.<span class="hljs-built_in">header</span>().fin= <span class="hljs-literal">true</span>;<br>                fin_flag= <span class="hljs-literal">true</span>;<br>                curr_window_size--;<br>                _next_seqno++;<br>            &#125;<br>            _segments_out.<span class="hljs-built_in">push</span>(seg);<br>            _segments_out_cache.<span class="hljs-built_in">push</span>(seg);<br>            <span class="hljs-keyword">if</span>(fin_flag)&#123;<br>                <span class="hljs-keyword">break</span>;<br>            &#125;<br>        &#125;<br>    &#125;<br>    <span class="hljs-comment">//开始计时</span><br>    <span class="hljs-keyword">if</span>(!time_waiting)&#123;<br>        _time_out=_initial_retransmission_timeout;<br>        time_waiting=<span class="hljs-literal">true</span>;<br>        _total_time=<span class="hljs-number">0</span>;<br>    &#125;<br><br>&#125;<br><br><span class="hljs-comment">//! \param ackno The remote receiver&#x27;s ackno (acknowledgment number)</span><br><span class="hljs-comment">//! \param window_size The remote receiver&#x27;s advertised window size</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">TCPSender::ack_received</span><span class="hljs-params">(<span class="hljs-keyword">const</span> WrappingInt32 ackno, <span class="hljs-keyword">const</span> <span class="hljs-keyword">uint16_t</span> window_size)</span> </span>&#123;<br>    <span class="hljs-built_in">DUMMY_CODE</span>(ackno, window_size);<br>    <span class="hljs-keyword">uint64_t</span> ackno_64= <span class="hljs-built_in">unwrap</span>(ackno,_isn,base);<br>    <span class="hljs-keyword">if</span>(base==<span class="hljs-number">0</span>&amp;&amp;ackno_64==<span class="hljs-number">1</span>)&#123;<br>        base=<span class="hljs-number">1</span>;<br>        _segments_out_cache.<span class="hljs-built_in">pop</span>();<br>        _consecutive_remission=<span class="hljs-number">0</span>;<br>    &#125;<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (!_segments_out_cache.<span class="hljs-built_in">empty</span>() &amp;&amp; ackno_64 &gt;= base + _segments_out_cache.<span class="hljs-built_in">front</span>().<span class="hljs-built_in">length_in_sequence_space</span>()) &#123;<br>        <span class="hljs-comment">//缓冲队列第一个元素的序号</span><br>        <span class="hljs-keyword">uint64_t</span> copy_seg_seqno = <span class="hljs-built_in">unwrap</span>(_segments_out_cache.<span class="hljs-built_in">front</span>().<span class="hljs-built_in">header</span>().seqno, _isn, base);<br>        <span class="hljs-comment">//缓冲队列第一个元素的长度</span><br>        <span class="hljs-keyword">uint64_t</span> copy_seg_len = _segments_out_cache.<span class="hljs-built_in">front</span>().<span class="hljs-built_in">length_in_sequence_space</span>();<br>        <span class="hljs-comment">//序号加长度小于等于确认号，就一个一个删除</span><br>        <span class="hljs-keyword">while</span> (copy_seg_seqno + copy_seg_len &lt;= ackno_64) &#123;<br>            base += _segments_out_cache.<span class="hljs-built_in">front</span>().<span class="hljs-built_in">length_in_sequence_space</span>();<br>            _segments_out_cache.<span class="hljs-built_in">pop</span>();<br>            <span class="hljs-keyword">if</span> (_segments_out_cache.<span class="hljs-built_in">empty</span>()) <span class="hljs-keyword">break</span>;<br>            copy_seg_seqno = <span class="hljs-built_in">unwrap</span>(_segments_out_cache.<span class="hljs-built_in">front</span>().<span class="hljs-built_in">header</span>().seqno, _isn, base);<br>            copy_seg_len = _segments_out_cache.<span class="hljs-built_in">front</span>().<span class="hljs-built_in">length_in_sequence_space</span>();<br>        &#125;<br>        _time_out = _initial_retransmission_timeout;<br>        _total_time = <span class="hljs-number">0</span>;<br>        _consecutive_remission = <span class="hljs-number">0</span>;<br><br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(ackno_64==_next_seqno&amp;&amp;fin_flag)&#123;<br>        base=ackno_64;<br>        _segments_out_cache.<span class="hljs-built_in">pop</span>();<br>    &#125;<br>    <span class="hljs-keyword">if</span>(_next_seqno-base==<span class="hljs-number">0</span>)&#123;<br>        time_waiting= <span class="hljs-literal">false</span>;<br>    &#125;<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(_next_seqno-base&gt;=window_size)&#123;<br>        curr_window_size=<span class="hljs-number">0</span>;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    <span class="hljs-keyword">if</span>(window_size==<span class="hljs-number">0</span>)&#123;<br>        curr_window_size=<span class="hljs-number">1</span>;<br>        window_zero= <span class="hljs-literal">true</span>;<br>    &#125;<span class="hljs-keyword">else</span>&#123;<br>        curr_window_size=window_size;<br>        window_zero= <span class="hljs-literal">false</span>;<br>        _consecutive_remission=<span class="hljs-number">0</span>;<br>    &#125;<br>    <span class="hljs-built_in">fill_window</span>();<br>&#125;<br><br><span class="hljs-comment">//! \param[in] ms_since_last_tick the number of milliseconds since the last call to this method</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">TCPSender::tick</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> ms_since_last_tick)</span> </span>&#123;<br>    <span class="hljs-built_in">DUMMY_CODE</span>(ms_since_last_tick);<br>    _total_time+=ms_since_last_tick;<br>    <span class="hljs-comment">//如果缓冲队列不为空，停等时间在运行，且总时间大于超时</span><br>    <span class="hljs-keyword">if</span>(!_segments_out_cache.<span class="hljs-built_in">empty</span>()&amp;&amp;time_waiting&amp;&amp;_total_time&gt;=_time_out)&#123;<br>        _segments_out.<span class="hljs-built_in">push</span>(_segments_out_cache.<span class="hljs-built_in">front</span>());<br>        <span class="hljs-comment">//重传次数增加</span><br>        _consecutive_remission++;<br>        <span class="hljs-keyword">if</span>(!window_zero)&#123;<br>            _time_out*=<span class="hljs-number">2</span>;<br>        &#125;<br>        _total_time=<span class="hljs-number">0</span>;<br>    &#125;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> <span class="hljs-title">TCPSender::consecutive_retransmissions</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> _consecutive_remission; &#125;<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">TCPSender::send_empty_segment</span><span class="hljs-params">()</span> </span>&#123;<br>    TCPSegment seg;<br>    seg.<span class="hljs-built_in">header</span>().seqno= <span class="hljs-built_in">wrap</span>(_next_seqno,_isn);<br>    seg.<span class="hljs-built_in">payload</span>()=&#123;&#125;;<br>    _segments_out.<span class="hljs-built_in">push</span>(seg);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>做到这里我们就可以理解几个面经的问题了：</p>
+<p>Q1:<strong><em>TCP建立连接可以两次握手吗？为什么？</em></strong></p>
+<p>A1:不可以。有两个原因：</p>
+<ol>
+<li><p>已经失效的连接请求报文段又传到了服务器端。</p>
+<blockquote>
+<p>client发出的第一个连接请求报文并没有丢失，而是在某个网络结点长时间地滞留了，以致于延误到连接释放以后的某个时间才到达server，本来这是一个已经失效的报文段，但server收到此失效的连接请求报文段后，还是向client发出确认报文段，同意建立连接。假设不采用三次握手，那么只要server发出确认，新的连接就建立了，由于此时client不会与server进行通讯，那么server的资源就白白浪费了。</p>
+</blockquote>
+</li>
+<li><p>两次握手无法保证client端正确接收第二次握手的报文，无法保证client和server之间成功互换了初始序列号。</p>
+</li>
+</ol>
+<p>Q2:<strong><em>为什么TCP连接的时候是3次，关闭的时候却是4次？</em></strong></p>
+<p>A2:因为关闭的时候必须要确保通信双方都能通知对方释放连接，假设客户端发送完数据向服务端发送释放连接的请求，客户端并不知道，服务端是否已经发送完数据，所以此次断开的是客户端到服务端的单项连接，服务端返回给客户端确认报文后，服务端还能继续单向给客户端发送数据。也就是说第二次挥手就是服务端向客户端发送确认报文，这之后服务端还能单向给客户端发送数据。当服务端发送完数据后还需要向客户端发送释放连接请求，客户端返回确认报文，TCP才彻底关闭，四次挥手代表的是客户端和服务器端分别向对方发送释放连接的报文和发送确认报文，一共需要四次。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">计算机网络</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/standford-cs144-lab/">standford_cs144_lab</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/11/27/Stanford-CS144-Lab1/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Stanford_CS144_Lab1</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/11/20/Stanford-CS144-Lab2/">
+                        <span class="hidden-mobile">Stanford_CS144_Lab2</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+        typing(title);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+  
+
+  
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        },
+        loader: {
+          load: ['ui/lazy']
+        },
+        options: {
+          renderActions: {
+            findScript: [10, doc => {
+              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+                const display = !!node.type.match(/; *mode=display/);
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                const text = document.createTextNode('');
+                node.parentNode.replaceChild(text, node);
+                math.start = { node: text, delim: '', n: 0 };
+                math.end = { node: text, delim: '', n: 0 };
+                doc.math.push(math);
+              });
+            }, '', false],
+            insertedScript: [200, () => {
+              document.querySelectorAll('mjx-container').forEach(node => {
+                let target = node.parentNode;
+                if (target.nodeName.toLowerCase() === 'li') {
+                  target.parentNode.classList.add('has-jax');
+                }
+              });
+            }, '', false]
+          }
+        }
+      };
+    </script>
+
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

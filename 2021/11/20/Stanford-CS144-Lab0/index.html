@@ -1,0 +1,613 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Stanford大学的CS144 lab要求我们实现一个TCP。CS144的课程我觉得可以配合《自顶向下》来学习，它是目前最好的中文的计算机网络书籍了。《自顶向下》中采用的是五层模型，当然在CS144中介绍了四层模型和七层模型。华科的计算机网络课程是根据《自顶向下》来备课的，如果有空的话，还可以听一听华科的计网mooc。既然都写到这里了，我们在前言来聊聊计算机网络模型：  四层网络模型链路层：定义">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Stanford_CS144_Lab0">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2021/11/20/Stanford-CS144-Lab0/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="Stanford大学的CS144 lab要求我们实现一个TCP。CS144的课程我觉得可以配合《自顶向下》来学习，它是目前最好的中文的计算机网络书籍了。《自顶向下》中采用的是五层模型，当然在CS144中介绍了四层模型和七层模型。华科的计算机网络课程是根据《自顶向下》来备课的，如果有空的话，还可以听一听华科的计网mooc。既然都写到这里了，我们在前言来聊聊计算机网络模型：  四层网络模型链路层：定义">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20190323002502144.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2RqbDgwNjk0MzM3MQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="http://tva2.sinaimg.cn/large/007SD2TBly1gwlp6u8yfnj30dn02s0tf.jpg">
+<meta property="og:image" content="http://tva3.sinaimg.cn/large/007SD2TBly1gwlp6ucnxxj30eo08h76y.jpg">
+<meta property="og:image" content="http://tvax2.sinaimg.cn/large/007SD2TBly1gwlp6w4d77j30ip04lq4y.jpg">
+<meta property="og:image" content="http://tva4.sinaimg.cn/large/007SD2TBly1gwlp6wmd2kj30oc0cfn4a.jpg">
+<meta property="article:published_time" content="2021-11-19T21:57:42.000Z">
+<meta property="article:modified_time" content="2022-02-22T10:03:49.651Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="standford_cs144_lab">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://img-blog.csdnimg.cn/20190323002502144.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2RqbDgwNjk0MzM3MQ==,size_16,color_FFFFFF,t_70">
+  
+  
+  <title>Stanford_CS144_Lab0 - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>databrains</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Stanford_CS144_Lab0">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-11-20 05:57" pubdate>
+        2021年11月20日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      12k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      98 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Stanford_CS144_Lab0</h1>
+            
+            <div class="markdown-body">
+              <p>Stanford大学的CS144 lab要求我们实现一个TCP。CS144的课程我觉得可以配合《自顶向下》来学习，它是目前最好的中文的计算机网络书籍了。《自顶向下》中采用的是五层模型，当然在CS144中介绍了四层模型和七层模型。华科的计算机网络课程是根据《自顶向下》来备课的，如果有空的话，还可以听一听华科的计网mooc。既然都写到这里了，我们在前言来聊聊计算机网络模型：</p>
+<hr>
+<h5 id="四层网络模型"><a href="#四层网络模型" class="headerlink" title="四层网络模型"></a>四层网络模型</h5><p>链路层：定义单个链路如何传输。</p>
+<p>网络层：选择合适的网间路由，确保数据及时到达。常见的协议有IP协议。在internet中连接局域网和广域网是路由器。</p>
+<p>传输层：端到端的通信，负责向两台主机之间提供数据传输服务。传输层的主要协议有传输控制协议TCP和用户数据协议UDP。</p>
+<p>应用层：通过应用进程之间的交互来完成特定的网络作用</p>
+<p><img src="https://img-blog.csdnimg.cn/20190323002502144.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2RqbDgwNjk0MzM3MQ==,size_16,color_FFFFFF,t_70" srcset="/img/loading.gif" lazyload alt=""></p>
+<h5 id="五层模型"><a href="#五层模型" class="headerlink" title="五层模型"></a>五层模型</h5><p>五层模型把四层模型的link层分为了数据层和物理层。</p>
+<p>数据层：数据层的作用是在物理层提供比特流服务的基础上，建立相连节点之间的数据链路，通过差错控制提供数据帧在信道上无差错的传输。</p>
+<p>物理层：实现相邻计算机节点之间的比特流的透明传输。</p>
+<h5 id="七层模型"><a href="#七层模型" class="headerlink" title="七层模型"></a>七层模型</h5><p>表示层和会话层实际上是和应用层一起实现的。</p>
+<p>为什么网络协议要分层呢？</p>
+<ul>
+<li>层层封装，易于实现和维护；</li>
+<li>有利于协议等标准化的制定。</li>
+</ul>
+<p>今天在连接网络的时候发现一个很有意思的现象，我用设置了全局代理，并用v2ray连接了代理服务器，之后我用ping命令<code>ping google.com</code>，却ping不通，原来v2ray是作用于会话层，而ping是作用于网络层，所以我们即使连接了代理服务器却不能ping通google.com。</p>
+<p>我们常用的v2ray、shadowsocks等客户端位于会话层，只能代理应用层的应用，当然我们也可以通过一些软件去实现真正的全局代理，如：SSTap、Proxifier、tun2sock2、SocksCap等。</p>
+<hr>
+<p><strong><em>Fetch a web page</em></strong></p>
+<p>该部分要求使用telnet手动获取网页，具体步骤如下：</p>
+<p>1.键入<code>telnet cs144.keithw.org http</code>得到如下响应（http可替换为80）：</p>
+<p><img src="http://tva2.sinaimg.cn/large/007SD2TBly1gwlp6u8yfnj30dn02s0tf.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>2.继续键入GET / hello HTTP / 1.1。 这告诉服务器URL的路径部分。</p>
+<p>3.继续键入Host：<a href="https://link.zhihu.com/?target=http%3A//cs144.keithw.org">http://cs144.keithw.org</a>。这告诉服务器URL的主机部分。</p>
+<p>4.再按一次Enter键 这告诉服务器您已经完成了HTTP请求。</p>
+<p>实验结果如下所示：</p>
+<p><img src="http://tva3.sinaimg.cn/large/007SD2TBly1gwlp6ucnxxj30eo08h76y.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>我们知道，telnet是作用于应用层的一个应用，通常用来进行远程请求。当远程请求获取成功，我们通过<code>GET / hello HTTP / 1.1</code>获取超文本文档，这里的HTTP是超文本传输协议。这里我们再来讲讲HTTP不同版本协议的区别：</p>
+<p>HTTP 1.0和HTTP 1.1的区别</p>
+<ul>
+<li><p>长连接</p>
+<p>HTTP 1.1支持长连接和请求的流水线操作。长连接是指不在需要每次请求都重新建立一次连接，HTTP 1.0默认使用短连接，每次请求都要重新建立一次TCP连接，资源消耗较大。请求的流水线操作是指客户端在收到HTTP的响应报文之前可以先发送新的请求报文，不支持请求的流水线操作需要等到收到HTTP的响应报文后才能继续发送新的请求报文。</p>
+</li>
+<li><p>缓存处理</p>
+<p>在HTTP 1.0中主要使用header中的If-Modified-Since,Expires作为缓存判断的标准，HTTP 1.1引入了Entity tag，If-Unmodified-Since, If-Match等更多可供选择的缓存头来控制缓存策略。</p>
+</li>
+<li><p>错误状态码</p>
+<p>在HTTP 1.1新增了24个错误状态响应码</p>
+</li>
+<li><p>HOST域</p>
+<p>在HTTP 1.0 中认为每台服务器都会绑定唯一的IP地址，所以，请求中的URL并没有传递主机名。但后来一台服务器上可能存在多个虚拟机，它们共享一个IP地址，所以HTTP 1.1中请求消息和响应消息都应该支持Host域。</p>
+</li>
+<li><p>带宽优化及网络连接的使用</p>
+<p>在HTTP 1.0中会存在浪费带宽的现象，主要是因为不支持断点续传功能，客户端只是需要某个对象的一部分，服务端却将整个对象都传了过来。在HTTP 1.1中请求头引入了range头域，它支持只请求资源的某个部分，返回的状态码为206。</p>
+</li>
+</ul>
+<p>HTTP 2.0的新特性</p>
+<ul>
+<li>新的二进制格式：HTTP 1.x的解析是基于文本，HTTP 2.0的解析采用二进制，实现方便，健壮性更好。</li>
+<li>多路复用：每一个request对应一个id，一个连接上可以有多个request，每个连接的request可以随机混在一起，这样接收方可以根据request的id将request归属到各自不同的服务端请求里。</li>
+<li>header压缩：在HTTP 1.x中，header携带大量信息，并且每次都需要重新发送，HTTP 2.0采用编码的方式减小了header的大小，同时通信双方各自缓存一份header fields表，避免了header的重复传输。</li>
+<li>服务端推送：客户端在请求一个资源时，会把相关资源一起发给客户端，这样客户端就不需要再次发起请求。</li>
+</ul>
+<p><code>GET / hello HTTP / 1.1</code>就是我们的请求行，请求行包括请求方法，请求URL，HTTP版本协议。那么我们又不得不讲一讲请求头了，请求头包括若干个属性值，服务端据此获取客户端的信息。至于请求体，它承载多个请求参数的数据。再来说说GET和POST的区别：</p>
+<ul>
+<li><p>作用</p>
+<p>GET用于获取资源，POST用于传输实体主体</p>
+</li>
+<li><p>参数位置</p>
+<p>GET的参数放在URL中，POST的参数存储在实体主体中，并且GET方法提交的请求的URL中的数据做多是2048字节，POST请求没有大小限制。</p>
+</li>
+<li><p>安全性</p>
+<p>GET方法因为参数放在URL中，安全性相对于POST较差一些</p>
+</li>
+<li><p>幂等性</p>
+<p>GET方法是具有幂等性的，而POST方法不具有幂等性。这里幂等性指客户端连续发出多次请求，收到的结果都是一样的.</p>
+</li>
+</ul>
+<p>而上述图片返回的则是响应报文。响应报文的响应行包括报文协议及版本，状态吗及状态描述。响应头也是属性值，至于响应体，则是我们请求的需要的数据。我们看到响应代码是200，我们来说说常见的状态码：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:center">状态码</th>
+<th style="text-align:center">类别</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">1XX</td>
+<td style="text-align:center">信息性状态码</td>
+</tr>
+<tr>
+<td style="text-align:center">2XX</td>
+<td style="text-align:center">成功状态码</td>
+</tr>
+<tr>
+<td style="text-align:center">3XX</td>
+<td style="text-align:center">重定向状态码</td>
+</tr>
+<tr>
+<td style="text-align:center">4XX</td>
+<td style="text-align:center">客户端错误状态码</td>
+</tr>
+<tr>
+<td style="text-align:center">5XX</td>
+<td style="text-align:center">服务端错误状态码</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong><em>Writing webget</em></strong></p>
+<p>利用TCPsocket与Host建立连接，发送请求头，达到获取网页的目的。</p>
+<p>众所周知，请求头为</p>
+<figure class="highlight http"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></div></td><td class="code"><pre><code class="hljs http"><span class="hljs-keyword">GET</span> <span class="hljs-string">path</span> <span class="hljs-meta">HTTP/1.1</span><br><span class="hljs-attribute">Host</span><span class="hljs-punctuation">: </span>host<br></code></pre></td></tr></table></figure>
+<p>故write函数里面的字符输入为<code>sock.write(&quot;GET &quot; + path + &quot; HTTP/1.1\r\nHost: &quot; + host + &quot;\r\n\r\n\r\n&quot;);</code></p>
+<p>webget.cc代码如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">get_URL</span><span class="hljs-params">(<span class="hljs-keyword">const</span> string &amp;host, <span class="hljs-keyword">const</span> string &amp;path)</span> </span>&#123;<br>    <span class="hljs-comment">// Your code here.</span><br><br>    <span class="hljs-comment">// You will need to connect to the &quot;http&quot; service on</span><br>    <span class="hljs-comment">// the computer whose name is in the &quot;host&quot; string,</span><br>    <span class="hljs-comment">// then request the URL path given in the &quot;path&quot; string.</span><br><br>    <span class="hljs-comment">// Then you&#x27;ll need to print out everything the server sends back,</span><br>    <span class="hljs-comment">// (not just one call to read() -- everything) until you reach</span><br>    <span class="hljs-comment">// the &quot;eof&quot; (end of file).</span><br>    TCPSocket sock;<br>    sock.<span class="hljs-built_in">connect</span>(<span class="hljs-built_in">Address</span>(host, <span class="hljs-string">&quot;http&quot;</span>));<br>    sock.<span class="hljs-built_in">write</span>(<span class="hljs-string">&quot;GET &quot;</span> + path + <span class="hljs-string">&quot; HTTP/1.1\r\nHost: &quot;</span> + host + <span class="hljs-string">&quot;\r\n\r\n\r\n&quot;</span>);<br>    sock.<span class="hljs-built_in">shutdown</span>(SHUT_WR);<br>    <span class="hljs-keyword">while</span>(!sock.<span class="hljs-built_in">eof</span>())<br>        std::cout &lt;&lt; sock.<span class="hljs-built_in">read</span>();<br>    sock.<span class="hljs-built_in">close</span>();<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>实验结果：</p>
+<p><img src="http://tvax2.sinaimg.cn/large/007SD2TBly1gwlp6w4d77j30ip04lq4y.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong><em>An in-memory reliable byte stream</em></strong></p>
+<p>该部分要在计算机的内存中实现一个提供可靠的有序字节流的抽象。该抽象充当运输层与应用层的连接。也就是应用层从socket中读取数据的部分。其中，byte_stream的byte_read函数将byte_stream中的数据发送到应用层，byte_write函数将有序的而数据写入byte_stream。</p>
+<p>该抽象使用deque实现。</p>
+<p>对于write函数，我们将data中的数据写入deque,返回累计写入数据的长度，注意capasity作为内存大小，我们最多只能写入capasity个数据。代码如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ByteStream::write</span><span class="hljs-params">(<span class="hljs-keyword">const</span> string &amp;data)</span> </span>&#123;<br>    <span class="hljs-built_in">DUMMY_CODE</span>(data);<br>    <span class="hljs-comment">//取其中的较小值，data的长度，bytestream的容量和deque长度的差,保证其不超过bytestream容量</span><br>    <span class="hljs-keyword">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(data.<span class="hljs-built_in">size</span>(),stream_capacity - byte_stream.<span class="hljs-built_in">size</span>());<br>    <span class="hljs-comment">//在deque的末尾插入data的数据</span><br>    byte_stream.<span class="hljs-built_in">insert</span>(byte_stream.<span class="hljs-built_in">end</span>(),data.<span class="hljs-built_in">begin</span>(),data.<span class="hljs-built_in">begin</span>()+lens_byte);<br>    <span class="hljs-comment">//写入的长度增加</span><br>    byte_written+=lens_byte;<br>    <span class="hljs-keyword">return</span> lens_byte;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>对于read函数，我们只需要弹出len个数据，注意是len和deque.size()的较小值。代码如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">std::string <span class="hljs-title">ByteStream::read</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> len)</span> </span>&#123;<br>    <span class="hljs-built_in">DUMMY_CODE</span>(len);<br>    <span class="hljs-comment">//找到要read的长度byte_stream长度的较小值，尽可能地读</span><br>    <span class="hljs-keyword">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(len,byte_stream.<span class="hljs-built_in">size</span>());<br>    <span class="hljs-comment">//读取数据</span><br>    <span class="hljs-function">std::string <span class="hljs-title">n</span><span class="hljs-params">(byte_stream.begin(),byte_stream.begin()+lens_byte)</span></span>;<br>    <span class="hljs-comment">//将读取后的数据弹出</span><br>    <span class="hljs-built_in">pop_output</span>(len);<br>    <span class="hljs-keyword">return</span> n;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>byte_stream.hh代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-meta">#<span class="hljs-meta-keyword">ifndef</span> SPONGE_LIBSPONGE_BYTE_STREAM_HH</span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SPONGE_LIBSPONGE_BYTE_STREAM_HH</span><br><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;string&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;queue&gt;</span></span><br><span class="hljs-comment">//! \brief An in-order byte stream.</span><br><br><span class="hljs-comment">//! Bytes are written on the &quot;input&quot; side and read from the &quot;output&quot;</span><br><span class="hljs-comment">//! side.  The byte stream is finite: the writer can end the input,</span><br><span class="hljs-comment">//! and then no more bytes can be written.</span><br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ByteStream</span> &#123;</span><br>  <span class="hljs-keyword">private</span>:<br>    <span class="hljs-comment">// Your code here -- add private members as necessary.</span><br>    <span class="hljs-keyword">size_t</span> stream_capacity;<span class="hljs-comment">//容量大小</span><br>    <span class="hljs-keyword">size_t</span> byte_written;<span class="hljs-comment">//写入</span><br>    <span class="hljs-keyword">size_t</span> byte_read;<span class="hljs-comment">//读取</span><br>    std::deque&lt;<span class="hljs-keyword">char</span>&gt; byte_stream;<span class="hljs-comment">//快速插入和删除</span><br>    <span class="hljs-keyword">bool</span> _end;<span class="hljs-comment">//结束标志</span><br>    <span class="hljs-comment">// Hint: This doesn&#x27;t need to be a sophisticated data structure at</span><br>    <span class="hljs-comment">// all, but if any of your tests are taking longer than a second,</span><br>    <span class="hljs-comment">// that&#x27;s a sign that you probably want to keep exploring</span><br>    <span class="hljs-comment">// different approaches.</span><br><br>    <span class="hljs-keyword">bool</span> _error&#123;&#125;;  <span class="hljs-comment">//!&lt; Flag indicating that the stream suffered an error.</span><br><br>  <span class="hljs-keyword">public</span>:<br>    <span class="hljs-comment">//! Construct a stream with room for `capacity` bytes.</span><br>    <span class="hljs-comment">//构造函数，构造一个带有容量字节空间的流。</span><br>    <span class="hljs-built_in">ByteStream</span>(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> capacity);<br><br>    <span class="hljs-comment">//! \name &quot;Input&quot; interface for the writer</span><br>    <span class="hljs-comment">//!@&#123;</span><br><br>    <span class="hljs-comment">//! Write a string of bytes into the stream. Write as many</span><br>    <span class="hljs-comment">//! as will fit, and return how many were written.</span><br>    <span class="hljs-comment">//! \returns the number of bytes accepted into the stream</span><br>    <span class="hljs-comment">//写入字节，返回字节的数量</span><br>    <span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">write</span><span class="hljs-params">(<span class="hljs-keyword">const</span> std::string &amp;data)</span></span>;<br><br>    <span class="hljs-comment">//! \returns the number of additional bytes that the stream has space for</span><br>    <span class="hljs-comment">//</span><br>    <span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">remaining_capacity</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;<br><br>    <span class="hljs-comment">//! Signal that the byte stream has reached its ending</span><br>    <span class="hljs-comment">//结束输入</span><br>    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">end_input</span><span class="hljs-params">()</span></span>;<br><br>    <span class="hljs-comment">//! Indicate that the stream suffered an error.</span><br>    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">set_error</span><span class="hljs-params">()</span> </span>&#123; _error = <span class="hljs-literal">true</span>; &#125;<br>    <span class="hljs-comment">//!@&#125;</span><br><br>    <span class="hljs-comment">//! \name &quot;Output&quot; interface for the reader</span><br>    <span class="hljs-comment">//!@&#123;</span><br><br>    <span class="hljs-comment">//! Peek at next &quot;len&quot; bytes of the stream</span><br>    <span class="hljs-comment">//! \returns a string</span><br>    <span class="hljs-function">std::string <span class="hljs-title">peek_output</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> len)</span> <span class="hljs-keyword">const</span></span>;<br><br>    <span class="hljs-comment">//! Remove bytes from the buffer</span><br>    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">pop_output</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> len)</span></span>;<br><br>    <span class="hljs-comment">//! Read (i.e., copy and then pop) the next &quot;len&quot; bytes of the stream</span><br>    <span class="hljs-comment">//! \returns a string</span><br>    <span class="hljs-function">std::string <span class="hljs-title">read</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> len)</span></span>;<br><br>    <span class="hljs-comment">//! \returns `true` if the stream input has ended</span><br>    <span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">input_ended</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;<br><br>    <span class="hljs-comment">//! \returns `true` if the stream has suffered an error</span><br>    <span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">error</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> _error; &#125;<br><br>    <span class="hljs-comment">//! \returns the maximum amount that can currently be read from the stream</span><br>    <span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">buffer_size</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;<br><br>    <span class="hljs-comment">//! \returns `true` if the buffer is empty</span><br>    <span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">buffer_empty</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;<br><br>    <span class="hljs-comment">//! \returns `true` if the output has reached the ending</span><br>    <span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">eof</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;<br>    <span class="hljs-comment">//!@&#125;</span><br><br>    <span class="hljs-comment">//! \name General accounting</span><br>    <span class="hljs-comment">//!@&#123;</span><br><br>    <span class="hljs-comment">//! Total number of bytes written</span><br>    <span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">bytes_written</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;<br><br>    <span class="hljs-comment">//! Total number of bytes popped</span><br>    <span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">bytes_read</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;<br>    <span class="hljs-comment">//!@&#125;</span><br>&#125;;<br><br><span class="hljs-meta">#<span class="hljs-meta-keyword">endif</span>  <span class="hljs-comment">// SPONGE_LIBSPONGE_BYTE_STREAM_HH</span></span><br></code></pre></td></tr></table></figure>
+<p>byte_stream.cc代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;byte_stream.hh&quot;</span></span><br><br><span class="hljs-comment">// Dummy implementation of a flow-controlled in-memory byte stream.</span><br><br><span class="hljs-comment">// For Lab 0, please replace with a real implementation that passes the</span><br><span class="hljs-comment">// automated checks run by `make check_lab0`.</span><br><br><span class="hljs-comment">// You will need to add private members to the class declaration in `byte_stream.hh`</span><br><br><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span>... Targs&gt;<br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">DUMMY_CODE</span><span class="hljs-params">(Targs &amp;&amp;... <span class="hljs-comment">/* unused */</span>)</span> </span>&#123;&#125;<br><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><br>ByteStream::<span class="hljs-built_in">ByteStream</span>(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> capacity) : <span class="hljs-built_in">stream_capacity</span>(capacity),<span class="hljs-built_in">byte_written</span>(<span class="hljs-number">0</span>),<span class="hljs-built_in">byte_read</span>(<span class="hljs-number">0</span>),<span class="hljs-built_in">byte_stream</span>(<span class="hljs-number">0</span>),_end(<span class="hljs-literal">false</span>),_error(<span class="hljs-literal">false</span>)&#123;<br>    <span class="hljs-built_in">DUMMY_CODE</span>(capacity);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ByteStream::write</span><span class="hljs-params">(<span class="hljs-keyword">const</span> string &amp;data)</span> </span>&#123;<br>    <span class="hljs-built_in">DUMMY_CODE</span>(data);<br>    <span class="hljs-comment">//取其中的</span><br>    <span class="hljs-keyword">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(data.<span class="hljs-built_in">size</span>(),stream_capacity - byte_stream.<span class="hljs-built_in">size</span>());<br>    byte_stream.<span class="hljs-built_in">insert</span>(byte_stream.<span class="hljs-built_in">end</span>(),data.<span class="hljs-built_in">begin</span>(),data.<span class="hljs-built_in">begin</span>()+lens_byte);<br>    byte_written+=lens_byte;<br>    <span class="hljs-keyword">return</span> lens_byte;<br>&#125;<br><br><span class="hljs-comment">//! \param[in] len bytes will be copied from the output side of the buffer</span><br><span class="hljs-function">string <span class="hljs-title">ByteStream::peek_output</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> len)</span> <span class="hljs-keyword">const</span> </span>&#123;<br>    <span class="hljs-built_in">DUMMY_CODE</span>(len);<br>    <span class="hljs-keyword">return</span> std::<span class="hljs-built_in">string</span>(byte_stream.<span class="hljs-built_in">begin</span>(),byte_stream.<span class="hljs-built_in">begin</span>()+std::<span class="hljs-built_in">min</span>(len,byte_stream.<span class="hljs-built_in">size</span>()));<br>&#125;<br><br><span class="hljs-comment">//! \param[in] len bytes will be removed from the output side of the buffer</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">ByteStream::pop_output</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> len)</span> </span>&#123;<br>    <span class="hljs-built_in">DUMMY_CODE</span>(len);<br>    <span class="hljs-keyword">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(len,byte_stream.<span class="hljs-built_in">size</span>());<br>    byte_stream.<span class="hljs-built_in">erase</span>(byte_stream.<span class="hljs-built_in">begin</span>(),byte_stream.<span class="hljs-built_in">begin</span>()+lens_byte);<br>    byte_read+=lens_byte;<br>&#125;<br><br><span class="hljs-comment">//! Read (i.e., copy and then pop) the next &quot;len&quot; bytes of the stream</span><br><span class="hljs-comment">//! \param[in] len bytes will be popped and returned</span><br><span class="hljs-comment">//! \returns a string</span><br><span class="hljs-function">std::string <span class="hljs-title">ByteStream::read</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> len)</span> </span>&#123;<br>    <span class="hljs-built_in">DUMMY_CODE</span>(len);<br>    <span class="hljs-keyword">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(len,byte_stream.<span class="hljs-built_in">size</span>());<br>    <span class="hljs-function">std::string <span class="hljs-title">n</span><span class="hljs-params">(byte_stream.begin(),byte_stream.begin()+lens_byte)</span></span>;<br>    <span class="hljs-built_in">pop_output</span>(len);<br>    <span class="hljs-keyword">return</span> n;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">ByteStream::end_input</span><span class="hljs-params">()</span> </span>&#123;_end= <span class="hljs-literal">true</span>;&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">ByteStream::input_ended</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> _end; &#125;<br><br><span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ByteStream::buffer_size</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_stream.<span class="hljs-built_in">size</span>(); &#125;<br><br><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">ByteStream::buffer_empty</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_stream.<span class="hljs-built_in">empty</span>(); &#125;<br><br><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">ByteStream::eof</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> _end&amp;&amp;byte_stream.<span class="hljs-built_in">empty</span>(); &#125;<br><br><span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ByteStream::bytes_written</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_written; &#125;<br><br><span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ByteStream::bytes_read</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_read; &#125;<br><br><span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ByteStream::remaining_capacity</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> stream_capacity-byte_stream.<span class="hljs-built_in">size</span>(); &#125;<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;byte_stream.hh&quot;</span></span><br><br><span class="hljs-comment">// Dummy implementation of a flow-controlled in-memory byte stream.</span><br><br><span class="hljs-comment">// For Lab 0, please replace with a real implementation that passes the</span><br><span class="hljs-comment">// automated checks run by `make check_lab0`.</span><br><br><span class="hljs-comment">// You will need to add private members to the class declaration in `byte_stream.hh`</span><br><br><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span>... Targs&gt;<br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">DUMMY_CODE</span><span class="hljs-params">(Targs &amp;&amp;... <span class="hljs-comment">/* unused */</span>)</span> </span>&#123;&#125;<br><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><br>ByteStream::<span class="hljs-built_in">ByteStream</span>(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> capacity) : <span class="hljs-built_in">stream_capacity</span>(capacity),<span class="hljs-built_in">byte_written</span>(<span class="hljs-number">0</span>),<span class="hljs-built_in">byte_read</span>(<span class="hljs-number">0</span>),<span class="hljs-built_in">byte_stream</span>(<span class="hljs-number">0</span>),_end(<span class="hljs-literal">false</span>),_error(<span class="hljs-literal">false</span>)&#123;<br>    <span class="hljs-built_in">DUMMY_CODE</span>(capacity);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ByteStream::write</span><span class="hljs-params">(<span class="hljs-keyword">const</span> string &amp;data)</span> </span>&#123;<br>    <span class="hljs-built_in">DUMMY_CODE</span>(data);<br>    <span class="hljs-comment">//取其中的较小值，data的长度，bytestream的容量和deque长度的差,保证其不超过bytestream容量</span><br>    <span class="hljs-keyword">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(data.<span class="hljs-built_in">size</span>(),stream_capacity - byte_stream.<span class="hljs-built_in">size</span>());<br>    <span class="hljs-comment">//在deque的末尾插入data的数据</span><br>    byte_stream.<span class="hljs-built_in">insert</span>(byte_stream.<span class="hljs-built_in">end</span>(),data.<span class="hljs-built_in">begin</span>(),data.<span class="hljs-built_in">begin</span>()+lens_byte);<br>    <span class="hljs-comment">//写入的长度增加</span><br>    byte_written+=lens_byte;<br>    <span class="hljs-keyword">return</span> lens_byte;<br>&#125;<br><br><span class="hljs-comment">//! \param[in] len bytes will be copied from the output side of the buffer</span><br><span class="hljs-function">string <span class="hljs-title">ByteStream::peek_output</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> len)</span> <span class="hljs-keyword">const</span> </span>&#123;<br>    <span class="hljs-built_in">DUMMY_CODE</span>(len);<br>    <span class="hljs-keyword">return</span> std::<span class="hljs-built_in">string</span>(byte_stream.<span class="hljs-built_in">begin</span>(),byte_stream.<span class="hljs-built_in">begin</span>()+std::<span class="hljs-built_in">min</span>(len,byte_stream.<span class="hljs-built_in">size</span>()));<br>&#125;<br><br><span class="hljs-comment">//! \param[in] len bytes will be removed from the output side of the buffer</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">ByteStream::pop_output</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> len)</span> </span>&#123;<br>    <span class="hljs-built_in">DUMMY_CODE</span>(len);<br>    <span class="hljs-comment">//其实在实际情况下并不需要求较小值，但是为了通过单个测试，必须要求较小值</span><br>    <span class="hljs-keyword">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(len,byte_stream.<span class="hljs-built_in">size</span>());<br>    <span class="hljs-comment">//删除这些数据</span><br>    byte_stream.<span class="hljs-built_in">erase</span>(byte_stream.<span class="hljs-built_in">begin</span>(),byte_stream.<span class="hljs-built_in">begin</span>()+lens_byte);<br>    <span class="hljs-comment">//已经读取的数据增加</span><br>    byte_read+=lens_byte;<br>&#125;<br><br><span class="hljs-comment">//! Read (i.e., copy and then pop) the next &quot;len&quot; bytes of the stream</span><br><span class="hljs-comment">//! \param[in] len bytes will be popped and returned</span><br><span class="hljs-comment">//! \returns a string</span><br><span class="hljs-function">std::string <span class="hljs-title">ByteStream::read</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> len)</span> </span>&#123;<br>    <span class="hljs-built_in">DUMMY_CODE</span>(len);<br>    <span class="hljs-comment">//找到要read的长度byte_stream长度的较小值，尽可能地读</span><br>    <span class="hljs-keyword">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(len,byte_stream.<span class="hljs-built_in">size</span>());<br>    <span class="hljs-comment">//读取数据</span><br>    <span class="hljs-function">std::string <span class="hljs-title">n</span><span class="hljs-params">(byte_stream.begin(),byte_stream.begin()+lens_byte)</span></span>;<br>    <span class="hljs-comment">//将读取后的数据弹出</span><br>    <span class="hljs-built_in">pop_output</span>(len);<br>    <span class="hljs-keyword">return</span> n;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">ByteStream::end_input</span><span class="hljs-params">()</span> </span>&#123;_end= <span class="hljs-literal">true</span>;&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">ByteStream::input_ended</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> _end; &#125;<br><br><span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ByteStream::buffer_size</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_stream.<span class="hljs-built_in">size</span>(); &#125;<br><br><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">ByteStream::buffer_empty</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_stream.<span class="hljs-built_in">empty</span>(); &#125;<br><br><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">ByteStream::eof</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> _end&amp;&amp;byte_stream.<span class="hljs-built_in">empty</span>(); &#125;<br><br><span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ByteStream::bytes_written</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_written; &#125;<br><br><span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ByteStream::bytes_read</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_read; &#125;<br><br><span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ByteStream::remaining_capacity</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> stream_capacity-byte_stream.<span class="hljs-built_in">size</span>(); &#125;<br></code></pre></td></tr></table></figure>
+<p>实验结果如下：</p>
+<p><img src="http://tva4.sinaimg.cn/large/007SD2TBly1gwlp6wmd2kj30oc0cfn4a.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">计算机网络</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/standford-cs144-lab/">standford_cs144_lab</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/11/20/Stanford-CS144-Lab2/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Stanford_CS144_Lab2</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+        typing(title);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+  
+
+  
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        },
+        loader: {
+          load: ['ui/lazy']
+        },
+        options: {
+          renderActions: {
+            findScript: [10, doc => {
+              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+                const display = !!node.type.match(/; *mode=display/);
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                const text = document.createTextNode('');
+                node.parentNode.replaceChild(text, node);
+                math.start = { node: text, delim: '', n: 0 };
+                math.end = { node: text, delim: '', n: 0 };
+                doc.math.push(math);
+              });
+            }, '', false],
+            insertedScript: [200, () => {
+              document.querySelectorAll('mjx-container').forEach(node => {
+                let target = node.parentNode;
+                if (target.nodeName.toLowerCase() === 'li') {
+                  target.parentNode.classList.add('has-jax');
+                }
+              });
+            }, '', false]
+          }
+        }
+      };
+    </script>
+
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

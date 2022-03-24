@@ -1,0 +1,534 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="什么叫精度丢失计算不准确我们看看如下代码： 12345float f;for(int i&#x3D;0;i&lt;100;i++)&amp;#123;    f+&#x3D;0.1f;&amp;#125;printf(&quot;%f\n&quot;,f); 上述代码中f的结果本应该是10.000000,但是却输出10.000002，如下图所示。这就是浮点数计算不准确的现象，即精度丢失。  我们打印小数点后更多位数，能看得更清楚。p">
+<meta property="og:type" content="article">
+<meta property="og:title" content="对浮点数精度丢失的一点研究">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2021/12/13/%E5%AF%B9%E6%B5%AE%E7%82%B9%E6%95%B0%E7%B2%BE%E5%BA%A6%E4%B8%A2%E5%A4%B1%E7%9A%84%E4%B8%80%E7%82%B9%E7%A0%94%E7%A9%B6/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="什么叫精度丢失计算不准确我们看看如下代码： 12345float f;for(int i&#x3D;0;i&lt;100;i++)&amp;#123;    f+&#x3D;0.1f;&amp;#125;printf(&quot;%f\n&quot;,f); 上述代码中f的结果本应该是10.000000,但是却输出10.000002，如下图所示。这就是浮点数计算不准确的现象，即精度丢失。  我们打印小数点后更多位数，能看得更清楚。p">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://tva4.sinaimg.cn/large/007SD2TBly1gxcilvh1yuj308w02c74b.jpg">
+<meta property="og:image" content="http://tvax2.sinaimg.cn/large/007SD2TBly1gxcimk8rcyj308j01q3yp.jpg">
+<meta property="og:image" content="http://tvax2.sinaimg.cn/large/007SD2TBly1gxcimmglexj306301bglq.jpg">
+<meta property="og:image" content="http://tva3.sinaimg.cn/large/007SD2TBly1gxcimqnr1sj308f01y74g.jpg">
+<meta property="og:image" content="http://tva3.sinaimg.cn/large/007SD2TBly1gxcimz3301j308702mq31.jpg">
+<meta property="og:image" content="http://tva4.sinaimg.cn/large/007SD2TBly1gxcin0vua5j309d02l74i.jpg">
+<meta property="article:published_time" content="2021-12-13T10:33:09.000Z">
+<meta property="article:modified_time" content="2022-02-13T18:34:27.343Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="浮点数">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://tva4.sinaimg.cn/large/007SD2TBly1gxcilvh1yuj308w02c74b.jpg">
+  
+  
+  <title>对浮点数精度丢失的一点研究 - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>databrains</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="对浮点数精度丢失的一点研究">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-12-13 18:33" pubdate>
+        2021年12月13日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      17 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">对浮点数精度丢失的一点研究</h1>
+            
+            <div class="markdown-body">
+              <h4 id="什么叫精度丢失"><a href="#什么叫精度丢失" class="headerlink" title="什么叫精度丢失"></a>什么叫精度丢失</h4><h5 id="计算不准确"><a href="#计算不准确" class="headerlink" title="计算不准确"></a>计算不准确</h5><p>我们看看如下代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></div></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">float</span> f;<br><span class="hljs-keyword">for</span>(<span class="hljs-keyword">int</span> i=<span class="hljs-number">0</span>;i&lt;<span class="hljs-number">100</span>;i++)&#123;<br>    f+=<span class="hljs-number">0.1f</span>;<br>&#125;<br><span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%f\n&quot;</span>,f);<br></code></pre></td></tr></table></figure>
+<p>上述代码中f的结果本应该是10.000000,但是却输出10.000002，如下图所示。这就是浮点数计算不准确的现象，即精度丢失。</p>
+<p><img src="http://tva4.sinaimg.cn/large/007SD2TBly1gxcilvh1yuj308w02c74b.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>我们打印小数点后更多位数，能看得更清楚。<code>printf(&quot;%.20f\n&quot;,f);</code>，得到的结果如下：</p>
+<p><img src="http://tvax2.sinaimg.cn/large/007SD2TBly1gxcimk8rcyj308j01q3yp.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>我们通过gdb调试看看存储在内存中的数据是什么样子的：</p>
+<p><img src="http://tvax2.sinaimg.cn/large/007SD2TBly1gxcimmglexj306301bglq.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>我们将其转化为二进制是<code>0100 0001 0010 0000 0000 0000 0000 0010</code>。</p>
+<p>将这个IEEE745标准的二进制浮点数转化为十进制为：10.000001907348633。</p>
+<p>为什么会出现这种情况呢？这就要涉及到我们下一个知识点，保存不准确。</p>
+<h6 id="保存不准确"><a href="#保存不准确" class="headerlink" title="保存不准确"></a>保存不准确</h6><p>我们看看如下代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">float</span> f;<br><span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%.18f\n&quot;</span>,f);<br></code></pre></td></tr></table></figure>
+<p>上述代码中打印结果如下所示：</p>
+<p><img src="http://tva3.sinaimg.cn/large/007SD2TBly1gxcimqnr1sj308f01y74g.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>我们来看看内存中如何表示这个数据的：</p>
+<p><img src="http://tva3.sinaimg.cn/large/007SD2TBly1gxcimz3301j308702mq31.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>将这个二进制数转化为十进制数为：</p>
+<p><img src="http://tva4.sinaimg.cn/large/007SD2TBly1gxcin0vua5j309d02l74i.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>可以看到某些浮点数在写入内存的过程中就存在误差，当然这是无法避免的。这个跟十进制中的无穷小数是一个道理。</p>
+<h4 id="浮点数判断大小或者排序"><a href="#浮点数判断大小或者排序" class="headerlink" title="浮点数判断大小或者排序"></a>浮点数判断大小或者排序</h4><h5 id="浮点数相等"><a href="#浮点数相等" class="headerlink" title="浮点数相等"></a>浮点数相等</h5><p>当判断两个浮点数是否相等时，我们应该使用如下语句：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">if</span> (<span class="hljs-built_in">fabs</span>(a - b) &lt; EPSILON) &#123;<br>    <span class="hljs-comment">//执行当两个浮点数 a 和 b 相等时的操作</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>其中EPSILON为精度，例如0.000001。</p>
+<h4 id="float可以作为map中的key吗（Go语言）"><a href="#float可以作为map中的key吗（Go语言）" class="headerlink" title="float可以作为map中的key吗（Go语言）"></a>float可以作为map中的key吗（Go语言）</h4><p>从语法上看，Go语言中只要是可比较的类型都可以作为key。除开slice，map，functions这几种类型，其他类型都是OK的。具体包括：布尔值、数字、字符串、指针、通道、接口类型、结构体、只包含上述类型的数组。这些类型的共同特征是支持 <code>==</code> 和 <code>!=</code> 操作符，<code>k1 == k2</code> 时，可认为 k1 和 k2 是同一个 key。当然，任何类型都可以作为value，包括map类型。</p>
+<p>我们来看如下例子：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>    m := <span class="hljs-built_in">make</span>(<span class="hljs-keyword">map</span>[<span class="hljs-keyword">float64</span>]<span class="hljs-keyword">int</span>)<br>    m[<span class="hljs-number">1.4</span>] = <span class="hljs-number">1</span><br>    m[<span class="hljs-number">2.4</span>] = <span class="hljs-number">2</span><br>    <span class="hljs-keyword">for</span> k, v := <span class="hljs-keyword">range</span> m &#123;<br>        fmt.Printf(<span class="hljs-string">&quot;[%v, %d] &quot;</span>, k, v)<br>    &#125;<br>    fmt.Printf(<span class="hljs-string">&quot;k: %v, v: %d\n&quot;</span>, <span class="hljs-number">2.400000000001</span>, m[<span class="hljs-number">2.400000000001</span>])<br>    fmt.Printf(<span class="hljs-string">&quot;k: %v, v: %d\n&quot;</span>, <span class="hljs-number">2.4000000000000000000000001</span>, m[<span class="hljs-number">2.4000000000000000000000001</span>])<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>程序输出如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs go">[<span class="hljs-number">2.4</span>, <span class="hljs-number">2</span>] [<span class="hljs-number">1.4</span>, <span class="hljs-number">1</span>] <br>k: <span class="hljs-number">2.400000000001</span>, v: <span class="hljs-number">0</span><br>k: <span class="hljs-number">2.4</span>, v: <span class="hljs-number">2</span><br></code></pre></td></tr></table></figure>
+<p>我们发现2.4000000000000000000000001存在value。当用float作为key的时候，先要将其转成uint64类型，再插入key中。通过以下函数实现：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-comment">// Float64frombits returns the floating point number corresponding</span><br><span class="hljs-comment">// the IEEE 754 binary representation b.</span><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">Float64frombits</span><span class="hljs-params">(b <span class="hljs-keyword">uint64</span>)</span> <span class="hljs-title">float64</span></span> &#123; <span class="hljs-keyword">return</span> *(*<span class="hljs-keyword">float64</span>)(unsafe.Pointer(&amp;b)) &#125;<br></code></pre></td></tr></table></figure>
+<p>也就是我们上述所说的IEEE 754规定的格式。</p>
+<p>我们再来输出点东西：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> main<br><span class="hljs-keyword">import</span> (<br>    <span class="hljs-string">&quot;fmt&quot;</span><br>    <span class="hljs-string">&quot;math&quot;</span><br>)<br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>    m := <span class="hljs-built_in">make</span>(<span class="hljs-keyword">map</span>[<span class="hljs-keyword">float64</span>]<span class="hljs-keyword">int</span>)<br>    m[<span class="hljs-number">2.4</span>] = <span class="hljs-number">2</span><br>    fmt.Println(math.Float64bits(<span class="hljs-number">2.4</span>))<br>    fmt.Println(math.Float64bits(<span class="hljs-number">2.400000000001</span>))<br>    fmt.Println(math.Float64bits(<span class="hljs-number">2.4000000000000000000000001</span>))<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>输出结果如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-number">4612586738352862003</span><br><span class="hljs-number">4612586738352864255</span><br><span class="hljs-number">4612586738352862003</span><br></code></pre></td></tr></table></figure>
+<p>转成十六进制如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-number">0x4003333333333333</span><br><span class="hljs-number">0x4003333333333BFF</span><br><span class="hljs-number">0x4003333333333333</span><br></code></pre></td></tr></table></figure>
+<p>由此可见，由于精度受限，2.4和2.4000000000000000000000001经过 <code>math.Float64bits()</code> 函数转换后的结果是一样的。自然，二者在 map 看来，就是同一个 key 了。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E6%9D%82%E6%96%87/">杂文</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%B5%AE%E7%82%B9%E6%95%B0/">浮点数</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/12/16/%E6%88%91%E4%B8%BA%E4%BB%80%E4%B9%88%E5%96%9C%E6%AC%A2Go%E8%AF%AD%E8%A8%80%E2%80%94%E2%80%94%E8%87%AA%E5%8A%A8%E7%AE%A1%E7%90%86%E5%86%85%E5%AD%98/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Go自动管理内存</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/12/12/MIT-s-081-Lab1-Xv6-and-Unix-utilities/">
+                        <span class="hidden-mobile">MIT_6.s081_Lab1:Xv6 and Unix utilities</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+        typing(title);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+  
+
+  
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        },
+        loader: {
+          load: ['ui/lazy']
+        },
+        options: {
+          renderActions: {
+            findScript: [10, doc => {
+              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+                const display = !!node.type.match(/; *mode=display/);
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                const text = document.createTextNode('');
+                node.parentNode.replaceChild(text, node);
+                math.start = { node: text, delim: '', n: 0 };
+                math.end = { node: text, delim: '', n: 0 };
+                doc.math.push(math);
+              });
+            }, '', false],
+            insertedScript: [200, () => {
+              document.querySelectorAll('mjx-container').forEach(node => {
+                let target = node.parentNode;
+                if (target.nodeName.toLowerCase() === 'li') {
+                  target.parentNode.classList.add('has-jax');
+                }
+              });
+            }, '', false]
+          }
+        }
+      };
+    </script>
+
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

@@ -1,0 +1,555 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="先来说说trap我们知道，用户态切换到内核态的有两种情况：一种是系统调用（syscall），另一种是异常（trap）或中断（interruption），在前面的实验中我们学习了系统调用。 我们先来回忆一下在lab1中做过的sleep任务。在进入内核后，会调用sys_sleep函数，如下所示： 123456789101112131415161718192021uint64sys_sleep(void">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MIT_6.s081_Lab4_traps">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2022/02/01/MIT-S081-Labs-traps/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="先来说说trap我们知道，用户态切换到内核态的有两种情况：一种是系统调用（syscall），另一种是异常（trap）或中断（interruption），在前面的实验中我们学习了系统调用。 我们先来回忆一下在lab1中做过的sleep任务。在进入内核后，会调用sys_sleep函数，如下所示： 123456789101112131415161718192021uint64sys_sleep(void">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://pic4.zhimg.com/80/v2-d7a2b1baeaf71d7e0c2cf306d80c49d7_720w.jpg">
+<meta property="article:published_time" content="2022-02-01T13:39:43.000Z">
+<meta property="article:modified_time" content="2022-03-21T08:24:28.476Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="MIT_s.081_Lab">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://pic4.zhimg.com/80/v2-d7a2b1baeaf71d7e0c2cf306d80c49d7_720w.jpg">
+  
+  
+  <title>MIT_6.s081_Lab4_traps - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>databrains</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="MIT_6.s081_Lab4_traps">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2022-02-01 21:39" pubdate>
+        2022年2月1日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      5.1k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      43 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">MIT_6.s081_Lab4_traps</h1>
+            
+            <div class="markdown-body">
+              <h4 id="先来说说trap"><a href="#先来说说trap" class="headerlink" title="先来说说trap"></a>先来说说trap</h4><p>我们知道，用户态切换到内核态的有两种情况：一种是系统调用（syscall），另一种是异常（trap）或中断（interruption），在前面的实验中我们学习了系统调用。</p>
+<p>我们先来回忆一下在lab1中做过的<code>sleep</code>任务。在进入内核后，会调用<code>sys_sleep</code>函数，如下所示：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></div></td><td class="code"><pre><code class="hljs c"><span class="hljs-function">uint64</span><br><span class="hljs-function"><span class="hljs-title">sys_sleep</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span><br><span class="hljs-function"></span>&#123;<br>  <span class="hljs-keyword">int</span> n;<br>  uint ticks0;<br><br>  <span class="hljs-keyword">if</span>(argint(<span class="hljs-number">0</span>, &amp;n) &lt; <span class="hljs-number">0</span>)<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>  acquire(&amp;tickslock);<br>  ticks0 = ticks;<br>  <span class="hljs-keyword">while</span>(ticks - ticks0 &lt; n)&#123;<br>    <span class="hljs-keyword">if</span>(myproc()-&gt;killed)&#123;<br>      release(&amp;tickslock);<br>      <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>    &#125;<br>    sleep(&amp;ticks, &amp;tickslock);<br>  &#125;<br>  release(&amp;tickslock);<br>  backtrace();<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>关于用户态转到内核态我们在lab2中已经讲过了，在<code>acquire</code>函数中，这个函数不断自旋获取锁。</p>
+<h5 id="trap机制"><a href="#trap机制" class="headerlink" title="trap机制"></a>trap机制</h5><p>在x86中我们常常说中断，但是在xv6中我们都是使用trap来代表他们，因为trap是传统的Unix术语。trap是由在CPU上运行的当前进程导致的；而中断是由设备导致的，可能与当前进程毫无关系。但是他们都<strong>依赖相同的硬件机制在用户模式和内核模式之间进行切换</strong>。</p>
+<p>在从用户态转到内核态的时候，都相当于执行了一个中断响应的过程，因为系统调用实际上最终是中断机制实现的。其具体过程如下：</p>
+<ol>
+<li>将CPU的字段改为内核态（硬件标志位），这个过程在xv6中其实就是<code>ecall</code>，将对应的用户栈的寄存器信息保存起来（xv6中是保存在内核栈），方便后续内核方法调用完毕后，恢复用户方法执行的现场。</li>
+<li>将内核段对应的代码地址写入到PC寄存器中，设置堆栈指针寄存器的内容为内核栈的地址，用户页表切换到内核页表，然后开始执行内核方法。</li>
+<li>当内核方法执行完毕后，会将CPU的字段改为用户态，然后利用之前用户态的信息来恢复用户栈的执行。</li>
+</ol>
+<hr>
+<p>我们在实验2中知道，用户态在进入内核态的时候调用了一个entry，如下所示：</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs awk">fork:<br> li a7, SYS_fork<br> ecall<br> ret<br>.global <span class="hljs-keyword">exit</span><br></code></pre></td></tr></table></figure>
+<p>ecall是什么呢？ecall就是将CPU中的mode标志位设置为supervisor，并且设置程序计数器的值为STVEC寄存器的值。内核会将trampoline page的地址存在STVEC寄存器中，所以ecall的下一条指令的位置是STVEC指向的地址，也就是trampoline page的其实地址。</p>
+<h5 id="kernel-trampoline-S"><a href="#kernel-trampoline-S" class="headerlink" title="kernel/trampoline.S"></a><code>kernel/trampoline.S</code></h5><p>trampoline.S从user space过渡到kernel space，kernel space返回到user space。STVEC寄存器中存储的是 trampoline page 的起始位置。<strong>进入内核前，首先需要在该位置处执行一些初始化的操作。例如，切换页表、切换栈指针等操作</strong>。cpu 从 trampoline page 处开始进行取指执行。接下来需要<strong>保存所有寄存器的值</strong>，寄存器的值是如何保存的呢？当寄存器里面的还都是用户程序的数据的时候，我们需要非常小心，我们在这个时间点不能使用任何寄存器，否则我们是没法恢复寄存器数据的。如果内核在这个时间点使用了任何一个寄存器，内核会覆盖寄存器内的用户数据，如果我们要尝试恢复用户数据，我们就不能恢复寄存器中的正确数据，用户程序的执行也会相应的出错。比如说，trampoline里面有个csrrw指令，这是trampoline page的第一条指令，这条指令的意思是交换a0和sscratch中的内容，在这之后内核就可以任意使用a0寄存器了。</p>
+<p>以便在系统调用后恢复调用前的状态。然后我们要根据中断的原因执行相应的处理：产生中断的原因有很多，比如<strong>系统调用、运算时除以0、使用了一个未被映射的虚拟地址、或者是设备中断等等</strong>。这里是因为系统调用，所以以系统调用的方式进行处理。然后才是内核态执行系统调用函数，将ecall指令时保存在a7的参数取出来，完成相应的系统调用函数，系统调用完成之后将寄存器的值取出来，从该地址存储的指令处开始执行，恢复到用户态。</p>
+<h4 id="RISC-V-assembly"><a href="#RISC-V-assembly" class="headerlink" title="RISC-V assembly"></a>RISC-V assembly</h4><p>源文件<code>call.c</code>代码如下所示：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;kernel/param.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;kernel/types.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;kernel/stat.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;user/user.h&quot;</span></span><br><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">g</span><span class="hljs-params">(<span class="hljs-keyword">int</span> x)</span> </span>&#123;<br>  <span class="hljs-keyword">return</span> x+<span class="hljs-number">3</span>;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">f</span><span class="hljs-params">(<span class="hljs-keyword">int</span> x)</span> </span>&#123;<br>  <span class="hljs-keyword">return</span> g(x);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span> </span>&#123;<br>  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%d %d\n&quot;</span>, f(<span class="hljs-number">8</span>)+<span class="hljs-number">1</span>, <span class="hljs-number">13</span>);<br>  <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>我们先编译一下源文件得到<code>call.asm</code>，部分代码如下所示：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs asm">void main(void) &#123;<br>  1c:	1141                	addi	sp,sp,-16<br>  1e:	e406                	sd	ra,8(sp)<br>  20:	e022                	sd	s0,0(sp)<br>  22:	0800                	addi	s0,sp,16<br>  printf(&quot;%d %d\n&quot;, f(8)+1, 13);<br>  24:	4635                	li	a2,13<br></code></pre></td></tr></table></figure>
+<ol>
+<li><p>Q:Which registers contain arguments to functions? For example, which register holds 13 in main’s call to <code>printf</code>?</p>
+<p>A:a0-a7.A2 holds 13 in main’s call to printf.</p>
+</li>
+<li><p>Q:Where is the call to function <code>f</code> in the assembly code for main? Where is the call to <code>g</code>? (Hint: the compiler may inline functions.)</p>
+<p>A:nowhere, compiler optimization by inline function.</p>
+<p>其实是没有这样的代码。 g(x) 被内联到 f(x) 中，然后 f(x) 又被进一步内联到 main() 中。所以看到的不是函数跳转，而是优化后的内联函数。</p>
+</li>
+<li><p>Q:At what address is the function <code>printf</code> located?</p>
+</li>
+</ol>
+<h4 id="Backtrace"><a href="#Backtrace" class="headerlink" title="Backtrace"></a>Backtrace</h4><p>使用这些帧指针向上遍历堆栈并在每个堆栈帧中打印保存的返回地址。</p>
+<p>我们知道x86使用函数参数压栈的方式来保护函数参数，而xv6使用寄存器的方式保存参数。无论是x86还是xv6,函数调用时，都需要将返回地址和父函数的栈帧起始地址压入栈中。即被调用函数的栈帧中保存着这两个值，在xv6中，fp为当前函数的栈顶指针，sp为栈底指针。fp-8存放返回地址，fp-16存放原栈帧。</p>
+<p>我们看如下这幅图：</p>
+<p><img src="https://pic4.zhimg.com/80/v2-d7a2b1baeaf71d7e0c2cf306d80c49d7_720w.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>我们根据提示，将backtrace的原型添加到<code>kernel/defs.h</code>中，代码如下所示：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// printf.c</span><br><span class="hljs-function"><span class="hljs-keyword">void</span>            <span class="hljs-title">printf</span><span class="hljs-params">(<span class="hljs-keyword">char</span>*, ...)</span></span>;<br><span class="hljs-function"><span class="hljs-keyword">void</span>            <span class="hljs-title">panic</span><span class="hljs-params">(<span class="hljs-keyword">char</span>*)</span> __<span class="hljs-title">attribute__</span><span class="hljs-params">((noreturn))</span></span>;<br><span class="hljs-function"><span class="hljs-keyword">void</span>            <span class="hljs-title">printfinit</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;<br><span class="hljs-function"><span class="hljs-keyword">void</span>            <span class="hljs-title">backtrace</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;<br></code></pre></td></tr></table></figure>
+<p>GCC 编译器将当前执行函数的帧顶指针存储在寄存器<code>s0</code>中。因此我们通过<code>r_fp</code>函数可以知道当前函数的栈顶指针fp：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c">kernel/riscv.h:<br><span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">inline</span> uint64</span><br><span class="hljs-function"><span class="hljs-title">r_fp</span><span class="hljs-params">()</span></span><br><span class="hljs-function"></span>&#123;<br>  uint64 x;<br>  <span class="hljs-function"><span class="hljs-keyword">asm</span> <span class="hljs-title">volatile</span><span class="hljs-params">(<span class="hljs-string">&quot;mv %0, s0&quot;</span> : <span class="hljs-string">&quot;=r&quot;</span> (x) )</span></span>;<br>  <span class="hljs-keyword">return</span> x;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p><code>backtrace</code>函数如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">void</span></span><br><span class="hljs-function"><span class="hljs-title">backtrace</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>&#123;<br>  uint64 fp = <span class="hljs-built_in">r_fp</span>(), top = <span class="hljs-built_in">PGROUNDUP</span>(fp);<br>  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;backtrace:\n&quot;</span>);<br>  <span class="hljs-keyword">for</span>(; fp &lt; top; fp = *((uint64*)(fp<span class="hljs-number">-16</span>))) &#123;<span class="hljs-comment">//我们知道，每个fp-16就是原栈帧，我们通过*(fp-16)得到原栈帧，保存在fp中，然后打印*(fp-8)</span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%p\n&quot;</span>, *((uint64*)(fp<span class="hljs-number">-8</span>)));<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h4 id="Alarm"><a href="#Alarm" class="headerlink" title="Alarm"></a>Alarm</h4><p>在本练习中，您将向xv6添加一项功能，该功能会在使用CPU时间的情况下定期向进程发出警报。这对于想要限制消耗多少CPU时间的计算密集型进程，或者对于想要进行计算但还希望采取一些定期操作的进程很有用。</p>
+<p>您应该添加一个新的<code>sigalarm(interval,handler)</code>系统调用。 如果应用程序调用<code>sigalarm(n,fn)</code>，则在程序每消耗n个“ tick” CPU时间之后，内核应导致调用应用程序函数fn。 当fn返回时，应用程序应从中断处恢复。</p>
+<h6 id="实现过程"><a href="#实现过程" class="headerlink" title="实现过程"></a>实现过程</h6><p>我们首先看到测试函数，代码解析在注释中：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">void</span></span><br><span class="hljs-function"><span class="hljs-title">test0</span><span class="hljs-params">()</span></span><br><span class="hljs-function"></span>&#123;<br>  <span class="hljs-keyword">int</span> i;<br>  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;test0 start\n&quot;</span>);<span class="hljs-comment">//开始测试</span><br>  count = <span class="hljs-number">0</span>;<span class="hljs-comment">//计数器为0</span><br>  sigalarm(<span class="hljs-number">2</span>, periodic);<span class="hljs-comment">//在消耗2个cpu时间之后，调用periodic函数</span><br>  <span class="hljs-keyword">for</span>(i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">1000</span>*<span class="hljs-number">500000</span>; i++)&#123;<br>    <span class="hljs-keyword">if</span>((i % <span class="hljs-number">1000000</span>) == <span class="hljs-number">0</span>)<br>      write(<span class="hljs-number">2</span>, <span class="hljs-string">&quot;.&quot;</span>, <span class="hljs-number">1</span>);<br>    <span class="hljs-keyword">if</span>(count &gt; <span class="hljs-number">0</span>)<br>      <span class="hljs-keyword">break</span>;<br>  &#125;<br>  sigalarm(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>);<span class="hljs-comment">//停止生成定期警报调用</span><br>  <span class="hljs-keyword">if</span>(count &gt; <span class="hljs-number">0</span>)&#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;test0 passed\n&quot;</span>);<br>  &#125; <span class="hljs-keyword">else</span> &#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\ntest0 failed: the kernel never called the alarm handler\n&quot;</span>);<br>  &#125;<br>&#125;<br><span class="hljs-function"><span class="hljs-keyword">void</span></span><br><span class="hljs-function"><span class="hljs-title">periodic</span><span class="hljs-params">()</span></span><br><span class="hljs-function"></span>&#123;<br>  count = count + <span class="hljs-number">1</span>;<br>  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;alarm!\n&quot;</span>);<span class="hljs-comment">//打印&quot;alarm&quot;</span><br>  sigreturn();<span class="hljs-comment">//调用sigreturn函数</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<ul>
+<li>在<code>user/user.h</code>，我们需要做如下声明：</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">sigalarm</span><span class="hljs-params">(<span class="hljs-keyword">int</span> ticks, <span class="hljs-keyword">void</span> (*handler)())</span></span>;<br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">sigreturn</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;<br></code></pre></td></tr></table></figure>
+<ul>
+<li>在 user/usys.pl 添加 entry：</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c">entry(<span class="hljs-string">&quot;sigalarm&quot;</span>);<br>entry(<span class="hljs-string">&quot;sigreturn&quot;</span>);<br></code></pre></td></tr></table></figure>
+<ul>
+<li>在 kernel/syscall.h 中添加函数调用码：</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_sigalarm  22</span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_sigreturn 23</span><br></code></pre></td></tr></table></figure>
+<ul>
+<li>在 kernel/syscall.c 添加函数调用代码：</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_sigalarm</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;<br><span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_sigreturn</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;<br>[SYS_sigalarm]  sys_sigalarm,<br>[SYS_sigreturn] sys_sigreturn,<br></code></pre></td></tr></table></figure>
+<p>我们需要在proc结构体中添加字段，用于记录进程的滴答数——<code>uint64 ticks</code>；还需要一个<code>uint64 interval</code>，ticks达到interval便中断；当然，还需要一个函数指针<code>alarm_pointer</code>，用来中断时的调用。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">if</span>(which_dev == <span class="hljs-number">2</span>) &#123;<span class="hljs-comment">//which_dev为2说明是因为定时引起的</span><br>    <span class="hljs-keyword">if</span>(p-&gt;interval) &#123;<br>      <span class="hljs-keyword">if</span>(p-&gt;ticks == p-&gt;interval) &#123;<span class="hljs-comment">//当alarm_interval==0 &amp;&amp; alarm_handler==0时，内核应该停止产生周期性的报警调用</span><br>        p-&gt;ticks = <span class="hljs-number">0</span>;  <br>        p-&gt;trapframe-&gt;epc = p-&gt;handler;<br>      &#125;<br>      p-&gt;ticks++;<br>    &#125;<br>    yield();<br>  &#125;<br></code></pre></td></tr></table></figure>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/MIT-s-081-Lab/">MIT_s.081_Lab</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/02/03/CMU-15-445-PROJECT-0-1/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">CMU_15-445_PROJECT#0&1</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/01/19/MIT-6-s081-labs-pages/">
+                        <span class="hidden-mobile">MIT_6.s081_lab3_pagetables</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+        typing(title);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+  
+
+  
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        },
+        loader: {
+          load: ['ui/lazy']
+        },
+        options: {
+          renderActions: {
+            findScript: [10, doc => {
+              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+                const display = !!node.type.match(/; *mode=display/);
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                const text = document.createTextNode('');
+                node.parentNode.replaceChild(text, node);
+                math.start = { node: text, delim: '', n: 0 };
+                math.end = { node: text, delim: '', n: 0 };
+                doc.math.push(math);
+              });
+            }, '', false],
+            insertedScript: [200, () => {
+              document.querySelectorAll('mjx-container').forEach(node => {
+                let target = node.parentNode;
+                if (target.nodeName.toLowerCase() === 'li') {
+                  target.parentNode.classList.add('has-jax');
+                }
+              });
+            }, '', false]
+          }
+        }
+      };
+    </script>
+
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
