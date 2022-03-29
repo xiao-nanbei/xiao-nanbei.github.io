@@ -27,7 +27,7 @@
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008qL1EEly1gza4dbce63j30ab02s0su.jpg">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/10436675-a29a641d8a384787.png?imageMogr2/auto-orient/strip|imageView2/2/w/400/format/webp">
 <meta property="article:published_time" content="2021-12-17T08:44:45.000Z">
-<meta property="article:modified_time" content="2022-03-11T04:51:51.640Z">
+<meta property="article:modified_time" content="2022-03-28T22:13:05.336Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="Goroutine">
 <meta name="twitter:card" content="summary_large_image">
@@ -201,7 +201,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      5.6k 字
+      5.9k 字
     </span>
   
 
@@ -210,7 +210,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      47 分钟
+      49 分钟
     </span>
   
 
@@ -245,13 +245,24 @@
               <p>Go语言中实现了两种并发模型，一种是依赖于共享内存实现的线程-锁并发模型，另一种则是CSP。作为Go并发核心编程核心的CSP理论的核心概念只有一个：同步通信。</p>
 <p>Goroutine是由Go运行时管理的轻量级线程（协程）。Goroutine和操作系统线程相比，Goroutine的资源占用和使用代价非常小，大小默认是2K字节。Goroutine调度的切换也不在操作系统的内部完成，代价很低。所以一个Go程序可以创建成千上万个并发的Goroutine，而把这些Goroutine按照一定算法放到cpu上执行的程序，就成了Goroutine调度器。</p>
 <p>开发go程序的时候，时常需要使用goroutine并发处理任务，有时候这些goroutine是相互独立的，而有的时候，多个goroutine之间常常是需要同步与通信的，值得注意的是，有时候主goroutine需要控制它所属的子goroutine。</p>
+<h4 id="Coroutine"><a href="#Coroutine" class="headerlink" title="Coroutine"></a>Coroutine</h4><p>先来说说协程（Coroutine）：</p>
+<blockquote>
+<p>主流的操作系统都是采用一对一的线程模型，用户态和内核态线程具有一对一关系，可以认为用户态线程的执行完全受到操作系统调度器的管理。但是随着应用程序越来越复杂，与操作系统调度器相比，应用程序对线程的语义和执行状态更加了解，因此可能做出更优的调度策略。在这个背景下，操作系统开始提供更多对用户态线程，即协程的支持。</p>
+</blockquote>
+<p>也就是是说其实一个线程可以分为内核态线程和用户态线程，当我们分出内核态线程和用户态线程后，一个就叫线程（内核级线程）、另一个叫协程（用户级线程）。</p>
+<p>如下图所示，我们可以更好的理解协程和线程的关系，<a target="_blank" rel="noopener" href="https://juejin.cn/post/6995091405563494431">图片来源</a>。</p>
+<p><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a22b3af8462e41f8adb601eb34c22bb6~tplv-k3u1fbpfcp-watermark.awebp" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>协程的上下文切换切换的触发机制与内核态线程存在较大不同，操作系统可以通过中断抢占当前CPU并进行上下文切换，这种切换是强制性的，因此称为抢占式调度，但是协程是非抢占式的，协程哭一般会提供<code>yield</code>接口，该接口使当前协程暂时放弃CPU，从而使得其他协程调度。</p>
 <h5 id="Goroutine和Coroutine的区别"><a href="#Goroutine和Coroutine的区别" class="headerlink" title="Goroutine和Coroutine的区别"></a>Goroutine和Coroutine的区别</h5><hr>
 <p>补充一下常见的面经：</p>
 <h6 id="进程、线程、协程的区别："><a href="#进程、线程、协程的区别：" class="headerlink" title="进程、线程、协程的区别："></a>进程、线程、协程的区别：</h6><p>进程是系统进行资源调度和分配的单位，线程是程序执行的单位，也就是CPU调度和分配的单位，线程作为进程下属的单位，可以享用进程被分配的资源，一个进程下的多个线程可以共享该进程的资源。而进程之间是不能共享资源的，进程间想要互相通信，必须通过进程间通信。</p>
-<p>协程是一种用户态的轻量级线程，协程的调度完全由用户控制，协程拥有自己的寄存器上下文和栈。一个线程可以有多个协程，一个进程也可以有多个协程。进程线程都是同步机制，而协程是异步机制。线程是抢占式，而协程是非抢占式，所以需要用户自己释放使用权来切换到其他协程。</p>
-<p>如下图所示，我们可以更好的理解协程和线程的关系，<a target="_blank" rel="noopener" href="https://juejin.cn/post/6995091405563494431">图片来源</a>。</p>
-<p><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a22b3af8462e41f8adb601eb34c22bb6~tplv-k3u1fbpfcp-watermark.awebp" srcset="/img/loading.gif" lazyload alt=""></p>
-<h6 id="同步与异步的区别："><a href="#同步与异步的区别：" class="headerlink" title="同步与异步的区别："></a>同步与异步的区别：</h6><p>同步是阻塞模式，而异步是非阻塞模式：</p>
+<p>共享一个进程资源的多线程有自己独有的用户栈和内核栈，有共享的代码段、数据段和堆。线程有自己独有的<code>context</code>，这个<code>context</code>包括栈、栈指针、寄存器和程序计数器。</p>
+<p>协程是一种用户态的轻量级线程，协程的调度完全由用户控制，协程拥有自己的<code>context</code>。一个线程可以有多个协程，一个进程也可以有多个协程。进程线程都是同步机制，而协程是异步机制。线程是抢占式，而协程是非抢占式，所以需要用户自己释放使用权来切换到其他协程。</p>
+<p>进程、线程、协程切换开销的对比：</p>
+<ul>
+<li><h6 id="同步与异步的区别："><a href="#同步与异步的区别：" class="headerlink" title="同步与异步的区别："></a>同步与异步的区别：</h6></li>
+</ul>
+<p>同步是阻塞模式，而异步是非阻塞模式：</p>
 <ul>
 <li><p>同步就是指一个进程在执行某个请求的时候，若该请求需要一段时间才能返回信息，那么这个请求就会一直等待下去，直到收到返回信息才继续执行下去。</p>
 </li>
@@ -267,12 +278,6 @@
 <hr>
 <p>goroutine 来自协程的概念，让一组可复用的函数运行在一组线程之上，即使有协程阻塞，该线程的其他协程也可以被 runtime 调度，转移到其他可运行的线程上。最关键的是，程序员看不到这些底层的细节，这就降低了编程的难度，提供了更容易的并发。</p>
 <p>Go 中，协程被称为 goroutine，它非常轻量，一个 goroutine 只占几 KB，并且这几 KB 就足够 goroutine 运行完，这就能在有限的内存空间内支持大量 goroutine，支持了更多的并发。虽然一个 goroutine 的栈只占几 KB，但实际是可伸缩的，如果需要更多内容，runtime 会自动为 goroutine 分配。</p>
-<p>C#、Lua、Python 语言都支持 coroutine 特性。coroutine 与 goroutine 在名字上类似，都可以将函数或者语句在独立的环境中运行，但是它们之间有两点不同：</p>
-<ul>
-<li>goroutine 可能发生并行执行；</li>
-<li>但 coroutine 始终顺序执行。</li>
-</ul>
-<p>goroutine意味着并行（或者可以以并行方式部署），coroutine一般来说不是这样。狭义的说，goroutine可能发生在多线程环境下，coroutine始终发生在单线程。goroutine间使用channel通信，coroutine使用yield和resume操作。coroutine的运行机制属于协作式任务处理，goroutine属于抢占式任务处理。</p>
 <h4 id="channel之于Goroutine"><a href="#channel之于Goroutine" class="headerlink" title="channel之于Goroutine"></a>channel之于Goroutine</h4><h5 id="无缓冲channel和有缓冲channel"><a href="#无缓冲channel和有缓冲channel" class="headerlink" title="无缓冲channel和有缓冲channel"></a>无缓冲channel和有缓冲channel</h5><p>无缓冲channel发送动作和接收动作是同时发生的，例如 <code>ch := make(chan int)</code> ，如果没 <code>goroutine</code> 读取接收者<code>&lt;-ch</code> ，那么发送者<code>ch&lt;-</code> 就会一直阻塞，<strong>缓冲</strong> <code>channel</code> 类似一个队列，只有队列满了才可能发送阻塞。</p>
 <h5 id="如何优化channel"><a href="#如何优化channel" class="headerlink" title="如何优化channel"></a>如何优化channel</h5><p>和学长聊到这个问题，深夜无眠，写一下自己的理解。</p>
 <p>channel 的构造语句 <code>make(chan int)</code>，将会被 golang 编译器翻译为 <code>runtime.makechan</code> 函数, 其函数签名如下：</p>
@@ -346,7 +351,10 @@
 <h6 id="M的限制"><a href="#M的限制" class="headerlink" title="M的限制"></a>M的限制</h6><p>在协程的执行中，真正干活的是GMP中的M，M的默认数量限制是10000，如果超出就会报错。通常只有在Goroutine出现阻塞的时候才会出现这种情况。</p>
 <h6 id="G的限制"><a href="#G的限制" class="headerlink" title="G的限制"></a>G的限制</h6><p>Goroutine的创建数量理论上没有限制，但是我们的内存是有上限的，所以实际是有限制的。</p>
 <h6 id="P的限制"><a href="#P的限制" class="headerlink" title="P的限制"></a>P的限制</h6><p>P的数量受环境变量GOMAXPROCS的直接影响。</p>
-<h6 id="GMP中为什么要有P"><a href="#GMP中为什么要有P" class="headerlink" title="GMP中为什么要有P"></a>GMP中为什么要有P</h6>
+<h6 id="GMP中为什么要有P"><a href="#GMP中为什么要有P" class="headerlink" title="GMP中为什么要有P"></a>GMP中为什么要有P</h6><h6 id="老调度器的缺点"><a href="#老调度器的缺点" class="headerlink" title="老调度器的缺点"></a>老调度器的缺点</h6><ol>
+<li>因为缓存G的只有一个全局队列，而M有多个，这样我们多个M在访问同一个资源的时候就要加锁保持互斥，这样就加大了开销。</li>
+</ol>
+
             </div>
             <hr>
             <div>

@@ -24,7 +24,7 @@
 <meta property="og:description" content="container众所周知，Go对于一些基本的数据结构封装得不是很好，在container中也只有三种常见的数据结构——链表、环形链表和堆。 container&#x2F;list我们先来看看list的写入与打印： 1234l :&#x3D; list.New()l.PushBack(1) &#x2F;&#x2F;尾插l.PushBack(2)fmt.Println(l) 我们看看打印结果： 1&amp;&amp;#123;&amp;#123;0xc0">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-03-20T07:05:46.000Z">
-<meta property="article:modified_time" content="2022-03-24T05:29:46.498Z">
+<meta property="article:modified_time" content="2022-03-28T11:31:26.340Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary_large_image">
   
@@ -196,7 +196,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      6.9k 字
+      7.1k 字
     </span>
   
 
@@ -205,7 +205,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      58 分钟
+      60 分钟
     </span>
   
 
@@ -277,6 +277,14 @@
 <p>但是我们来看看这个情况：</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> S <span class="hljs-keyword">struct</span> &#123;<br>	Name    <span class="hljs-keyword">string</span><br>	Age     <span class="hljs-keyword">int</span><br>	Ch	<span class="hljs-keyword">chan</span> []<span class="hljs-keyword">int</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>	a := S&#123;<br>		Name:    <span class="hljs-string">&quot;aa&quot;</span>,<br>		Age:     <span class="hljs-number">1</span>,<br>		Ch:      <span class="hljs-built_in">make</span>(<span class="hljs-keyword">chan</span> []<span class="hljs-keyword">int</span>),<br>	&#125;<br>	b := S&#123;<br>		Name:    <span class="hljs-string">&quot;aa&quot;</span>,<br>		Age:     <span class="hljs-number">1</span>,<br>		Ch:      <span class="hljs-built_in">make</span>(<span class="hljs-keyword">chan</span> []<span class="hljs-keyword">int</span>),<br>	&#125;<br><br>	fmt.Println(a == b)<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>但是在<code>[]int</code>的<code>channel</code>是可以比较的，这就会比较迷惑。</p>
+<p>无独有偶，两个<code>interface&#123;&#125;</code>是能比较的，其规则如下：</p>
+<ul>
+<li>两个类型相同且值相同的接口比较结果为<code>true</code>；</li>
+<li>两个类型相同且值不同的接口比较结果为<code>false</code>；</li>
+<li>两个类型不同的接口比较结果为<code>false</code>；</li>
+<li>如果空接口保存了上面的<code>slice</code>、<code>map</code>和<code>function</code>的值，则不能比较。</li>
+</ul>
+<p>总结：类型不同的空接口间的比较结果不相同，不能比较空接口中的动态值。</p>
 <p>回到正题，我们来看看<code>reflect.DeepEqual</code>，<code>reflect.DeepEqual</code>在可以时（主要是基本类型）会使用<code>==</code>；但还会比较<code>array</code>、<code>slice</code>的<strong>成员</strong>，<code>map</code>的<strong>键值对</strong>，<strong>结构体字段</strong>进行深入比对。如下所示：</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>	m1 := <span class="hljs-keyword">map</span>[<span class="hljs-keyword">int</span>]<span class="hljs-keyword">interface</span>&#123;&#125;&#123;<span class="hljs-number">1</span>: []<span class="hljs-keyword">int</span>&#123;<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>&#125;, <span class="hljs-number">2</span>: <span class="hljs-number">3</span>, <span class="hljs-number">3</span>: <span class="hljs-string">&quot;a&quot;</span>&#125;<br>	m2 := <span class="hljs-keyword">map</span>[<span class="hljs-keyword">int</span>]<span class="hljs-keyword">interface</span>&#123;&#125;&#123;<span class="hljs-number">1</span>: []<span class="hljs-keyword">int</span>&#123;<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>&#125;, <span class="hljs-number">2</span>: <span class="hljs-number">3</span>, <span class="hljs-number">3</span>: <span class="hljs-string">&quot;a&quot;</span>&#125;<br>	<span class="hljs-keyword">if</span> reflect.DeepEqual(m1, m2) &#123;<br>		fmt.Println(<span class="hljs-string">&quot;相等&quot;</span>)<br>	&#125;<br>&#125;<br><span class="hljs-comment">//输出”相等”</span><br></code></pre></td></tr></table></figure>
 <p>当然，我们还是要从它的源码进行分析:</p>
