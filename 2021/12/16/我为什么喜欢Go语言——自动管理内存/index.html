@@ -25,7 +25,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://tva1.sinaimg.cn/large/007SD2TBly1gy979nbq7rj308100nt8q.jpg">
 <meta property="article:published_time" content="2021-12-16T07:20:04.000Z">
-<meta property="article:modified_time" content="2022-03-11T17:10:21.608Z">
+<meta property="article:modified_time" content="2022-03-29T10:02:59.768Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="内存管理">
 <meta property="article:tag" content="Go map">
@@ -200,7 +200,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      1.7k 字
+      2.2k 字
     </span>
   
 
@@ -209,7 +209,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      15 分钟
+      19 分钟
     </span>
   
 
@@ -252,7 +252,9 @@
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">int</span>* p = <span class="hljs-keyword">new</span> <span class="hljs-keyword">int</span>;<br>p += <span class="hljs-number">10</span>; <span class="hljs-comment">// 对指针进行了偏移，因此那块内存不再被引用</span><br><span class="hljs-comment">// …… 这里可能会发生针对这块int内存的垃圾收集 ……</span><br>p -= <span class="hljs-number">10</span>; <span class="hljs-comment">// 咦，居然又偏移到原来的位置</span><br>*p = <span class="hljs-number">10</span>; <span class="hljs-comment">// 如果有垃圾收集，这里就无法保证可以正常运行了</span><br></code></pre></td></tr></table></figure>
 <h5 id="内存泄漏"><a href="#内存泄漏" class="headerlink" title="内存泄漏"></a>内存泄漏</h5><p>当你向系统申请分配内存进行使用，可是使用完后却不归还，结果你申请到的那块内存自己也不会再访问，而系统也不会将其分配给需要的程序，长此以往，造成积重难返的后果。</p>
 <h5 id="解藕"><a href="#解藕" class="headerlink" title="解藕"></a>解藕</h5><p>当两个模块中同时维护了同一内存时，释放内存将会变得非常小心，这种手动分配的困难在于，难以在本地模块内做出全局的决定。</p>
-<h4 id="Go语言的垃圾回收"><a href="#Go语言的垃圾回收" class="headerlink" title="Go语言的垃圾回收"></a>Go语言的垃圾回收</h4><p>Golang使用的垃圾回收机制是三色标记法配合写屏障和辅助GC，三色标记法是标记清除法的一种增强版本。</p>
+<h4 id="Go语言的垃圾回收"><a href="#Go语言的垃圾回收" class="headerlink" title="Go语言的垃圾回收"></a>Go语言的垃圾回收</h4><h5 id="常见的垃圾回收机制"><a href="#常见的垃圾回收机制" class="headerlink" title="常见的垃圾回收机制"></a>常见的垃圾回收机制</h5><h6 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h6><p>这个在cmu-15445中也有体现，我们给对象设置一个引用计数，用来表示当前正在访问该对象的或者想要访问该对象的线程的数量，当引用计数为0时，我们就可以回收该对象了。</p>
+<h6 id="复制法"><a href="#复制法" class="headerlink" title="复制法"></a>复制法</h6><p>复制法将内存分为大小相同的两块，每次使用其中的一块，当这一块的内存使用完后，将还存活的对象复制到另一块去，然后再把使用的空间一次清理掉。</p>
+<p>Golang使用的垃圾回收机制是三色标记法配合写屏障和辅助GC，三色标记法是标记清除法的一种增强版本。</p>
 <h5 id="标记清除法"><a href="#标记清除法" class="headerlink" title="标记清除法"></a>标记清除法</h5><p>原始的标记清除法分为两个步骤：</p>
 <ol>
 <li>标记。先STP（stop the world），暂停整个程序的全部线程，将被引用的对象打上标记。</li>
@@ -273,13 +275,17 @@
 <li>扫描所有root对象，包括全局指针和goroutine栈上的指针，将其加入标记队列，并循环处理灰色队列的对象，知道灰色队列为空，该过程后台并行执行。</li>
 <li></li>
 </ol>
-<h5 id="GC优化"><a href="#GC优化" class="headerlink" title="GC优化"></a>GC优化</h5><p>GC性能是与对象数量有关的，对象越多GC性能越差，对程序的影响也越大。在开发中可以减少对象分配个数，采用对象复用、将小对象组合成大对象等方法进行优化。</p>
+<h6 id="写屏障"><a href="#写屏障" class="headerlink" title="写屏障"></a>写屏障</h6><h6 id="辅助GC"><a href="#辅助GC" class="headerlink" title="辅助GC"></a>辅助GC</h6><h5 id="GC优化"><a href="#GC优化" class="headerlink" title="GC优化"></a>GC优化</h5><p>GC性能是与对象数量有关的，对象越多GC性能越差，对程序的影响也越大。在开发中可以减少对象分配个数，采用对象复用、将小对象组合成大对象等方法进行优化。</p>
 <h5 id="GC触发条件"><a href="#GC触发条件" class="headerlink" title="GC触发条件"></a>GC触发条件</h5><p>自动垃圾回收的触发条件有两个：</p>
 <ul>
 <li>超过内存大小阈值</li>
 <li>达到定时时间</li>
 </ul>
-
+<h5 id="GO的内存逃逸"><a href="#GO的内存逃逸" class="headerlink" title="GO的内存逃逸"></a>GO的内存逃逸</h5><h6 id="指针逃逸"><a href="#指针逃逸" class="headerlink" title="指针逃逸"></a>指针逃逸</h6><p>函数中创建了一个对象，函数完成后返回了这个对象的指针，在这种情况下如果我们就不能分配在stack上，因为stack上的对象会随着函数完成而回收，因此只能分配在堆上。</p>
+<h6 id="interface-动态类型逃逸"><a href="#interface-动态类型逃逸" class="headerlink" title="interface{} 动态类型逃逸"></a>interface{} 动态类型逃逸</h6><p>在go中，空接口就相当于抽象类，如果函数参数为interface{}，编译期间很难确定其参数的具体类型，也会发生逃逸。</p>
+<h6 id="声明切片的情况"><a href="#声明切片的情况" class="headerlink" title="声明切片的情况"></a>声明切片的情况</h6><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs go">n:=<span class="hljs-number">100</span><br>temp:=<span class="hljs-built_in">make</span>([]<span class="hljs-keyword">int</span>,n)<br></code></pre></td></tr></table></figure>
+<p>如上题所示，声明切片的容量的时候我们用的是变量n，在编译期间n是未知的，这个时候我们会将其分配到堆上，这也能解释为什么数组的声明不能使用变量。</p>
+<h6 id="闭包"><a href="#闭包" class="headerlink" title="闭包"></a>闭包</h6>
             </div>
             <hr>
             <div>
