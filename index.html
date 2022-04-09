@@ -191,6 +191,39 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
+        <a href="/2022/04/03/Golang%E4%B8%8EIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/" target="_self">
+          Golang与IO多路复用
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2022/04/03/Golang%E4%B8%8EIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/" target="_self">
+          
+          selectGolang的select关键字，用到了多路复用的概念，当然不是IO多路复用，因为没有涉及到输入输出。先看看下面例子： 1234567891011121314151617181920212223package mainimport (	&quot;fmt&quot;	&quot;sync&quot;)func main() &amp;#123;	c1:&#x3D;make(chan int,1)	var
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-04-03 20:05" pubdate>
+              2022-04-03
+            </time>
+          </div>
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
         <a href="/2022/03/20/Golang-container/" target="_self">
           Golang_包解析
         </a>
@@ -199,7 +232,7 @@
       <p class="index-excerpt">
         <a href="/2022/03/20/Golang-container/" target="_self">
           
-          container众所周知，Go对于一些基本的数据结构封装得不是很好，在container中也只有三种常见的数据结构——链表、环形链表和堆。 container&#x2F;list我们先来看看list的写入与打印： 1234l :&#x3D; list.New()l.PushBack(1) &#x2F;&#x2F;尾插l.PushBack(2)fmt.Println(l) 我们看看打印结果： 1&amp;&amp;#123;&amp;#123;0xc0
+          Go map底层实现Go语言的map的底层实现基于Hash散列，Hash散列是一种著名的广义上的算法，它能将任意长度的数据映射到有限的值域当中。在实际工程中输入数据范围是无限的，而输出值域范围是有限的，因此必然存在不同的输入数据经过映射后得到相同的输出值，这种现象称为hash冲突，go底层通过链表解决hash冲突。值得注意的是：&#x3D;&#x3D;Java1.8中使用平衡树来优化局部链表过长的性能问题。&#x3D;&#x3D; 使用
         </a>
       </p>
 
@@ -225,14 +258,14 @@
       <h1 class="index-header">
         
         <a href="/2022/03/12/go-map%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" target="_self">
-          go map源码分析
+          Go runtime
         </a>
       </h1>
 
       <p class="index-excerpt">
         <a href="/2022/03/12/go-map%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" target="_self">
           
-          Go map底层实现Go语言的map的底层实现基于Hash散列，Hash散列是一种著名的广义上的算法，它能将任意长度的数据映射到有限的值域当中。在实际工程中输入数据范围是无限的，而输出值域范围是有限的，因此必然存在不同的输入数据经过映射后得到相同的输出值，这种现象称为hash冲突，go底层通过链表解决hash冲突。值得注意的是：&#x3D;&#x3D;Java1.8中使用平衡树来优化局部链表过长的性能问题。&#x3D;&#x3D; 使用
+          Go panic大多数编程语言都提供了异常处理机制，恰恰相反，Go延续了C语言的风格，并未提供异常处理机制。但在Go中，提供了panic异常，从某种意义上说，它也非常接近其他语言的异常处理。 Go语言在编译期间就能捕获大量异常，但是有些异常只能发生在运行期间，比如运行期间的除以0的异常，数组越界错误等。 除了程序本身的问题导致panic异常外，也可以直接在程序里调用panic函数引发panic异常
         </a>
       </p>
 
@@ -587,53 +620,6 @@
             <i class="iconfont icon-tags"></i>
             
               <a href="/tags/standford-cs144-lab/">standford_cs144_lab</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2022/01/10/xv6-%E5%AE%9E%E9%AA%8C%E5%8F%82%E8%80%83%E4%B9%A6%E8%A7%A3%E6%9E%90/" target="_self">
-          xv6-实验参考书解析
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2022/01/10/xv6-%E5%AE%9E%E9%AA%8C%E5%8F%82%E8%80%83%E4%B9%A6%E8%A7%A3%E6%9E%90/" target="_self">
-          
-          第0章操作系统接口本书通过xv6操作系统来阐述操作系统的概念，它提供Unix操作系统中的基本接口，同时模仿Unix的内部设计。  xv6提供了传统的内核概念，即一个向其他运行的程序提供服务的特殊程序，每一个运行中的进程都有指令、数据、栈的内存空间。进程通过系统调用使用内核服务。系统调用会进入内核，让内核执行服务然后返回。所以进程总是在用户空间和内核空间之间交替运行。  我们看到上面加粗的那句话：
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2022-01-10 21:19" pubdate>
-              2022-01-10
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/MIT-s-081-Lab/">MIT_s.081_Lab</a>
             
           </div>
         

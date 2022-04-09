@@ -26,7 +26,7 @@
 <meta property="og:image" content="https://tva4.sinaimg.cn/large/008qL1EEgy1h0q9d8dbxrj308h0bt408.jpg">
 <meta property="og:image" content="https://tvax2.sinaimg.cn/large/008qL1EEly1h05ya2e0tlj30fp07q0ua.jpg">
 <meta property="article:published_time" content="2022-01-10T13:19:31.000Z">
-<meta property="article:modified_time" content="2022-03-28T21:48:31.406Z">
+<meta property="article:modified_time" content="2022-04-07T05:18:22.967Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="MIT_s.081_Lab">
 <meta name="twitter:card" content="summary_large_image">
@@ -200,7 +200,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      8.4k 字
+      8.2k 字
     </span>
   
 
@@ -209,7 +209,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      70 分钟
+      69 分钟
     </span>
   
 
@@ -429,14 +429,7 @@
 <p>进程间切换：进程间的切换可以看成是PCB的切换，也就是地址空间的切换、<code>context</code>的切换以及栈指针的切换。当进程要切换的时候就会把它（now_process)的状态保存在$PCB_1$中，然后将下一个进程先前保存的$PCB_2$取出来，将$PCB_2$的<code>context</code>的状态取出来恢复到对应的寄存器中，然后将用然后将$PCB_2$中的其他信息（pagetable、stack、pid等）写入now_process中，从而切换到该进程执行。</p>
 <h4 id="调度与多路复用"><a href="#调度与多路复用" class="headerlink" title="调度与多路复用"></a>调度与多路复用</h4><p>当进程数&gt;处理器的数量的时候，我们就要考虑如何分享处理器资源，即如何调度资源。通常我们对进程造成一个自己独占处理器的家乡，然后让操作系统的多路复用机制将单独的一个物理处理器模拟为多个虚拟处理器。</p>
 <p>当一个进程等待磁盘请求的时候，xv6使之进入睡眠状态，然后调度执行另一个进程。另外，当一个进程耗尽了它在处理器上的时间片的时候，xv6使用时钟中断强制它停止运行，这样调度器才能调度运行其他进程，这样的多路复用机制为进程提供了独占处理器的假象。</p>
-<h5 id="进程切换"><a href="#进程切换" class="headerlink" title="进程切换"></a>进程切换</h5><p>如何从运行的一个进程切换到另一个进程？</p>
-<ol>
-<li>当一个程序正在执行的过程中，中断或系统调用发生可以使得CPU的控制权会从当前进程转移到操作系统内核。</li>
-<li>操作系统内核负责保存进程i在CPU中的上下文（程序计数器、寄存器）到$PCB_i$(操作系统分配给进程的一个内存块)中。</li>
-<li>从$PCB_j$取出进程j的CPU上下文，将CPU控制权转移给进程j,开始执行进程j的指令。</li>
-</ol>
-<p>xv6的参考书里面对上述过程有详细解释：</p>
-<h6 id="上下文切换"><a href="#上下文切换" class="headerlink" title="上下文切换"></a>上下文切换</h6><p>xv6在底层实现了两种上下文切换：</p>
+<h5 id="进程切换"><a href="#进程切换" class="headerlink" title="进程切换"></a>进程切换</h5><h6 id="上下文切换"><a href="#上下文切换" class="headerlink" title="上下文切换"></a>上下文切换</h6><p>xv6在底层实现了两种上下文切换：</p>
 <ol>
 <li>从进程的内核线程切换到当前CPU的调度器线程；</li>
 <li>从调度器线程切换到进程的内核线程。</li>

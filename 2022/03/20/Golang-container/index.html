@@ -16,15 +16,15 @@
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
   
-    <meta name="description" content="container众所周知，Go对于一些基本的数据结构封装得不是很好，在container中也只有三种常见的数据结构——链表、环形链表和堆。 container&#x2F;list我们先来看看list的写入与打印： 1234l :&#x3D; list.New()l.PushBack(1) &#x2F;&#x2F;尾插l.PushBack(2)fmt.Println(l) 我们看看打印结果： 1&amp;&amp;#123;&amp;#123;0xc0">
+    <meta name="description" content="Go map底层实现Go语言的map的底层实现基于Hash散列，Hash散列是一种著名的广义上的算法，它能将任意长度的数据映射到有限的值域当中。在实际工程中输入数据范围是无限的，而输出值域范围是有限的，因此必然存在不同的输入数据经过映射后得到相同的输出值，这种现象称为hash冲突，go底层通过链表解决hash冲突。值得注意的是：&#x3D;&#x3D;Java1.8中使用平衡树来优化局部链表过长的性能问题。&#x3D;&#x3D; 使用">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Golang_包解析">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2022/03/20/Golang-container/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="container众所周知，Go对于一些基本的数据结构封装得不是很好，在container中也只有三种常见的数据结构——链表、环形链表和堆。 container&#x2F;list我们先来看看list的写入与打印： 1234l :&#x3D; list.New()l.PushBack(1) &#x2F;&#x2F;尾插l.PushBack(2)fmt.Println(l) 我们看看打印结果： 1&amp;&amp;#123;&amp;#123;0xc0">
+<meta property="og:description" content="Go map底层实现Go语言的map的底层实现基于Hash散列，Hash散列是一种著名的广义上的算法，它能将任意长度的数据映射到有限的值域当中。在实际工程中输入数据范围是无限的，而输出值域范围是有限的，因此必然存在不同的输入数据经过映射后得到相同的输出值，这种现象称为hash冲突，go底层通过链表解决hash冲突。值得注意的是：&#x3D;&#x3D;Java1.8中使用平衡树来优化局部链表过长的性能问题。&#x3D;&#x3D; 使用">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-03-20T07:05:46.000Z">
-<meta property="article:modified_time" content="2022-04-01T16:36:39.853Z">
+<meta property="article:modified_time" content="2022-04-03T12:01:42.170Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary_large_image">
   
@@ -196,7 +196,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      9.3k 字
+      11k 字
     </span>
   
 
@@ -205,7 +205,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      78 分钟
+      96 分钟
     </span>
   
 
@@ -237,9 +237,23 @@
             <h1 style="display: none">Golang_包解析</h1>
             
             <div class="markdown-body">
-              <h3 id="container"><a href="#container" class="headerlink" title="container"></a><code>container</code></h3><p>众所周知，Go对于一些基本的数据结构封装得不是很好，在<code>container</code>中也只有三种常见的数据结构——链表、环形链表和堆。</p>
+              <h3 id="Go-map"><a href="#Go-map" class="headerlink" title="Go map"></a>Go map</h3><h4 id="底层实现"><a href="#底层实现" class="headerlink" title="底层实现"></a>底层实现</h4><p>Go语言的map的底层实现基于Hash散列，Hash散列是一种著名的广义上的算法，它能将任意长度的数据映射到有限的值域当中。在实际工程中输入数据范围是无限的，而输出值域范围是有限的，因此必然存在不同的输入数据经过映射后得到相同的输出值，这种现象称为hash冲突，go底层通过链表解决hash冲突。值得注意的是：==Java1.8中使用平衡树来优化局部链表过长的性能问题。==</p>
+<p>使用哈希表的目的就是要快速查找到目标key，然而，随着向map中添加的key越来越多，key发生碰撞的概率也越来越大，bucket中的8个cell会被逐渐塞满，插入、查找和删除key的效率也会越来越低，最理想的情况是bucket只装入一个key，这样，就能达到$O(1)$的效率，但这样空间消耗太大，代价太高。</p>
+<p>底层源码如下所示：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></div></td><td class="code"><pre><code class="hljs go"><span class="hljs-comment">// A header for a Go map.</span><br><span class="hljs-keyword">type</span> hmap <span class="hljs-keyword">struct</span> &#123;<br>	count     <span class="hljs-keyword">int</span> <span class="hljs-comment">// # live cells == size of map.  Must be first (used by len() builtin)</span><br>	flags     <span class="hljs-keyword">uint8</span><br>	B         <span class="hljs-keyword">uint8</span>  <span class="hljs-comment">// log_2 of # of buckets (can hold up to loadFactor * 2^B items)</span><br>	noverflow <span class="hljs-keyword">uint16</span> <br>	hash0     <span class="hljs-keyword">uint32</span> <span class="hljs-comment">// hash seed</span><br><br>	buckets    unsafe.Pointer <span class="hljs-comment">// array of 2^B Buckets. may be nil if count==0.</span><br>	oldbuckets unsafe.Pointer <span class="hljs-comment">// previous bucket array of half the size, non-nil only when growing</span><br>	nevacuate  <span class="hljs-keyword">uintptr</span>        <span class="hljs-comment">// progress counter for evacuation (buckets less than this have been evacuated)</span><br><br>	extra *mapextra <span class="hljs-comment">// optional fields</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>其中，<code>buckets unsafe.Pointer</code>指向具体的buckets数组，这个数组是<code>bmap</code>结构，如下所示：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-comment">// A bucket for a Go map.</span><br><span class="hljs-keyword">type</span> bmap <span class="hljs-keyword">struct</span> &#123;<br>	tophash [bucketCnt]<span class="hljs-keyword">uint8</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>在实际编译期间，Go语言的<code>bmap</code>会经过反射生成真正的<code>bmap</code>类型：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> bmap <span class="hljs-keyword">struct</span> &#123;<br>  topbits  [<span class="hljs-number">8</span>]<span class="hljs-keyword">uint8</span><br>  keys     [<span class="hljs-number">8</span>]keytype<br>  values   [<span class="hljs-number">8</span>]valuetype<br>  pad      <span class="hljs-keyword">uintptr</span><br>  overflow <span class="hljs-keyword">uintptr</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>map的访问即通过给定的key在map中寻找其对应value，过程如下：</p>
+<ol>
+<li>原始的key通过hash函数映射成64位二进制；</li>
+<li>末尾x位代表<code>bmap</code>的位置，从<code>[]bmap</code>中找到对应的<code>bmap</code>，值得注意的是，bmap的数量一般是2的幂，如果末尾x位代表<code>bmap</code>的位置就代表有$2^x$个<code>bmap</code>；</li>
+<li>首8位对应key的tophash，在bmap中进行检索，首先会比较<code>bmap</code>顶层的<code>tophash</code>与原始key的<code>tophash</code>是否相同，若不相同则直接跳过比较下一个；若相同则进一步比较key是否相同。</li>
+</ol>
+<h3 id="container"><a href="#container" class="headerlink" title="container"></a><code>container</code></h3><p>众所周知，Go对于一些基本的数据结构封装得不是很好，在<code>container</code>中也只有三种常见的数据结构——链表、环形链表和堆。</p>
 <h4 id="container-list"><a href="#container-list" class="headerlink" title="container/list"></a><code>container/list</code></h4><p>我们先来看看<code>list</code>的写入与打印：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></div></td><td class="code"><pre><code class="hljs go">l := list.New()<br>l.PushBack(<span class="hljs-number">1</span>) <span class="hljs-comment">//尾插</span><br>l.PushBack(<span class="hljs-number">2</span>)<br>fmt.Println(l)<br></code></pre></td></tr></table></figure>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs go">l := list.New()<br>l.PushBack(<span class="hljs-number">1</span>) <span class="hljs-comment">//尾插</span><br>l.PushBack(<span class="hljs-number">2</span>)<br>fmt.Println(l)<br></code></pre></td></tr></table></figure>
 <p>我们看看打印结果：</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs go">&amp;&#123;&#123;<span class="hljs-number">0xc00007c180</span> <span class="hljs-number">0xc00007c1b0</span> &lt;<span class="hljs-literal">nil</span>&gt; &lt;<span class="hljs-literal">nil</span>&gt;&#125; <span class="hljs-number">2</span>&#125;<br></code></pre></td></tr></table></figure>
 <p>为什么打印结果是这样的，如果我们弄懂<code>list</code>的底层结构，就能知道答案了。<code>list</code>的底层结构如下：</p>
@@ -339,7 +353,18 @@
 <blockquote>
 <p>原子操作可以是一个步骤，也可以是多个操作步骤，但是其顺序不可以被打乱，也不可以被切割而只执行其中的一部分。将整个操作视作一个整体是原子性的核心特征。</p>
 </blockquote>
-<p>也就是说，绝大多数情况下，一个机器指令就是一个原子操作。</p>
+<p>也就是说，绝大多数情况下，一个机器指令就是一个原子操作。在Intel的参考手册，CPU基于以下三种机制保证了多核中加锁的原子操作：</p>
+<blockquote>
+<p>（1）一些基本的内存读写操作是本身已经被硬件提供了原子性保证（例如读写单个字节的操作）；<br>（2）一些需要保证原子性但是没有被第（1）条机制提供支持的操作（例如read-modify-write）可以通过使用”LOCK#”来锁定总线，从而保证操作的原子性<br>（3）因为很多内存数据是已经存放在L1/L2 cache中了，对这些数据的原子操作只需要与本地的cache打交道，而不需要与总线打交道，所以CPU就提供了cache coherency机制来保证其它的那些也cache了这些数据的processor能读到最新的值。</p>
+</blockquote>
+<p>上面（1）就是由硬件保持的原子操作，具体来说有以下操作：</p>
+<blockquote>
+<p>• Reading or writing a byte（一个字节的读写）<br>• Reading or writing a word aligned on a 16-bit boundary（对齐到16位边界的字的读写）<br>• Reading or writing a doubleword aligned on a 32-bit boundary（对齐到32位边界的双字的读写）</p>
+<p>• Reading or writing a quadword aligned on a 64-bit boundary（对齐到64位边界的四字的读写）<br>• 16-bit accesses to uncached memory locations that fit within a 32-bit data bus（未缓存且在32位数据总线范围之内的内存地址的访问）</p>
+<p>• Unaligned 16-, 32-, and 64-bit accesses to cached memory that fit within a cache line（对单个cache line中缓存地址的未对齐的16/32/64位访问)</p>
+</blockquote>
+<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/zeggpIOKJMRBmMOCRCsfhA">参考文章</a></p>
+<p>下面我们再看看（2）总线锁。</p>
 <h5 id="总线锁"><a href="#总线锁" class="headerlink" title="总线锁"></a>总线锁</h5><p>处理器会自动保证基本的内存操作的原子性。处理器保证从系统内存当中读取或者写入一个字节是原子的，意思是当一个处理器读取一个字节时，其他处理器不能访问这个字节的内存地址。</p>
 <p>上述操作就是通过总线锁实现的，<strong>在x86 平台上，CPU提供了在指令执行期间对</strong>总线加锁的手段，这样能实现并行时的原子操作。</p>
 <h5 id="Go支持的原子操作概述"><a href="#Go支持的原子操作概述" class="headerlink" title="Go支持的原子操作概述"></a>Go支持的原子操作概述</h5><p>Win32 API中常用的原子操作主要有三类，一种是加一减一操作，二是比较交换操作，三赋值操作。对于一个整数类型<code>T</code>，<code>sync/atomic</code>标准库包提供了下列原子操作函数。 其中<code>T</code>可以是内置<code>int32</code>、<code>int64</code>、<code>uint32</code>、<code>uint64</code>和<code>uintptr</code>类型。</p>
@@ -348,7 +373,7 @@
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs go"><br></code></pre></td></tr></table></figure>
 <p>Go语言的常量有个不同寻常之处。虽然一个常量可以有任意有一个确定的基础类型，例如int或float64，或者是类似time.Duration这样命名的基础类型，但是许多常量并没有一个明确的基础类型。编译器为这些没有明确的基础类型的数字常量提供比基础类型更高精度的算术运算；你可以认为至少有256bit的运算精度。这里有六种未明确类型的常量类型，分别是无类型的布尔型、无类型的整数、无类型的字符、无类型的浮点数、无类型的复数、无类型的字符串。</p>
 <p>panic需要等defer结束后才会向上传递。出现panic的时候，会先按照defer的**先出的顺序执行，最后才会执行panic。</p>
-
+<h3 id="encoding-json"><a href="#encoding-json" class="headerlink" title="encoding/json"></a><code>encoding/json</code></h3><h4 id="Marshal"><a href="#Marshal" class="headerlink" title="Marshal"></a><code>Marshal</code></h4><h4 id="UnMarshal"><a href="#UnMarshal" class="headerlink" title="UnMarshal"></a><code>UnMarshal</code></h4>
             </div>
             <hr>
             <div>
@@ -368,12 +393,18 @@
                   <article class="post-prev col-6">
                     
                     
+                      <a href="/2022/04/03/Golang%E4%B8%8EIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Golang与IO多路复用</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
                   </article>
                   <article class="post-next col-6">
                     
                     
                       <a href="/2022/03/12/go-map%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">
-                        <span class="hidden-mobile">go map源码分析</span>
+                        <span class="hidden-mobile">Go runtime</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
