@@ -16,18 +16,20 @@
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Eliminate allocation from sbrk()我们知道，sbrk()分配物理内存并将其映射到进程的虚拟地址空间，内核为大型请求分配和映射内存可能需要很长时间。 本实验你的任务是修改 sys_sbrk()使得其只增加&#x2F;减少进程地址空间大小，而不真正地分配页面。sbrk是xv6提供的系统调用，它使得用户应用程序能扩大自己的heap。当一个应用程序启动的时候， 在xv6中，sbrk的实">
+    <meta name="description" content="Eliminate allocation from sbrk()我们先来看看这个图：  代码段不必多说，唯一要注意的点就是fork()函数调用的时候不会去复制程序段，而是通过映射让父子进程共享。 我们现在要给用户空间分配内存就是说 我们知道，sbrk()分配物理内存并将其映射到进程的虚拟地址空间，内核为大型请求分配和映射内存可能需要很长时间。 本实验你的任务是修改 sys_sbrk()使得其只增加">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MIT_6.s081_Lab5_lazy page allocation">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2022/02/21/MIT-6-s081-Lab5-lazy-page-allocation/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="Eliminate allocation from sbrk()我们知道，sbrk()分配物理内存并将其映射到进程的虚拟地址空间，内核为大型请求分配和映射内存可能需要很长时间。 本实验你的任务是修改 sys_sbrk()使得其只增加&#x2F;减少进程地址空间大小，而不真正地分配页面。sbrk是xv6提供的系统调用，它使得用户应用程序能扩大自己的heap。当一个应用程序启动的时候， 在xv6中，sbrk的实">
+<meta property="og:description" content="Eliminate allocation from sbrk()我们先来看看这个图：  代码段不必多说，唯一要注意的点就是fork()函数调用的时候不会去复制程序段，而是通过映射让父子进程共享。 我们现在要给用户空间分配内存就是说 我们知道，sbrk()分配物理内存并将其映射到进程的虚拟地址空间，内核为大型请求分配和映射内存可能需要很长时间。 本实验你的任务是修改 sys_sbrk()使得其只增加">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img2020.cnblogs.com/blog/2002319/202101/2002319-20210104192210213-1712203988.png">
 <meta property="article:published_time" content="2022-02-21T08:04:00.000Z">
-<meta property="article:modified_time" content="2022-03-28T21:28:30.473Z">
+<meta property="article:modified_time" content="2022-04-13T06:12:26.539Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="MIT_s.081_Lab">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://img2020.cnblogs.com/blog/2002319/202101/2002319-20210104192210213-1712203988.png">
   
   
   <title>MIT_6.s081_Lab5_lazy page allocation - databrains</title>
@@ -197,7 +199,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      3.2k 字
+      3.5k 字
     </span>
   
 
@@ -206,7 +208,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      27 分钟
+      30 分钟
     </span>
   
 
@@ -238,7 +240,11 @@
             <h1 style="display: none">MIT_6.s081_Lab5_lazy page allocation</h1>
             
             <div class="markdown-body">
-              <h4 id="Eliminate-allocation-from-sbrk"><a href="#Eliminate-allocation-from-sbrk" class="headerlink" title="Eliminate allocation from sbrk()"></a>Eliminate allocation from sbrk()</h4><p>我们知道，sbrk()分配物理内存并将其映射到进程的虚拟地址空间，内核为大型请求分配和映射内存可能需要很长时间。</p>
+              <h4 id="Eliminate-allocation-from-sbrk"><a href="#Eliminate-allocation-from-sbrk" class="headerlink" title="Eliminate allocation from sbrk()"></a>Eliminate allocation from sbrk()</h4><p>我们先来看看这个图：</p>
+<p><img src="https://img2020.cnblogs.com/blog/2002319/202101/2002319-20210104192210213-1712203988.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>代码段不必多说，唯一要注意的点就是<code>fork()</code>函数调用的时候不会去复制程序段，而是通过映射让父子进程共享。</p>
+<p>我们现在要给用户空间分配内存就是说</p>
+<p>我们知道，sbrk()分配物理内存并将其映射到进程的虚拟地址空间，内核为大型请求分配和映射内存可能需要很长时间。</p>
 <p>本实验你的任务是修改 <code>sys_sbrk()</code>使得其只增加/减少进程地址空间大小，而不真正地分配页面。sbrk是xv6提供的系统调用，它使得用户应用程序能扩大自己的heap。当一个应用程序启动的时候，</p>
 <p>在xv6中，<code>sbrk</code>的实现默认是eager allocation，一旦调用了<code>sbrk</code>，内核就会立即分配物理内存给进程。但这样有点浪费，我们可以利用lazy allocation来做，<code>sbrk</code>基本不做任何事，只是改变<code>p-&gt;se</code>的大小，将<em>p-&gt;sz</em>增加n，其中n是需要新分配的内存page数量。但是内核在这个时间点并不会分配任何物理内存。</p>
 <p>我们先来看看原版本：</p>
@@ -266,6 +272,10 @@
 <p>我们仿照上述的<code>uvmalloc</code>函数来编写下面的<code>uvm_lazy</code>函数：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-built_in">memset</span>(mem, <span class="hljs-number">0</span>, PGSIZE);<br>mappages(p-&gt;pagetable, PGROUNDDOWN(va), PGSIZE, (uint64)mem, PTE_W|PTE_X|PTE_R|PTE_U)<br></code></pre></td></tr></table></figure>
 <p>这样就差不多了。</p>
+<hr>
+<p>补充一个segmentation fault的知识：在xv6中使用的是页式存储，因此没有segmentation fault的概念，但是linux是段页式存储，因此有可能会出现segmentation fault的错误，所谓段错误就是指访问的内存超过了系统给这个程序的内存空间。比如说：尝试写一块属于操作系统的内存，或以错误的类型访问内存区域。段错误就是访问了不可访问的内存，这个内存要么是不存在的，要么是访问受限的。</p>
+<p>指针越界和SIGSEGV是最常出现的情况</p>
+<hr>
 
             </div>
             <hr>
