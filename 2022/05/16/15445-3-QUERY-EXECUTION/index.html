@@ -16,20 +16,21 @@
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
   
-    <meta name="description" content="selectGolang的select关键字，用到了多路复用的概念，当然不是IO多路复用，因为没有涉及到输入输出。先看看下面例子： 1234567891011121314151617181920212223package mainimport (	&quot;fmt&quot;	&quot;sync&quot;)func main() &amp;#123;	c1:&#x3D;make(chan int,1)	var">
+    <meta name="description" content="TASK #1 - SYSTEM CATALOG在这个任务中，我们会修改rc&#x2F;include&#x2F;catalog&#x2F;catalog.h以允许 DBMS 将新表添加到数据库并使用名称或内部对象标识符 ( table_oid_t) 检索它们。 我们在最新的BusTub中可以看到catalog的实现，但是这个只可以实现 先来看看TableInfo的结构体： 12345678910111213141516171">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Golang与IO多路复用">
-<meta property="og:url" content="https://xiao-nanbei.github.io/2022/04/03/Golang%E4%B8%8EIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/index.html">
+<meta property="og:title" content="15445">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2022/05/16/15445-3-QUERY-EXECUTION/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="selectGolang的select关键字，用到了多路复用的概念，当然不是IO多路复用，因为没有涉及到输入输出。先看看下面例子： 1234567891011121314151617181920212223package mainimport (	&quot;fmt&quot;	&quot;sync&quot;)func main() &amp;#123;	c1:&#x3D;make(chan int,1)	var">
+<meta property="og:description" content="TASK #1 - SYSTEM CATALOG在这个任务中，我们会修改rc&#x2F;include&#x2F;catalog&#x2F;catalog.h以允许 DBMS 将新表添加到数据库并使用名称或内部对象标识符 ( table_oid_t) 检索它们。 我们在最新的BusTub中可以看到catalog的实现，但是这个只可以实现 先来看看TableInfo的结构体： 12345678910111213141516171">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2022-04-03T12:05:08.000Z">
-<meta property="article:modified_time" content="2022-04-03T14:44:40.799Z">
+<meta property="article:published_time" content="2022-05-16T06:09:17.000Z">
+<meta property="article:modified_time" content="2022-05-17T00:46:43.379Z">
 <meta property="article:author" content="John Doe">
+<meta property="article:tag" content="CMU_15-455">
 <meta name="twitter:card" content="summary_large_image">
   
   
-  <title>Golang与IO多路复用 - databrains</title>
+  <title>15445 - databrains</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
 
@@ -175,7 +176,7 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="Golang与IO多路复用">
+            <span class="h2" id="subtitle" title="15445">
               
             </span>
 
@@ -185,8 +186,8 @@
   
     <span class="post-meta">
       <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2022-04-03 20:05" pubdate>
-        2022年4月3日 晚上
+      <time datetime="2022-05-16 14:09" pubdate>
+        2022年5月16日 下午
       </time>
     </span>
   
@@ -196,7 +197,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      504 字
+      1.5k 字
     </span>
   
 
@@ -205,7 +206,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      5 分钟
+      13 分钟
     </span>
   
 
@@ -234,18 +235,45 @@
         <div class="py-5" id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">Golang与IO多路复用</h1>
+            <h1 style="display: none">15445</h1>
             
             <div class="markdown-body">
-              <h4 id="select"><a href="#select" class="headerlink" title="select"></a>select</h4><p>Golang的<code>select</code>关键字，用到了多路复用的概念，当然不是IO多路复用，因为没有涉及到输入输出。先看看下面例子：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></div></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> main<br><br><span class="hljs-keyword">import</span> (<br>	<span class="hljs-string">&quot;fmt&quot;</span><br>	<span class="hljs-string">&quot;sync&quot;</span><br>)<br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>	c1:=<span class="hljs-built_in">make</span>(<span class="hljs-keyword">chan</span> <span class="hljs-keyword">int</span>,<span class="hljs-number">1</span>)<br>	<span class="hljs-keyword">var</span> i1,i2 <span class="hljs-keyword">int</span><br>	<span class="hljs-keyword">var</span> count sync.WaitGroup<br>	count.Add(<span class="hljs-number">1</span>)<br>	<span class="hljs-keyword">go</span> <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">()</span></span> &#123;<br>		<span class="hljs-keyword">defer</span> count.Done()<br>		<span class="hljs-keyword">select</span> &#123;<br>		<span class="hljs-keyword">case</span> i1 = &lt;-c1:<br>			fmt.Println(<span class="hljs-string">&quot;i1 received from c1\n&quot;</span>)<br>		<span class="hljs-keyword">case</span> i2 = &lt;-c1:<br>			fmt.Println(<span class="hljs-string">&quot;i2 received form c2\n&quot;</span>)<br>	&#125;()<br>	c1&lt;<span class="hljs-number">-1</span><br>	count.Wait()<br>	<span class="hljs-built_in">close</span>(c1)<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>Golang的<code>select</code>的一大特性就是<code>case</code>随机选取，所以我们可以看到有时候是运行<code>i1 = &lt;-c1</code>、有的时候是<code>i2 = &lt;-c1</code>。</p>
+              <h4 id="TASK-1-SYSTEM-CATALOG"><a href="#TASK-1-SYSTEM-CATALOG" class="headerlink" title="TASK #1 - SYSTEM CATALOG"></a>TASK #1 - SYSTEM CATALOG</h4><p>在这个任务中，我们会修改<code>rc/include/catalog/catalog.h</code>以允许 DBMS 将新表添加到数据库并使用名称或内部对象标识符 ( <code>table_oid_t</code>) 检索它们。</p>
+<p>我们在最新的BusTub中可以看到<code>catalog</code>的实现，但是这个只可以实现</p>
+<p>先来看看<code>TableInfo</code>的结构体：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></div></td><td class="code"><pre><code class="hljs c++"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">TableInfo</span> &#123;</span><br>  <span class="hljs-comment">/**</span><br><span class="hljs-comment">   * Construct a new TableInfo instance.</span><br><span class="hljs-comment">   * @param schema The table schema</span><br><span class="hljs-comment">   * @param name The table name</span><br><span class="hljs-comment">   * @param table An owning pointer to the table heap</span><br><span class="hljs-comment">   * @param oid The unique OID for the table</span><br><span class="hljs-comment">   */</span><br>  <span class="hljs-built_in">TableInfo</span>(Schema schema, std::string name, std::unique_ptr&lt;TableHeap&gt; &amp;&amp;table, <span class="hljs-keyword">table_oid_t</span> oid)<br>      : schema_&#123;std::<span class="hljs-built_in">move</span>(schema)&#125;, name_&#123;std::<span class="hljs-built_in">move</span>(name)&#125;, table_&#123;std::<span class="hljs-built_in">move</span>(table)&#125;, oid_&#123;oid&#125; &#123;&#125;<br>  <span class="hljs-comment">/** The table schema */</span><br>  Schema schema_;<br>  <span class="hljs-comment">/** The table name */</span><br>  <span class="hljs-keyword">const</span> std::string name_;<br>  <span class="hljs-comment">/** An owning pointer to the table heap */</span><br>  std::unique_ptr&lt;TableHeap&gt; table_;<br>  <span class="hljs-comment">/** The table OID */</span><br>  <span class="hljs-keyword">const</span> <span class="hljs-keyword">table_oid_t</span> oid_;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>我们可以看看<code>catalog</code>的成员变量：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++">  std::unordered_map&lt;<span class="hljs-keyword">table_oid_t</span>, std::unique_ptr&lt;TableInfo&gt;&gt; tables_;<span class="hljs-comment">//无序map,也就是表信息集合</span><br>  std::unordered_map&lt;std::string, <span class="hljs-keyword">table_oid_t</span>&gt; table_names_;<span class="hljs-comment">//表名集合</span><br><span class="hljs-comment">//这里我们可以看出寻表是表名-&gt;oid-&gt;表信息</span><br>std::atomic&lt;<span class="hljs-keyword">table_oid_t</span>&gt; next_table_oid_&#123;<span class="hljs-number">0</span>&#125;;<span class="hljs-comment">//用atomic类来做多线程编程</span><br><span class="hljs-comment">//index与上述结构相似</span><br></code></pre></td></tr></table></figure>
+<p>/**</p>
+<div class="code-wrapper"><pre><code class="hljs">* 创建一个新表并返回其元数据。
+    * @param txn 正在创建表的事务
+    * @param table_name 新表的名称
+    * @param schema 新表的架构
+    * @return 指向表元数据的（非拥有）指针
+    */
+</code></pre></div><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Create a new table and return its metadata.</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> txn The transaction in which the table is being created</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> table_name The name of the new table</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> schema The schema of the new table</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@return</span> A (non-owning) pointer to the metadata for the table</span><br><span class="hljs-comment"> */</span><br></code></pre></td></tr></table></figure>
+<p>我们从上面的注释中就可以得知函数如何完成，</p>
+<p>我们先来看看这个<code>Schema</code>类，如下所示：</p>
 
             </div>
             <hr>
             <div>
               <div class="post-metas mb-3">
                 
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/CMU-15-455/">CMU_15-455</a>
+                    
+                  </div>
                 
               </div>
               
@@ -260,18 +288,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2022/05/16/15445-3-QUERY-EXECUTION/">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">15445</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2022/03/20/Golang-container/">
-                        <span class="hidden-mobile">Golang_包解析</span>
+                      <a href="/2022/04/03/Golang%E4%B8%8EIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/">
+                        <span class="hidden-mobile">Golang与IO多路复用</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

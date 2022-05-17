@@ -4,6 +4,31 @@
   
   
   <entry>
+    <title>15445</title>
+    <link href="/2022/05/16/15445-3-QUERY-EXECUTION/"/>
+    <url>/2022/05/16/15445-3-QUERY-EXECUTION/</url>
+    
+    <content type="html"><![CDATA[<h4 id="TASK-1-SYSTEM-CATALOG"><a href="#TASK-1-SYSTEM-CATALOG" class="headerlink" title="TASK #1 - SYSTEM CATALOG"></a>TASK #1 - SYSTEM CATALOG</h4><p>在这个任务中，我们会修改<code>rc/include/catalog/catalog.h</code>以允许 DBMS 将新表添加到数据库并使用名称或内部对象标识符 ( <code>table_oid_t</code>) 检索它们。</p><p>我们在最新的BusTub中可以看到<code>catalog</code>的实现，但是这个只可以实现</p><p>先来看看<code>TableInfo</code>的结构体：</p><figure class="highlight c++"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></div></td><td class="code"><pre><code class="hljs c++"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">TableInfo</span> &#123;</span><br>  <span class="hljs-comment">/**</span><br><span class="hljs-comment">   * Construct a new TableInfo instance.</span><br><span class="hljs-comment">   * @param schema The table schema</span><br><span class="hljs-comment">   * @param name The table name</span><br><span class="hljs-comment">   * @param table An owning pointer to the table heap</span><br><span class="hljs-comment">   * @param oid The unique OID for the table</span><br><span class="hljs-comment">   */</span><br>  <span class="hljs-built_in">TableInfo</span>(Schema schema, std::string name, std::unique_ptr&lt;TableHeap&gt; &amp;&amp;table, <span class="hljs-keyword">table_oid_t</span> oid)<br>      : schema_&#123;std::<span class="hljs-built_in">move</span>(schema)&#125;, name_&#123;std::<span class="hljs-built_in">move</span>(name)&#125;, table_&#123;std::<span class="hljs-built_in">move</span>(table)&#125;, oid_&#123;oid&#125; &#123;&#125;<br>  <span class="hljs-comment">/** The table schema */</span><br>  Schema schema_;<br>  <span class="hljs-comment">/** The table name */</span><br>  <span class="hljs-keyword">const</span> std::string name_;<br>  <span class="hljs-comment">/** An owning pointer to the table heap */</span><br>  std::unique_ptr&lt;TableHeap&gt; table_;<br>  <span class="hljs-comment">/** The table OID */</span><br>  <span class="hljs-keyword">const</span> <span class="hljs-keyword">table_oid_t</span> oid_;<br>&#125;;<br></code></pre></td></tr></table></figure><p>我们可以看看<code>catalog</code>的成员变量：</p><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++">  std::unordered_map&lt;<span class="hljs-keyword">table_oid_t</span>, std::unique_ptr&lt;TableInfo&gt;&gt; tables_;<span class="hljs-comment">//无序map,也就是表信息集合</span><br>  std::unordered_map&lt;std::string, <span class="hljs-keyword">table_oid_t</span>&gt; table_names_;<span class="hljs-comment">//表名集合</span><br><span class="hljs-comment">//这里我们可以看出寻表是表名-&gt;oid-&gt;表信息</span><br>std::atomic&lt;<span class="hljs-keyword">table_oid_t</span>&gt; next_table_oid_&#123;<span class="hljs-number">0</span>&#125;;<span class="hljs-comment">//用atomic类来做多线程编程</span><br><span class="hljs-comment">//index与上述结构相似</span><br></code></pre></td></tr></table></figure><p>/**</p><div class="code-wrapper"><pre><code class="hljs">* 创建一个新表并返回其元数据。    * @param txn 正在创建表的事务    * @param table_name 新表的名称    * @param schema 新表的架构    * @return 指向表元数据的（非拥有）指针    */</code></pre></div><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Create a new table and return its metadata.</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> txn The transaction in which the table is being created</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> table_name The name of the new table</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> schema The schema of the new table</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@return</span> A (non-owning) pointer to the metadata for the table</span><br><span class="hljs-comment"> */</span><br></code></pre></td></tr></table></figure><p>我们从上面的注释中就可以得知函数如何完成，</p><p>我们先来看看这个<code>Schema</code>类，如下所示：</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>数据库</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>CMU_15-455</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>Golang与IO多路复用</title>
     <link href="/2022/04/03/Golang%E4%B8%8EIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/"/>
     <url>/2022/04/03/Golang%E4%B8%8EIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/</url>
