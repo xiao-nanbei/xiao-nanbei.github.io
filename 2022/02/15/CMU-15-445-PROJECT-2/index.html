@@ -60,7 +60,7 @@
 <meta property="og:image" content="https://img-blog.csdnimg.cn/20201012222504107.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
 <meta property="og:image" content="https://img-blog.csdnimg.cn/20201012222542426.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
 <meta property="article:published_time" content="2022-02-14T20:08:37.000Z">
-<meta property="article:modified_time" content="2022-05-30T12:32:48.077Z">
+<meta property="article:modified_time" content="2022-05-30T12:46:21.832Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="CMU_15-455">
 <meta name="twitter:card" content="summary_large_image">
@@ -610,7 +610,7 @@
 </ul>
 <h5 id="TASK-3-INDEX-ITERATOR"><a href="#TASK-3-INDEX-ITERATOR" class="headerlink" title="TASK #3 - INDEX ITERATOR"></a>TASK #3 - INDEX ITERATOR</h5><p>我们都知道，在B+树中，叶子节点link起来，可以实现快速range scan。在这个任务中，我们要构建一个通用索引迭代器来有效地检索所有叶子页面。其中，Begin函数返回一个状态为初始化的迭代器对象，End返回一个指向结束的迭代器对象。</p>
 <p>我们先来看看iterator中的几个成员：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c++">BufferPoolManager *buffer_pool_manager_;<br>Page *page_;<br><span class="hljs-keyword">int</span> index_;<br>LeafPage *leaf_;<br></code></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c++">BufferPoolManager *buffer_pool_manager_;<span class="hljs-comment">//用来操作当前被写入buffer pool的节点</span><br>Page *page_;<br><span class="hljs-keyword">int</span> index_;<br>LeafPage *leaf_;<br></code></pre></td></tr></table></figure>
 <ul>
 <li><p>对于Begin函数，我们先直接用FindLeafPage找到最左边的节点，如下所示：</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c++">Page *leaf_page = <span class="hljs-built_in">FindLeafPage</span>(<span class="hljs-built_in">KeyType</span>(), <span class="hljs-literal">true</span>);<br><span class="hljs-keyword">return</span> <span class="hljs-built_in">INDEXITERATOR_TYPE</span>(buffer_pool_manager_, leaf_page, <span class="hljs-number">0</span>);  <br></code></pre></td></tr></table></figure>
