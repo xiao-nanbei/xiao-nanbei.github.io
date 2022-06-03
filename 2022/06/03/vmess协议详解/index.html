@@ -16,20 +16,24 @@
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
   
-    <meta name="description" content="我的PC前段时间短路了，更换主板之后重新启动电脑没有manjaro OS和Windows的启动项选择界面了，而是直接进入Winows，查看BOIS之后发现只有一个Winows启动项，遂开始恢复。 首先我发现只有一个Winows启动项，于是直接在Winows下管理员cmd中输入如下命令增加启动项： 1$bcdedit &#x2F;set &quot;&amp;#123;bootmgr&amp;#125;&quot; path">
+    <meta name="description" content="​    本文纯粹探讨技术，请勿触犯法律。 从v2ray说起​    当我们能通过v2ray访问国际互联网可以“联通“google的时候，却ping不通google.com，同样也tcping不通google.com:80，这是为什么呢？      ​    当我查询相关原因的时候，只有一句简单的解释，v2ray作用于会话层，而ping作用于网络层。 ​    当我们在使用ping命令的时候，是依">
 <meta property="og:type" content="article">
-<meta property="og:title" content="记一次manjaro OS恢复">
-<meta property="og:url" content="https://xiao-nanbei.github.io/2022/05/29/%E8%AE%B0%E4%B8%80%E6%AC%A1manjaro-OS%E6%81%A2%E5%A4%8D/index.html">
+<meta property="og:title" content="vmess协议详解">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2022/06/03/vmess%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="我的PC前段时间短路了，更换主板之后重新启动电脑没有manjaro OS和Windows的启动项选择界面了，而是直接进入Winows，查看BOIS之后发现只有一个Winows启动项，遂开始恢复。 首先我发现只有一个Winows启动项，于是直接在Winows下管理员cmd中输入如下命令增加启动项： 1$bcdedit &#x2F;set &quot;&amp;#123;bootmgr&amp;#125;&quot; path">
+<meta property="og:description" content="​    本文纯粹探讨技术，请勿触犯法律。 从v2ray说起​    当我们能通过v2ray访问国际互联网可以“联通“google的时候，却ping不通google.com，同样也tcping不通google.com:80，这是为什么呢？      ​    当我查询相关原因的时候，只有一句简单的解释，v2ray作用于会话层，而ping作用于网络层。 ​    当我们在使用ping命令的时候，是依">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2022-05-29T15:29:44.000Z">
-<meta property="article:modified_time" content="2022-05-29T15:56:28.992Z">
+<meta property="og:image" content="https://xiao-nanbei.github.io/home/databrains/.config/Typora/typora-user-images/image-20220603130241682.png">
+<meta property="og:image" content="https://xiao-nanbei.github.io/home/databrains/.config/Typora/typora-user-images/image-20220603130544340.png">
+<meta property="og:image" content="https://miro.medium.com/max/1400/1*X8ndmhkLxPUxfstkhDlZoQ.png">
+<meta property="article:published_time" content="2022-06-03T04:27:54.000Z">
+<meta property="article:modified_time" content="2022-06-03T16:29:09.918Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/home/databrains/.config/Typora/typora-user-images/image-20220603130241682.png">
   
   
-  <title>记一次manjaro OS恢复 - databrains</title>
+  <title>vmess协议详解 - databrains</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
 
@@ -175,7 +179,7 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="记一次manjaro OS恢复">
+            <span class="h2" id="subtitle" title="vmess协议详解">
               
             </span>
 
@@ -185,8 +189,8 @@
   
     <span class="post-meta">
       <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2022-05-29 23:29" pubdate>
-        2022年5月29日 晚上
+      <time datetime="2022-06-03 12:27" pubdate>
+        2022年6月3日 中午
       </time>
     </span>
   
@@ -196,7 +200,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      1.5k 字
+      1.7k 字
     </span>
   
 
@@ -205,7 +209,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      13 分钟
+      15 分钟
     </span>
   
 
@@ -234,31 +238,48 @@
         <div class="py-5" id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">记一次manjaro OS恢复</h1>
+            <h1 style="display: none">vmess协议详解</h1>
             
             <div class="markdown-body">
-              <p>我的PC前段时间短路了，更换主板之后重新启动电脑没有manjaro OS和Windows的启动项选择界面了，而是直接进入Winows，查看BOIS之后发现只有一个Winows启动项，遂开始恢复。</p>
-<p>首先我发现只有一个Winows启动项，于是直接在Winows下管理员cmd中输入如下命令增加启动项：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><pre><code class="hljs bash"><span class="hljs-variable">$bcdedit</span> /<span class="hljs-built_in">set</span> <span class="hljs-string">&quot;&#123;bootmgr&#125;&quot;</span> path \EFI\Manjaro\grubx64.efi<br></code></pre></td></tr></table></figure>
-<p>重启之后我发现已经有了选择界面了，这就说明我的grub并没有受到影响，于是直接启动Manjaro，得到如下结果：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs bash">mount:/new_root:cant find UUID-xxxxxxxxxxxxxxx.<br><br>You are now being dropped into an emergency shell.<br><br>sh:cant access tty:job control turn off<br><br>[rootfs]<span class="hljs-comment">#</span><br></code></pre></td></tr></table></figure>
-<p>我的第一反应是UUID有问题，于是下载了最新版的manjaro kde iso制作live cd，用live cd启动系统，开启KDE分区管理器，查看磁盘情况，会有两种情况：</p>
-<p>1.live cd的os不能识别硬盘，也就是说当我点击安装系统的时候反馈<code>there are no partitions to install on manjaro</code>，这是硬盘的驱动设置有问题，于是我重启电脑，打开bios，storage-&gt;rst mode，将rst mode设置为AHCI（不要理会它的警告，尽管这会导致你无法进入Windows系统），然后直接进入grub的manjaro，这个时候发现可以直接使用了。</p>
-<p>2.live cd的os能识别硬盘，这个时候的话就说明你的UUID确实有问题了，应该想办法恢复UUID。打开终端，开始恢复。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment">#blkid</span><br>//输入这个命令之后会出现磁盘所有分区的信息，找到系统的root区的UUID记住<br><span class="hljs-comment">#sudo mount /dev/nvme0n0p6 /mnt</span><br>//这里我的root区是nvme0n0p6，将/mnt挂载到这里<br><span class="hljs-comment">#sudo nona /mnt/etc/fstab</span><br>//开始输入正确的UUID<br><span class="hljs-comment">#genfstab -U /mnt &gt;&gt; /mnt/etc/fstab</span><br></code></pre></td></tr></table></figure>
-<p>完成之后重启进入原manjaro系统，发现可以运行了。</p>
-<hr>
-<p>补充，如何优雅的在Windows中关闭Intel rst，使得我们在AHCI下可以运行Windows：</p>
-<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs awk"><span class="hljs-number">1</span>.以管理员身份打开cmd，不是那个普通的cmd哈。<br><span class="hljs-number">2</span>.输入bcdedit /set safeboot minimal回车<br><span class="hljs-number">3</span>.Restart the computer and enter BIOS Setup<br><span class="hljs-number">4</span>.Change the SATA Operation mode to AHCI from either IDE or RAID<br><span class="hljs-number">5</span>.Save changes and <span class="hljs-keyword">exit</span> Setup and Windows will automatically boot to Safe Mode.<br><span class="hljs-number">6</span>.以管理员身份打开cmd，不是那个普通的cmd哈。<br><span class="hljs-number">7</span>.bcdedit /deletevalue safeboot回车<br><span class="hljs-number">8</span>.Reboot once more and Windows will automatically start with AHCI drivers enabled.<br><span class="hljs-number">9</span>.恢复正常了，正常使用Windows。<br></code></pre></td></tr></table></figure>
-<p>参考文章：</p>
-<ol>
-<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43391414/article/details/120606567">https://blog.csdn.net/qq_43391414/article/details/120606567</a></li>
-</ol>
-
+              <p>​    本文纯粹探讨技术，请勿触犯法律。</p>
+<h4 id="从v2ray说起"><a href="#从v2ray说起" class="headerlink" title="从v2ray说起"></a>从v2ray说起</h4><p>​    当我们能通过v2ray访问国际互联网可以“联通“google的时候，却ping不通google.com，同样也tcping不通google.com:80，这是为什么呢？    <img src="/home/databrains/.config/Typora/typora-user-images/image-20220603130241682.png" srcset="/img/loading.gif" lazyload alt="image-20220603130241682"></p>
+<p><img src="/home/databrains/.config/Typora/typora-user-images/image-20220603130544340.png" srcset="/img/loading.gif" lazyload alt="image-20220603130544340"></p>
+<p>​    当我查询相关原因的时候，只有一句简单的解释，v2ray作用于会话层，而ping作用于网络层。</p>
+<p>​    当我们在使用ping命令的时候，是依靠ICMP协议，利用网络上机器IP地址的唯一性，给目标IP地址发送一个数据包，通过对方回复的数据包来确定两台网络机器是否连接相通，时延是多少。也就是说我们在使用ping命令的时候，会根据ICMP协议来选择路由到对面的服务器，但是GFW在通往国外的最后一个网关加上一条伪造的路由规则，导致通往某些被屏蔽的网站的所有IP数据包无法到达。tcping是以TCP协议对开放的端口进行延迟测试，由于tcp依赖的底层协议icmp都无法联通，所以tcping也就无法联通了。只能说愿病魔早日战胜黃教授。</p>
+<p>​    v2ray也要依靠底层的icmp协议，如果icmp协议都无法联通的话，那么作用于会话层的v2ray为什么就能联通呢？因为v2ray中，目标地址并不是个google.com，我们来看看v2ray的源码：</p>
+<p>​    如何穿透GFW？在流量进入互联网之前，对流量进行加密和伪装，从而穿透GFW的层层审查，然后在服务端还原为原始的流量访问目标网站。那么为什么伪装和加密之后就能穿透GFW呢？</p>
+<h4 id="代理服务商在公安部备过案？"><a href="#代理服务商在公安部备过案？" class="headerlink" title="代理服务商在公安部备过案？"></a>代理服务商在公安部备过案？</h4><p>​    昨天看到一个介绍v2ray技术的文章，他说在代理程序客户端会进行加密就可以实现gfw穿透到达服务端（如下所示），但是我想客户端到服务端要经过路由器，ip总不能加密吧，如果我是gfw我一定可以检测这种异常的流向境外的流量，然后我可以给服务端的ip进行封锁，但是我们平时在用v2ray的时候没有这种情况，但是这几天梯子经常挂，我怀疑要么代理服务商在公安部和网信部备过案，要么gfw一直知道你在翻墙只是平时不想管。</p>
+<p><img src="https://miro.medium.com/max/1400/1*X8ndmhkLxPUxfstkhDlZoQ.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>​    有的服务商解释在每年的特殊时间GFW会增大域名污染的力度，导致无法访问国际互联网，但我觉得这个说法也不可靠，如下所示：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta">#</span><span class="bash"> host www.google.com</span><br>www.google.com has address 172.217.24.100<br>www.google.com has IPv6 address 2404:6800:4005:800::2004<br></code></pre></td></tr></table></figure>
+<p>如果我在本地host文件就有相应网站的域名和地址，那么dns污染是肯定不会起作用的。</p>
+<h4 id="v2ray与vmess"><a href="#v2ray与vmess" class="headerlink" title="v2ray与vmess"></a>v2ray与vmess</h4><p>​    我对上面的那个图一直很疑惑，代理程序客户端加密是对什么进行加密呢？如果只是用户程序的请求密文进行加密，那么可谓是多此一举，如下所示：</p>
+<blockquote>
+<p>我先根据ssl密钥将HTTP报文加密，然后经过代理客户端封装成TCP报文（这里封装的时候的目的端口并不是我想访问的网站的端口，而是代理服务器的端口），然后封装成IP报文，这里的目的IP也是服务器，然后到了服务器那边再得到HTTPS密文，但是这个时候按道理来说代理服务器是不应该知道密钥的，它怎么解析得到想要访问的目的网站呢？</p>
+</blockquote>
+<p>​    我的猜想如下：</p>
+<blockquote>
+<p>我看网上说v2Ray或者说vmess协议是基于TCP的协议，它这里的是不是指的：<br>我将HTTPS密文加上HTTP头所暴露的目的网站IP和端口一起交给代理服务器客户端，让它加密封装成TCP segment，然后再进行我上面说的操作，代理服务器解密之后目的网站的IP和端口就可以暴露出来，然后再根据IP和端口封装HTTPS密文为TCPsegment和IPpackage交给目标网站。</p>
+</blockquote>
+<p>​    如果是让我来设计vmess，我肯定就按照上面我的猜想来进行架构，还是让我们看看源码是怎么做的：</p>
+<p>​    </p>
+<h5 id="订阅链接是什么"><a href="#订阅链接是什么" class="headerlink" title="订阅链接是什么"></a>订阅链接是什么</h5><p>​    订阅链接是密钥+订阅地址，如下所示：</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs awk">https:<span class="hljs-regexp">//</span>www.speedsvip.net<span class="hljs-regexp">/link/</span>nZ4LwfmwMbAgKp8p?sub=<span class="hljs-number">3</span><br></code></pre></td></tr></table></figure>
+<p>​    那么如何从订阅链接得到一个又一个代理服务器地址呢？</p>
+<p>​    </p>
+<h4 id="v2ray高级技巧：流量伪装"><a href="#v2ray高级技巧：流量伪装" class="headerlink" title="v2ray高级技巧：流量伪装"></a>v2ray高级技巧：流量伪装</h4><p>​    按照我们上面的说法，代理客户端直接将加密后的请求发送给代理服务端，那么流量伪装在哪个阶段实现呢？</p>
+<h5 id="V2ray配合Tor使用"><a href="#V2ray配合Tor使用" class="headerlink" title="V2ray配合Tor使用"></a>V2ray配合Tor使用</h5>
             </div>
             <hr>
             <div>
               <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">计算机网络</a>
+                    
+                  </div>
                 
                 
               </div>
@@ -274,18 +295,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2022/06/03/vmess%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3/">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">vmess协议详解</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2022/05/16/15445-3-QUERY-EXECUTION/">
-                        <span class="hidden-mobile">CMU_15-445_PROJECT#3</span>
+                      <a href="/2022/05/29/%E8%AE%B0%E4%B8%80%E6%AC%A1manjaro-OS%E6%81%A2%E5%A4%8D/">
+                        <span class="hidden-mobile">记一次manjaro OS恢复</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

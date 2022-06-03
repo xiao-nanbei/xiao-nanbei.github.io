@@ -4,6 +4,25 @@
   
   
   <entry>
+    <title>vmess协议详解</title>
+    <link href="/2022/06/03/vmess%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3/"/>
+    <url>/2022/06/03/vmess%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3/</url>
+    
+    <content type="html"><![CDATA[<p>​    本文纯粹探讨技术，请勿触犯法律。</p><h4 id="从v2ray说起"><a href="#从v2ray说起" class="headerlink" title="从v2ray说起"></a>从v2ray说起</h4><p>​    当我们能通过v2ray访问国际互联网可以“联通“google的时候，却ping不通google.com，同样也tcping不通google.com:80，这是为什么呢？    <img src="/home/databrains/.config/Typora/typora-user-images/image-20220603130241682.png" alt="image-20220603130241682"></p><p><img src="/home/databrains/.config/Typora/typora-user-images/image-20220603130544340.png" alt="image-20220603130544340"></p><p>​    当我查询相关原因的时候，只有一句简单的解释，v2ray作用于会话层，而ping作用于网络层。</p><p>​    当我们在使用ping命令的时候，是依靠ICMP协议，利用网络上机器IP地址的唯一性，给目标IP地址发送一个数据包，通过对方回复的数据包来确定两台网络机器是否连接相通，时延是多少。也就是说我们在使用ping命令的时候，会根据ICMP协议来选择路由到对面的服务器，但是GFW在通往国外的最后一个网关加上一条伪造的路由规则，导致通往某些被屏蔽的网站的所有IP数据包无法到达。tcping是以TCP协议对开放的端口进行延迟测试，由于tcp依赖的底层协议icmp都无法联通，所以tcping也就无法联通了。只能说愿病魔早日战胜黃教授。</p><p>​    v2ray也要依靠底层的icmp协议，如果icmp协议都无法联通的话，那么作用于会话层的v2ray为什么就能联通呢？因为v2ray中，目标地址并不是个google.com，我们来看看v2ray的源码：</p><p>​    如何穿透GFW？在流量进入互联网之前，对流量进行加密和伪装，从而穿透GFW的层层审查，然后在服务端还原为原始的流量访问目标网站。那么为什么伪装和加密之后就能穿透GFW呢？</p><h4 id="代理服务商在公安部备过案？"><a href="#代理服务商在公安部备过案？" class="headerlink" title="代理服务商在公安部备过案？"></a>代理服务商在公安部备过案？</h4><p>​    昨天看到一个介绍v2ray技术的文章，他说在代理程序客户端会进行加密就可以实现gfw穿透到达服务端（如下所示），但是我想客户端到服务端要经过路由器，ip总不能加密吧，如果我是gfw我一定可以检测这种异常的流向境外的流量，然后我可以给服务端的ip进行封锁，但是我们平时在用v2ray的时候没有这种情况，但是这几天梯子经常挂，我怀疑要么代理服务商在公安部和网信部备过案，要么gfw一直知道你在翻墙只是平时不想管。</p><p><img src="https://miro.medium.com/max/1400/1*X8ndmhkLxPUxfstkhDlZoQ.png" alt=""></p><p>​    有的服务商解释在每年的特殊时间GFW会增大域名污染的力度，导致无法访问国际互联网，但我觉得这个说法也不可靠，如下所示：</p><figure class="highlight shell"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta">#</span><span class="bash"> host www.google.com</span><br>www.google.com has address 172.217.24.100<br>www.google.com has IPv6 address 2404:6800:4005:800::2004<br></code></pre></td></tr></table></figure><p>如果我在本地host文件就有相应网站的域名和地址，那么dns污染是肯定不会起作用的。</p><h4 id="v2ray与vmess"><a href="#v2ray与vmess" class="headerlink" title="v2ray与vmess"></a>v2ray与vmess</h4><p>​    我对上面的那个图一直很疑惑，代理程序客户端加密是对什么进行加密呢？如果只是用户程序的请求密文进行加密，那么可谓是多此一举，如下所示：</p><blockquote><p>我先根据ssl密钥将HTTP报文加密，然后经过代理客户端封装成TCP报文（这里封装的时候的目的端口并不是我想访问的网站的端口，而是代理服务器的端口），然后封装成IP报文，这里的目的IP也是服务器，然后到了服务器那边再得到HTTPS密文，但是这个时候按道理来说代理服务器是不应该知道密钥的，它怎么解析得到想要访问的目的网站呢？</p></blockquote><p>​    我的猜想如下：</p><blockquote><p>我看网上说v2Ray或者说vmess协议是基于TCP的协议，它这里的是不是指的：<br>我将HTTPS密文加上HTTP头所暴露的目的网站IP和端口一起交给代理服务器客户端，让它加密封装成TCP segment，然后再进行我上面说的操作，代理服务器解密之后目的网站的IP和端口就可以暴露出来，然后再根据IP和端口封装HTTPS密文为TCPsegment和IPpackage交给目标网站。</p></blockquote><p>​    如果是让我来设计vmess，我肯定就按照上面我的猜想来进行架构，还是让我们看看源码是怎么做的：</p><p>​    </p><h5 id="订阅链接是什么"><a href="#订阅链接是什么" class="headerlink" title="订阅链接是什么"></a>订阅链接是什么</h5><p>​    订阅链接是密钥+订阅地址，如下所示：</p><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs awk">https:<span class="hljs-regexp">//</span>www.speedsvip.net<span class="hljs-regexp">/link/</span>nZ4LwfmwMbAgKp8p?sub=<span class="hljs-number">3</span><br></code></pre></td></tr></table></figure><p>​    那么如何从订阅链接得到一个又一个代理服务器地址呢？</p><p>​    </p><h4 id="v2ray高级技巧：流量伪装"><a href="#v2ray高级技巧：流量伪装" class="headerlink" title="v2ray高级技巧：流量伪装"></a>v2ray高级技巧：流量伪装</h4><p>​    按照我们上面的说法，代理客户端直接将加密后的请求发送给代理服务端，那么流量伪装在哪个阶段实现呢？</p><h5 id="V2ray配合Tor使用"><a href="#V2ray配合Tor使用" class="headerlink" title="V2ray配合Tor使用"></a>V2ray配合Tor使用</h5>]]></content>
+    
+    
+    <categories>
+      
+      <category>计算机网络</category>
+      
+    </categories>
+    
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>记一次manjaro OS恢复</title>
     <link href="/2022/05/29/%E8%AE%B0%E4%B8%80%E6%AC%A1manjaro-OS%E6%81%A2%E5%A4%8D/"/>
     <url>/2022/05/29/%E8%AE%B0%E4%B8%80%E6%AC%A1manjaro-OS%E6%81%A2%E5%A4%8D/</url>
