@@ -23,10 +23,12 @@
 <meta property="og:site_name" content="databrains">
 <meta property="og:description" content="我的PC前段时间短路了，更换主板之后重新启动电脑没有manjaro OS和Windows的启动项选择界面了，而是直接进入Winows，查看BOIS之后发现只有一个Winows启动项，遂开始恢复。 首先我发现只有一个Winows启动项，于是直接在Winows下管理员cmd中输入如下命令增加启动项： 1$bcdedit &#x2F;set &quot;&amp;#123;bootmgr&amp;#125;&quot; path">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://tva1.sinaimg.cn/large/007SD2TBly1h2xnxiq4ayj30js0eodk1.jpg">
 <meta property="article:published_time" content="2022-05-29T15:29:44.000Z">
-<meta property="article:modified_time" content="2022-05-29T15:56:28.992Z">
+<meta property="article:modified_time" content="2022-06-05T12:58:22.285Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://tva1.sinaimg.cn/large/007SD2TBly1h2xnxiq4ayj30js0eodk1.jpg">
   
   
   <title>记一次manjaro OS恢复 - databrains</title>
@@ -250,6 +252,8 @@
 <hr>
 <p>补充，如何优雅的在Windows中关闭Intel rst，使得我们在AHCI下可以运行Windows：</p>
 <figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs awk"><span class="hljs-number">1</span>.以管理员身份打开cmd，不是那个普通的cmd哈。<br><span class="hljs-number">2</span>.输入bcdedit /set safeboot minimal回车<br><span class="hljs-number">3</span>.Restart the computer and enter BIOS Setup<br><span class="hljs-number">4</span>.Change the SATA Operation mode to AHCI from either IDE or RAID<br><span class="hljs-number">5</span>.Save changes and <span class="hljs-keyword">exit</span> Setup and Windows will automatically boot to Safe Mode.<br><span class="hljs-number">6</span>.以管理员身份打开cmd，不是那个普通的cmd哈。<br><span class="hljs-number">7</span>.bcdedit /deletevalue safeboot回车<br><span class="hljs-number">8</span>.Reboot once more and Windows will automatically start with AHCI drivers enabled.<br><span class="hljs-number">9</span>.恢复正常了，正常使用Windows。<br></code></pre></td></tr></table></figure>
+<p>最后我们来测试一下CPU性能，看本次短路有没有冲击到CPU：</p>
+<p><img src="http://tva1.sinaimg.cn/large/007SD2TBly1h2xnxiq4ayj30js0eodk1.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
 <p>参考文章：</p>
 <ol>
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43391414/article/details/120606567">https://blog.csdn.net/qq_43391414/article/details/120606567</a></li>
