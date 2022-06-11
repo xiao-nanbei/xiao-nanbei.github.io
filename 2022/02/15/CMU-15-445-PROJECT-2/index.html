@@ -54,6 +54,11 @@
 <meta property="og:image" content="http://tva1.sinaimg.cn/large/007SD2TBly1h32d9a19nhj30eo0770ti.jpg">
 <meta property="og:image" content="http://tvax3.sinaimg.cn/large/008qL1EEly1gzgqqo09usj30gq065my9.jpg">
 <meta property="og:image" content="http://tvax1.sinaimg.cn/large/008qL1EEly1gzgqqpbi2yj30j306x75u.jpg">
+<meta property="og:image" content="http://tva1.sinaimg.cn/large/007SD2TBly1h32ejirj06j30oy0b8gq8.jpg">
+<meta property="og:image" content="http://tva1.sinaimg.cn/large/007SD2TBgy1h32jfgdthrj30w70bbjto.jpg">
+<meta property="og:image" content="http://tva1.sinaimg.cn/large/007SD2TBgy1h32jmezaqqj30of02bq3y.jpg">
+<meta property="og:image" content="http://tva1.sinaimg.cn/large/007SD2TBgy1h32jvappnwj30750330sr.jpg">
+<meta property="og:image" content="http://tva1.sinaimg.cn/large/007SD2TBgy1h32jx4r5s0j30oy0bjn70.jpg">
 <meta property="og:image" content="https://img-blog.csdnimg.cn/20201012221558584.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
 <meta property="og:image" content="https://img-blog.csdnimg.cn/20201012221656748.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
 <meta property="og:image" content="https://img-blog.csdnimg.cn/20201012221749942.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
@@ -65,7 +70,7 @@
 <meta property="og:image" content="https://img-blog.csdnimg.cn/20201012222504107.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
 <meta property="og:image" content="https://img-blog.csdnimg.cn/20201012222542426.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
 <meta property="article:published_time" content="2022-02-14T20:08:37.000Z">
-<meta property="article:modified_time" content="2022-06-09T15:22:01.736Z">
+<meta property="article:modified_time" content="2022-06-10T17:58:11.435Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="CMU_15-455">
 <meta name="twitter:card" content="summary_large_image">
@@ -239,7 +244,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      26k 字
+      25k 字
     </span>
   
 
@@ -248,7 +253,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      214 分钟
+      212 分钟
     </span>
   
 
@@ -285,46 +290,6 @@
 <p>hash table的时间复杂度是$O(1)$。在B+ Tree中，因为它是平衡的，所以它的时间复杂度始终是$O(log n)$，也就是说，对于一个叶子结点上的任何key来说，不管它距离根节点有多远，时间复杂度始终是$O(logn)$，不管我们删除多少次，插入多少次，修改周围的东西，它始终是$O(logn)$。对于一个多路查找树（M-way search tree）而言，在树中的每个节点处，它可以通过$&gt;=M$条不同的路线到达其他节点，它是完美平衡的，当我在对树进行修改时，该数据结构会始终保持平衡性，也就是说任何叶子节点到根节点始终是$O(logn)$，我们还要维护的一件事是，保证每个节点至少都是半满的状态（Andy教授课程讲义），MySQL的InnoDB引擎就是默认B+树索引，自适应hash 索引，但是哈希索引失去了有序性：无法用于排序和分组，只支持精确查找、无法用于部分查找和范围查找。</p>
 <p>值得注意的是，hash索引一般用于精确查找，B+树索引更适合范围查找。下面就是建立索引的SQL语句：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></div></td><td class="code"><pre><code class="hljs sql"><span class="hljs-comment">-- 在normal_table表的id列建立名为normal_index的普通索引</span><br><span class="hljs-keyword">create</span> index normal_index <span class="hljs-keyword">on</span> normal_table(id); <br></code></pre></td></tr></table></figure>
-<hr>
-<p>常见的索引类型有：主键索引、唯一索引、普通索引、全文索引、组合索引。我们主要来讲讲全文索引：</p>
-<h6 id="全文索引的背景"><a href="#全文索引的背景" class="headerlink" title="全文索引的背景"></a>全文索引的背景</h6><p>在MySQL中，MyISAM索引是支持全文索引的，通过数值比较、范围过滤等就可以完成绝大多数我们需要的查询，但是，如果希望通过关键字的匹配来进行查询过滤，那么就需要基于相似度的查询，而不是原来的精确数值比较。全文索引就是为这种场景设计的。</p>
-<h6 id="全文索引的SQL语句"><a href="#全文索引的SQL语句" class="headerlink" title="全文索引的SQL语句"></a>全文索引的SQL语句</h6><p>和常用的模糊匹配使用 like + % 不同，全文索引有自己的语法格式，使用 match 和 against 关键字，比如：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">select</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">from</span> fulltext_test <span class="hljs-keyword">where</span> <span class="hljs-keyword">match</span>(content,tag) against(<span class="hljs-string">&#x27;xxx xxx&#x27;</span>);<br></code></pre></td></tr></table></figure>
-<p>对于MyISAM和InnoDB的区别，主要如下：</p>
-<div class="table-container">
-<table>
-<thead>
-<tr>
-<th></th>
-<th>MyISAM</th>
-<th>InnoDB</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>索引类型</td>
-<td>非聚簇索引</td>
-<td>聚簇索引</td>
-</tr>
-<tr>
-<td>事务支持</td>
-<td>不支持事务</td>
-<td>支持事务</td>
-</tr>
-<tr>
-<td>锁差异</td>
-<td>只支持表级锁</td>
-<td>默认行级锁</td>
-</tr>
-<tr>
-<td>外键</td>
-<td>不支持</td>
-<td>支持</td>
-</tr>
-</tbody>
-</table>
-</div>
-<p>另外： InnoDB 不保存表的具体行数，执行 select count(*) from table 时需要全表扫描。而MyISAM 用一个变量保存了整个表的行数，执行上述语句时只需要读出该变量即可，速度很快；MyISAM的数据是以文件的形式存储，在备份和恢复中会很方便，可以单独对某个表进行操作，InnoDB通过备份binlog来达到数据恢复。</p>
 <hr>
 <h5 id="B树"><a href="#B树" class="headerlink" title="B树"></a>B树</h5><p>B树是一种多路平衡查找树，其定义如下：</p>
 <ul>
@@ -428,12 +393,6 @@
 <li>B+树的空间利用率更高，可减少I/O次数，磁盘读写代价更低。</li>
 <li>增删文件时，效率更高，因为B+树的叶子节点包含所有关键字，并以有序的链表结构存储，这样可以很好的增删效率。</li>
 </ul>
-<h5 id="PostgreSQL中的B-树"><a href="#PostgreSQL中的B-树" class="headerlink" title="PostgreSQL中的B+树"></a>PostgreSQL中的B+树</h5><p>现在几乎所有有关PostgreSQL的文档描述PostgreSQL底层结构都是用的B-树这个名词。但我们学了Andy教授的课程都知道，其实这里的B-树是指的B+树。</p>
-<h5 id="InnoDB中的B-树"><a href="#InnoDB中的B-树" class="headerlink" title="InnoDB中的B+树"></a>InnoDB中的B+树</h5><p>在InnoDB引擎中，提供了对数据库ACID事务的支持。并且还提供了行级锁和外键的约束。它的设计的目标就是处理大数据容量的数据库系统。</p>
-<p>让我们把视角放到宏观，InnoDB会通过index来实现行锁，如：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c">select * from tab_with_index where id = <span class="hljs-number">1</span> <span class="hljs-keyword">for</span> update;<br></code></pre></td></tr></table></figure>
-<p>id是有索引的列，如果id不是索引键那么InnoDB将完成表锁。</p>
-<p>值得注意的是，B+树索引的一个节点就是一页，一般来说一页是16KB，而主键（key）往往是8B，指针（value）往往是6B，则一个内部节点存储的键值对的数量就是$16KB/14B$，而叶子节点中一行往往是1KB，则一个叶子节点可以存储16行。</p>
 <hr>
 <p>在这里插入红黑树：</p>
 <p>要理解红黑树，我觉得还是要和二叉搜索树、AVL树结合起来理解。</p>
@@ -620,7 +579,11 @@
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">page_id_t</span> next_page_id = leftMost ? internal_node-&gt;<span class="hljs-built_in">ValueAt</span>(<span class="hljs-number">0</span>) : internal_node-&gt;<span class="hljs-built_in">Lookup</span>(key, comparator_);<br></code></pre></td></tr></table></figure>
 </li>
 </ul>
-<h5 id="TASK-2-B-B-TREE-DATA-STRUCTURE-DELETION"><a href="#TASK-2-B-B-TREE-DATA-STRUCTURE-DELETION" class="headerlink" title="TASK #2.B - B+TREE DATA STRUCTURE (DELETION)"></a>TASK #2.B - B+TREE DATA STRUCTURE (DELETION)</h5><p>如果删除导致某些页面低于占用率阈值，您的 B+Tree 索引应该正确执行合并或重新分配。</p>
+<h5 id="TASK-2-B-B-TREE-DATA-STRUCTURE-DELETION"><a href="#TASK-2-B-B-TREE-DATA-STRUCTURE-DELETION" class="headerlink" title="TASK #2.B - B+TREE DATA STRUCTURE (DELETION)"></a>TASK #2.B - B+TREE DATA STRUCTURE (DELETION)</h5><ul>
+<li>首先我们要在<code>b_plus_tree_leaf</code>函数中完成<code>RemoveAndDeleteRecord</code>函数，根据提示可以很快完成该函数，如下所示：</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">B_PLUS_TREE_LEAF_PAGE_TYPE::RemoveAndDeleteRecord</span><span class="hljs-params">(<span class="hljs-keyword">const</span> KeyType &amp;key, <span class="hljs-keyword">const</span> KeyComparator &amp;comparator)</span> </span>&#123;<br>  <span class="hljs-keyword">int</span> index= <span class="hljs-built_in">KeyIndex</span>(key,comparator);<br><br>  <span class="hljs-keyword">if</span>(index &lt; <span class="hljs-built_in">GetSize</span>() &amp;&amp; (<span class="hljs-built_in">comparator</span>(key, array_[index].first) == <span class="hljs-number">0</span>) ) &#123;<br>    std::<span class="hljs-built_in">copy</span>(array_ + index + <span class="hljs-number">1</span>, array_ + <span class="hljs-built_in">GetSize</span>(), array_ + index);<br>    <span class="hljs-built_in">IncreaseSize</span>(<span class="hljs-number">-1</span>);<br>  &#125;<br>  <span class="hljs-keyword">return</span> <span class="hljs-built_in">GetSize</span>();<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>如果删除导致某些页面低于占用率阈值，您的 B+Tree 索引应该正确执行合并或重新分配。</p>
 <ul>
 <li><p><code>Coalesce</code>函数，将所有键值对从一个页面移动到其兄弟页面，并通知缓冲池管理器删除此页。 父页面必须调整为</p>
 <ul>
@@ -635,13 +598,30 @@
 </ul>
 </li>
 <li><p>对于<code>AdjustRoot</code>函数，最重要的是判断其是否应该删除掉根节点，这里有两种情况我们是要删除掉根节点的，也就是根节点是leaf_节点且其size为0,或者其不是leaf_page其size为1，至于为什么这样请看我前面的。</p>
-<figure class="highlight lasso"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs lasso">  <span class="hljs-string">``</span><span class="hljs-string">`</span><br><span class="hljs-string"></span><br><span class="hljs-string">  ![image.png](http://tva1.sinaimg.cn/large/007SD2TBly1h32ejirj06j30oy0b8gq8.jpg)</span><br><span class="hljs-string"></span><br><span class="hljs-string">​			结果如上图所示，我们的输入文件中只有一个元素1，当我们删除掉这个元素之后，我们再生成dot文件，就会出现生成文件为空的提示。</span><br><span class="hljs-string"></span><br><span class="hljs-string"></span><br><span class="hljs-string"></span><br><span class="hljs-string">##### debug日志</span><br><span class="hljs-string"></span><br><span class="hljs-string">当我们进行`</span>b_plus_tree_leaf_page_test<span class="hljs-string">`测试时，出现了如下错误：</span><br><span class="hljs-string"></span><br><span class="hljs-string">`</span><span class="hljs-string">``</span>c++<br>#0 <span class="hljs-number">0x7f4598902c1d</span> <span class="hljs-keyword">in</span> bustub<span class="hljs-type">::BPlusTreeLeafPage</span>&lt;bustub<span class="hljs-type">::GenericKey</span>&lt;<span class="hljs-number">8</span>ul&gt;, bustub<span class="hljs-type">::RID</span>, bustub<span class="hljs-type">::GenericComparator</span>&lt;<span class="hljs-number">8</span>ul&gt; &gt;<span class="hljs-type">::Lookup</span>(bustub<span class="hljs-type">::GenericKey</span>&lt;<span class="hljs-number">8</span>ul&gt; const&amp;, bustub<span class="hljs-type">::RID</span>*, bustub<span class="hljs-type">::GenericComparator</span>&lt;<span class="hljs-number">8</span>ul&gt; const&amp;) const /home/databrains/CLionProjects/bustub<span class="hljs-params">-master</span>/src/storage/page/b_plus_tree_leaf_page.cpp:<span class="hljs-number">158</span><br></code></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">if</span> (old_root_node-&gt;<span class="hljs-built_in">IsLeafPage</span>() &amp;&amp; old_root_node-&gt;<span class="hljs-built_in">GetSize</span>() == <span class="hljs-number">0</span>) &#123;<br>    root_page_id_ = INVALID_PAGE_ID;<br>    <span class="hljs-built_in">UpdateRootPageId</span>(<span class="hljs-literal">false</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>  &#125;<br>  <span class="hljs-keyword">if</span> (!old_root_node-&gt;<span class="hljs-built_in">IsLeafPage</span>() &amp;&amp; old_root_node-&gt;<span class="hljs-built_in">GetSize</span>() == <span class="hljs-number">1</span>) &#123;<br>    <span class="hljs-keyword">auto</span> internal_page = <span class="hljs-keyword">reinterpret_cast</span>&lt;InternalPage *&gt;(old_root_node);<br>    <span class="hljs-keyword">auto</span> new_root_id = internal_page-&gt;<span class="hljs-built_in">RemoveAndReturnOnlyChild</span>();<br>    <span class="hljs-keyword">auto</span> new_root_page = buffer_pool_manager_-&gt;<span class="hljs-built_in">FetchPage</span>(new_root_id);<br>    <span class="hljs-keyword">auto</span> new_root_node = <span class="hljs-keyword">reinterpret_cast</span>&lt;BPlusTreePage *&gt;(new_root_page);<br>    new_root_node-&gt;<span class="hljs-built_in">SetParentPageId</span>(new_root_id);<br>    root_page_id_ = new_root_id;<br>    buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(new_root_node-&gt;<span class="hljs-built_in">GetPageId</span>(), <span class="hljs-literal">true</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>  &#125;<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br></code></pre></td></tr></table></figure>
+<p><img src="http://tva1.sinaimg.cn/large/007SD2TBly1h32ejirj06j30oy0b8gq8.jpg" srcset="/img/loading.gif" lazyload alt="image.png"></p>
 </li>
 </ul>
+<p>​            结果如上图所示，我们的输入文件中只有一个元素1，当我们删除掉这个元素之后，我们再生成dot文件，就会出现生成文件为空的提示。</p>
+<h5 id="debug日志"><a href="#debug日志" class="headerlink" title="debug日志"></a>debug日志</h5><p>当我们进行<code>b_plus_tree_leaf_page_test</code>测试时，出现了如下错误：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c++">#<span class="hljs-number">0</span> <span class="hljs-number">0x7f4598902c1d</span> in bustub::BPlusTreeLeafPage&lt;bustub::GenericKey&lt;<span class="hljs-number">8ul</span>&gt;, bustub::RID, bustub::GenericComparator&lt;<span class="hljs-number">8ul</span>&gt; &gt;::<span class="hljs-built_in">Lookup</span>(bustub::GenericKey&lt;<span class="hljs-number">8ul</span>&gt; <span class="hljs-keyword">const</span>&amp;, bustub::RID*, bustub::GenericComparator&lt;<span class="hljs-number">8ul</span>&gt; <span class="hljs-keyword">const</span>&amp;) <span class="hljs-keyword">const</span> /home/databrains/CLionProjects/bustub-master/src/storage/page/b_plus_tree_leaf_page.cpp:<span class="hljs-number">158</span><br></code></pre></td></tr></table></figure>
 <p>这个错误的出现是由于数组越界，而<code>keyindex</code>函数和<code>array_</code>的不当使用确实会引起数组越界，于是我们对其进行一些修改：</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">B_PLUS_TREE_LEAF_PAGE_TYPE::Lookup</span><span class="hljs-params">(<span class="hljs-keyword">const</span> KeyType &amp;key, ValueType *value, <span class="hljs-keyword">const</span> KeyComparator &amp;comparator)</span> <span class="hljs-keyword">const</span> </span>&#123;<br>  <span class="hljs-keyword">int</span> pos = <span class="hljs-built_in">KeyIndex</span>(key, comparator);<br>  <span class="hljs-keyword">if</span>(pos&gt;=<span class="hljs-built_in">GetSize</span>()||<span class="hljs-built_in">comparator</span>(key, array_[pos].first) == <span class="hljs-number">0</span>)&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br>  *value=array_[pos].second;<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>发现这样是治标不治本，其原因在于我们在检查是否含有key的时候入的value实参往往是<code>nullptr</code>，所以我们给它增加一个判断：</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">B_PLUS_TREE_LEAF_PAGE_TYPE::Lookup</span><span class="hljs-params">(<span class="hljs-keyword">const</span> KeyType &amp;key, ValueType *value, <span class="hljs-keyword">const</span> KeyComparator &amp;comparator)</span> <span class="hljs-keyword">const</span> </span>&#123;<br>  <span class="hljs-keyword">int</span> pos = <span class="hljs-built_in">KeyIndex</span>(key, comparator);<br>  <span class="hljs-keyword">if</span>(pos&gt;=<span class="hljs-built_in">GetSize</span>()||<span class="hljs-built_in">comparator</span>(key, array_[pos].first) != <span class="hljs-number">0</span>)&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br>  <span class="hljs-keyword">if</span>(value== <span class="hljs-literal">nullptr</span>)&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>  &#125;<br>  (*value)=array_[pos].second;<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>我们进行以下测试，其中测试文件为1,2,3,4,5,6：</p>
+<figure class="highlight node-repl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs node-repl">#./test/b_plus_tree_print_test<br><span class="hljs-meta">&gt;</span> <span class="javascript"><span class="hljs-number">3</span> <span class="hljs-number">3</span></span><br><span class="hljs-meta">&gt;</span> <span class="javascript">f input.txt</span><br><span class="hljs-meta">&gt;</span> <span class="javascript">d <span class="hljs-number">4</span></span><br><span class="hljs-meta">&gt;</span> <span class="javascript">g tree.dot</span><br><span class="hljs-meta">&gt;</span> <span class="javascript">q</span><br></code></pre></td></tr></table></figure>
+<p>得到如下结果：</p>
+<p><img src="http://tva1.sinaimg.cn/large/007SD2TBgy1h32jfgdthrj30w70bbjto.jpg" srcset="/img/loading.gif" lazyload alt="tree.dot.png"></p>
+<p>我们发现有两个错误，第一个错误是叶子节点的<code>min_size</code>，第二个错误是没有完全删除掉page，我们先来解决第二个错误：</p>
+<p><img src="http://tva1.sinaimg.cn/large/007SD2TBgy1h32jmezaqqj30of02bq3y.jpg" srcset="/img/loading.gif" lazyload alt="image.png"></p>
+<p>在这里<code>minsize</code>依然是1，说明是<code>InsertIntoParent</code>或<code>Split</code>函数的错误，当我们的input文件只有一个数据1时，其输出如下：</p>
+<p><img src="http://tva1.sinaimg.cn/large/007SD2TBgy1h32jvappnwj30750330sr.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>这也佐证了我们的说法。</p>
+<p>当输入为1，2，3，4，5，6的时候，DEBUG如下：</p>
+<p><img src="http://tva1.sinaimg.cn/large/007SD2TBgy1h32jx4r5s0j30oy0bjn70.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>在<code>InsertIntoParent</code>函数中就已经变成这样了，经过多次排查，问题出在<code>Split</code>函数当中，妈的终于找到错误了，原来是<code>GetMinSize</code>写错了。。。</p>
+<p>我们现在看到第一个错误，在这里我认为应该删除没有数据的leaf和其父节点中相应的键值对，但其实不删除也没错。健壮的函数会保证其增删查改的正确性，只不过开销会更大。</p>
 <h5 id="TASK-3-INDEX-ITERATOR"><a href="#TASK-3-INDEX-ITERATOR" class="headerlink" title="TASK #3 - INDEX ITERATOR"></a>TASK #3 - INDEX ITERATOR</h5><p>我们都知道，在B+树中，叶子节点link起来，可以实现快速range scan。在这个任务中，我们要构建一个通用索引迭代器来有效地检索所有叶子页面。其中，Begin函数返回一个状态为初始化的迭代器对象，End返回一个指向结束的迭代器对象。</p>
 <p>我们先来看看iterator中的几个成员：</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c++">BufferPoolManager *buffer_pool_manager_;<span class="hljs-comment">//用来操作当前被写入buffer pool的节点</span><br>Page *page_;<br><span class="hljs-keyword">int</span> index_;<br>LeafPage *leaf_;<br></code></pre></td></tr></table></figure>
@@ -713,22 +693,6 @@
 <li>加入<code>MaxReader</code>，来防止写进程饥饿，也就是读进程太多以至于等待时间过长而对写进程造成明显影响。</li>
 </ol>
 <hr>
-<p>补充个go面经，互斥锁和读写锁。</p>
-<h6 id="互斥锁Mutex"><a href="#互斥锁Mutex" class="headerlink" title="互斥锁Mutex"></a>互斥锁Mutex</h6><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c++">type Mutex <span class="hljs-class"><span class="hljs-keyword">struct</span> &#123;</span><br>	state int32<br>	sema  uint32<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>其中，state采用不同位表示不同含义的方式作为状态位：</p>
-<ol>
-<li>第一位表示加锁状态：0表示未加锁，1表示已加锁</li>
-<li>第二位表示唤醒状态：0表示未设置被唤醒状态，1表示已设置被唤醒状态</li>
-<li>第三位表示运行状态：0表示正常状态，1表示饥饿状态</li>
-<li>第四位以及其他字节位：表示等待获取锁的数目</li>
-</ol>
-<p>另外的sema为信号量，通过P/V操作实现锁的等待和唤醒。</p>
-<h6 id="读写锁RWMutex"><a href="#读写锁RWMutex" class="headerlink" title="读写锁RWMutex"></a>读写锁RWMutex</h6><p>当有一个 goroutine 获得写锁定，其它无论是读锁定还是写锁定都将阻塞直到写解锁；当有一个 goroutine 获得读锁定，其它读锁定仍然可以继续；当有一个或任意多个读锁定，写锁定将等待所有读锁定解锁之后才能够进行写锁定。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(rw *RWMutex)</span> <span class="hljs-title">RLock</span><span class="hljs-params">()</span>//读锁，当有写锁时，无法加载读锁，当只有读锁或者没有锁时，可以加载读锁，读锁可以加载多个，所以适用于“读多写少”的场景。</span><br></code></pre></td></tr></table></figure>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(rw *RWMutex)</span> <span class="hljs-title">RUnlock</span><span class="hljs-params">()</span>//读锁解锁，<span class="hljs-title">RUnlock</span> 撤销单次<span class="hljs-title">RLock</span>调用，它对于其它同时存在的读取器则没有效果。若<span class="hljs-title">rw</span>并没有为读取而锁定，调用<span class="hljs-title">RUnlock</span>就会引发一个运行时错误。</span><br></code></pre></td></tr></table></figure>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(rw *RWMutex)</span> <span class="hljs-title">Lock</span><span class="hljs-params">()</span>//写锁，如果在添加写锁之前已经有其他的读锁和写锁，则<span class="hljs-title">Lock</span>就会阻塞直到该锁可用，为确保该锁最终可用，已阻塞的<span class="hljs-title">Lock</span>调用会从获得的锁中排除新的读取锁，即写锁权限高于读锁，有写锁时优先进行写锁定。</span><br></code></pre></td></tr></table></figure>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(rw *RWMutex)</span> <span class="hljs-title">Unlock</span><span class="hljs-params">()</span>//写锁解锁，如果没有进行写锁定，则就会引起一个运行时错误。</span><br></code></pre></td></tr></table></figure>
-<hr>
 <p>我们来看读写锁在B+树中的具体表现：</p>
 <p>查找38，给根节点上读锁：</p>
 <p><img src="https://img-blog.csdnimg.cn/20201012221558584.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center" srcset="/img/loading.gif" lazyload alt=""></p>
@@ -749,6 +713,7 @@
 <p><img src="https://img-blog.csdnimg.cn/20201012222542426.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center" srcset="/img/loading.gif" lazyload alt=""></p>
 <p>插入操作同理，我们如果发现节点没有半满，就可以释放祖先节点的写锁。</p>
 <p>值得注意的是，<strong>释放锁时，我们应当从上往下释放，这样可以让等待的线程尽早执行</strong>。</p>
+<p>我们来开始上锁：</p>
 <p>这样做可以实现并发，但是实现不了高并发，要实现高并发还是得优化算法：</p>
 <hr>
 <p>在上面介绍的操作过程中我们发现：</p>
