@@ -26,7 +26,7 @@
 <meta property="og:image" content="http://tva4.sinaimg.cn/large/007SD2TBly1gwp74pmbcrj30jv0dgmz0.jpg">
 <meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cDovL2ltZy5ibG9nLmNzZG4ubmV0LzIwMTcwNjA2MDg0ODUxMjcy?x-oss-process=image/format,png">
 <meta property="article:published_time" content="2022-01-13T00:39:30.000Z">
-<meta property="article:modified_time" content="2022-05-30T13:44:43.999Z">
+<meta property="article:modified_time" content="2022-06-14T09:47:06.367Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="standford_cs144_lab">
 <meta name="twitter:card" content="summary_large_image">
@@ -209,7 +209,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      35 分钟
+      36 分钟
     </span>
   
 
@@ -323,6 +323,12 @@
 <p>在segment_received()函数中，我们要模拟的是TCP收到数据的情况，其框架如下：</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++">_receiver.<span class="hljs-built_in">segment_received</span>(seg);<span class="hljs-comment">//将收到的seg交给_receiver的相关函数进行处理</span><br><span class="hljs-keyword">if</span> (seg.<span class="hljs-built_in">header</span>().ack) &#123;<br>	<span class="hljs-comment">//收到ack报文的相关操作，也就是将其ackno和win交给_sender的相关函数，让其准备下一次发送</span><br>    <span class="hljs-comment">//</span><br>&#125;<br></code></pre></td></tr></table></figure>
 <p>在tick函数中，</p>
+<p>在lab4中，我们可以检测出前面实验的错误：</p>
+<ol>
+<li><p>我删除了很多不必要的代码</p>
+</li>
+<li></li>
+</ol>
 <hr>
 <h5 id="TCP可靠传输"><a href="#TCP可靠传输" class="headerlink" title="TCP可靠传输"></a>TCP可靠传输</h5><p>做到这里，我们的TCP也就算实现了基本功能，我们也就知道了TCP协议如何保证可靠传输：</p>
 <ol>
