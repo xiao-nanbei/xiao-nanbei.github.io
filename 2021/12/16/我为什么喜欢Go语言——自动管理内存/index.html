@@ -25,7 +25,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://tva1.sinaimg.cn/large/007SD2TBly1gy979nbq7rj308100nt8q.jpg">
 <meta property="article:published_time" content="2021-12-16T07:20:04.000Z">
-<meta property="article:modified_time" content="2022-03-29T10:02:59.768Z">
+<meta property="article:modified_time" content="2022-06-15T17:07:44.547Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="内存管理">
 <meta property="article:tag" content="Go map">
@@ -200,7 +200,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      2.2k 字
+      2.4k 字
     </span>
   
 
@@ -209,7 +209,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      19 分钟
+      20 分钟
     </span>
   
 
@@ -245,37 +245,41 @@
 <h4 id="C-C-语言的手动管理内存"><a href="#C-C-语言的手动管理内存" class="headerlink" title="C/C++语言的手动管理内存"></a>C/C++语言的手动管理内存</h4><p>不支持垃圾回收的语言往往采用手动的方式进行资源管理，然而各种非预期的原因可能会引发严重的问题。</p>
 <h5 id="野指针"><a href="#野指针" class="headerlink" title="野指针"></a>野指针</h5><p>手动管理内存的其中一个问题就是由于指针的到处传递而无法确定何时可以释放该指针所指向的内存块。如果代码中的某个位置释放了内存，而另一些地方还在使用指向这块内存的指针，那么这些指针就变成了所谓的“野指针”(wild pointer)或者“悬空指针” (dangling pointer)，对这些指针进行的任何读写操作都会导致不可预料的后果。</p>
 <p>我们来看以下例子：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></div></td><td class="code"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span>&#123;<br>    <span class="hljs-keyword">char</span> *p = (<span class="hljs-keyword">char</span> *) <span class="hljs-built_in">malloc</span>(<span class="hljs-number">100</span>);<br>    <span class="hljs-built_in">strcpy</span>(p, <span class="hljs-string">&quot;hello&quot;</span>);<br>    <span class="hljs-built_in">free</span>(p);         <span class="hljs-comment">// p 所指的内存被释放，但是p所指的地址仍然不变</span><br>    <span class="hljs-keyword">if</span>(p != <span class="hljs-literal">NULL</span>)      <span class="hljs-comment">// 没有起到防错作用</span><br>    &#123;<br>        <span class="hljs-built_in">strcpy</span>(p, <span class="hljs-string">&quot;world&quot;</span>);      <span class="hljs-comment">// 出错</span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></div></td><td class="code"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span>&#123;<br>    <span class="hljs-keyword">char</span> *p = (<span class="hljs-keyword">char</span> *) <span class="hljs-built_in">malloc</span>(<span class="hljs-number">100</span>);<br>    <span class="hljs-built_in">strcpy</span>(p, <span class="hljs-string">&quot;hello&quot;</span>);<br>    <span class="hljs-built_in">free</span>(p);         <span class="hljs-comment">// p 所指的内存被释放，但是p所指的地址仍然不变https://segmentfault.com/img/bVbCsDx</span><br>    <span class="hljs-keyword">if</span>(p != <span class="hljs-literal">NULL</span>)      <span class="hljs-comment">// 没有起到防错作用</span><br>    &#123;<br>        <span class="hljs-built_in">strcpy</span>(p, <span class="hljs-string">&quot;world&quot;</span>);      <span class="hljs-comment">// 出错</span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>我们可以看到如下情况：</p>
 <p><img src="http://tva1.sinaimg.cn/large/007SD2TBly1gy979nbq7rj308100nt8q.jpg" srcset="/img/loading.gif" lazyload alt="image-20220111034419688"></p>
 <p>当然，我们在写代码的时候一般不会这么傻，但是如果遇到下面例子，运行代码时就是一种严峻的考验（摘自许式伟《Go语言编程》）：</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">int</span>* p = <span class="hljs-keyword">new</span> <span class="hljs-keyword">int</span>;<br>p += <span class="hljs-number">10</span>; <span class="hljs-comment">// 对指针进行了偏移，因此那块内存不再被引用</span><br><span class="hljs-comment">// …… 这里可能会发生针对这块int内存的垃圾收集 ……</span><br>p -= <span class="hljs-number">10</span>; <span class="hljs-comment">// 咦，居然又偏移到原来的位置</span><br>*p = <span class="hljs-number">10</span>; <span class="hljs-comment">// 如果有垃圾收集，这里就无法保证可以正常运行了</span><br></code></pre></td></tr></table></figure>
 <h5 id="内存泄漏"><a href="#内存泄漏" class="headerlink" title="内存泄漏"></a>内存泄漏</h5><p>当你向系统申请分配内存进行使用，可是使用完后却不归还，结果你申请到的那块内存自己也不会再访问，而系统也不会将其分配给需要的程序，长此以往，造成积重难返的后果。</p>
-<h5 id="解藕"><a href="#解藕" class="headerlink" title="解藕"></a>解藕</h5><p>当两个模块中同时维护了同一内存时，释放内存将会变得非常小心，这种手动分配的困难在于，难以在本地模块内做出全局的决定。</p>
+<h5 id="解藕"><a href="#解藕" class="headerlink" title="解藕"></a>解藕</h5><p>当两个模块中同时维护了同一内存时，释放内存将会变得非常小心，这种手动分配的困难在于，难以在本地模块内做出全局的决定。当然C++11之后引入了智能指针，可以使得其更好的完成类似自动垃圾回收的功能。</p>
 <h4 id="Go语言的垃圾回收"><a href="#Go语言的垃圾回收" class="headerlink" title="Go语言的垃圾回收"></a>Go语言的垃圾回收</h4><h5 id="常见的垃圾回收机制"><a href="#常见的垃圾回收机制" class="headerlink" title="常见的垃圾回收机制"></a>常见的垃圾回收机制</h5><h6 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h6><p>这个在cmu-15445中也有体现，我们给对象设置一个引用计数，用来表示当前正在访问该对象的或者想要访问该对象的线程的数量，当引用计数为0时，我们就可以回收该对象了。</p>
 <h6 id="复制法"><a href="#复制法" class="headerlink" title="复制法"></a>复制法</h6><p>复制法将内存分为大小相同的两块，每次使用其中的一块，当这一块的内存使用完后，将还存活的对象复制到另一块去，然后再把使用的空间一次清理掉。</p>
-<p>Golang使用的垃圾回收机制是三色标记法配合写屏障和辅助GC，三色标记法是标记清除法的一种增强版本。</p>
-<h5 id="标记清除法"><a href="#标记清除法" class="headerlink" title="标记清除法"></a>标记清除法</h5><p>原始的标记清除法分为两个步骤：</p>
+<h6 id="标记清除法"><a href="#标记清除法" class="headerlink" title="标记清除法"></a>标记清除法</h6><p>原始的标记清除法分为两个步骤：</p>
 <ol>
 <li>标记。先STP（stop the world），暂停整个程序的全部线程，将被引用的对象打上标记。</li>
 <li>清除没有被打标记的对象，即回收内存资源，然后恢复运行线程。</li>
 </ol>
-<h5 id="三色标记法"><a href="#三色标记法" class="headerlink" title="三色标记法"></a>三色标记法</h5><p>三色标记法中的三色对应垃圾回收过程中对象的三种状态：</p>
+<h6 id="三色标记法"><a href="#三色标记法" class="headerlink" title="三色标记法"></a>三色标记法</h6><p>三色标记法中的三色对应垃圾回收过程中对象的三种状态：</p>
 <ul>
 <li>灰色：对象还在标记队列中等待</li>
 <li>黑色：对象已被标记，gcmarkBits对应位为1——该对象不会在本次GC中被回收</li>
 <li>白色：对象未被标记，gcmarkBits对应位为0——该对象将会在本次GC中被回收</li>
 </ul>
-<p>三色标记法的原理就是标记内存中那些还在使用中的部分，而内存中不再使用的部分，就是要回收的垃圾，需要将其回收，以供后续内存分配使用。</p>
-<p>举个例子：我们先扫描前</p>
-<h5 id="回收过程"><a href="#回收过程" class="headerlink" title="回收过程"></a>回收过程</h5><p>在Go语言中，内存的分配和回收都是由Go在底层完成的，Go语言选择并发三色标记，为什么Go语言不选择压缩GC和分代GC，并发三色标记实现起来会非常简单，但它有一个缺陷，就是内存</p>
-<p>GC工作的完整流程如下，Golang GC的大部分处理是和用户代码并行的：</p>
+<p>标记过程如下：</p>
+<p>（1）起初所有的对象都是白色的；</p>
+<p>（2）从根对象出发扫描所有可达对象，标记为灰色，放入待处理队列；</p>
+<p>（3）从待处理队列中取出灰色对象，将其引用的对象标记为灰色并放入待处理队列中，自身标记为黑色；</p>
+<p>（4）重复步骤（3），直到待处理队列为空，此时白色对象即为不可达的“垃圾”，回收白色对象；</p>
+<p>其中，根对象包括全局变量、执行栈以及寄存器。</p>
+<p>三色标记法的原理就是标记内存中那些还在使用中的部分，而内存中不再使用的部分，就是要回收的垃圾，需要将其回收，以供后续内存分配使用。Golang使用的垃圾回收机制是三色标记法配合写屏障和辅助GC，三色标记法是标记清除法的一种增强版本。</p>
+<h5 id="回收过程"><a href="#回收过程" class="headerlink" title="回收过程"></a>回收过程</h5><p>GC工作的完整流程如下，Golang GC的大部分处理是和用户代码并行的：</p>
 <ol>
 <li>初始化GC任务，包括开启写屏障和辅助GC，统计root对象的任务数量等。这个过程需要STW。</li>
 <li>扫描所有root对象，包括全局指针和goroutine栈上的指针，将其加入标记队列，并循环处理灰色队列的对象，知道灰色队列为空，该过程后台并行执行。</li>
 <li></li>
 </ol>
-<h6 id="写屏障"><a href="#写屏障" class="headerlink" title="写屏障"></a>写屏障</h6><h6 id="辅助GC"><a href="#辅助GC" class="headerlink" title="辅助GC"></a>辅助GC</h6><h5 id="GC优化"><a href="#GC优化" class="headerlink" title="GC优化"></a>GC优化</h5><p>GC性能是与对象数量有关的，对象越多GC性能越差，对程序的影响也越大。在开发中可以减少对象分配个数，采用对象复用、将小对象组合成大对象等方法进行优化。</p>
+<h6 id="写屏障"><a href="#写屏障" class="headerlink" title="写屏障"></a>写屏障</h6><p>把回收器视为对象，把赋值器视为影响回收器这一对象的实际行为，从而引入赋值器的颜色。</p>
+<h6 id="辅助GC"><a href="#辅助GC" class="headerlink" title="辅助GC"></a>辅助GC</h6><h5 id="GC优化"><a href="#GC优化" class="headerlink" title="GC优化"></a>GC优化</h5><p>GC性能是与对象数量有关的，对象越多GC性能越差，对程序的影响也越大。在开发中可以减少对象分配个数，采用对象复用、将小对象组合成大对象等方法进行优化。</p>
 <h5 id="GC触发条件"><a href="#GC触发条件" class="headerlink" title="GC触发条件"></a>GC触发条件</h5><p>自动垃圾回收的触发条件有两个：</p>
 <ul>
 <li>超过内存大小阈值</li>

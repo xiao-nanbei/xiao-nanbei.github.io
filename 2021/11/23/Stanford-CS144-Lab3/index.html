@@ -26,7 +26,7 @@
 <meta property="og:image" content="http://tva4.sinaimg.cn/large/007SD2TBly1gwp74pmbcrj30jv0dgmz0.jpg">
 <meta property="og:image" content="http://tvax2.sinaimg.cn/large/007SD2TBly1gwp7wnrwe6j30kw0ddjtu.jpg">
 <meta property="article:published_time" content="2021-11-23T09:33:46.000Z">
-<meta property="article:modified_time" content="2022-04-21T13:14:52.787Z">
+<meta property="article:modified_time" content="2022-06-15T14:45:54.979Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="standford_cs144_lab">
 <meta name="twitter:card" content="summary_large_image">
@@ -209,7 +209,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      124 分钟
+      126 分钟
     </span>
   
 
@@ -309,6 +309,8 @@
 </ol>
 <p>Q2:<strong><em>为什么TCP连接的时候是3次，关闭的时候却是4次？</em></strong></p>
 <p>A2:因为关闭的时候必须要确保通信双方都能通知对方释放连接，假设客户端发送完数据向服务端发送释放连接的请求，客户端并不知道，服务端是否已经发送完数据，所以此次断开的是客户端到服务端的单项连接，服务端返回给客户端确认报文后，服务端还能继续单向给客户端发送数据。也就是说第二次挥手就是服务端向客户端发送确认报文，这之后服务端还能单向给客户端发送数据。当服务端发送完数据后还需要向客户端发送释放连接请求，客户端返回确认报文，TCP才彻底关闭，四次挥手代表的是客户端和服务器端分别向对方发送释放连接的报文和发送确认报文，一共需要四次。</p>
+<p>这里我们来总结一下滑动窗口的实现：</p>
+<p>首先在发送方，我们定义了两个成员变量：<code>base</code>和<code>next_seqno</code>，其中<code>nextseqno-base==byte_in_fly</code>，当我们在<code>ack_res</code>函数中收到返回的<code>segment</code>的<code>ackno</code>和<code>window</code>的时候，我们根据<code>ackno</code>来确定<code>base</code>的大小，将<code>ackno</code>-原<code>base</code>的这些数据出队，注意，这个时候如果<code>nextseqno-base&gt;window</code>，那就说明我们没必要去发送<code>segment</code>，直接返回。然后我们把<code>window</code>赋值给<code>curr_window</code>，这个时候呢，我们将<code>next_seqno+=curr_window</code>，发送长度为<code>curr_window</code>的数据过去，那么这个时候<code>base</code>和原<code>next_seqno</code>的数据我们就交给<code>tick</code>也就是超时重传来处理。</p>
 
             </div>
             <hr>

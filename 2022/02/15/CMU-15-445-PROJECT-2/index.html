@@ -70,7 +70,7 @@
 <meta property="og:image" content="https://img-blog.csdnimg.cn/20201012222504107.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
 <meta property="og:image" content="https://img-blog.csdnimg.cn/20201012222542426.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
 <meta property="article:published_time" content="2022-02-14T20:08:37.000Z">
-<meta property="article:modified_time" content="2022-06-10T17:58:11.435Z">
+<meta property="article:modified_time" content="2022-06-15T13:56:43.905Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="CMU_15-455">
 <meta name="twitter:card" content="summary_large_image">
@@ -253,7 +253,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      212 分钟
+      211 分钟
     </span>
   
 
@@ -394,7 +394,7 @@
 <li>增删文件时，效率更高，因为B+树的叶子节点包含所有关键字，并以有序的链表结构存储，这样可以很好的增删效率。</li>
 </ul>
 <hr>
-<p>在这里插入红黑树：</p>
+<p>在这里插入红黑树的知识点：</p>
 <p>要理解红黑树，我觉得还是要和二叉搜索树、AVL树结合起来理解。</p>
 <p>我们都知道，二叉搜索树的性质是顺序存储，缺点是不平衡，在极端情况下会变成链表；AVL树的性质是平衡，如果我们将二者的性质结合起来，就成了红黑树的雏形，红黑树按照顺序存储，还可以保持一定的平衡（放弃了AVL树绝对平衡的性质，而是根据自身红黑的性质保持相对平衡，插入与删除时会比AVL树更方便），这样就稳定了查询时间。</p>
 <p>红黑树是一种含有红黑结点并能自平衡的二叉查找树。它必须满足下面性质：</p>
@@ -668,10 +668,7 @@
 </ul>
 </li>
 </ul>
-<p>操作缓冲池汇总的LRU列表，删除、添加、移动LRU列表中的元素，为了保证一致性，必须有锁的介入，这就是latch锁。latch一般称为闩锁（轻量级别的锁），因为其要求锁定的时间必须非常短。若持续的时间长，则应用的性能会非常差。latch的一个例子：</p>
-<blockquote>
-<p>当我们在执行select时，数据是缓存在buffer pool中的，多个线程并发访问或者修改这个数据必然需要一个并发控制机制，这个就是latch。</p>
-</blockquote>
+<p>操作缓冲池汇总的LRU列表，删除、添加、移动LRU列表中的元素，为了保证一致性，必须有锁的介入，这就是latch锁。latch一般称为闩锁（轻量级别的锁），因为其要求锁定的时间必须非常短。若持续的时间长，则应用的性能会非常差。</p>
 <p>而lock对象是事务，用来锁定的是数据库中的对象，如表、行、页。</p>
 <hr>
 <p>我们在B+树的并发控制中要保证以下结果的正确性：</p>
