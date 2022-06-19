@@ -70,7 +70,7 @@
 <meta property="og:image" content="https://img-blog.csdnimg.cn/20201012222504107.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
 <meta property="og:image" content="https://img-blog.csdnimg.cn/20201012222542426.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
 <meta property="article:published_time" content="2022-02-14T20:08:37.000Z">
-<meta property="article:modified_time" content="2022-06-15T13:56:43.905Z">
+<meta property="article:modified_time" content="2022-06-16T17:21:18.496Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="CMU_15-455">
 <meta name="twitter:card" content="summary_large_image">
@@ -244,7 +244,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      25k 字
+      28k 字
     </span>
   
 
@@ -253,7 +253,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      211 分钟
+      233 分钟
     </span>
   
 
@@ -646,30 +646,22 @@
 </li>
 </ul>
 <h5 id="TASK-4-CONCURRENT-INDEX"><a href="#TASK-4-CONCURRENT-INDEX" class="headerlink" title="TASK #4 - CONCURRENT INDEX"></a>TASK #4 - CONCURRENT INDEX</h5><p>在这部分，您需要更新您原来的单线程 B+Tree 索引，使其能够支持并发操作。我们将使用课堂和教科书中描述的闩锁技术。</p>
+<p>在<code>rwlatch.h</code>中，实现了<code>ReaderWriterLatch</code>类，我们看看其成员：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">mutex_t</span> mutex_;<br><span class="hljs-keyword">cond_t</span> writer_;<br><span class="hljs-keyword">cond_t</span> reader_;<br><span class="hljs-keyword">uint32_t</span> reader_count_&#123;<span class="hljs-number">0</span>&#125;;<br><span class="hljs-keyword">bool</span> writer_entered_&#123;<span class="hljs-literal">false</span>&#125;;<br></code></pre></td></tr></table></figure>
+<p>其中，条件变量<code>writer_</code>和<code>reader_</code>，设置了<code>reader_count</code>，代表读者的引用计数。</p>
+<p>我们来看看其底层的函数实现：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">RLock</span><span class="hljs-params">()</span> </span>&#123;<br>  <span class="hljs-function">std::unique_lock&lt;<span class="hljs-keyword">mutex_t</span>&gt; <span class="hljs-title">latch</span><span class="hljs-params">(mutex_)</span></span>;<br>  <span class="hljs-keyword">while</span> (writer_entered_ || reader_count_ == MAX_READERS) &#123;<br>      <span class="hljs-comment">//如果上了写锁或者读者达到上限，就等待，这个时候应该是自旋</span><br>    reader_.<span class="hljs-built_in">wait</span>(latch);<br>  &#125;<br>  reader_count_++;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">WLock</span><span class="hljs-params">()</span> </span>&#123;<br>  <span class="hljs-function">std::unique_lock&lt;<span class="hljs-keyword">mutex_t</span>&gt; <span class="hljs-title">latch</span><span class="hljs-params">(mutex_)</span></span>;<br>  <span class="hljs-keyword">while</span> (writer_entered_) &#123;<br>      <span class="hljs-comment">//如果上了写锁就不能再上了</span><br>    reader_.<span class="hljs-built_in">wait</span>(latch);<br>  &#125;<br>  writer_entered_ = <span class="hljs-literal">true</span>;<br>  <span class="hljs-keyword">while</span> (reader_count_ &gt; <span class="hljs-number">0</span>) &#123;<br>      <span class="hljs-comment">//如果现在还有读者也不能上</span><br>    writer_.<span class="hljs-built_in">wait</span>(latch);<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这个实现挺有意思的。</p>
+<p>当我们没有实现并发的时候，在做<code>b_plus_tree_concurrent_test</code>的时候，出错的概率不是一定的，而是根据随机的并发而不确定的，这导致我一会pass 5 test，一会pass 3 test。</p>
+<p>所以说当务之急是完成并发。这里我参考了<a target="_blank" rel="noopener" href="https://www.cnblogs.com/JayL-zxl/p/14333395.html">周小伦</a>大神的实现。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function">Page *<span class="hljs-title">BPLUSTREE_TYPE::FindLeafPageRW</span><span class="hljs-params">(<span class="hljs-keyword">const</span> KeyType &amp;key, <span class="hljs-keyword">bool</span> left_most, <span class="hljs-keyword">enum</span> OpType op, Transaction *transaction)</span> </span>&#123;<br>  Page *page = buffer_pool_manager_-&gt;<span class="hljs-built_in">FetchPage</span>(root_page_id_);  <span class="hljs-comment">// now root page is pin</span><br>  BPlusTreePage *node = <span class="hljs-keyword">reinterpret_cast</span>&lt;BPlusTreePage *&gt;(page-&gt;<span class="hljs-built_in">GetData</span>());<br>  <span class="hljs-keyword">while</span> (!node-&gt;<span class="hljs-built_in">IsLeafPage</span>()) &#123;<br>    <span class="hljs-keyword">if</span> (op == OpType::Read) &#123;<br>      page-&gt;<span class="hljs-built_in">RLatch</span>();<br>      <span class="hljs-built_in">UnlatchAndUnpin</span>(op,transaction);<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>      <span class="hljs-comment">// else is write op</span><br>      page-&gt;<span class="hljs-built_in">WLatch</span>();<br>      <span class="hljs-keyword">if</span> (<span class="hljs-built_in">IsSafe</span>(node, op)) &#123;<br>        <span class="hljs-built_in">UnlatchAndUnpin</span>(op, transaction);<br>      &#125;<br>    &#125;<br>    transaction-&gt;<span class="hljs-built_in">AddIntoPageSet</span>(page);<br>    InternalPage *internal_node = <span class="hljs-keyword">reinterpret_cast</span>&lt;InternalPage *&gt;(node);<br>    <span class="hljs-keyword">page_id_t</span> next_page_id = left_most ? internal_node-&gt;<span class="hljs-built_in">ValueAt</span>(<span class="hljs-number">0</span>) : internal_node-&gt;<span class="hljs-built_in">Lookup</span>(key, comparator_);<br>    Page *next_page = buffer_pool_manager_-&gt;<span class="hljs-built_in">FetchPage</span>(next_page_id);  <span class="hljs-comment">// next_level_page pinned</span><br>    BPlusTreePage *next_node = <span class="hljs-keyword">reinterpret_cast</span>&lt;BPlusTreePage *&gt;(next_page);<br>    page = next_page;<br>    node = next_node;<br>  &#125;<br>  <span class="hljs-keyword">return</span> page;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这是周小伦大神的实现。</p>
 <h6 id="如何实现并发"><a href="#如何实现并发" class="headerlink" title="如何实现并发"></a>如何实现并发</h6><p>我们来看看Andy在lab中怎么说的（机器翻译）：</p>
 <ul>
 <li>搜索：从根页面开始，抓住子页面上的读取（R）闩锁，然后在您登陆子页面后立即释放父页面上的闩锁。</li>
 <li>插入：从根页面开始，抓住子页面的写（W）锁存器。一旦孩子被锁定，检查它是否安全，在这种情况下，不是满的。如果孩子是安全的，则释放祖先的所有锁。</li>
 <li>删除：从根页面开始，抓住子页面的写（W）锁存器。一旦孩子被锁定，检查它是否安全，在这种情况下，至少半满。 （注意：对于根页面，我们需要用不同的标准检查）如果孩子是安全的，释放所有祖先的锁。</li>
 </ul>
-<hr>
-<p>我们来填一下之前的坑，锁（lock）和闩（latch）的区别：</p>
-<ul>
-<li>Locks<ul>
-<li>从其它事务中保护数据库的逻辑内容</li>
-<li>在事务执行期间保留</li>
-<li>需要能够回滚之前的改变</li>
-</ul>
-</li>
-<li>Latches<ul>
-<li>从多线程中保护DBMS关键的数据结构</li>
-<li>在操作期间保留</li>
-<li>不需要回滚的能力</li>
-</ul>
-</li>
-</ul>
-<p>操作缓冲池汇总的LRU列表，删除、添加、移动LRU列表中的元素，为了保证一致性，必须有锁的介入，这就是latch锁。latch一般称为闩锁（轻量级别的锁），因为其要求锁定的时间必须非常短。若持续的时间长，则应用的性能会非常差。</p>
-<p>而lock对象是事务，用来锁定的是数据库中的对象，如表、行、页。</p>
 <hr>
 <p>我们在B+树的并发控制中要保证以下结果的正确性：</p>
 <ul>
@@ -721,6 +713,7 @@
 <hr>
 <p>改进：</p>
 <p>我们可以设置一个缓冲队列，将节点的指针放进去，比如A通过A-&gt;array[1].second访问B节点，我们就把这个指针放进去，然后，一旦遇到节点安全，我怕们就把访问这个节点的指针之前入队的指针出队，只留下这个访问这个节点的指针，我们搜索完一遍之后直接通过这个指针搜索这个节点，从这个节点开始上写锁，这样也达到了相同的目的，且开销更小。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function">Page *<span class="hljs-title">BPLUSTREE_TYPE::FindLeafPageRW</span><span class="hljs-params">(<span class="hljs-keyword">const</span> KeyType &amp;key, <span class="hljs-keyword">bool</span> left_most, <span class="hljs-keyword">enum</span> OpType op, Transaction *transaction,Page *safe_page)</span> </span>&#123;<br>  Page *page = buffer_pool_manager_-&gt;<span class="hljs-built_in">FetchPage</span>(root_page_id_);<br>    <span class="hljs-comment">//获取root_page</span><br>  BPlusTreePage *node = <span class="hljs-keyword">reinterpret_cast</span>&lt;BPlusTreePage *&gt;(page-&gt;<span class="hljs-built_in">GetData</span>());<br>   <br>  <span class="hljs-keyword">while</span> (!node-&gt;<span class="hljs-built_in">IsLeafPage</span>()) &#123;<br>      <br>    <span class="hljs-keyword">if</span> (op == OpType::Read) &#123;<span class="hljs-comment">//读操作不变</span><br>      page-&gt;<span class="hljs-built_in">RLatch</span>();<br>      <span class="hljs-built_in">UnlatchAndUnpin</span>(op,transaction);<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>      <span class="hljs-comment">// 读锁</span><br>      page-&gt;<span class="hljs-built_in">RLatch</span>();<br>      <span class="hljs-keyword">if</span> (<span class="hljs-built_in">IsSafe</span>(node, op)) &#123;<br>        safe_page=page;<span class="hljs-comment">//设置safe_page为当前page</span><br>      &#125;<br>    &#125;<br>    transaction-&gt;<span class="hljs-built_in">AddIntoPageSet</span>(page);<br>    InternalPage *internal_node = <span class="hljs-keyword">reinterpret_cast</span>&lt;InternalPage *&gt;(node);<br>    <span class="hljs-keyword">page_id_t</span> next_page_id = left_most ? internal_node-&gt;<span class="hljs-built_in">ValueAt</span>(<span class="hljs-number">0</span>) : internal_node-&gt;<span class="hljs-built_in">Lookup</span>(key, comparator_);<br>    Page *next_page = buffer_pool_manager_-&gt;<span class="hljs-built_in">FetchPage</span>(next_page_id);  <span class="hljs-comment">// next_level_page pinned</span><br>    BPlusTreePage *next_node = <span class="hljs-keyword">reinterpret_cast</span>&lt;BPlusTreePage *&gt;(next_page);<br>    page = next_page;<br>    node = next_node;<br>  &#125;<br>  <br>  <span class="hljs-keyword">return</span> page;<br>&#125;<br></code></pre></td></tr></table></figure>
 <hr>
 <p>这样看似操作更多，但是我们上的是读锁，只是为了防止被其他进程写入，比第一种方案一直上写锁要更好我觉得，特别是在数据量很大和读进程更多的时候。</p>
 <p>如果我们存储的数据量足够大，我觉得我这个相较于Andy讲的基础算法算是实现了高并发的。</p>

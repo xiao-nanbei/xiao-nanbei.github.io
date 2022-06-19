@@ -26,7 +26,7 @@
 <meta property="og:image" content="https://tva4.sinaimg.cn/large/008qL1EEgy1h0q9d8dbxrj308h0bt408.jpg">
 <meta property="og:image" content="https://tvax2.sinaimg.cn/large/008qL1EEly1h05ya2e0tlj30fp07q0ua.jpg">
 <meta property="article:published_time" content="2022-01-10T13:19:31.000Z">
-<meta property="article:modified_time" content="2022-04-07T05:18:22.967Z">
+<meta property="article:modified_time" content="2022-06-19T13:35:01.166Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="MIT_s.081_Lab">
 <meta name="twitter:card" content="summary_large_image">
@@ -200,7 +200,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      8.2k 字
+      8.3k 字
     </span>
   
 
@@ -209,7 +209,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      69 分钟
+      70 分钟
     </span>
   
 
@@ -429,6 +429,7 @@
 <p>进程间切换：进程间的切换可以看成是PCB的切换，也就是地址空间的切换、<code>context</code>的切换以及栈指针的切换。当进程要切换的时候就会把它（now_process)的状态保存在$PCB_1$中，然后将下一个进程先前保存的$PCB_2$取出来，将$PCB_2$的<code>context</code>的状态取出来恢复到对应的寄存器中，然后将用然后将$PCB_2$中的其他信息（pagetable、stack、pid等）写入now_process中，从而切换到该进程执行。</p>
 <h4 id="调度与多路复用"><a href="#调度与多路复用" class="headerlink" title="调度与多路复用"></a>调度与多路复用</h4><p>当进程数&gt;处理器的数量的时候，我们就要考虑如何分享处理器资源，即如何调度资源。通常我们对进程造成一个自己独占处理器的家乡，然后让操作系统的多路复用机制将单独的一个物理处理器模拟为多个虚拟处理器。</p>
 <p>当一个进程等待磁盘请求的时候，xv6使之进入睡眠状态，然后调度执行另一个进程。另外，当一个进程耗尽了它在处理器上的时间片的时候，xv6使用时钟中断强制它停止运行，这样调度器才能调度运行其他进程，这样的多路复用机制为进程提供了独占处理器的假象。</p>
+<p>进程调度的主要功能是按照一定的策略选择—个处于就绪状态的进程，使其获得处理机执行。根据不同的系统设计目的，有各种各样的选择策略，例如系统开销较少的静态优先数调度法，适合于分时系统的轮转法(Round RoLin) 和多级互馈轮转法(Round Robin with Multip1e feedback) 等。这些选择策略决定了调度算法的性能。</p>
 <h5 id="进程切换"><a href="#进程切换" class="headerlink" title="进程切换"></a>进程切换</h5><h6 id="上下文切换"><a href="#上下文切换" class="headerlink" title="上下文切换"></a>上下文切换</h6><p>xv6在底层实现了两种上下文切换：</p>
 <ol>
 <li>从进程的内核线程切换到当前CPU的调度器线程；</li>

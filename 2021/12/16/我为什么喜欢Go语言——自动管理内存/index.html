@@ -25,7 +25,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://tva1.sinaimg.cn/large/007SD2TBly1gy979nbq7rj308100nt8q.jpg">
 <meta property="article:published_time" content="2021-12-16T07:20:04.000Z">
-<meta property="article:modified_time" content="2022-06-15T17:07:44.547Z">
+<meta property="article:modified_time" content="2022-06-15T17:15:01.724Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="内存管理">
 <meta property="article:tag" content="Go map">
@@ -200,7 +200,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      2.4k 字
+      2.3k 字
     </span>
   
 
@@ -278,8 +278,7 @@
 <li>扫描所有root对象，包括全局指针和goroutine栈上的指针，将其加入标记队列，并循环处理灰色队列的对象，知道灰色队列为空，该过程后台并行执行。</li>
 <li></li>
 </ol>
-<h6 id="写屏障"><a href="#写屏障" class="headerlink" title="写屏障"></a>写屏障</h6><p>把回收器视为对象，把赋值器视为影响回收器这一对象的实际行为，从而引入赋值器的颜色。</p>
-<h6 id="辅助GC"><a href="#辅助GC" class="headerlink" title="辅助GC"></a>辅助GC</h6><h5 id="GC优化"><a href="#GC优化" class="headerlink" title="GC优化"></a>GC优化</h5><p>GC性能是与对象数量有关的，对象越多GC性能越差，对程序的影响也越大。在开发中可以减少对象分配个数，采用对象复用、将小对象组合成大对象等方法进行优化。</p>
+<h6 id="写屏障"><a href="#写屏障" class="headerlink" title="写屏障"></a>写屏障</h6><h6 id="辅助GC"><a href="#辅助GC" class="headerlink" title="辅助GC"></a>辅助GC</h6><h5 id="GC优化"><a href="#GC优化" class="headerlink" title="GC优化"></a>GC优化</h5><p>GC性能是与对象数量有关的，对象越多GC性能越差，对程序的影响也越大。在开发中可以减少对象分配个数，采用对象复用、将小对象组合成大对象等方法进行优化。</p>
 <h5 id="GC触发条件"><a href="#GC触发条件" class="headerlink" title="GC触发条件"></a>GC触发条件</h5><p>自动垃圾回收的触发条件有两个：</p>
 <ul>
 <li>超过内存大小阈值</li>
