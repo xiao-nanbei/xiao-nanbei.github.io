@@ -26,7 +26,7 @@
 <meta property="og:image" content="https://tva4.sinaimg.cn/large/008qL1EEgy1h0q9d8dbxrj308h0bt408.jpg">
 <meta property="og:image" content="https://tvax2.sinaimg.cn/large/008qL1EEly1h05ya2e0tlj30fp07q0ua.jpg">
 <meta property="article:published_time" content="2022-01-10T13:19:31.000Z">
-<meta property="article:modified_time" content="2022-06-19T13:35:01.166Z">
+<meta property="article:modified_time" content="2022-07-31T17:43:58.262Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="MIT_s.081_Lab">
 <meta name="twitter:card" content="summary_large_image">
@@ -209,7 +209,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      70 分钟
+      69 分钟
     </span>
   
 
@@ -435,7 +435,6 @@
 <li>从进程的内核线程切换到当前CPU的调度器线程；</li>
 <li>从调度器线程切换到进程的内核线程。</li>
 </ol>
-<p>==我看到xv6的参考书上这样说感到很怪，准确的说xv6还没有引入线程的概念，更没有线程的实现。==</p>
 <h6 id="具体的实现过程"><a href="#具体的实现过程" class="headerlink" title="具体的实现过程"></a>具体的实现过程</h6><p>进程的切换是通过用户态——内核态切换、切换到调度器、切换到新进程的内核线程、最后返回用户态实现的。如下图所示：</p>
 <p><img src="https://tvax2.sinaimg.cn/large/008qL1EEly1h05ya2e0tlj30fp07q0ua.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
 <blockquote>
@@ -463,7 +462,7 @@
 <h3 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h3><p>我们从一个实例来看看xv6的调度情况：</p>
 <p>如上图所示：我们从一个shell语句开始，例如我们执行<code>read</code>这个语句，我们为了进入内核，要先执行如下代码：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs assembly">read:<br>	li a7,SYS_read<br>	ecall<br>	ret<br>.global read<br></code></pre></td></tr></table></figure>
-<p>在上述代码中，我们会将系统调用号<code>SYS_read</code>放入a7寄存器，然后调用ecall指令，该指令将CPU的特权级从用户级改为内核级。</p>
+<p>在上述代码中，我们会将系统调用号<code>SYS_read</code>放入a7寄存器</p>
 
             </div>
             <hr>
