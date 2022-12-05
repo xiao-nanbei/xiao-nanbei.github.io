@@ -17,31 +17,6 @@
   
   
   <entry>
-    <title>v2Ray-core实现</title>
-    <link href="/2022/06/11/v2Ray%E5%AE%9E%E7%8E%B0/"/>
-    <url>/2022/06/11/v2Ray%E5%AE%9E%E7%8E%B0/</url>
-    
-    <content type="html"><![CDATA[<blockquote><p>仅以此文，致敬v2Ray创始人——Victoria Raymond</p></blockquote><p>首先我们来看看v2Ray的代码结构，如下所示：</p><figure class="highlight plaintext"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></div></td><td class="code"><pre><code class="hljs text">v2ray-core<br>├── app        // 应用模块<br>│   ├── router // 路由<br>├── common     // 公用代码<br>├── proxy      // 通讯协议，参见[协议列表](../chapter_02/02_protocols.md)<br>│   ├── blackhole<br>│   ├── dokodemo-door<br>│   ├── freedom<br>│   ├── socks<br>│   ├── vmess<br>├── transport  // 传输模块<br></code></pre></td></tr></table></figure><p>也就是从上到下应用层、协议层以及传输层</p><p><img src="https://www.v2ray.com/resources/arch.svg" alt="Architecture"></p><h4 id="client-json"><a href="#client-json" class="headerlink" title="client.json"></a>client.json</h4><h4 id="Socks5代理"><a href="#Socks5代理" class="headerlink" title="Socks5代理"></a>Socks5代理</h4><p>SOCKS 代理，与其他类型的代理不同，它只是简单地传递数据包，而并不关心是何种应用协议，既可以是 HTTP 请求，所以 SOCKS 代理服务器比其他类型的代理服务器速度要快得多。SOCKS 代理又分为 SOCKS4 和 SOCKS5。SOCKS5 代理则既支持 TCP 协议又支持 UDP 协议（即用户数据包协议），还支持各种身份验证机制、服务器端域名解析等。</p><h4 id="为什么proxy往往被设置为127-0-0-1"><a href="#为什么proxy往往被设置为127-0-0-1" class="headerlink" title="为什么proxy往往被设置为127.0.0.1"></a>为什么proxy往往被设置为127.0.0.1</h4><p>我们在网上的翻墙代理教程中往往可以看到将http proxy设置为<code>127.0.0.1:port</code>，但是如果说http代理服务器依然是本机，这个时候只是换了一个port，能达到穿透GFW的目的吗？</p><p>答案自然是不能的，那在部署v2ray的时候非要这么做呢？</p><hr><p>参考资料</p><p><a href="https://www.v2ray.com/developer/intro/guide.html">v2Ray开发指引</a></p>]]></content>
-    
-    
-    <categories>
-      
-      <category>计算机网络</category>
-      
-    </categories>
-    
-    
-    <tags>
-      
-      <tag>v2ray</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
     <title>记一次manjaro OS恢复</title>
     <link href="/2022/05/29/%E8%AE%B0%E4%B8%80%E6%AC%A1manjaro-OS%E6%81%A2%E5%A4%8D/"/>
     <url>/2022/05/29/%E8%AE%B0%E4%B8%80%E6%AC%A1manjaro-OS%E6%81%A2%E5%A4%8D/</url>
