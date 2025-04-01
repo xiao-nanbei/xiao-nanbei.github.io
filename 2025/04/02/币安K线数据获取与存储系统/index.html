@@ -205,7 +205,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      41 分钟
+      40 分钟
     </span>
   
 
@@ -265,16 +265,18 @@
 <li><p>负载均衡与故障转移：管理多个API端点</p>
 </li>
 </ol>
-<h3 id="数据流程图"><a href="#数据流程图" class="headerlink" title="数据流程图"></a>数据流程图</h3><pre><code class=" mermaid">graph TD
-    A[BinanceKlineFetcher] --&gt;|API请求| B[币安API]
-    B --&gt;|K线数据| A
-    A --&gt;|存储数据| C[KlineStorage]
-    C --&gt;|写入| D[SQLite数据库]
-    C --&gt;|缓存| E[内存缓存]
-    F[用户查询] --&gt;|读取数据| C
-    C --&gt;|优先从缓存读取| E
-    C --&gt;|缓存未命中时读取| D
-</code></pre>
+<h3 id="数据流程图"><a href="#数据流程图" class="headerlink" title="数据流程图"></a>数据流程图</h3><div class="code-wrapper"><pre class="mermaid">graph TD
+    A[BinanceKlineFetcher] -->|API请求| B[币安API]
+    B -->|K线数据| A
+    A -->|存储数据| C[KlineStorage]
+    C -->|写入| D[SQLite数据库]
+    C -->|缓存| E[内存缓存]
+    F[用户查询] -->|读取数据| C
+    C -->|优先从缓存读取| E
+    C -->|缓存未命中时读取| D</pre></div>
+
+
+
 <h2 id="技术细节"><a href="#技术细节" class="headerlink" title="技术细节"></a>技术细节</h2><h3 id="负载均衡与故障转移"><a href="#负载均衡与故障转移" class="headerlink" title="负载均衡与故障转移"></a>负载均衡与故障转移</h3><p>系统使用了多种负载均衡策略：</p>
 <ol>
 <li><p>轮询（Round Robin）：通过get_next_client()方法循环使用多个API端点</p>
@@ -284,7 +286,7 @@
 <li><p>端点健康检查：定期检查失败的端点是否恢复</p>
 </li>
 </ol>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">httplib::Client&amp; <span class="hljs-title">get_healthy_client</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">lock</span><span class="hljs-params">(endpoint_mutex)</span></span>;<br>    <br>    <span class="hljs-comment">// 优先使用正常的端点</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">size_t</span> i = <span class="hljs-number">0</span>; i &lt; client_pool.<span class="hljs-built_in">size</span>(); i++) &#123;<br>        <span class="hljs-keyword">size_t</span> index = (current_client_index.<span class="hljs-built_in">fetch_add</span>(<span class="hljs-number">1</span>)) % client_pool.<span class="hljs-built_in">size</span>();<br>        <span class="hljs-keyword">if</span> (endpoint_status[api_endpoints[index]]) &#123;<br>            <span class="hljs-keyword">return</span> client_pool[index];<br>        &#125;<br>    &#125;<br>    <br>    <span class="hljs-comment">// 所有端点都有问题，重置状态并使用第一个</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span>&amp; pair : endpoint_status) &#123;<br>        pair.second = <span class="hljs-literal">true</span>;<br>    &#125;<br>    <br>    <span class="hljs-keyword">return</span> client_pool[<span class="hljs-number">0</span>];<br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></div></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">httplib::Client&amp; <span class="hljs-title">get_healthy_client</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">lock</span><span class="hljs-params">(endpoint_mutex)</span></span>;<br>    <br>    <span class="hljs-comment">// 优先使用正常的端点</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">size_t</span> i = <span class="hljs-number">0</span>; i &lt; client_pool.<span class="hljs-built_in">size</span>(); i++) &#123;<br>        <span class="hljs-keyword">size_t</span> index = (current_client_index.<span class="hljs-built_in">fetch_add</span>(<span class="hljs-number">1</span>)) % client_pool.<span class="hljs-built_in">size</span>();<br>        <span class="hljs-keyword">if</span> (endpoint_status[api_endpoints[index]]) &#123;<br>            <span class="hljs-keyword">return</span> client_pool[index];<br>        &#125;<br>    &#125;<br>    <br>    <span class="hljs-comment">// 所有端点都有问题，重置状态并使用第一个</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span>&amp; pair : endpoint_status) &#123;<br>        pair.second = <span class="hljs-literal">true</span>;<br>    &#125;<br>    <br>    <span class="hljs-keyword">return</span> client_pool[<span class="hljs-number">0</span>];<br>&#125;<br></code></pre></td></tr></table></figure>
 <h3 id="速率限制"><a href="#速率限制" class="headerlink" title="速率限制"></a>速率限制</h3><p>为遵守币安API的请求限制，系统实现了RateLimiter类：</p>
 <ul>
 <li><p>K线API限制：1200次/分钟</p>
