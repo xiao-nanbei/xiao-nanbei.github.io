@@ -1,0 +1,568 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="项目概述本项目是一个高性能的加密货币K线数据获取和存储系统，专门设计用于从币安期货市场获取永续合约交易对的历史K线数据。系统采用多线程设计，实现了API请求的负载均衡、速率限制、故障转移和自动重试等机制，并使用SQLite数据库进行高效存储和查询。 !系统架构图 核心功能 数据获取：从币安API获取永续合约K线数据  数据存储：使用SQLite数据库存储K线数据  内存缓存：使用内存缓存最近的数据">
+<meta property="og:type" content="article">
+<meta property="og:title" content="币安K线数据获取与存储系统">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2025/04/02/%E5%B8%81%E5%AE%89K%E7%BA%BF%E6%95%B0%E6%8D%AE%E8%8E%B7%E5%8F%96%E4%B8%8E%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="项目概述本项目是一个高性能的加密货币K线数据获取和存储系统，专门设计用于从币安期货市场获取永续合约交易对的历史K线数据。系统采用多线程设计，实现了API请求的负载均衡、速率限制、故障转移和自动重试等机制，并使用SQLite数据库进行高效存储和查询。 !系统架构图 核心功能 数据获取：从币安API获取永续合约K线数据  数据存储：使用SQLite数据库存储K线数据  内存缓存：使用内存缓存最近的数据">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-04-01T17:12:56.000Z">
+<meta property="article:modified_time" content="2025-04-01T17:21:13.270Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  <title>币安K线数据获取与存储系统 - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>databrains</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="币安K线数据获取与存储系统">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2025-04-02 01:12" pubdate>
+        2025年4月2日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      4.8k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      41 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">币安K线数据获取与存储系统</h1>
+            
+            <div class="markdown-body">
+              <h2 id="项目概述"><a href="#项目概述" class="headerlink" title="项目概述"></a>项目概述</h2><p>本项目是一个高性能的加密货币K线数据获取和存储系统，专门设计用于从币安期货市场获取永续合约交易对的历史K线数据。系统采用多线程设计，实现了API请求的负载均衡、速率限制、故障转移和自动重试等机制，并使用SQLite数据库进行高效存储和查询。</p>
+<p>!系统架构图</p>
+<h2 id="核心功能"><a href="#核心功能" class="headerlink" title="核心功能"></a>核心功能</h2><ul>
+<li><p>数据获取：从币安API获取永续合约K线数据</p>
+</li>
+<li><p>数据存储：使用SQLite数据库存储K线数据</p>
+</li>
+<li><p>内存缓存：使用内存缓存最近的数据，提高查询效率</p>
+</li>
+<li><p>负载均衡：支持多个API端点轮询和故障转移</p>
+</li>
+<li><p>速率限制：遵守币安API的请求频率限制</p>
+</li>
+<li><p>高性能查询：优化的数据库结构和缓存机制</p>
+</li>
+<li><p>多线程下载：并行下载多个交易对数据</p>
+</li>
+</ul>
+<h2 id="系统架构"><a href="#系统架构" class="headerlink" title="系统架构"></a>系统架构</h2><h3 id="模块组成"><a href="#模块组成" class="headerlink" title="模块组成"></a>模块组成</h3><ol>
+<li><p>BinanceKlineFetcher：负责与币安API交互</p>
+</li>
+<li><p>KlineStorage：管理数据库存储和缓存</p>
+</li>
+<li><p>RateLimiter：控制API请求速率</p>
+</li>
+<li><p>负载均衡与故障转移：管理多个API端点</p>
+</li>
+</ol>
+<h3 id="数据流程图"><a href="#数据流程图" class="headerlink" title="数据流程图"></a>数据流程图</h3><pre><code class=" mermaid">graph TD
+    A[BinanceKlineFetcher] --&gt;|API请求| B[币安API]
+    B --&gt;|K线数据| A
+    A --&gt;|存储数据| C[KlineStorage]
+    C --&gt;|写入| D[SQLite数据库]
+    C --&gt;|缓存| E[内存缓存]
+    F[用户查询] --&gt;|读取数据| C
+    C --&gt;|优先从缓存读取| E
+    C --&gt;|缓存未命中时读取| D
+</code></pre>
+<h2 id="技术细节"><a href="#技术细节" class="headerlink" title="技术细节"></a>技术细节</h2><h3 id="负载均衡与故障转移"><a href="#负载均衡与故障转移" class="headerlink" title="负载均衡与故障转移"></a>负载均衡与故障转移</h3><p>系统使用了多种负载均衡策略：</p>
+<ol>
+<li><p>轮询（Round Robin）：通过get_next_client()方法循环使用多个API端点</p>
+</li>
+<li><p>故障转移：当一个端点失败时，通过get_healthy_client()自动切换到健康的端点</p>
+</li>
+<li><p>端点健康检查：定期检查失败的端点是否恢复</p>
+</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">httplib::Client&amp; <span class="hljs-title">get_healthy_client</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">lock</span><span class="hljs-params">(endpoint_mutex)</span></span>;<br>    <br>    <span class="hljs-comment">// 优先使用正常的端点</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">size_t</span> i = <span class="hljs-number">0</span>; i &lt; client_pool.<span class="hljs-built_in">size</span>(); i++) &#123;<br>        <span class="hljs-keyword">size_t</span> index = (current_client_index.<span class="hljs-built_in">fetch_add</span>(<span class="hljs-number">1</span>)) % client_pool.<span class="hljs-built_in">size</span>();<br>        <span class="hljs-keyword">if</span> (endpoint_status[api_endpoints[index]]) &#123;<br>            <span class="hljs-keyword">return</span> client_pool[index];<br>        &#125;<br>    &#125;<br>    <br>    <span class="hljs-comment">// 所有端点都有问题，重置状态并使用第一个</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span>&amp; pair : endpoint_status) &#123;<br>        pair.second = <span class="hljs-literal">true</span>;<br>    &#125;<br>    <br>    <span class="hljs-keyword">return</span> client_pool[<span class="hljs-number">0</span>];<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="速率限制"><a href="#速率限制" class="headerlink" title="速率限制"></a>速率限制</h3><p>为遵守币安API的请求限制，系统实现了RateLimiter类：</p>
+<ul>
+<li><p>K线API限制：1200次/分钟</p>
+</li>
+<li><p>信息API限制：100次/10秒</p>
+</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">wait_if_needed</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">lock</span><span class="hljs-params">(mtx)</span></span>;<br>    <span class="hljs-keyword">auto</span> now = std::chrono::steady_clock::<span class="hljs-built_in">now</span>();<br>    <br>    <span class="hljs-comment">// 清理过期的时间戳</span><br>    <span class="hljs-keyword">while</span> (!request_timestamps.<span class="hljs-built_in">empty</span>() &amp;&amp; <br>           (now - request_timestamps.<span class="hljs-built_in">front</span>() &gt; timeframe)) &#123;<br>        request_timestamps.<span class="hljs-built_in">pop</span>();<br>    &#125;<br>    <br>    <span class="hljs-comment">// 如果达到限制，等待直到可以发送</span><br>    <span class="hljs-keyword">if</span> (request_timestamps.<span class="hljs-built_in">size</span>() &gt;= max_requests) &#123;<br>        <span class="hljs-keyword">auto</span> sleep_time = timeframe - (now - request_timestamps.<span class="hljs-built_in">front</span>());<br>        std::this_thread::<span class="hljs-built_in">sleep_for</span>(sleep_time);<br>    &#125;<br>    <br>    <span class="hljs-comment">// 记录本次请求</span><br>    request_timestamps.<span class="hljs-built_in">push</span>(std::chrono::steady_clock::<span class="hljs-built_in">now</span>());<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="内存缓存系统"><a href="#内存缓存系统" class="headerlink" title="内存缓存系统"></a>内存缓存系统</h3><p>为提高数据读取性能，系统使用内存缓存最近的K线数据：</p>
+<ul>
+<li><p>每个交易对可缓存最近1000条K线数据</p>
+</li>
+<li><p>查询时优先从缓存读取</p>
+</li>
+<li><p>缓存未命中时从数据库读取</p>
+</li>
+<li><p>插入新数据时自动更新缓存</p>
+</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">std::vector&lt;Kline&gt; <span class="hljs-title">get_klines</span><span class="hljs-params">(<span class="hljs-keyword">const</span> std::string&amp; symbol, </span></span><br><span class="hljs-params"><span class="hljs-function">                             <span class="hljs-keyword">long</span> start_time = <span class="hljs-number">0</span>, </span></span><br><span class="hljs-params"><span class="hljs-function">                             <span class="hljs-keyword">long</span> end_time = <span class="hljs-number">0</span>)</span> </span>&#123;<br>    &#123;<br>        <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">lock</span><span class="hljs-params">(cache_mutex)</span></span>;<br>        <span class="hljs-keyword">auto</span> it = kline_cache.<span class="hljs-built_in">find</span>(symbol);<br>        <br>        <span class="hljs-keyword">if</span> (it != kline_cache.<span class="hljs-built_in">end</span>()) &#123;<br>            <span class="hljs-comment">// 缓存命中，检查时间范围</span><br>            <span class="hljs-keyword">if</span> (start_time == <span class="hljs-number">0</span> &amp;&amp; end_time == <span class="hljs-number">0</span>) &#123;<br>                <span class="hljs-comment">// 请求全部数据，检查是否可以完全从缓存提供</span><br>                <span class="hljs-keyword">if</span> (!it-&gt;second.<span class="hljs-built_in">empty</span>()) &#123;<br>                    <span class="hljs-keyword">return</span> it-&gt;second;<br>                &#125;<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                <span class="hljs-comment">// 需要过滤时间范围</span><br>                std::vector&lt;Kline&gt; filtered;<br>                <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> <span class="hljs-keyword">auto</span>&amp; k : it-&gt;second) &#123;<br>                    <span class="hljs-keyword">if</span> ((start_time == <span class="hljs-number">0</span> || k.open_time &gt;= start_time) &amp;&amp; <br>                        (end_time == <span class="hljs-number">0</span> || k.open_time &lt;= end_time)) &#123;<br>                        filtered.<span class="hljs-built_in">push_back</span>(k);<br>                    &#125;<br>                &#125;<br>                <br>                <span class="hljs-comment">// 如果找到符合条件的所有数据，直接返回</span><br>                <span class="hljs-keyword">if</span> (!filtered.<span class="hljs-built_in">empty</span>()) &#123;<br>                    <span class="hljs-keyword">return</span> filtered;<br>                &#125;<br>            &#125;<br>        &#125;<br>    &#125;<br>    <br>    <span class="hljs-comment">// 缓存未命中，从数据库读取</span><br>    <span class="hljs-comment">// ...数据库查询代码...</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="自动重试机制"><a href="#自动重试机制" class="headerlink" title="自动重试机制"></a>自动重试机制</h3><p>系统实现了自动重试机制，包括指数退避策略：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">template</span>&lt;<span class="hljs-keyword">typename</span> Func&gt;</span><br><span class="hljs-function"><span class="hljs-keyword">auto</span> <span class="hljs-title">make_balanced_request</span><span class="hljs-params">(Func api_call, <span class="hljs-keyword">int</span> retries = <span class="hljs-number">3</span>)</span> -&gt; <span class="hljs-title">decltype</span><span class="hljs-params">(api_call(std::declval&lt;httplib::Client&amp;&gt;()))</span> </span>&#123;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> attempt = <span class="hljs-number">0</span>; attempt &lt;= retries; attempt++) &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-comment">// 获取健康的客户端</span><br>            <span class="hljs-keyword">auto</span>&amp; client = <span class="hljs-built_in">get_healthy_client</span>();<br>            std::string current_endpoint = api_endpoints[&amp;client - &amp;client_pool[<span class="hljs-number">0</span>]];<br>            <br>            <span class="hljs-comment">// 执行API调用</span><br>            <span class="hljs-keyword">auto</span> result = <span class="hljs-built_in">api_call</span>(client);<br>            <br>            <span class="hljs-comment">// 成功则返回</span><br>            <span class="hljs-keyword">return</span> result;<br>        &#125; <span class="hljs-built_in"><span class="hljs-keyword">catch</span></span> (<span class="hljs-keyword">const</span> std::exception&amp; e) &#123;<br>            <span class="hljs-keyword">if</span> (attempt == retries) <span class="hljs-keyword">throw</span>;<br>            <br>            <span class="hljs-comment">// 记录失败并尝试下一个端点</span><br>            std::string failed_endpoint = api_endpoints[current_client_index.<span class="hljs-built_in">load</span>() % client_pool.<span class="hljs-built_in">size</span>()];<br>            <span class="hljs-built_in">handle_request_failure</span>(failed_endpoint);<br>            <br>            <span class="hljs-comment">// 指数退避</span><br>            std::this_thread::<span class="hljs-built_in">sleep_for</span>(std::chrono::<span class="hljs-built_in">milliseconds</span>((<span class="hljs-number">1</span> &lt;&lt; attempt) * <span class="hljs-number">500</span>));<br>        &#125;<br>    &#125;<br>    <br>    <span class="hljs-keyword">throw</span> std::<span class="hljs-built_in">runtime_error</span>(<span class="hljs-string">&quot;所有重试尝试均失败&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+<h2 id="数据库结构"><a href="#数据库结构" class="headerlink" title="数据库结构"></a>数据库结构</h2><p>系统使用SQLite数据库存储K线数据，表结构如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> klines (<br>    symbol TEXT <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span>,<br>    open_time <span class="hljs-type">INTEGER</span> <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span>,<br>    <span class="hljs-keyword">open</span> <span class="hljs-type">REAL</span> <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span>,<br>    high <span class="hljs-type">REAL</span> <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span>,<br>    low <span class="hljs-type">REAL</span> <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span>,<br>    <span class="hljs-keyword">close</span> <span class="hljs-type">REAL</span> <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span>,<br>    volume <span class="hljs-type">REAL</span> <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span>,<br>    close_time <span class="hljs-type">INTEGER</span> <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span>,<br>    quote_asset_volume <span class="hljs-type">REAL</span> <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span>,<br>    num_trades <span class="hljs-type">INTEGER</span> <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span>,<br>    taker_buy_volume <span class="hljs-type">REAL</span> <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span>,<br>    taker_buy_quote_volume <span class="hljs-type">REAL</span> <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span>,<br>    <span class="hljs-keyword">PRIMARY</span> KEY (symbol, open_time)<br>);<br><br><span class="hljs-keyword">CREATE</span> INDEX idx_klines_symbol_time <span class="hljs-keyword">ON</span> klines(symbol, open_time);<br></code></pre></td></tr></table></figure>
+<h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><h3 id="初始化和运行"><a href="#初始化和运行" class="headerlink" title="初始化和运行"></a>初始化和运行</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">try</span> &#123;<br>        KlineStorage storage;<br>        <br>        <span class="hljs-comment">// 设置缓存大小并预加载缓存</span><br>        storage.<span class="hljs-built_in">set_cache_size</span>(<span class="hljs-number">1000</span>); <span class="hljs-comment">// 每个标的最近1000条K线</span><br>        std::cout &lt;&lt; <span class="hljs-string">&quot;预加载K线数据缓存...&quot;</span> &lt;&lt; std::endl;<br>        storage.<span class="hljs-built_in">preload_all_caches</span>();<br>        <br>        std::cout &lt;&lt; <span class="hljs-string">&quot;开始下载数据...&quot;</span> &lt;&lt; std::endl;<br>        <span class="hljs-built_in">download_all_symbols</span>();<br>        <br>        std::cout &lt;&lt; <span class="hljs-string">&quot;\n开始测试读取速度...&quot;</span> &lt;&lt; std::endl;<br>        <span class="hljs-built_in">test_read_speed</span>();<br>        <br>    &#125; <span class="hljs-built_in"><span class="hljs-keyword">catch</span></span> (<span class="hljs-keyword">const</span> std::exception&amp; e) &#123;<br>        std::cerr &lt;&lt; <span class="hljs-string">&quot;错误: &quot;</span> &lt;&lt; e.<span class="hljs-built_in">what</span>() &lt;&lt; std::endl;<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;<br>    &#125;<br>    <br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h2 id="性能优化"><a href="#性能优化" class="headerlink" title="性能优化"></a>性能优化</h2><p>系统采用了多种性能优化策略：</p>
+<ol>
+<li><p>多线程下载：并行下载多个交易对数据</p>
+</li>
+<li><p>内存缓存：减少数据库IO操作</p>
+</li>
+<li><p>数据库索引：优化查询性能</p>
+</li>
+<li><p>批量事务：使用事务批量插入数据</p>
+</li>
+<li><p>连接复用：使用Keep-Alive复用HTTP连接</p>
+</li>
+</ol>
+<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><h3 id="SSL证书验证"><a href="#SSL证书验证" class="headerlink" title="SSL证书验证"></a>SSL证书验证</h3><p>如果遇到SSL证书验证问题，可以修改代码来跳过验证：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">try</span> &#123;<br>    cli.<span class="hljs-built_in">enable_server_certificate_verification</span>(<span class="hljs-literal">true</span>);<br>&#125; <span class="hljs-built_in"><span class="hljs-keyword">catch</span></span> (...) &#123;<br>    std::cerr &lt;&lt; <span class="hljs-string">&quot;警告: SSL证书验证不受支持&quot;</span> &lt;&lt; std::endl;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="代理配置"><a href="#代理配置" class="headerlink" title="代理配置"></a>代理配置</h3><p>如果需要通过代理访问币安API，请修改以下代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c++">cli.<span class="hljs-built_in">set_proxy</span>(<span class="hljs-string">&quot;127.0.0.1&quot;</span>, <span class="hljs-number">7890</span>);<br></code></pre></td></tr></table></figure>
+<h2 id="项目依赖"><a href="#项目依赖" class="headerlink" title="项目依赖"></a>项目依赖</h2><ul>
+<li><p>C++17或更高版本</p>
+</li>
+<li><p>SQLite3：数据库</p>
+</li>
+<li><p>nlohmann/json：JSON解析</p>
+</li>
+<li><p>cpp-httplib：HTTP客户端</p>
+</li>
+</ul>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/07/09/CPU%E4%BD%BF%E7%94%A8%E7%8E%87%E8%BF%87%E9%AB%98%E7%9A%84%E9%97%AE%E9%A2%98/">
+                        <span class="hidden-mobile">CPU使用率过高的问题</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+        typing(title);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+  
+
+  
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        },
+        loader: {
+          load: ['ui/lazy']
+        },
+        options: {
+          renderActions: {
+            findScript: [10, doc => {
+              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+                const display = !!node.type.match(/; *mode=display/);
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                const text = document.createTextNode('');
+                node.parentNode.replaceChild(text, node);
+                math.start = { node: text, delim: '', n: 0 };
+                math.end = { node: text, delim: '', n: 0 };
+                doc.math.push(math);
+              });
+            }, '', false],
+            insertedScript: [200, () => {
+              document.querySelectorAll('mjx-container').forEach(node => {
+                let target = node.parentNode;
+                if (target.nodeName.toLowerCase() === 'li') {
+                  target.parentNode.classList.add('has-jax');
+                }
+              });
+            }, '', false]
+          }
+        }
+      };
+    </script>
+
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
