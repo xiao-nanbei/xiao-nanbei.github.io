@@ -25,7 +25,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://uchat.cn-bj.ufileos.com/rw_85d14c2e-f671-46ec-9c03-031a542150cc_007SD2TBly1gy981i7x0kj30a10agtbw.jpg">
 <meta property="article:published_time" content="2022-12-12T11:01:44.000Z">
-<meta property="article:modified_time" content="2025-04-10T21:27:54.749Z">
+<meta property="article:modified_time" content="2025-04-10T21:56:18.571Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="MIT_s.081_Lab">
 <meta name="twitter:card" content="summary_large_image">
@@ -199,7 +199,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      5.9k 字
+      6.7k 字
     </span>
   
 
@@ -208,7 +208,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      49 分钟
+      56 分钟
     </span>
   
 
@@ -246,17 +246,44 @@
 <figure class="highlight c"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></div></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;kernel/types.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;kernel/stat.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;user/user.h&quot;</span></span><br><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">(<span class="hljs-keyword">int</span> argc,<span class="hljs-keyword">char</span> *argv[])</span></span>&#123;<br>  <span class="hljs-keyword">while</span>(argv[<span class="hljs-number">1</span>][i]!=<span class="hljs-string">&#x27;&#x27;)&#123;</span><br><span class="hljs-string">    if(argv[1][i]&gt;&#x27;</span><span class="hljs-number">9&#x27;</span>||argv[<span class="hljs-number">1</span>][i]&lt;<span class="hljs-string">&#x27;0&#x27;</span>)&#123;<br>      write(<span class="hljs-number">1</span>, <span class="hljs-string">&quot;error\n&quot;</span>, <span class="hljs-number">6</span>);<br>      <span class="hljs-built_in">exit</span>(<span class="hljs-number">-1</span>);<br>    &#125;<br>    i++; <br>  &#125;<br>  <span class="hljs-keyword">int</span> times=atoi(argv[<span class="hljs-number">1</span>]);<br>  sleep(times);<br>  <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);<br>&#125;<br><br></code></pre></td></tr></table></figure>
 <p>值得注意的是，程序中我们使用了一些系统调用函数，如sleep函数，write函数。我们可以在user/user.h中一窥这些函数的原型：</p>
 <p><img src="https://uchat.cn-bj.ufileos.com/rw_85d14c2e-f671-46ec-9c03-031a542150cc_007SD2TBly1gy981i7x0kj30a10agtbw.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
-<p>我们来分析一下<code>write</code>函数，我们可以看到<code>write</code>函数的声明为<code>int write(int,const void*,int);</code>其中，参数中第一个<code>int</code>为文件描述符<code>fd</code>，参数中第二个<code>const void*</code>为内存地址，第三个<code>int</code>为写入的字节数量，意思就是说：将参数buf所指的内存写入count个字节到参数fd所指的文件，其中，fd为文件描述符。大家可以看到上述代码中的<code>write</code>函数的调用：<code>write(1,&quot;error\n&quot;,6)</code>，其中<code>fd=1</code>代表标准输出<code>stdout</code>，也就是会打印到显示器。</p>
+<p>我们来分析一下<code>write</code>函数，我们可以看到<code>write</code>函数的声明为<code>int write(int,const void*,int);</code>其中，参数中第一个<code>int</code>为文件描述符<code>fd</code>，参数中第二个<code>const void*</code>为内存地址，第三个<code>int</code>为写入的字节数量，意思就是说：将参数<code>buf</code>所指的内存写入<code>count</code>个字节到参数<code>fd</code>所指的文件，其中，fd为文件描述符。大家可以看到上述代码中的<code>write</code>函数的调用：<code>write(1,&quot;error\n&quot;,6)</code>，其中<code>fd=1</code>代表标准输出<code>stdout</code>，也就是会打印到显示器。</p>
 <p>我们来看看<code>write</code>在内核中的实现<code>sys_write</code>:</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-function">uint64</span><br><span class="hljs-function"><span class="hljs-title">sys_write</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span><br><span class="hljs-function"></span>&#123;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">file</span> *<span class="hljs-title">f</span>;</span><br>  <span class="hljs-keyword">int</span> n;<br>  uint64 p;<br><br>  <span class="hljs-keyword">if</span>(argfd(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, &amp;f) &lt; <span class="hljs-number">0</span> || argint(<span class="hljs-number">2</span>, &amp;n) &lt; <span class="hljs-number">0</span> || argaddr(<span class="hljs-number">1</span>, &amp;p) &lt; <span class="hljs-number">0</span>)<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br><br>  <span class="hljs-keyword">return</span> filewrite(f, p, n);<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>在进入内核的时候，系统调用函数会将参数保存在寄存器中，然后调用<code>argfd</code>等函数将参数取出，保存在<code>f，p，n</code>中，调用<code>filewrite</code>函数。我们注意到<code>struct file *f</code>结构，其结构如下所示：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-function">uint64</span><br><span class="hljs-function"><span class="hljs-title">sys_write</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span><br><span class="hljs-function"></span>&#123;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">file</span> *<span class="hljs-title">f</span>;</span><span class="hljs-comment">//存储文件描述符</span><br>  <span class="hljs-keyword">int</span> n;<span class="hljs-comment">//存储写入的字节数量</span><br>  uint64 p;<span class="hljs-comment">//存储内存地址</span><br><br>  <span class="hljs-keyword">if</span>(argfd(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, &amp;f) &lt; <span class="hljs-number">0</span> || argint(<span class="hljs-number">2</span>, &amp;n) &lt; <span class="hljs-number">0</span> || argaddr(<span class="hljs-number">1</span>, &amp;p) &lt; <span class="hljs-number">0</span>)<span class="hljs-comment">//分别写入</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br><br>  <span class="hljs-keyword">return</span> filewrite(f, p, n);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>在进入内核的时候，系统调用函数会将参数保存在寄存器中，然后调用<code>argfd</code>等函数将参数取出，保存在<code>f，p，n</code>中，调用<code>filewrite</code>函数。我们注意到<code>struct file</code>结构，其结构如下所示：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">file</span> &#123;</span><br>  <span class="hljs-class"><span class="hljs-keyword">enum</span> &#123;</span> FD_NONE, FD_PIPE, FD_INODE, FD_DEVICE &#125; type;<br>  <span class="hljs-keyword">int</span> ref; <span class="hljs-comment">// reference count</span><br>  <span class="hljs-keyword">char</span> readable;<br>  <span class="hljs-keyword">char</span> writable;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">pipe</span> *<span class="hljs-title">pipe</span>;</span> <span class="hljs-comment">// FD_PIPE</span><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">inode</span> *<span class="hljs-title">ip</span>;</span>  <span class="hljs-comment">// FD_INODE and FD_DEVICE</span><br>  uint off;          <span class="hljs-comment">// FD_INODE</span><br>  <span class="hljs-keyword">short</span> major;       <span class="hljs-comment">// FD_DEVICE</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p><code>filewrite</code>是xv6操作系统中用于向文件写入数据的系统级函数。它在内核层面处理所有文件写入操作。函数参数 <code>filewrite(struct file **f*, uint64 *addr*, int *n*)</code></p>
+<ul>
+<li><p><code>f</code>: 文件结构体指针，包含文件的所有元数据</p>
+</li>
+<li><p><code>addr</code>: 用户空间的虚拟地址，指向要写入的数据</p>
+</li>
+<li><p><code>n</code>: 要写入的字节数</p>
+</li>
+</ul>
+<p>根据文件类型执行不同的写入操作：</p>
+<ul>
+<li>管道文件 (FD_PIPE)：</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">if</span>(f-&gt;type == FD_PIPE)&#123;<br>	ret = pipewrite(f-&gt;pipe, addr, n);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>调用<code>pipewrite</code>函数处理管道写入。</p>
+<ul>
+<li>设备文件 (FD_DEVICE)</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(f-&gt;type == FD_DEVICE)&#123;<br>	<span class="hljs-keyword">if</span>(f-&gt;major &lt; <span class="hljs-number">0</span> || f-&gt;major &gt;= NDEV || !devsw[f-&gt;major].write)<br>	<span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>	ret = devsw[f-&gt;major].write(<span class="hljs-number">1</span>, addr, n);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>检查设备号是否有效，然后调用相应设备的写函数。</p>
+<ul>
+<li><p>普通文件 (FD_INODE)：这部分最复杂，需要特殊处理。</p>
+<p>分块写入数据：</p>
+</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>;<br><span class="hljs-keyword">while</span>(i &lt; n)&#123;<br>  <span class="hljs-keyword">int</span> n1 = n - i;<br>  <span class="hljs-keyword">if</span>(n1 &gt; max)<br>    n1 = max;<br>  <span class="hljs-comment">// ...写入逻辑...</span><br>  i += r;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs"> 每次写入块时都使用事务保证原子性：
+</code></pre></div><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c">begin_op();  <span class="hljs-comment">// 开始事务</span><br>ilock(f-&gt;ip);  <span class="hljs-comment">// 锁定inode</span><br><span class="hljs-keyword">if</span> ((r = writei(f-&gt;ip, <span class="hljs-number">1</span>, addr + i, f-&gt;off, n1)) &gt; <span class="hljs-number">0</span>)<br>  f-&gt;off += r;  <span class="hljs-comment">// 更新文件偏移量</span><br>iunlock(f-&gt;ip);  <span class="hljs-comment">// 解锁inode</span><br>end_op();  <span class="hljs-comment">// 结束事务</span><br></code></pre></td></tr></table></figure>
+<p>说到这里了，我们提一下<code>buffer IO</code>，我感觉<code>xv6</code>是没有实现<code>buffer IO</code>的，源码里面没有找到相关的说明和代码，但是在<code>linux</code>里面是实现了的。<code>buffer IO</code>是为了提高读写效率和保护磁盘，比如我们通过<code>read</code>函数将<code>fd</code>对应的文件拷贝count个字节到<code>buf</code>对应的内存，这个时候如果是<code>buffer io</code>机制，那么我们就会先将count个字节拷贝到page cache中，然后再拷贝到<code>buf</code>对应的用户空间中。<code>write</code>操作类似。</p>
+<p>上次有位面试官问了我一个问题：什么时候将脏页刷回磁盘？</p>
+<p>我查了一下，有的说是进程退出的时候刷回去，有的说是定时刷回去。在<code>CMU15445</code>细说。</p>
 <hr>
-<p>说到这里了，我们提一下buffer IO，我感觉xv6是没有实现buffer IO的，源码里面没有找到相关的说明和代码，但是在linux里面是实现了的。buffer IO是为了提高读写效率和保护磁盘，比如我们通过read函数将fd对应的文件拷贝count个字节到buf对应的内存，这个时候如果是buffer io机制，那么我们就会先将count个字节拷贝到page cache中，然后再拷贝到buf对应的用户空间中。write操作类似。</p>
-<p>上次面试官问了我一个问题：什么时候将脏页刷回磁盘？</p>
-<p>我查了一下，有的说是进程退出的时候刷回去，有的说是定时刷回去。在CMU15445细说。</p>
-<hr>
-<p>我们将在后面的实验中继续学习syscall。</p>
+<p>我们将在后面的实验中继续学习<code>syscall</code>。</p>
 <h4 id="pingpong"><a href="#pingpong" class="headerlink" title="pingpong"></a><em>pingpong</em></h4><p>编写一个程序，使用 UNIX 系统调用在两个进程之间通过一对管道“乒乓”一个字节，每个管道一个。 父母应该向孩子发送一个字节； 子进程应该打印“<pid>: received ping”，其中 <pid> 是它的进程 ID，将管道上的字节写入父进程，然后退出； 父母应该从孩子那里读取字节，打印“<pid>: received pong”，然后退出。</p>
 <p>一些提示：</p>
 <ul>
