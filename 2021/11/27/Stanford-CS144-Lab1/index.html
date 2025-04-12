@@ -23,13 +23,13 @@
 <meta property="og:site_name" content="databrains">
 <meta property="og:description" content="该lab要求我们实现一个流重组类，可以将Sender发来的带索引号的字节碎片重组成有序的字节写入到byte_stream。接收端从发送端读取数据，调用流重组器，流重组器对数据进行排序，排序好后写入byte_stream。 值得注意的是，无论是lab0中的byte_stream,还是lab1中的重组器，都有capasity的概念，capasity用于模拟内存，capasity由重组器中未排序的数据和">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://tvax3.sinaimg.cn/large/007SD2TBly1gwtr4gx6o9j30hp05i0t4.jpg">
+<meta property="og:image" content="https://uchat.cn-bj.ufileos.com/rw_4de7d8b9-bff9-487c-a52b-49dc83f726f0_007SD2TBly1gwtr4gx6o9j30hp05i0t4.jpg">
 <meta property="article:published_time" content="2021-11-27T07:42:05.000Z">
-<meta property="article:modified_time" content="2022-06-14T19:14:13.013Z">
+<meta property="article:modified_time" content="2025-04-12T16:29:17.659Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="standford_cs144_lab">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="http://tvax3.sinaimg.cn/large/007SD2TBly1gwtr4gx6o9j30hp05i0t4.jpg">
+<meta name="twitter:image" content="https://uchat.cn-bj.ufileos.com/rw_4de7d8b9-bff9-487c-a52b-49dc83f726f0_007SD2TBly1gwtr4gx6o9j30hp05i0t4.jpg">
   
   
   <title>Stanford_CS144_Lab1 - databrains</title>
@@ -242,7 +242,7 @@
             <div class="markdown-body">
               <p>该lab要求我们实现一个流重组类，可以将Sender发来的带索引号的字节碎片重组成有序的字节写入到byte_stream。接收端从发送端读取数据，调用流重组器，流重组器对数据进行排序，排序好后写入byte_stream。</p>
 <p>值得注意的是，无论是lab0中的byte_stream,还是lab1中的重组器，都有capasity的概念，capasity用于模拟内存，capasity由重组器中未排序的数据和已经写入byte_stream中但还未被读取的数据组成，如下图所示：</p>
-<p><img src="http://tvax3.sinaimg.cn/large/007SD2TBly1gwtr4gx6o9j30hp05i0t4.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><img src="https://uchat.cn-bj.ufileos.com/rw_4de7d8b9-bff9-487c-a52b-49dc83f726f0_007SD2TBly1gwtr4gx6o9j30hp05i0t4.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
 <p>所以我们在进行重组和读写操作时应该根据capasity的大小维护重组器。为了方便起见，我们依旧使用双端队列作为重组器。</p>
 <p>在重组器类的函数中，push_substring函数完成重组工作。其参数有data(string),index(size_t),eof(bool),data是待排序的数据，index是数据首元素的序号，eof用于判断是否结束。结束后将不再有数据输入。</p>
 <p>在重组的过程中，我们会遇到重复、丢包、重叠、乱序的现象。为了使乱序的数据找到有序的位置，我使用’\0’维护重组器中数据的相对序号，例如，第一次data为make,index为0,第二次data为great,index为13,而处于两组数据中间的数据未知，我们就用’\0’代替，即make\0\0\0\0\0\0\0\0\0great。这样就维护了已经进入重组器的数据的有序。当然，写入的data中也有可能含有\0,这是，我们就需要一个bool双端队列，来记录相应位置的数据是否有序，在上述例子中，队列的bool值为111100000000011111。</p>

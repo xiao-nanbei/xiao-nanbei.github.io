@@ -16,16 +16,16 @@
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Eliminate allocation from sbrk()我们先来看看这个图：  代码段不必多说，唯一要注意的点就是fork()函数调用的时候不会去复制程序段，而是通过映射让父子进程共享。 我们现在要给用户空间分配内存就是说 我们知道，sbrk()分配物理内存并将其映射到进程的虚拟地址空间，内核为大型请求分配和映射内存可能需要很长时间。 本实验你的任务是修改 sys_sbrk()使得其只增加">
+    <meta name="description" content="Eliminate allocation from sbrk()我们先来看看这个图：  代码段不必多说，唯一要注意的点就是fork()函数调用的时候不会去复制程序段，而是通过映射让父子进程共享。我们知道，sbrk()分配物理内存并将其映射到进程的虚拟地址空间，内核为大型请求分配和映射内存可能需要很长时间。 本实验你的任务是修改 sys_sbrk()使得其只增加&#x2F;减少进程地址空间大小，而不真正地分配">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MIT_6.s081_Lab5_lazy page allocation">
-<meta property="og:url" content="https://xiao-nanbei.github.io/2022/02/21/MIT-6-s081-Lab5-lazy-page-allocation/index.html">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2023/02/21/MIT-6-s081-Lab5-lazy-page-allocation/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="Eliminate allocation from sbrk()我们先来看看这个图：  代码段不必多说，唯一要注意的点就是fork()函数调用的时候不会去复制程序段，而是通过映射让父子进程共享。 我们现在要给用户空间分配内存就是说 我们知道，sbrk()分配物理内存并将其映射到进程的虚拟地址空间，内核为大型请求分配和映射内存可能需要很长时间。 本实验你的任务是修改 sys_sbrk()使得其只增加">
+<meta property="og:description" content="Eliminate allocation from sbrk()我们先来看看这个图：  代码段不必多说，唯一要注意的点就是fork()函数调用的时候不会去复制程序段，而是通过映射让父子进程共享。我们知道，sbrk()分配物理内存并将其映射到进程的虚拟地址空间，内核为大型请求分配和映射内存可能需要很长时间。 本实验你的任务是修改 sys_sbrk()使得其只增加&#x2F;减少进程地址空间大小，而不真正地分配">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://img2020.cnblogs.com/blog/2002319/202101/2002319-20210104192210213-1712203988.png">
-<meta property="article:published_time" content="2022-02-21T08:04:00.000Z">
-<meta property="article:modified_time" content="2022-04-13T08:30:52.983Z">
+<meta property="article:published_time" content="2023-02-21T08:04:00.000Z">
+<meta property="article:modified_time" content="2025-04-10T22:10:13.332Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="MIT_s.081_Lab">
 <meta name="twitter:card" content="summary_large_image">
@@ -188,8 +188,8 @@
   
     <span class="post-meta">
       <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2022-02-21 16:04" pubdate>
-        2022年2月21日 下午
+      <time datetime="2023-02-21 16:04" pubdate>
+        2023年2月21日 下午
       </time>
     </span>
   
@@ -242,11 +242,9 @@
             <div class="markdown-body">
               <h4 id="Eliminate-allocation-from-sbrk"><a href="#Eliminate-allocation-from-sbrk" class="headerlink" title="Eliminate allocation from sbrk()"></a>Eliminate allocation from sbrk()</h4><p>我们先来看看这个图：</p>
 <p><img src="https://img2020.cnblogs.com/blog/2002319/202101/2002319-20210104192210213-1712203988.png" srcset="/img/loading.gif" lazyload alt=""></p>
-<p>代码段不必多说，唯一要注意的点就是<code>fork()</code>函数调用的时候不会去复制程序段，而是通过映射让父子进程共享。</p>
-<p>我们现在要给用户空间分配内存就是说</p>
-<p>我们知道，sbrk()分配物理内存并将其映射到进程的虚拟地址空间，内核为大型请求分配和映射内存可能需要很长时间。</p>
-<p>本实验你的任务是修改 <code>sys_sbrk()</code>使得其只增加/减少进程地址空间大小，而不真正地分配页面。sbrk是xv6提供的系统调用，它使得用户应用程序能扩大自己的heap。当一个应用程序启动的时候，</p>
-<p>在xv6中，<code>sbrk</code>的实现默认是eager allocation，一旦调用了<code>sbrk</code>，内核就会立即分配物理内存给进程。但这样有点浪费，我们可以利用lazy allocation来做，<code>sbrk</code>基本不做任何事，只是改变<code>p-&gt;se</code>的大小，将<em>p-&gt;sz</em>增加n，其中n是需要新分配的内存page数量。但是内核在这个时间点并不会分配任何物理内存。</p>
+<p>代码段不必多说，唯一要注意的点就是<code>fork()</code>函数调用的时候不会去复制程序段，而是通过映射让父子进程共享。我们知道，<code>sbrk()</code>分配物理内存并将其映射到进程的虚拟地址空间，内核为大型请求分配和映射内存可能需要很长时间。</p>
+<p>本实验你的任务是修改 <code>sys_sbrk()</code>使得其只增加/减少进程地址空间大小，而不真正地分配页面。<code>sbrk</code>是xv6提供的系统调用，它使得用户应用程序能扩大自己的<code>heap</code> ，相当于linux中的<code>brk</code>。</p>
+<p>在xv6中，<code>sbrk</code>的实现默认是<code>eager allocation</code>，一旦调用了<code>sbrk</code>，内核就会立即分配物理内存给进程。我们可以利用<code>lazy allocation</code>来做，<code>sbrk</code>基本不做任何事，只是改变<code>p-&gt;se</code>的大小，将<code>p-&gt;sz</code>增加n，其中n是需要新分配的内存page数量。但是内核在这个时间点并不会分配任何物理内存。</p>
 <p>我们先来看看原版本：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></div></td><td class="code"><pre><code class="hljs c"><span class="hljs-function">uint64</span><br><span class="hljs-function"><span class="hljs-title">sys_sbrk</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span><br><span class="hljs-function"></span>&#123;<br>  <span class="hljs-keyword">int</span> addr;<br>  <span class="hljs-keyword">int</span> n;<br><br>  <span class="hljs-keyword">if</span>(argint(<span class="hljs-number">0</span>, &amp;n) &lt; <span class="hljs-number">0</span>)<span class="hljs-comment">//检测传入的参数</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>  addr = myproc()-&gt;sz;<span class="hljs-comment">//uint64 sz,Size of process memory (bytes)</span><br>  <span class="hljs-keyword">if</span>(growproc(n) &lt; <span class="hljs-number">0</span>)<span class="hljs-comment">//分配n个bytes</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>  <span class="hljs-keyword">return</span> addr;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>我们看看growproc函数，就知道为什么要这么做了：</p>
@@ -271,7 +269,7 @@
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-function">uint64</span><br><span class="hljs-function"><span class="hljs-title">uvmalloc</span><span class="hljs-params">(<span class="hljs-keyword">pagetable_t</span> pagetable, uint64 oldsz, uint64 newsz)</span></span><br><span class="hljs-function"></span>&#123;<br>  <span class="hljs-keyword">char</span> *mem;<br>  uint64 a;<br><br>  <span class="hljs-keyword">if</span>(newsz &lt; oldsz)<br>    <span class="hljs-keyword">return</span> oldsz;<br><br>  oldsz = PGROUNDUP(oldsz);<br>  <span class="hljs-keyword">for</span>(a = oldsz; a &lt; newsz; a += PGSIZE)&#123;<br>    mem = kalloc();<br>    <span class="hljs-keyword">if</span>(mem == <span class="hljs-number">0</span>)&#123;<br>      uvmdealloc(pagetable, a, oldsz);<br>      <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    &#125;<br>    <span class="hljs-built_in">memset</span>(mem, <span class="hljs-number">0</span>, PGSIZE);<br>    <span class="hljs-keyword">if</span>(mappages(pagetable, a, PGSIZE, (uint64)mem, PTE_W|PTE_X|PTE_R|PTE_U) != <span class="hljs-number">0</span>)&#123;<br>      kfree(mem);<br>      uvmdealloc(pagetable, a, oldsz);<br>      <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    &#125;<br>  &#125;<br>  <span class="hljs-keyword">return</span> newsz;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>我们仿照上述的<code>uvmalloc</code>函数来编写下面的<code>uvm_lazy</code>函数：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-built_in">memset</span>(mem, <span class="hljs-number">0</span>, PGSIZE);<br>mappages(p-&gt;pagetable, PGROUNDDOWN(va), PGSIZE, (uint64)mem, PTE_W|PTE_X|PTE_R|PTE_U)<br></code></pre></td></tr></table></figure>
-<p>这样就差不多了。</p>
+<p>这样就OK了。</p>
 <hr>
 <p>补充一个segmentation fault的知识：在xv6中使用的是页式存储，因此没有segmentation fault的概念，但是linux是段页式存储，因此有可能会出现segmentation fault的错误，所谓段错误就是指访问的内存超过了系统给这个程序的内存空间。比如说：尝试写一块属于操作系统的内存，或以错误的类型访问内存区域。段错误就是访问了不可访问的内存，这个内存要么是不存在的，要么是访问受限的。</p>
 <p>指针越界和SIGSEGV是最常出现的情况，</p>
@@ -310,9 +308,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2022/02/24/6-s081-Lab6-Copy-on-Write-Fork-for-xv6/">
+                      <a href="/2025/04/02/%E5%B8%81%E5%AE%89K%E7%BA%BF%E6%95%B0%E6%8D%AE%E8%8E%B7%E5%8F%96%E4%B8%8E%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">MIT_6.s081_Lab6_Copy-on-Write Fork for xv6</span>
+                        <span class="hidden-mobile">币安K线数据获取与存储系统</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -320,8 +318,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2022/02/15/CMU-15-445-PROJECT-2/">
-                        <span class="hidden-mobile">CMU_15-445_PROJECT#2</span>
+                      <a href="/2022/12/12/MIT-s-081-Lab1-Xv6-and-Unix-utilities/">
+                        <span class="hidden-mobile">MIT_6.s081_Lab1:Xv6 and Unix utilities</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

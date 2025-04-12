@@ -25,7 +25,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://uchat.cn-bj.ufileos.com/rw_85d14c2e-f671-46ec-9c03-031a542150cc_007SD2TBly1gy981i7x0kj30a10agtbw.jpg">
 <meta property="article:published_time" content="2022-12-12T11:01:44.000Z">
-<meta property="article:modified_time" content="2025-04-10T21:56:18.571Z">
+<meta property="article:modified_time" content="2025-04-10T22:04:28.365Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="MIT_s.081_Lab">
 <meta name="twitter:card" content="summary_large_image">
@@ -277,8 +277,8 @@
 </li>
 </ul>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>;<br><span class="hljs-keyword">while</span>(i &lt; n)&#123;<br>  <span class="hljs-keyword">int</span> n1 = n - i;<br>  <span class="hljs-keyword">if</span>(n1 &gt; max)<br>    n1 = max;<br>  <span class="hljs-comment">// ...写入逻辑...</span><br>  i += r;<br>&#125;<br></code></pre></td></tr></table></figure>
-<div class="code-wrapper"><pre><code class="hljs"> 每次写入块时都使用事务保证原子性：
-</code></pre></div><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c">begin_op();  <span class="hljs-comment">// 开始事务</span><br>ilock(f-&gt;ip);  <span class="hljs-comment">// 锁定inode</span><br><span class="hljs-keyword">if</span> ((r = writei(f-&gt;ip, <span class="hljs-number">1</span>, addr + i, f-&gt;off, n1)) &gt; <span class="hljs-number">0</span>)<br>  f-&gt;off += r;  <span class="hljs-comment">// 更新文件偏移量</span><br>iunlock(f-&gt;ip);  <span class="hljs-comment">// 解锁inode</span><br>end_op();  <span class="hljs-comment">// 结束事务</span><br></code></pre></td></tr></table></figure>
+<p>每次写入块时都使用事务保证原子性：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c">begin_op();  <span class="hljs-comment">// 开始事务</span><br>ilock(f-&gt;ip);  <span class="hljs-comment">// 锁定inode</span><br><span class="hljs-keyword">if</span> ((r = writei(f-&gt;ip, <span class="hljs-number">1</span>, addr + i, f-&gt;off, n1)) &gt; <span class="hljs-number">0</span>)<br>  f-&gt;off += r;  <span class="hljs-comment">// 更新文件偏移量</span><br>iunlock(f-&gt;ip);  <span class="hljs-comment">// 解锁inode</span><br>end_op();  <span class="hljs-comment">// 结束事务</span><br></code></pre></td></tr></table></figure>
 <p>说到这里了，我们提一下<code>buffer IO</code>，我感觉<code>xv6</code>是没有实现<code>buffer IO</code>的，源码里面没有找到相关的说明和代码，但是在<code>linux</code>里面是实现了的。<code>buffer IO</code>是为了提高读写效率和保护磁盘，比如我们通过<code>read</code>函数将<code>fd</code>对应的文件拷贝count个字节到<code>buf</code>对应的内存，这个时候如果是<code>buffer io</code>机制，那么我们就会先将count个字节拷贝到page cache中，然后再拷贝到<code>buf</code>对应的用户空间中。<code>write</code>操作类似。</p>
 <p>上次有位面试官问了我一个问题：什么时候将脏页刷回磁盘？</p>
 <p>我查了一下，有的说是进程退出的时候刷回去，有的说是定时刷回去。在<code>CMU15445</code>细说。</p>
@@ -353,9 +353,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2025/04/02/%E5%B8%81%E5%AE%89K%E7%BA%BF%E6%95%B0%E6%8D%AE%E8%8E%B7%E5%8F%96%E4%B8%8E%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/">
+                      <a href="/2023/02/21/MIT-6-s081-Lab5-lazy-page-allocation/">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">币安K线数据获取与存储系统</span>
+                        <span class="hidden-mobile">MIT_6.s081_Lab5_lazy page allocation</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     

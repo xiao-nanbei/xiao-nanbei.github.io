@@ -26,7 +26,7 @@
 <meta property="og:image" content="https://tvax1.sinaimg.cn/large/008qL1EEly1h05xrbw45dj30jd0733zx.jpg">
 <meta property="og:image" content="https://tva2.sinaimg.cn/large/008qL1EEly1h06gliq9t9j30kr08owgq.jpg">
 <meta property="article:published_time" content="2022-02-24T14:58:34.000Z">
-<meta property="article:modified_time" content="2022-06-15T09:00:38.140Z">
+<meta property="article:modified_time" content="2025-04-12T16:20:38.449Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="MIT_s.081_Lab">
 <meta name="twitter:card" content="summary_large_image">
@@ -249,7 +249,7 @@
 <p>当两个进程拥有很多相同的内存数据，如果把这些数据相同的内存页在物理内存中仅存储一份，然后以只读的方式映射给两个应用程序，那么就能显著地节约物理内存资源。如下图所示：</p>
 <p><img src="https://tvax1.sinaimg.cn/large/008qL1EEly1h05xrbw45dj30jd0733zx.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
 <p><img src="https://tva2.sinaimg.cn/large/008qL1EEly1h06gliq9t9j30kr08owgq.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
-<p>PTE除了记录物理页号，还记录了别的信息，我们回忆实验3里面讲的，PTE中有一些标志位，用来表示虚拟页的权限的权限位。写时拷贝正是利用表示“是否可写”的权限位来实现的。</p>
+<p><code>PTE</code>除了记录物理页号，还记录了别的信息，我们回忆实验3里面讲的，<code>PTE</code>中有一些标志位，用来表示虚拟页的权限的权限位。写时拷贝正是利用表示“是否可写”的权限位来实现的。</p>
 <p><code>COW fork()</code>只为孩子创建一个页表，用户内存的 PTE 指向父级的物理页面。<code>COW fork()</code>将 parent 和 child 中的所有用户 PTE 标记为不可写。当任一进程尝试写入这些 COW 页之一时，CPU 将强制发生页错误。内核页面错误处理程序检测到这种情况，为出错进程分配物理内存页面，将原始页面复制到新页面中，并修改出错进程中的相关 PTE 以引用新页面，这次使用PTE 标记为可写。当页面错误处理程序返回时，用户进程将能够写入它的页面副本。</p>
 <p>值得注意的是：<font color=#FF0000>当多个用户进程的虚拟内存都指向相同的物理内存page，父进程退出的时候我们要更加小心，因为我们要判断是否能立即释放相应的物理page，因为子进程可能同样会用到这个物理内存所存储的数据。</font>这个时候我们要引入引用计数器<code>count</code>，当物理内存的引用数为0的时候，我们就能释放这个物理页表了。</p>
 <hr>
@@ -319,8 +319,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2022/02/21/MIT-6-s081-Lab5-lazy-page-allocation/">
-                        <span class="hidden-mobile">MIT_6.s081_Lab5_lazy page allocation</span>
+                      <a href="/2022/02/15/CMU-15-445-PROJECT-2/">
+                        <span class="hidden-mobile">CMU_15-445_PROJECT#2</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
