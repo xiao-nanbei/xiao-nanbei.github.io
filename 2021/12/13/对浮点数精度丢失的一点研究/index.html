@@ -16,21 +16,21 @@
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
   
-    <meta name="description" content="什么叫精度丢失计算不准确我们看看如下代码： 12345float f;for(int i&#x3D;0;i&lt;100;i++)&amp;#123;    f+&#x3D;0.1f;&amp;#125;printf(&quot;%f\n&quot;,f); 上述代码中f的结果本应该是10.000000,但是却输出10.000002，如下图所示。这就是浮点数计算不准确的现象，即精度丢失。  图片说明：原图为《对浮点数精度丢失的一点研">
+    <meta name="description" content="问题现象先看一个很常见的例子： 12345float f &#x3D; 0;for(int i&#x3D;0;i&lt;100;i++)&amp;#123;    f+&#x3D;0.1f;&amp;#125;printf(&quot;%f\n&quot;,f); 数学上 $0.1 \times 100 &#x3D; 10$，但这段代码可能输出 10.000002。这不是 C 语言算错了，而是 0.1f 本身无法被二进制浮点数精确表示，循环累加又把每一">
 <meta property="og:type" content="article">
-<meta property="og:title" content="对浮点数精度丢失的一点研究">
+<meta property="og:title" content="浮点数精度丢失：IEEE 754、舍入误差与工程实践">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2021/12/13/%E5%AF%B9%E6%B5%AE%E7%82%B9%E6%95%B0%E7%B2%BE%E5%BA%A6%E4%B8%A2%E5%A4%B1%E7%9A%84%E4%B8%80%E7%82%B9%E7%A0%94%E7%A9%B6/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="什么叫精度丢失计算不准确我们看看如下代码： 12345float f;for(int i&#x3D;0;i&lt;100;i++)&amp;#123;    f+&#x3D;0.1f;&amp;#125;printf(&quot;%f\n&quot;,f); 上述代码中f的结果本应该是10.000000,但是却输出10.000002，如下图所示。这就是浮点数计算不准确的现象，即精度丢失。  图片说明：原图为《对浮点数精度丢失的一点研">
+<meta property="og:description" content="问题现象先看一个很常见的例子： 12345float f &#x3D; 0;for(int i&#x3D;0;i&lt;100;i++)&amp;#123;    f+&#x3D;0.1f;&amp;#125;printf(&quot;%f\n&quot;,f); 数学上 $0.1 \times 100 &#x3D; 10$，但这段代码可能输出 10.000002。这不是 C 语言算错了，而是 0.1f 本身无法被二进制浮点数精确表示，循环累加又把每一">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-12-13T10:33:09.000Z">
-<meta property="article:modified_time" content="2026-05-30T14:21:16.855Z">
+<meta property="article:modified_time" content="2026-05-30T14:40:13.577Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="浮点数">
 <meta name="twitter:card" content="summary_large_image">
   
   
-  <title>对浮点数精度丢失的一点研究 - databrains</title>
+  <title>浮点数精度丢失：IEEE 754、舍入误差与工程实践 - databrains</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
 
@@ -176,7 +176,7 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="对浮点数精度丢失的一点研究">
+            <span class="h2" id="subtitle" title="浮点数精度丢失：IEEE 754、舍入误差与工程实践">
               
             </span>
 
@@ -197,7 +197,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      2.3k 字
+      4.1k 字
     </span>
   
 
@@ -206,7 +206,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      20 分钟
+      34 分钟
     </span>
   
 
@@ -235,12 +235,12 @@
         <div class="py-5" id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">对浮点数精度丢失的一点研究</h1>
+            <h1 style="display: none">浮点数精度丢失：IEEE 754、舍入误差与工程实践</h1>
             
             <div class="markdown-body">
-              <h4 id="什么叫精度丢失"><a href="#什么叫精度丢失" class="headerlink" title="什么叫精度丢失"></a>什么叫精度丢失</h4><h5 id="计算不准确"><a href="#计算不准确" class="headerlink" title="计算不准确"></a>计算不准确</h5><p>我们看看如下代码：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></div></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">float</span> f;<br><span class="hljs-keyword">for</span>(<span class="hljs-keyword">int</span> i=<span class="hljs-number">0</span>;i&lt;<span class="hljs-number">100</span>;i++)&#123;<br>    f+=<span class="hljs-number">0.1f</span>;<br>&#125;<br><span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%f\n&quot;</span>,f);<br></code></pre></td></tr></table></figure>
-<p>上述代码中f的结果本应该是10.000000,但是却输出10.000002，如下图所示。这就是浮点数计算不准确的现象，即精度丢失。</p>
+              <h3 id="问题现象"><a href="#问题现象" class="headerlink" title="问题现象"></a>问题现象</h3><p>先看一个很常见的例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></div></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">float</span> f = <span class="hljs-number">0</span>;<br><span class="hljs-keyword">for</span>(<span class="hljs-keyword">int</span> i=<span class="hljs-number">0</span>;i&lt;<span class="hljs-number">100</span>;i++)&#123;<br>    f+=<span class="hljs-number">0.1f</span>;<br>&#125;<br><span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%f\n&quot;</span>,f);<br></code></pre></td></tr></table></figure>
+<p>数学上 $0.1 \times 100 = 10$，但这段代码可能输出 <code>10.000002</code>。这不是 C 语言算错了，而是 <code>0.1f</code> 本身无法被二进制浮点数精确表示，循环累加又把每一步舍入误差继续传播。</p>
 <blockquote>
 <p>图片说明：原图为《对浮点数精度丢失的一点研究》中“计算不准确”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
 </blockquote>
@@ -252,11 +252,22 @@
 <blockquote>
 <p>图片说明：原图为《对浮点数精度丢失的一点研究》中“计算不准确”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
 </blockquote>
-<p>我们将其转化为二进制是<code>0100 0001 0010 0000 0000 0000 0000 0010</code>。</p>
-<p>将这个IEEE745标准的二进制浮点数转化为十进制为：10.000001907348633。</p>
-<p>为什么会出现这种情况呢？这就要涉及到我们下一个知识点，保存不准确。</p>
-<h6 id="保存不准确"><a href="#保存不准确" class="headerlink" title="保存不准确"></a>保存不准确</h6><p>我们看看如下代码：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">float</span> f;<br><span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%.18f\n&quot;</span>,f);<br></code></pre></td></tr></table></figure>
+<p>我们将其转化为二进制是 <code>0100 0001 0010 0000 0000 0000 0000 0010</code>。</p>
+<p>将这个 IEEE 754 标准的二进制浮点数转化为十进制为：<code>10.000001907348633</code>。</p>
+<h3 id="IEEE-754-如何表示浮点数"><a href="#IEEE-754-如何表示浮点数" class="headerlink" title="IEEE 754 如何表示浮点数"></a>IEEE 754 如何表示浮点数</h3><p>以 <code>float32</code> 为例，一个浮点数由三部分组成：</p>
+<ol>
+<li>符号位 sign：1 bit。</li>
+<li>指数 exponent：8 bit，使用偏置编码。</li>
+<li>尾数 fraction：23 bit，规格化数隐含一个最高位 1。</li>
+</ol>
+<p>规格化浮点数的值可以写成：</p>
+<script type="math/tex; mode=display">
+(-1)^s \times 1.f \times 2^{e-bias}</script><p><code>float64</code> 也是同样思路，只是指数位扩展到 11 bit，尾数位扩展到 52 bit。尾数位数决定了有效精度，因此 <code>float64</code> 不是“精确小数”，只是比 <code>float32</code> 能表示更多二进制有效位。</p>
+<h3 id="为什么-0-1-不能精确表示"><a href="#为什么-0-1-不能精确表示" class="headerlink" title="为什么 0.1 不能精确表示"></a>为什么 0.1 不能精确表示</h3><p>十进制小数能否有限表示，取决于分母质因数是否只包含 2 和 5。比如 $0.5 = 1/2$ 可以有限表示，$0.25 = 1/4$ 也可以。但二进制小数只能有限表示分母质因数只包含 2 的数。</p>
+<script type="math/tex; mode=display">
+0.1_{10} = \frac{1}{10} = \frac{1}{2 \times 5}</script><p>分母里有 5，所以它在二进制里会变成无限循环小数。硬件只能保存有限位尾数，于是必须舍入。也就是说，程序里写下 <code>0.1</code> 的那一刻，进入寄存器或内存的就已经是最接近 <code>0.1</code> 的某个二进制浮点数。</p>
+<p>类似地，下面这段代码不是特例：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">float</span> f = <span class="hljs-number">0.1f</span>;<br><span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%.18f\n&quot;</span>,f);<br></code></pre></td></tr></table></figure>
 <p>上述代码中打印结果如下所示：</p>
 <blockquote>
 <p>图片说明：原图为《对浮点数精度丢失的一点研究》中“保存不准确”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
@@ -269,25 +280,56 @@
 <blockquote>
 <p>图片说明：原图为《对浮点数精度丢失的一点研究》中“保存不准确”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
 </blockquote>
-<p>可以看到某些浮点数在写入内存的过程中就存在误差，当然这是无法避免的。这个跟十进制中的无穷小数是一个道理。</p>
-<h4 id="浮点数判断大小或者排序"><a href="#浮点数判断大小或者排序" class="headerlink" title="浮点数判断大小或者排序"></a>浮点数判断大小或者排序</h4><h5 id="浮点数相等"><a href="#浮点数相等" class="headerlink" title="浮点数相等"></a>浮点数相等</h5><p>当判断两个浮点数是否相等时，我们应该使用如下语句：</p>
+<p>可以看到某些浮点数在写入内存的过程中就存在误差，这是二进制浮点表示的自然结果，和十进制中 $1/3$ 无法有限写成小数是同一类问题。</p>
+<h3 id="误差为什么会累积"><a href="#误差为什么会累积" class="headerlink" title="误差为什么会累积"></a>误差为什么会累积</h3><p>浮点运算的每一步通常都会经历“计算出更高精度中间结果，再舍入回目标格式”的过程。一次舍入误差可能很小，但循环累加、减去两个接近的数、不同数量级的数相加，都会放大误差影响。</p>
+<p>典型问题有三类：</p>
+<ol>
+<li>累加误差：反复加一个无法精确表示的小数，例如循环加 <code>0.1</code>。</li>
+<li>大小数相加：<code>1e20 + 1</code> 在 <code>float64</code> 中可能看不到 <code>1</code> 的影响，因为 <code>1</code> 小于当前量级下的间隔。</li>
+<li>灾难性消去：两个非常接近的数相减，有效数字会大量丢失。</li>
+</ol>
+<p>例如：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> main<br><br><span class="hljs-keyword">import</span> <span class="hljs-string">&quot;fmt&quot;</span><br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>    <span class="hljs-keyword">var</span> x <span class="hljs-keyword">float64</span> = <span class="hljs-number">1e20</span><br>    fmt.Println((x + <span class="hljs-number">1</span>) - x)<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>直觉上结果是 <code>1</code>，但实际可能是 <code>0</code>。原因不是加法规则变了，而是在 <code>1e20</code> 这个量级附近，<code>float64</code> 可表示数之间的间隔已经远大于 1。</p>
+<h3 id="ULP-与-EPSILON"><a href="#ULP-与-EPSILON" class="headerlink" title="ULP 与 EPSILON"></a>ULP 与 EPSILON</h3><p>比较浮点数时常说的 <code>EPSILON</code> 不是一个固定真理。它应该和业务量级相关。<code>1e-9</code> 对金额可能太大，对物理仿真可能又太小。</p>
+<p>更底层的概念是 ULP（unit in the last place），表示某个浮点数附近相邻可表示数之间的距离。浮点数越大，相邻两个可表示数的绝对间隔通常也越大。因此同一个绝对误差阈值不能适用于所有量级。</p>
+<p>更稳妥的比较方式通常同时考虑绝对误差和相对误差：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">almostEqual</span><span class="hljs-params">(a, b, absTol, relTol <span class="hljs-keyword">float64</span>)</span> <span class="hljs-title">bool</span></span> &#123;<br>    diff := math.Abs(a - b)<br>    <span class="hljs-keyword">if</span> diff &lt;= absTol &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span><br>    &#125;<br>    <span class="hljs-keyword">return</span> diff &lt;= relTol*math.Max(math.Abs(a), math.Abs(b))<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>绝对误差适合接近 0 的比较，相对误差适合大数比较。</p>
+<h3 id="排序和相等判断"><a href="#排序和相等判断" class="headerlink" title="排序和相等判断"></a>排序和相等判断</h3><p>当判断两个浮点数是否“业务上相等”时，可以使用如下思想：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">if</span> (<span class="hljs-built_in">fabs</span>(a - b) &lt; EPSILON) &#123;<br>    <span class="hljs-comment">//执行当两个浮点数 a 和 b 相等时的操作</span><br>&#125;<br></code></pre></td></tr></table></figure>
-<p>其中EPSILON为精度，例如0.000001。</p>
-<h4 id="float可以作为map中的key吗（Go语言）"><a href="#float可以作为map中的key吗（Go语言）" class="headerlink" title="float可以作为map中的key吗（Go语言）"></a>float可以作为map中的key吗（Go语言）</h4><p>从语法上看，Go语言中只要是可比较的类型都可以作为key。除开slice，map，functions这几种类型，其他类型都是OK的。具体包括：布尔值、数字、字符串、指针、通道、接口类型、结构体、只包含上述类型的数组。这些类型的共同特征是支持 <code>==</code> 和 <code>!=</code> 操作符，<code>k1 == k2</code> 时，可认为 k1 和 k2 是同一个 key。当然，任何类型都可以作为value，包括map类型。</p>
+<p>但要注意：这只适合业务语义下的近似相等，不适合所有场景。如果要做 map key、排序去重、缓存索引，就必须明确使用精确 bit 模式还是归一化后的业务值。</p>
+<h3 id="float-可以作为-map-key-吗"><a href="#float-可以作为-map-key-吗" class="headerlink" title="float 可以作为 map key 吗"></a>float 可以作为 map key 吗</h3><p>从语法上看，Go 语言中只要是可比较的类型都可以作为 key。除开 slice、map、function 这几种类型，其他类型大多可以。浮点数支持 <code>==</code> 和 <code>!=</code>，所以 <code>float64</code> 可以作为 map key。</p>
+<p>问题在于：语法允许不代表业务上合适。</p>
 <p>我们来看如下例子：</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>    m := <span class="hljs-built_in">make</span>(<span class="hljs-keyword">map</span>[<span class="hljs-keyword">float64</span>]<span class="hljs-keyword">int</span>)<br>    m[<span class="hljs-number">1.4</span>] = <span class="hljs-number">1</span><br>    m[<span class="hljs-number">2.4</span>] = <span class="hljs-number">2</span><br>    <span class="hljs-keyword">for</span> k, v := <span class="hljs-keyword">range</span> m &#123;<br>        fmt.Printf(<span class="hljs-string">&quot;[%v, %d] &quot;</span>, k, v)<br>    &#125;<br>    fmt.Printf(<span class="hljs-string">&quot;k: %v, v: %d\n&quot;</span>, <span class="hljs-number">2.400000000001</span>, m[<span class="hljs-number">2.400000000001</span>])<br>    fmt.Printf(<span class="hljs-string">&quot;k: %v, v: %d\n&quot;</span>, <span class="hljs-number">2.4000000000000000000000001</span>, m[<span class="hljs-number">2.4000000000000000000000001</span>])<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>程序输出如下：</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs go">[<span class="hljs-number">2.4</span>, <span class="hljs-number">2</span>] [<span class="hljs-number">1.4</span>, <span class="hljs-number">1</span>] <br>k: <span class="hljs-number">2.400000000001</span>, v: <span class="hljs-number">0</span><br>k: <span class="hljs-number">2.4</span>, v: <span class="hljs-number">2</span><br></code></pre></td></tr></table></figure>
-<p>我们发现2.4000000000000000000000001存在value。当用float作为key的时候，先要将其转成uint64类型，再插入key中。通过以下函数实现：</p>
+<p>我们发现 <code>2.4000000000000000000000001</code> 可以查到 value。原因是这个十进制字面量在编译后被舍入成了和 <code>2.4</code> 相同的 <code>float64</code>。</p>
+<p>Go 可以通过以下函数观察浮点数的 bit 表示：</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-comment">// Float64frombits returns the floating point number corresponding</span><br><span class="hljs-comment">// the IEEE 754 binary representation b.</span><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">Float64frombits</span><span class="hljs-params">(b <span class="hljs-keyword">uint64</span>)</span> <span class="hljs-title">float64</span></span> &#123; <span class="hljs-keyword">return</span> *(*<span class="hljs-keyword">float64</span>)(unsafe.Pointer(&amp;b)) &#125;<br></code></pre></td></tr></table></figure>
-<p>也就是我们上述所说的IEEE 754规定的格式。</p>
+<p>也就是 IEEE 754 规定的格式。</p>
 <p>我们再来输出点东西：</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> main<br><span class="hljs-keyword">import</span> (<br>    <span class="hljs-string">&quot;fmt&quot;</span><br>    <span class="hljs-string">&quot;math&quot;</span><br>)<br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>    m := <span class="hljs-built_in">make</span>(<span class="hljs-keyword">map</span>[<span class="hljs-keyword">float64</span>]<span class="hljs-keyword">int</span>)<br>    m[<span class="hljs-number">2.4</span>] = <span class="hljs-number">2</span><br>    fmt.Println(math.Float64bits(<span class="hljs-number">2.4</span>))<br>    fmt.Println(math.Float64bits(<span class="hljs-number">2.400000000001</span>))<br>    fmt.Println(math.Float64bits(<span class="hljs-number">2.4000000000000000000000001</span>))<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>输出结果如下：</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-number">4612586738352862003</span><br><span class="hljs-number">4612586738352864255</span><br><span class="hljs-number">4612586738352862003</span><br></code></pre></td></tr></table></figure>
 <p>转成十六进制如下：</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-number">0x4003333333333333</span><br><span class="hljs-number">0x4003333333333BFF</span><br><span class="hljs-number">0x4003333333333333</span><br></code></pre></td></tr></table></figure>
-<p>由此可见，由于精度受限，2.4和2.4000000000000000000000001经过 <code>math.Float64bits()</code> 函数转换后的结果是一样的。自然，二者在 map 看来，就是同一个 key 了。</p>
+<p>由此可见，由于精度受限，<code>2.4</code> 和 <code>2.4000000000000000000000001</code> 经过 <code>math.Float64bits()</code> 转换后的结果是一样的。自然，二者在 map 看来就是同一个 key。</p>
+<p>还有两个坑：</p>
+<ol>
+<li><code>NaN != NaN</code>，所以 NaN 作为 key 时很容易出现无法按直觉查询的问题。</li>
+<li><code>+0.0 == -0.0</code> 为 true，但二者 bit 表示不同。不同语言或序列化层如果按 bit 处理，可能得到不同结果。</li>
+</ol>
+<p>工程上如果需要用小数做 key，通常更推荐先归一化成整数。例如金额用“分”或更小单位保存，价格 tick 用整数 tick 数保存，坐标或指标按业务精度放大后取整。</p>
+<h3 id="工程建议"><a href="#工程建议" class="headerlink" title="工程建议"></a>工程建议</h3><ol>
+<li>金额、账务、撮合价格等场景不要直接用二进制浮点数表达精确十进制小数，优先使用整数定点数或 decimal 库。</li>
+<li>科学计算可以使用浮点数，但要关注算法稳定性，例如 Kahan summation、排序后累加、避免相近大数相减。</li>
+<li>比较浮点数时不要盲目使用 <code>==</code>，除非比较的是协议定义的特殊值、枚举式浮点值，或你明确需要 bit 级相等。</li>
+<li>日志和序列化要保留足够有效位，否则打印出来的值可能无法 round-trip 回原来的浮点数。</li>
+<li>map key、数据库索引、缓存 key 中出现 float 时，要先问清楚业务语义：是精确 bit 模式，还是某个精度下的等价类。</li>
+</ol>
+<p>浮点数不是“不准确”，而是“精确地表示了某个二进制近似值”。理解这一点后，很多看似诡异的问题都会变成可解释、可规避的工程取舍。</p>
 
             </div>
             <hr>
@@ -322,9 +364,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2021/12/16/Go%E8%AF%AD%E8%A8%80%E2%80%94%E2%80%94%E8%87%AA%E5%8A%A8%E7%AE%A1%E7%90%86%E5%86%85%E5%AD%98/">
+                      <a href="/2021/12/16/Go-Memory-Management-and-GC/">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Go自动管理内存</span>
+                        <span class="hidden-mobile">Go 内存管理与 GC：从逃逸分析到三色标记</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     

@@ -24,7 +24,7 @@
 <meta property="og:description" content="selectGo 的 select 关键字用到了“多路等待”的思想，但它本身不是操作系统层面的 I&#x2F;O 多路复用，因为 select 面向的是 channel，而不是文件描述符。先看下面的例子： 123456789101112131415161718192021222324package mainimport (	&quot;fmt&quot;	&quot;sync&quot;)func main">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-04-03T12:05:08.000Z">
-<meta property="article:modified_time" content="2026-05-30T14:23:10.590Z">
+<meta property="article:modified_time" content="2026-05-30T14:40:13.568Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="Go">
 <meta property="article:tag" content="I&#x2F;O multiplexing">
@@ -198,7 +198,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      949 字
+      2.4k 字
     </span>
   
 
@@ -207,7 +207,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      8 分钟
+      20 分钟
     </span>
   
 
@@ -239,11 +239,35 @@
             <h1 style="display: none">Go select 与 I/O 多路复用</h1>
             
             <div class="markdown-body">
-              <h4 id="select"><a href="#select" class="headerlink" title="select"></a>select</h4><p>Go 的 <code>select</code> 关键字用到了“多路等待”的思想，但它本身不是操作系统层面的 I/O 多路复用，因为 <code>select</code> 面向的是 channel，而不是文件描述符。先看下面的例子：</p>
+              <h3 id="select"><a href="#select" class="headerlink" title="select"></a>select</h3><p>Go 的 <code>select</code> 关键字用到了“多路等待”的思想，但它本身不是操作系统层面的 I/O 多路复用，因为 <code>select</code> 面向的是 channel，而不是文件描述符。先看下面的例子：</p>
 <figure class="highlight go"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></div></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> main<br><br><span class="hljs-keyword">import</span> (<br>	<span class="hljs-string">&quot;fmt&quot;</span><br>	<span class="hljs-string">&quot;sync&quot;</span><br>)<br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>	c1 := <span class="hljs-built_in">make</span>(<span class="hljs-keyword">chan</span> <span class="hljs-keyword">int</span>, <span class="hljs-number">1</span>)<br>	<span class="hljs-keyword">var</span> i1, i2 <span class="hljs-keyword">int</span><br>	<span class="hljs-keyword">var</span> count sync.WaitGroup<br>	count.Add(<span class="hljs-number">1</span>)<br>	<span class="hljs-keyword">go</span> <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">()</span></span> &#123;<br>		<span class="hljs-keyword">defer</span> count.Done()<br>		<span class="hljs-keyword">select</span> &#123;<br>		<span class="hljs-keyword">case</span> i1 = &lt;-c1:<br>			fmt.Println(<span class="hljs-string">&quot;i1 received from c1&quot;</span>, i1)<br>		<span class="hljs-keyword">case</span> i2 = &lt;-c1:<br>			fmt.Println(<span class="hljs-string">&quot;i2 received from c1&quot;</span>, i2)<br>		&#125;<br>	&#125;()<br>	c1 &lt;- <span class="hljs-number">1</span><br>	count.Wait()<br>	<span class="hljs-built_in">close</span>(c1)<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>当多个 <code>case</code> 同时就绪时，Go 会伪随机选择其中一个执行，所以这个例子有时会运行 <code>i1 = &lt;-c1</code>，有时会运行 <code>i2 = &lt;-c1</code>。这个随机性可以避免固定顺序带来的饥饿问题，但它并不保证公平调度，只能说明程序不能依赖某个 <code>case</code> 总是先被执行。</p>
 <h4 id="和-I-O-多路复用的关系"><a href="#和-I-O-多路复用的关系" class="headerlink" title="和 I/O 多路复用的关系"></a>和 I/O 多路复用的关系</h4><p>操作系统里的 I/O 多路复用通常指 <code>select</code>、<code>poll</code>、<code>epoll</code>、<code>kqueue</code> 这一类机制：一个线程同时监听多个 fd，当某个 fd 可读或可写时再处理它。Go 网络库内部确实会使用运行时的 netpoller，在 Linux 上通常对应 <code>epoll</code>，在 macOS 上通常对应 <code>kqueue</code>。不过这些细节被 runtime 封装起来了，业务代码一般只需要阻塞读写连接，runtime 会在 I/O 未就绪时挂起 goroutine，并在 fd 就绪后唤醒它。</p>
 <p>所以可以这样区分：<code>select</code> 是 Go 语言层面对多个 channel 操作的等待；I/O 多路复用是操作系统层面对多个 fd 的等待。两者思想相似，抽象层次不同。写 Go 服务时，通常把网络 I/O 交给标准库和 runtime，把业务并发协调交给 goroutine、channel 和 <code>select</code>。</p>
+<h3 id="select-的执行语义"><a href="#select-的执行语义" class="headerlink" title="select 的执行语义"></a>select 的执行语义</h3><p><code>select</code> 并不是简单地从上到下检查 <code>case</code>。它大致遵循这些语义：</p>
+<ol>
+<li>先对所有 channel 表达式和发送值表达式求值。</li>
+<li>找出当前已经可以执行的 <code>case</code>。</li>
+<li>如果有多个 ready case，伪随机选择一个。</li>
+<li>如果没有 ready case 且存在 <code>default</code>，执行 <code>default</code>。</li>
+<li>如果没有 ready case 且没有 <code>default</code>，当前 goroutine 阻塞，等待某个 channel 就绪。</li>
+</ol>
+<p>这解释了一个常见误区：<code>default</code> 会让 <code>select</code> 变成非阻塞轮询。如果在循环里写一个带 <code>default</code> 的 <code>select</code>，又没有任何 sleep、timer 或阻塞点，就很容易把 CPU 打满。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">for</span> &#123;<br>	<span class="hljs-keyword">select</span> &#123;<br>	<span class="hljs-keyword">case</span> msg := &lt;-ch:<br>		handle(msg)<br>	<span class="hljs-keyword">default</span>:<br>		<span class="hljs-comment">// 空 default 会导致忙等</span><br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>更好的方式通常是让 goroutine 阻塞在 channel、timer 或 context 上：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">for</span> &#123;<br>	<span class="hljs-keyword">select</span> &#123;<br>	<span class="hljs-keyword">case</span> msg := &lt;-ch:<br>		handle(msg)<br>	<span class="hljs-keyword">case</span> &lt;-ctx.Done():<br>		<span class="hljs-keyword">return</span><br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="runtime-netpoller"><a href="#runtime-netpoller" class="headerlink" title="runtime netpoller"></a>runtime netpoller</h3><p>Go 的网络 I/O 表面上看起来是一个 goroutine 阻塞在 <code>Read</code> 或 <code>Write</code> 上，但 runtime 不会为每个连接固定占用一个操作系统线程。当 fd 没有就绪时，runtime 会把 goroutine 挂起，把 fd 注册到 netpoller；当内核通知 fd 可读或可写时，runtime 再把对应 goroutine 放回可运行队列。</p>
+<p>在不同平台上，netpoller 背后的机制不同：Linux 常用 <code>epoll</code>，macOS/BSD 常用 <code>kqueue</code>，Windows 使用 IOCP。业务代码通常不需要直接操作这些系统调用，这是 Go 网络库能够支撑大量连接的重要原因。</p>
+<p>可以把这里的分工理解为：</p>
+<ol>
+<li>内核负责告诉 runtime 哪些 fd 就绪。</li>
+<li>runtime 负责把等待这些 fd 的 goroutine 唤醒。</li>
+<li>调度器负责把可运行 goroutine 安排到 P/M 上执行。</li>
+</ol>
+<h3 id="select、channel-和网络-I-O-如何配合"><a href="#select、channel-和网络-I-O-如何配合" class="headerlink" title="select、channel 和网络 I/O 如何配合"></a>select、channel 和网络 I/O 如何配合</h3><p>网络连接的 <code>Read</code>/<code>Write</code> 并不是 channel 操作，所以不能直接把 fd 写进 <code>select</code>。常见做法是由一个 goroutine 负责读连接，再把解析后的消息送入 channel；业务层通过 <code>select</code> 同时等待消息、超时和取消信号。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">select</span> &#123;<br><span class="hljs-keyword">case</span> msg := &lt;-messages:<br>	handle(msg)<br><span class="hljs-keyword">case</span> &lt;-time.After(time.Second):<br>	<span class="hljs-keyword">return</span> ErrTimeout<br><span class="hljs-keyword">case</span> &lt;-ctx.Done():<br>	<span class="hljs-keyword">return</span> ctx.Err()<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>需要注意 <code>time.After</code> 在循环中会反复创建 timer。高频循环中更推荐复用 <code>time.Timer</code>，避免制造额外分配和 GC 压力。</p>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>Go 的 <code>select</code> 和操作系统 I/O 多路复用解决的是不同层次的问题。<code>select</code> 用来组合多个 channel 事件，让业务并发控制更清晰；netpoller 用来把大量网络 fd 的等待交给内核，并把就绪事件重新接回 Go 调度器。理解这条链路之后，就能解释为什么 Go 可以用同步写法处理高并发网络 I/O，也能知道什么时候应该警惕忙等、timer 分配和 goroutine 泄漏。</p>
 
             </div>
             <hr>
@@ -290,8 +314,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2022/03/20/Golang-container/">
-                        <span class="hidden-mobile">Golang_包解析</span>
+                      <a href="/2022/03/20/Go-Container-Reflect-Unsafe-and-Atomic/">
+                        <span class="hidden-mobile">Go 标准库：container、reflect、unsafe 与 atomic</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
