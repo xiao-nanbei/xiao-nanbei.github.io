@@ -18,19 +18,19 @@
   
     <meta name="description" content="第0章操作系统接口本书通过xv6操作系统来阐述操作系统的概念，它提供Unix操作系统中的基本接口，同时模仿Unix的内部设计。  xv6提供了传统的内核概念，即一个向其他运行的程序提供服务的特殊程序，每一个运行中的进程都有指令、数据、栈的内存空间。进程通过系统调用使用内核服务。系统调用会进入内核，让内核执行服务然后返回。所以进程总是在用户空间和内核空间之间交替运行。  我们看到上面加粗的那句话：">
 <meta property="og:type" content="article">
-<meta property="og:title" content="xv6-实验参考书解析">
-<meta property="og:url" content="https://xiao-nanbei.github.io/2022/01/10/xv6-%E5%AE%9E%E9%AA%8C%E5%8F%82%E8%80%83%E4%B9%A6%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:title" content="MIT 6.S081: xv6 实验参考书解析">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2022/01/10/MIT-6-S081-xv6-Book-Notes/index.html">
 <meta property="og:site_name" content="databrains">
 <meta property="og:description" content="第0章操作系统接口本书通过xv6操作系统来阐述操作系统的概念，它提供Unix操作系统中的基本接口，同时模仿Unix的内部设计。  xv6提供了传统的内核概念，即一个向其他运行的程序提供服务的特殊程序，每一个运行中的进程都有指令、数据、栈的内存空间。进程通过系统调用使用内核服务。系统调用会进入内核，让内核执行服务然后返回。所以进程总是在用户空间和内核空间之间交替运行。  我们看到上面加粗的那句话：">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-01-10T13:19:31.000Z">
-<meta property="article:modified_time" content="2026-05-30T14:30:56.256Z">
+<meta property="article:modified_time" content="2026-05-30T14:58:20.004Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="MIT 6.S081 Lab">
 <meta name="twitter:card" content="summary_large_image">
   
   
-  <title>xv6-实验参考书解析 - databrains</title>
+  <title>MIT 6.S081: xv6 实验参考书解析 - databrains</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
 
@@ -176,7 +176,7 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="xv6-实验参考书解析">
+            <span class="h2" id="subtitle" title="MIT 6.S081: xv6 实验参考书解析">
               
             </span>
 
@@ -197,7 +197,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      8.3k 字
+      8.4k 字
     </span>
   
 
@@ -235,7 +235,7 @@
         <div class="py-5" id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">xv6-实验参考书解析</h1>
+            <h1 style="display: none">MIT 6.S081: xv6 实验参考书解析</h1>
             
             <div class="markdown-body">
               <h3 id="第0章"><a href="#第0章" class="headerlink" title="第0章"></a>第0章</h3><h4 id="操作系统接口"><a href="#操作系统接口" class="headerlink" title="操作系统接口"></a>操作系统接口</h4><p>本书通过xv6操作系统来阐述操作系统的概念，它提供Unix操作系统中的基本接口，同时模仿Unix的内部设计。</p>
@@ -418,7 +418,7 @@
 <hr>
 <p>我们来看看进程的process memory是如何分布的，也就是它的虚拟地址空间如何分布，其实在<code>proc</code>结构体中，我们有了<code>pagetable</code>、<code>sz</code>和<code>kstack</code>就可以基本描述我们的虚拟用户空间，如下图所示：</p>
 <blockquote>
-<p>图片说明：原图为《xv6-实验参考书解析》中“关于进程”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
+<p>图片说明：原图为《MIT 6.S081: xv6 实验参考书解析》中“关于进程”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
 </blockquote>
 <p>内核在创建进程的时候，会为进程创建相应的堆栈。每个进程会有两个栈，一个用户栈，存在于用户空间，一个内核栈，存在于内核空间。当进程在用户空间运行时，CPU堆栈指针寄存器里面的内容是用户堆栈地址，使用用户栈；当进程在内核空间时，CPU堆栈指针寄存器里面的内容是内核栈空间地址，使用内核栈。当进程因为中断或者系统调用而陷入内核态时，进程所使用的堆栈也要从用户栈转到内核栈。进程进入内核态后，先把用户态堆栈的地址保存在内核栈中，然后设置堆栈指针寄存器的内容为内核栈的地址，这样就完成了用户栈向内核栈的切换。</p>
 <p>值得注意的是：用户堆是低地址到高地址的，而用户栈是高地址到低地址的。</p>
@@ -436,7 +436,7 @@
 </ol>
 <h6 id="具体的实现过程"><a href="#具体的实现过程" class="headerlink" title="具体的实现过程"></a>具体的实现过程</h6><p>进程的切换是通过用户态——内核态切换、切换到调度器、切换到新进程的内核线程、最后返回用户态实现的。如下图所示：</p>
 <blockquote>
-<p>图片说明：原图为《xv6-实验参考书解析》中“具体的实现过程”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
+<p>图片说明：原图为《MIT 6.S081: xv6 实验参考书解析》中“具体的实现过程”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
 <p>好了，然后工程师们就发现，其实一个线程分为 “内核态 “线程和” 用户态 “线程。</p>
 <p><a target="_blank" rel="noopener" href="https://learnku.com/articles/41728">《GMP调度器》</a></p>
 </blockquote>

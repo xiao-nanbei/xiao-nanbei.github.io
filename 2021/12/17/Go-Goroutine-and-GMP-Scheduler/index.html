@@ -16,20 +16,20 @@
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Goroutine是由Go运行时管理的轻量级线程（协程）。Goroutine和操作系统线程相比，Goroutine的资源占用和使用代价非常小，大小默认是2K字节。Goroutine调度的切换也不在操作系统的内部完成，代价很低。所以一个Go程序可以创建成千上万个并发的Goroutine，而把这些Goroutine按照一定算法放到cpu上执行的程序，就成了Goroutine调度器。 我在前面的文章xv">
+    <meta name="description" content="Goroutine是由Go运行时管理的轻量级线程（协程）。Goroutine和操作系统线程相比，Goroutine的资源占用和使用代价非常小，大小默认是2K字节。Goroutine调度的切换也不在操作系统的内部完成，代价很低。所以一个Go程序可以创建成千上万个并发的Goroutine，而把这些Goroutine按照一定算法放到cpu上执行的程序，就成了Goroutine调度器。 我在前面的文章MI">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Go Goroutine 与 GMP 调度器">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2021/12/17/Go-Goroutine-and-GMP-Scheduler/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="Goroutine是由Go运行时管理的轻量级线程（协程）。Goroutine和操作系统线程相比，Goroutine的资源占用和使用代价非常小，大小默认是2K字节。Goroutine调度的切换也不在操作系统的内部完成，代价很低。所以一个Go程序可以创建成千上万个并发的Goroutine，而把这些Goroutine按照一定算法放到cpu上执行的程序，就成了Goroutine调度器。 我在前面的文章xv">
+<meta property="og:description" content="Goroutine是由Go运行时管理的轻量级线程（协程）。Goroutine和操作系统线程相比，Goroutine的资源占用和使用代价非常小，大小默认是2K字节。Goroutine调度的切换也不在操作系统的内部完成，代价很低。所以一个Go程序可以创建成千上万个并发的Goroutine，而把这些Goroutine按照一定算法放到cpu上执行的程序，就成了Goroutine调度器。 我在前面的文章MI">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a22b3af8462e41f8adb601eb34c22bb6~tplv-k3u1fbpfcp-watermark.awebp">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/10436675-a29a641d8a384787.png?imageMogr2/auto-orient/strip|imageView2/2/w/400/format/webp">
 <meta property="article:published_time" content="2021-12-17T08:44:45.000Z">
-<meta property="article:modified_time" content="2026-05-30T14:40:43.122Z">
+<meta property="article:modified_time" content="2026-05-30T14:58:20.008Z">
 <meta property="article:author" content="John Doe">
-<meta property="article:tag" content="Go runtime">
 <meta property="article:tag" content="Goroutine">
+<meta property="article:tag" content="Go runtime">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a22b3af8462e41f8adb601eb34c22bb6~tplv-k3u1fbpfcp-watermark.awebp">
   
@@ -201,7 +201,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      6.6k 字
+      7.6k 字
     </span>
   
 
@@ -210,7 +210,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      55 分钟
+      64 分钟
     </span>
   
 
@@ -243,7 +243,7 @@
             
             <div class="markdown-body">
               <p>Goroutine是由Go运行时管理的轻量级线程（协程）。Goroutine和操作系统线程相比，Goroutine的资源占用和使用代价非常小，大小默认是2K字节。Goroutine调度的切换也不在操作系统的内部完成，代价很低。所以一个Go程序可以创建成千上万个并发的Goroutine，而把这些Goroutine按照一定算法放到cpu上执行的程序，就成了Goroutine调度器。</p>
-<p>我在前面的文章<a target="_blank" rel="noopener" href="https://databrains.cn/2022/01/10/xv6-%E5%AE%9E%E9%AA%8C%E5%8F%82%E8%80%83%E4%B9%A6%E8%A7%A3%E6%9E%90/">xv6-实验参考书解析</a>中讲过进程/线程的切换方式，当切换的时候要从用户态-&gt;内核态-&gt;另一个进程/线程的内核态-&gt;另一个进程的用户态，但是在Goroutine中不是这样。通过GMP，可以使得开销尽量小。</p>
+<p>我在前面的文章<a target="_blank" rel="noopener" href="https://databrains.cn/2022/01/10/MIT-6-S081-xv6-Book-Notes/">MIT 6.S081: xv6 实验参考书解析</a>中讲过进程/线程的切换方式，当切换的时候要从用户态-&gt;内核态-&gt;另一个进程/线程的内核态-&gt;另一个进程的用户态，但是在Goroutine中不是这样。通过GMP，可以使得开销尽量小。</p>
 <h4 id="Coroutine"><a href="#Coroutine" class="headerlink" title="Coroutine"></a>Coroutine</h4><p>先来说说协程（Coroutine）：</p>
 <blockquote>
 <p>主流的操作系统都是采用一对一的线程模型，用户态和内核态线程具有一对一关系，可以认为用户态线程的执行完全受到操作系统调度器的管理。但是随着应用程序越来越复杂，与操作系统调度器相比，应用程序对线程的语义和执行状态更加了解，因此可能做出更优的调度策略。在这个背景下，操作系统开始提供更多对用户态线程，即协程的支持。</p>
@@ -335,7 +335,8 @@
 <p>赋值操作是原子操作。所以在读到copyTail之后，从head到copyTail之间一定是有数据可以读的，不会出现数据没有写入就进行读操作的情况。同样的，读操作完成之后，才会修改head的数值；而在写操作之前会读取head的值判断是否有空间可以用来写数据。</p>
 <p>所以，这时候tail到head - 1之间一定是有空间可以写数据的，而不会出现一个位置的数据还没有读出就被写操作覆盖的情况。这样就保证了RingBuffer的线程安全性。（参考博文<a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1561232">无锁ring buffer</a>）</p>
 <p>下面是我自己实现的无锁队列ring buffer，大伙看个热闹：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs go"><br></code></pre></td></tr></table></figure>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> RingBuffer <span class="hljs-keyword">struct</span> &#123;<br>	data []<span class="hljs-keyword">int</span><br>	head <span class="hljs-keyword">uint64</span><br>	tail <span class="hljs-keyword">uint64</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(r *RingBuffer)</span> <span class="hljs-title">Push</span><span class="hljs-params">(v <span class="hljs-keyword">int</span>)</span> <span class="hljs-title">bool</span></span> &#123;<br>	tail := atomic.LoadUint64(&amp;r.tail)<br>	next := (tail + <span class="hljs-number">1</span>) % <span class="hljs-keyword">uint64</span>(<span class="hljs-built_in">len</span>(r.data))<br>	<span class="hljs-keyword">if</span> next == atomic.LoadUint64(&amp;r.head) &#123;<br>		<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span><br>	&#125;<br>	r.data[tail] = v<br>	atomic.StoreUint64(&amp;r.tail, next)<br>	<span class="hljs-keyword">return</span> <span class="hljs-literal">true</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(r *RingBuffer)</span> <span class="hljs-title">Pop</span><span class="hljs-params">()</span> <span class="hljs-params">(<span class="hljs-keyword">int</span>, <span class="hljs-keyword">bool</span>)</span></span> &#123;<br>	head := atomic.LoadUint64(&amp;r.head)<br>	<span class="hljs-keyword">if</span> head == atomic.LoadUint64(&amp;r.tail) &#123;<br>		<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>, <span class="hljs-literal">false</span><br>	&#125;<br>	v := r.data[head]<br>	atomic.StoreUint64(&amp;r.head, (head+<span class="hljs-number">1</span>)%<span class="hljs-keyword">uint64</span>(<span class="hljs-built_in">len</span>(r.data)))<br>	<span class="hljs-keyword">return</span> v, <span class="hljs-literal">true</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这个例子只适合单生产者、单消费者模型。只要扩展到多生产者或多消费者，就需要额外的 CAS、序号槽位或锁来处理竞争，否则多个 goroutine 可能同时写同一个位置。</p>
 <h6 id="分段锁"><a href="#分段锁" class="headerlink" title="分段锁"></a>分段锁</h6><p>分段锁提高channel效率思想的思想就是<strong>使用带有协调机制的独占锁，这些机制允许更高的并发性</strong>。</p>
 <p>用白话说就是给buffer中的不同数据段上不同的锁，那么当多个Goroutine访问不同数据段的数据时，就不会存在锁竞争，从而可以有效的提高并发访问效率。</p>
 <p>但是这只是ConcurrentHashMap所使用的锁分段技术，我查了很多遍也没有在网上看到有人用这个思路优化channel，这也许只是我个人的脑洞。</p>
@@ -386,7 +387,8 @@
 <p>当一个Go程序启动之后会创建一个编号为0的主线程M0，M0负责初始化操作和启动第一个G，之后M0就和其他的M一样了。</p>
 <p>G0是每次启动一个M都会第一个创建的goroutine,G0是仅负责调度的G，其不指向任何可执行的函数，每个M都会有一个自己的G0，在调度或系统调用时会使用G0的栈空间，全局变量中的G0是M0的G0。</p>
 <p>真正决定并行度的是P的数量，我们看如下例子：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs go"><br></code></pre></td></tr></table></figure>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> main<br><br><span class="hljs-keyword">import</span> (<br>	<span class="hljs-string">&quot;fmt&quot;</span><br>	<span class="hljs-string">&quot;runtime&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>	fmt.Println(runtime.NumCPU())<br>	old := runtime.GOMAXPROCS(<span class="hljs-number">2</span>)<br>	fmt.Println(<span class="hljs-string">&quot;old GOMAXPROCS:&quot;</span>, old)<br>	fmt.Println(<span class="hljs-string">&quot;new GOMAXPROCS:&quot;</span>, runtime.GOMAXPROCS(<span class="hljs-number">0</span>))<br>&#125;<br></code></pre></td></tr></table></figure>
+<p><code>GOMAXPROCS</code> 控制同时执行 Go 代码的 P 的数量。goroutine 可以创建很多，但同一时刻真正并行运行 Go 代码的数量不会超过 P 的数量。I/O 阻塞、系统调用和 runtime 调度会让 M 的数量变化，但并行度的核心旋钮仍然是 P。</p>
 <p>Go语言中实现了两种并发模型，一种是依赖于共享内存实现的线程-锁并发模型，另一种则是CSP。作为Go并发核心编程核心的CSP理论的核心概念——同步通信。</p>
 <p>开发go程序的时候，时常需要使用goroutine并发处理任务，有时候这些goroutine是相互独立的，而有的时候，多个goroutine之间常常是需要同步与通信的，值得注意的是，有时候主goroutine需要控制它所属的子goroutine。</p>
 
@@ -406,9 +408,9 @@
                   <div class="post-meta">
                     <i class="iconfont icon-tags"></i>
                     
-                      <a class="hover-with-bg" href="/tags/Go-runtime/">Go runtime</a>
-                    
                       <a class="hover-with-bg" href="/tags/Goroutine/">Goroutine</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Go-runtime/">Go runtime</a>
                     
                   </div>
                 
