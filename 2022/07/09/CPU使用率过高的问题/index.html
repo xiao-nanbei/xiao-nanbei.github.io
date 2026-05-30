@@ -16,16 +16,18 @@
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
   
-    <meta name="description" content="上次某公司面试官问了我一个实际生产问题，CPU使用率达到100%怎么办，如何排查和如何解决。 $CPU使用率&#x3D;1-空闲时间&#x2F;总CPU时间$，我们将空闲时间称为idle，而$CPU时间&#x3D;用户态CPU时间+低优先级CPU时间+内核态CPU时间+等待I&#x2F;O的CPU时间+处理硬中断的CPU时间+处理软中断的CPU时间+steal时间$。 首先，我们可以使用top命令获取CPU和内存的使用情况，定位到CPU">
+    <meta name="description" content="上次某公司面试官问了我一个实际生产问题：CPU 使用率达到 100% 怎么办，如何排查和解决。 $CPU使用率&#x3D;1-空闲时间&#x2F;总CPU时间$。其中空闲时间通常记为 idle，而总 CPU 时间由用户态时间、低优先级用户态时间、内核态时间、等待 I&#x2F;O 时间、硬中断时间、软中断时间和 steal 时间等部分组成。 排查时不要只看一个总百分比，应该先判断 CPU 时间主要花在什么地方：us 高通常说明">
 <meta property="og:type" content="article">
 <meta property="og:title" content="CPU使用率过高的问题">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2022/07/09/CPU%E4%BD%BF%E7%94%A8%E7%8E%87%E8%BF%87%E9%AB%98%E7%9A%84%E9%97%AE%E9%A2%98/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="上次某公司面试官问了我一个实际生产问题，CPU使用率达到100%怎么办，如何排查和如何解决。 $CPU使用率&#x3D;1-空闲时间&#x2F;总CPU时间$，我们将空闲时间称为idle，而$CPU时间&#x3D;用户态CPU时间+低优先级CPU时间+内核态CPU时间+等待I&#x2F;O的CPU时间+处理硬中断的CPU时间+处理软中断的CPU时间+steal时间$。 首先，我们可以使用top命令获取CPU和内存的使用情况，定位到CPU">
+<meta property="og:description" content="上次某公司面试官问了我一个实际生产问题：CPU 使用率达到 100% 怎么办，如何排查和解决。 $CPU使用率&#x3D;1-空闲时间&#x2F;总CPU时间$。其中空闲时间通常记为 idle，而总 CPU 时间由用户态时间、低优先级用户态时间、内核态时间、等待 I&#x2F;O 时间、硬中断时间、软中断时间和 steal 时间等部分组成。 排查时不要只看一个总百分比，应该先判断 CPU 时间主要花在什么地方：us 高通常说明">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-07-09T09:58:24.000Z">
-<meta property="article:modified_time" content="2022-07-09T11:05:00.115Z">
+<meta property="article:modified_time" content="2026-05-30T14:23:10.590Z">
 <meta property="article:author" content="John Doe">
+<meta property="article:tag" content="性能排查">
+<meta property="article:tag" content="Linux">
 <meta name="twitter:card" content="summary_large_image">
   
   
@@ -196,7 +198,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      230 字
+      825 字
     </span>
   
 
@@ -205,7 +207,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      2 分钟
+      7 分钟
     </span>
   
 
@@ -237,15 +239,33 @@
             <h1 style="display: none">CPU使用率过高的问题</h1>
             
             <div class="markdown-body">
-              <p>上次某公司面试官问了我一个实际生产问题，CPU使用率达到100%怎么办，如何排查和如何解决。</p>
-<p>$CPU使用率=1-空闲时间/总CPU时间$，我们将空闲时间称为idle，而$CPU时间=用户态CPU时间+低优先级CPU时间+内核态CPU时间+等待I/O的CPU时间+处理硬中断的CPU时间+处理软中断的CPU时间+steal时间$。</p>
-<p>首先，我们可以使用<code>top</code>命令获取CPU和内存的使用情况，定位到CPU占用率过高的进程，然后通过<code>pidstat</code>获取每个进程的详细情况。</p>
+              <p>上次某公司面试官问了我一个实际生产问题：CPU 使用率达到 100% 怎么办，如何排查和解决。</p>
+<p>$CPU使用率=1-空闲时间/总CPU时间$。其中空闲时间通常记为 <code>idle</code>，而总 CPU 时间由用户态时间、低优先级用户态时间、内核态时间、等待 I/O 时间、硬中断时间、软中断时间和 <code>steal</code> 时间等部分组成。</p>
+<p>排查时不要只看一个总百分比，应该先判断 CPU 时间主要花在什么地方：<code>us</code> 高通常说明用户态计算密集；<code>sy</code> 高说明内核态开销大，可能是系统调用、锁竞争或内核网络栈消耗；<code>wa</code> 高说明 CPU 在等 I/O；<code>hi</code>、<code>si</code> 高则要关注硬中断或软中断，例如网卡包量过大；<code>st</code> 高多见于虚拟化环境，说明宿主机正在抢占这台虚拟机的 CPU。</p>
+<p>一个比较稳的排查顺序如下：</p>
+<ol>
+<li>用 <code>top</code> 或 <code>htop</code> 看整体 CPU、负载、运行队列长度，并定位占用 CPU 最高的进程。</li>
+<li>用 <code>pidstat -u -p &lt;pid&gt; 1</code> 观察目标进程的用户态和内核态 CPU 比例。如果是多线程程序，再用 <code>top -H -p &lt;pid&gt;</code> 找到具体线程。</li>
+<li>将线程 ID 转成十六进制后，用 <code>jstack</code>、<code>pstack</code>、<code>gdb</code> 或语言运行时自带的 profile 工具定位热点调用栈。Go 程序优先看 <code>pprof</code>，Java 程序优先看线程栈和 async-profiler。</li>
+<li>如果 <code>sy</code> 或 <code>si</code> 异常高，可以用 <code>strace -p &lt;pid&gt; -c</code> 看系统调用分布，用 <code>perf top</code> 或 <code>perf record</code> 看内核热点。</li>
+<li>如果 <code>wa</code> 高，继续用 <code>iostat -x 1</code>、<code>iotop</code>、<code>pidstat -d</code> 判断是不是磁盘 I/O 拖慢；如果网络相关，再看 <code>sar -n DEV,TCP,ETCP 1</code>、<code>ss -s</code> 和网卡中断分布。</li>
+</ol>
+<p>解决方案取决于定位结果。纯计算热点要优化算法、减少无意义轮询，或者限制并发度；锁竞争要缩小临界区或降低共享状态；系统调用过多要做批量化、缓存或复用连接；I/O 等待高要优化磁盘、网络或下游服务。生产环境里最忌讳的是看到 100% 就直接重启，重启可能短暂缓解问题，但会丢掉最关键的现场信息。</p>
 
             </div>
             <hr>
             <div>
               <div class="post-metas mb-3">
                 
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%80%A7%E8%83%BD%E6%8E%92%E6%9F%A5/">性能排查</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Linux/">Linux</a>
+                    
+                  </div>
                 
               </div>
               
@@ -260,9 +280,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2022/12/12/MIT-s-081-Lab1-Xv6-and-Unix-utilities/">
+                      <a href="/2022/12/12/MIT-6-S081-Lab-1-Xv6-and-Unix-Utilities/">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">MIT_6.s081_Lab1:Xv6 and Unix utilities</span>
+                        <span class="hidden-mobile">MIT 6.S081 Lab 1: Xv6 and Unix utilities</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     

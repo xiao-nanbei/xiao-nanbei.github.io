@@ -24,7 +24,7 @@
 <meta property="og:description" content="Go map底层实现Go语言的map的底层实现基于Hash散列，Hash散列是一种著名的广义上的算法，它能将任意长度的数据映射到有限的值域当中。在实际工程中输入数据范围是无限的，而输出值域范围是有限的，因此必然存在不同的输入数据经过映射后得到相同的输出值，这种现象称为hash冲突，go底层通过链表解决hash冲突。值得注意的是：&#x3D;&#x3D;Java1.8中使用平衡树来优化局部链表过长的性能问题。&#x3D;&#x3D; 使用">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-03-20T07:05:46.000Z">
-<meta property="article:modified_time" content="2022-04-03T12:01:42.170Z">
+<meta property="article:modified_time" content="2026-05-30T14:23:52.427Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary_large_image">
   
@@ -205,7 +205,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      96 分钟
+      95 分钟
     </span>
   
 
@@ -273,7 +273,7 @@
 <p>可以看到，这两个函数跟我们的堆排序很像，还是讲一下，</p>
 <h4 id="container-ring"><a href="#container-ring" class="headerlink" title="container/ring"></a><code>container/ring</code></h4><blockquote>
 <p>环的结构有点特殊，环的尾部就是头部，所以每个元素实际上就可以代表自身的这个环。 它不需要像 list 一样保持 list 和 element 两个结构，只需要保持一个结构就行。</p>
-<p>——[1. 3.3 container — 容器数据类型：heap、list 和 ring][<a target="_blank" rel="noopener" href="https://books.studygolang.com/The-Golang-Standard-Library-by-Example/chapter03/03.3.html">https://books.studygolang.com/The-Golang-Standard-Library-by-Example/chapter03/03.3.html</a>]</p>
+<p>——<a target="_blank" rel="noopener" href="https://books.studygolang.com/The-Golang-Standard-Library-by-Example/chapter03/03.3.html">1. 3.3 container — 容器数据类型：heap、list 和 ring</a></p>
 </blockquote>
 <p>我觉得这句话总结得很好，</p>
 <h3 id="reflect"><a href="#reflect" class="headerlink" title="reflect"></a><code>reflect</code></h3><h4 id="reflect-DeepEqual"><a href="#reflect-DeepEqual" class="headerlink" title="reflect.DeepEqual"></a><code>reflect.DeepEqual</code></h4><p><code>DeepEqual</code>函数用来判断两个值是否深度一致。这和<code>==</code>有什么不同吗？我们来看看下面例子：</p>
@@ -304,7 +304,7 @@
 <p>当然，我们还是要从它的源码进行分析:</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">DeepEqual</span><span class="hljs-params">(x, y <span class="hljs-keyword">interface</span>&#123;&#125;)</span> <span class="hljs-title">bool</span></span> &#123;<br>	<span class="hljs-keyword">if</span> x == <span class="hljs-literal">nil</span> || y == <span class="hljs-literal">nil</span> &#123;<br>		<span class="hljs-keyword">return</span> x == y<br>	&#125;<br>	v1 := ValueOf(x)<br>	v2 := ValueOf(y)<br>	<span class="hljs-keyword">if</span> v1.Type() != v2.Type() &#123;<br>		<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span><br>	&#125;<br>	<span class="hljs-keyword">return</span> deepValueEqual(v1, v2, <span class="hljs-built_in">make</span>(<span class="hljs-keyword">map</span>[visit]<span class="hljs-keyword">bool</span>))<br>&#125;<br><br></code></pre></td></tr></table></figure>
 <p>我们可以看到，如果<code>x==nil</code>或者<code>y==nil</code>，就比较二者的指针，否则比较二者的类型，如果类型相同，那么我们就用<code>deepValueEqual</code>函数进行比较。我们看到这个函数：</p>
-<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs csharp">```<br><br><span class="hljs-meta">### `unsafe`</span><br><br>&gt;**Unsafe code**是一种绕过go类型安全和内存安全检查的Go代码。大多数情况，<span class="hljs-keyword">unsafe</span> code是和指针相关的。但是要记住使用<span class="hljs-keyword">unsafe</span> code有可能会损害你的程序，所以，如果你不完全确定是否需要用到<span class="hljs-keyword">unsafe</span> code就不要使用它。<br>&gt;<br>&gt;[关于go中的<span class="hljs-keyword">unsafe</span>包][https:<span class="hljs-comment">//studygolang.com/articles/22265]</span><br><br>Golang里面没有`warnning`这个说法啊，相比于C/C++，Golang里面一些危险的操作都是由`<span class="hljs-keyword">unsafe</span>`包提供。<br><br><span class="hljs-meta">#### `unsafe.Pointer`</span><br><br>我以前有一个疑问：既然指针代表的是地址，那为什么还要分类呢？原来，针区分类型是为了在通过指针访问它所指向的存储空间的时候，能够正确访问，如果通过一个<span class="hljs-built_in">char</span>类型的指针操作一个<span class="hljs-built_in">int</span>的变量，如果值的二进制数据超过<span class="hljs-number">1</span>字节，那么就造成数据错误。<br><br>我们先看如下例子：<br><br>```<span class="hljs-function">go</span><br><span class="hljs-function">func <span class="hljs-title">main</span>(<span class="hljs-params"></span>)</span> &#123;<br>	<span class="hljs-keyword">var</span> <span class="hljs-keyword">value</span> int64 = <span class="hljs-number">5</span><br>	<span class="hljs-keyword">var</span> p1 = &amp;<span class="hljs-keyword">value</span><br>	<span class="hljs-keyword">var</span> p2 = (*int32)(<span class="hljs-keyword">unsafe</span>.Pointer(p1))<br>	fmt.Println(p1)<br>	fmt.Println(p2)<br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs csharp">```<br><br><span class="hljs-meta">### `unsafe`</span><br><br>&gt;**Unsafe code**是一种绕过go类型安全和内存安全检查的Go代码。大多数情况，<span class="hljs-keyword">unsafe</span> code是和指针相关的。但是要记住使用<span class="hljs-keyword">unsafe</span> code有可能会损害你的程序，所以，如果你不完全确定是否需要用到<span class="hljs-keyword">unsafe</span> code就不要使用它。<br>&gt;<br>&gt;[关于 Go 中的 <span class="hljs-keyword">unsafe</span> 包](https:<span class="hljs-comment">//studygolang.com/articles/22265)</span><br><br>Go 里面没有 `warning` 这个说法。相比于 C/C++，Go 中一些危险的操作由 `<span class="hljs-keyword">unsafe</span>` 包提供。<br><br><span class="hljs-meta">#### `unsafe.Pointer`</span><br><br>我以前有一个疑问：既然指针代表的是地址，那为什么还要分类呢？原来，针区分类型是为了在通过指针访问它所指向的存储空间的时候，能够正确访问，如果通过一个<span class="hljs-built_in">char</span>类型的指针操作一个<span class="hljs-built_in">int</span>的变量，如果值的二进制数据超过<span class="hljs-number">1</span>字节，那么就造成数据错误。<br><br>我们先看如下例子：<br><br>```<span class="hljs-function">go</span><br><span class="hljs-function">func <span class="hljs-title">main</span>(<span class="hljs-params"></span>)</span> &#123;<br>	<span class="hljs-keyword">var</span> <span class="hljs-keyword">value</span> int64 = <span class="hljs-number">5</span><br>	<span class="hljs-keyword">var</span> p1 = &amp;<span class="hljs-keyword">value</span><br>	<span class="hljs-keyword">var</span> p2 = (*int32)(<span class="hljs-keyword">unsafe</span>.Pointer(p1))<br>	fmt.Println(p1)<br>	fmt.Println(p2)<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>输出结果如下：</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-number">0xc00001e0d0</span><br><span class="hljs-number">0xc00001e0d0</span><br></code></pre></td></tr></table></figure>
 <p>可以发现这两个指针所指向的地址是一样的，这个方法能让你创造一个<code>int32</code>的<code>p2</code>指针去指向一个<code>int64</code>的<code>value</code>变量，而这个变量是使用<code>p1</code>指针去访问的。我们通过以下例子来说明：</p>
@@ -393,9 +393,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2022/04/03/Golang%E4%B8%8EIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/">
+                      <a href="/2022/04/03/Go-select-and-IO-multiplexing/">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Golang与IO多路复用</span>
+                        <span class="hidden-mobile">Go select 与 I/O 多路复用</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -403,8 +403,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2022/03/12/go-map%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">
-                        <span class="hidden-mobile">Go runtime</span>
+                      <a href="/2022/03/12/Go-runtime-panic-and-defer/">
+                        <span class="hidden-mobile">Go runtime: panic 与 defer</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
