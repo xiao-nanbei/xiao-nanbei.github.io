@@ -25,7 +25,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://img2020.cnblogs.com/blog/2002319/202101/2002319-20210104192210213-1712203988.png">
 <meta property="article:published_time" content="2023-02-21T08:04:00.000Z">
-<meta property="article:modified_time" content="2026-05-30T14:30:56.234Z">
+<meta property="article:modified_time" content="2026-06-06T01:15:10.558Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="MIT 6.S081 Lab">
 <meta name="twitter:card" content="summary_large_image">
@@ -271,7 +271,9 @@
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-built_in">memset</span>(mem, <span class="hljs-number">0</span>, PGSIZE);<br>mappages(p-&gt;pagetable, PGROUNDDOWN(va), PGSIZE, (uint64)mem, PTE_W|PTE_X|PTE_R|PTE_U)<br></code></pre></td></tr></table></figure>
 <p>这样就OK了。</p>
 <hr>
-<p>补充一个segmentation fault的知识：在xv6中使用的是页式存储，因此没有segmentation fault的概念，但是linux是段页式存储，因此有可能会出现segmentation fault的错误，所谓段错误就是指访问的内存超过了系统给这个程序的内存空间。比如说：尝试写一块属于操作系统的内存，或以错误的类型访问内存区域。段错误就是访问了不可访问的内存，这个内存要么是不存在的，要么是访问受限的。</p>
+<p>补充一个 <code>segmentation fault</code> 的知识：<code>SIGSEGV</code> 本质上是“进程访问了当前页表权限不允许的虚拟地址”，并不等价于“越过了某个段的边界”。</p>
+<p>在 xv6 中，如果用户态访问未映射页、访问超出 <code>p-&gt;sz</code> 的地址，或违反页权限（例如向只读页写入），内核同样会在 trap 中识别异常并杀死进程。Linux 里看到的 “Segmentation fault” 也是这类地址访问异常在用户态的表现，底层主要依赖页表和权限位检查。</p>
+<p>常见触发场景包括：空指针解引用、野指针、越界访问、向只读映射写入，或执行不可执行页面等。</p>
 <p>指针越界和SIGSEGV是最常出现的情况，</p>
 <hr>
 

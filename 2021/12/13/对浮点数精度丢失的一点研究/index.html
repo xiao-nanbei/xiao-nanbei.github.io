@@ -24,7 +24,7 @@
 <meta property="og:description" content="问题现象先看一个很常见的例子： 12345float f &#x3D; 0;for(int i&#x3D;0;i&lt;100;i++)&amp;#123;    f+&#x3D;0.1f;&amp;#125;printf(&quot;%f\n&quot;,f); 数学上 $0.1 \times 100 &#x3D; 10$，但这段代码可能输出 10.000002。这不是 C 语言算错了，而是 0.1f 本身无法被二进制浮点数精确表示，循环累加又把每一">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-12-13T10:33:09.000Z">
-<meta property="article:modified_time" content="2026-05-30T14:42:46.563Z">
+<meta property="article:modified_time" content="2026-06-06T01:14:57.087Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="浮点数">
 <meta name="twitter:card" content="summary_large_image">
@@ -197,7 +197,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      4.1k 字
+      3.7k 字
     </span>
   
 
@@ -206,7 +206,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      34 分钟
+      31 分钟
     </span>
   
 
@@ -241,17 +241,8 @@
               <h3 id="问题现象"><a href="#问题现象" class="headerlink" title="问题现象"></a>问题现象</h3><p>先看一个很常见的例子：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></div></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">float</span> f = <span class="hljs-number">0</span>;<br><span class="hljs-keyword">for</span>(<span class="hljs-keyword">int</span> i=<span class="hljs-number">0</span>;i&lt;<span class="hljs-number">100</span>;i++)&#123;<br>    f+=<span class="hljs-number">0.1f</span>;<br>&#125;<br><span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%f\n&quot;</span>,f);<br></code></pre></td></tr></table></figure>
 <p>数学上 $0.1 \times 100 = 10$，但这段代码可能输出 <code>10.000002</code>。这不是 C 语言算错了，而是 <code>0.1f</code> 本身无法被二进制浮点数精确表示，循环累加又把每一步舍入误差继续传播。</p>
-<blockquote>
-<p>图片说明：原图为《对浮点数精度丢失的一点研究》中“计算不准确”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>我们打印小数点后更多位数，能看得更清楚。<code>printf(&quot;%.20f\n&quot;,f);</code>，得到的结果如下：</p>
-<blockquote>
-<p>图片说明：原图为《对浮点数精度丢失的一点研究》中“计算不准确”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>我们通过gdb调试看看存储在内存中的数据是什么样子的：</p>
-<blockquote>
-<p>图片说明：原图为《对浮点数精度丢失的一点研究》中“计算不准确”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>我们将其转化为二进制是 <code>0100 0001 0010 0000 0000 0000 0000 0010</code>。</p>
 <p>将这个 IEEE 754 标准的二进制浮点数转化为十进制为：<code>10.000001907348633</code>。</p>
 <h3 id="IEEE-754-如何表示浮点数"><a href="#IEEE-754-如何表示浮点数" class="headerlink" title="IEEE 754 如何表示浮点数"></a>IEEE 754 如何表示浮点数</h3><p>以 <code>float32</code> 为例，一个浮点数由三部分组成：</p>
@@ -269,17 +260,8 @@
 <p>类似地，下面这段代码不是特例：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">float</span> f = <span class="hljs-number">0.1f</span>;<br><span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%.18f\n&quot;</span>,f);<br></code></pre></td></tr></table></figure>
 <p>上述代码中打印结果如下所示：</p>
-<blockquote>
-<p>图片说明：原图为《对浮点数精度丢失的一点研究》中“保存不准确”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>我们来看看内存中如何表示这个数据的：</p>
-<blockquote>
-<p>图片说明：原图为《对浮点数精度丢失的一点研究》中“保存不准确”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>将这个二进制数转化为十进制数为：</p>
-<blockquote>
-<p>图片说明：原图为《对浮点数精度丢失的一点研究》中“保存不准确”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>可以看到某些浮点数在写入内存的过程中就存在误差，这是二进制浮点表示的自然结果，和十进制中 $1/3$ 无法有限写成小数是同一类问题。</p>
 <h3 id="误差为什么会累积"><a href="#误差为什么会累积" class="headerlink" title="误差为什么会累积"></a>误差为什么会累积</h3><p>浮点运算的每一步通常都会经历“计算出更高精度中间结果，再舍入回目标格式”的过程。一次舍入误差可能很小，但循环累加、减去两个接近的数、不同数量级的数相加，都会放大误差影响。</p>
 <p>典型问题有三类：</p>

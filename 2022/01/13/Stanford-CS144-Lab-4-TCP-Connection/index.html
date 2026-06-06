@@ -25,7 +25,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cDovL2ltZy5ibG9nLmNzZG4ubmV0LzIwMTcwNjA2MDg0ODUxMjcy?x-oss-process=image/format,png">
 <meta property="article:published_time" content="2022-01-13T00:39:30.000Z">
-<meta property="article:modified_time" content="2026-05-30T14:56:53.418Z">
+<meta property="article:modified_time" content="2026-06-06T01:14:57.085Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="Stanford CS144 Lab">
 <meta name="twitter:card" content="summary_large_image">
@@ -199,7 +199,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      5k 字
+      4.9k 字
     </span>
   
 
@@ -208,7 +208,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      42 分钟
+      41 分钟
     </span>
   
 
@@ -296,9 +296,6 @@
 <figure class="highlight c++"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></div></td><td class="code"><pre><code class="hljs c++"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TCPConfig</span> &#123;</span><br>  <span class="hljs-keyword">public</span>:<br>    <span class="hljs-keyword">static</span> <span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">size_t</span> DEFAULT_CAPACITY = <span class="hljs-number">64000</span>;  <span class="hljs-comment">//!&lt; Default capacity</span><br>    <span class="hljs-keyword">static</span> <span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">size_t</span> MAX_PAYLOAD_SIZE = <span class="hljs-number">1000</span>;   <span class="hljs-comment">//!&lt; Conservative max payload size for real Internet</span><br>    <span class="hljs-keyword">static</span> <span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">uint16_t</span> TIMEOUT_DFLT = <span class="hljs-number">1000</span>;     <span class="hljs-comment">//!&lt; Default re-transmit timeout is 1 second</span><br>    <span class="hljs-keyword">static</span> <span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">unsigned</span> MAX_RETX_ATTEMPTS = <span class="hljs-number">8</span>;   <span class="hljs-comment">//!&lt; Maximum re-transmit attempts before giving up</span><br><br>    <span class="hljs-keyword">uint16_t</span> rt_timeout = TIMEOUT_DFLT;       <span class="hljs-comment">//!&lt; Initial value of the retransmission timeout, in milliseconds</span><br>    <span class="hljs-keyword">size_t</span> recv_capacity = DEFAULT_CAPACITY;  <span class="hljs-comment">//!&lt; Receive capacity, in bytes</span><br>    <span class="hljs-keyword">size_t</span> send_capacity = DEFAULT_CAPACITY;  <span class="hljs-comment">//!&lt; Sender capacity, in bytes</span><br>    std::optional&lt;WrappingInt32&gt; fixed_isn&#123;&#125;;<br>&#125;;<br></code></pre></td></tr></table></figure>
 <p>在<code>_receiver</code>等变量中通过<code>TCPConfig</code>默认大小。刚看到<code>TCPConnection</code>类时可能无从下手，我们先运行一下check程序，从第一个 failed 入手（没错，本懒狗是边做lab边写博客，面向tests编程）。</p>
 <p>我们可以看到第一个 failed 出现在第35个测试，也就是fsm_passive_close，这个测试检测的是有限状态机中的初始状态（？）我们在项目中找到指定位置，开始debug，发现是<code>void TCPConnection::connect()</code>方法的错误，当我们要建立连接的时候，我们想到的还是三次握手，如下图：</p>
-<blockquote>
-<p>图片说明：原图为《Stanford CS144 Lab 4: TCP connection》中“正文相关内容”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>（还是以客户端为例子）首先，我们要进行第一次握手，也就是客户端发送SYN报文，在TCPSender类中，我们实现了fill_window方法，里面包含了三次握手中第一次握手的过程。在TCPConnection中，有相关的建立连接的方法，即<code>void TCPConnection::connect()</code>方法，于是我们将sender中的握手的过程加入函数当中，如下所示：</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">TCPConnection::connect</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-comment">// send SYN</span><br>    _sender.<span class="hljs-built_in">fill_window</span>();<br>    <span class="hljs-built_in">real_send</span>();<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>这就是第一次握手时的场景，调用了fill_window()，在没有预设参数的情况下，fill_window会默认是第一次握手，从而设置对应的syn和seqno值。这样就完成了建立连接的第一步。为了使得发送报文可以模块化操作，实现real_send函数，real_send函数负责将_sender.segment_out队列中的报文拿出来，放入到 _segment_out队列中，代码如下所示：</p>

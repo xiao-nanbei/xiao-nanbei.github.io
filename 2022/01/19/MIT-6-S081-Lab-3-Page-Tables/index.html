@@ -27,7 +27,7 @@
 <meta property="og:image" content="https://pic1.zhimg.com/v2-3eaf43267f882245cc176d23274c1978_b.jpg">
 <meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/493f49ab5868db801f35592c0434adda.png">
 <meta property="article:published_time" content="2022-01-18T17:57:32.000Z">
-<meta property="article:modified_time" content="2026-05-30T14:30:56.234Z">
+<meta property="article:modified_time" content="2026-06-06T01:14:57.059Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="MIT 6.S081 Lab">
 <meta name="twitter:card" content="summary_large_image">
@@ -201,7 +201,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      6.1k 字
+      6k 字
     </span>
   
 
@@ -260,9 +260,6 @@
 <p>以xv6使用的RISC-V框架为例，使用三级页表。我们之前所说的VA中的27bit的index，实际上是由3个9bit的数字组成（L2，L1，L0）。对于L2，其被用来索引最高级的page directory，directory中的一个条目被称为PTE(Page Table Entry)是64bit，而一个page directory是4KB，这样的话，一个PT中就有512个PTE，也就是说我们的L2的9bit可以对应一个page directory的PTE，而PTE的组成部分是PPN+Flags，这个PPN指向中间级的page directory。同理，我们使用L1找到中间级page directory的PPN，在最低级的pagedirectory，我们可以得到对应于虚拟内存地址的物理内存地址。</p>
 <p>多级页表相较于一级页表，能大大减少pagetable的大小，优化空间。</p>
 <h5 id="x86页表的实现"><a href="#x86页表的实现" class="headerlink" title="x86页表的实现"></a>x86页表的实现</h5><p>x86页表在物理内存中像一棵两层的树，也就是两级页表。树的根是一个4096字节的页目录，其中包含1024个PTE的条目（每个条目占4字节），每个条目是指向一个页表页，每个页表页包含1024个32位PTE的数组（PTE就是虚拟地址到物理地址映射的条目），如下图所示：</p>
-<blockquote>
-<p>图片说明：原图为《MIT 6.S081 Lab 3: Page tables》中“x86页表的实现”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>如上图所示，一个虚拟地址有32位，10位Dir，10位table，10位offset。首先，要用10位Dir找到相应的页表页，然后使用10位table找到相应页表页中对应的PTE，然后将虚拟地址的前20位（即dir+table）变成PPN，这样就得到了32位PPN+Offset，即物理地址。</p>
 <h4 id="xv6对页表的使用"><a href="#xv6对页表的使用" class="headerlink" title="xv6对页表的使用"></a>xv6对页表的使用</h4><p><img src="https://img-blog.csdnimg.cn/img_convert/493f49ab5868db801f35592c0434adda.png" srcset="/img/loading.gif" lazyload alt=""></p>
 <p>这个是xv6中PTE的结构，其中，53-10位是PPN，余下几位是flag位，弄懂标志位的含义对本实验至关重要，第0位V表示该PTE是否可用，第1位R表示该PTE是否可读；第2位W表示该PTE是否可写；第3位X表示是否可执行的。</p>

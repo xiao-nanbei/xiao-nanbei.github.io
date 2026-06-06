@@ -34,7 +34,7 @@
 <meta property="og:image" content="https://img-blog.csdnimg.cn/20201012222504107.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
 <meta property="og:image" content="https://img-blog.csdnimg.cn/20201012222542426.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0luZ3N1aWZvbg==,size_16,color_FFFFFF,t_70#pic_center">
 <meta property="article:published_time" content="2022-02-14T20:08:37.000Z">
-<meta property="article:modified_time" content="2026-05-30T14:30:56.256Z">
+<meta property="article:modified_time" content="2026-06-06T01:14:57.034Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="CMU 15-445">
 <meta name="twitter:card" content="summary_large_image">
@@ -208,7 +208,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      31k 字
+      28k 字
     </span>
   
 
@@ -217,7 +217,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      258 分钟
+      233 分钟
     </span>
   
 
@@ -270,64 +270,32 @@
 <ul>
 <li>插入18，70，50，40</li>
 </ul>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“B树插入操作”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <ul>
 <li>插入22</li>
 </ul>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“B树插入操作”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>插入22时，发现这个节点的关键字已经大于4了，所以需要进行分裂，分裂的规则在上面已经讲了。分裂之后如下：</p>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“B树插入操作”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <ul>
 <li>接着插入23，25，39</li>
 </ul>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“B树插入操作”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <ul>
 <li>分裂之后如下：</li>
 </ul>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“B树插入操作”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <h6 id="B树删除操作"><a href="#B树删除操作" class="headerlink" title="B树删除操作"></a>B树删除操作</h6><p>B树的删除操作相对于一个插入操作是相对复杂一些的，如下面例子：</p>
 <ul>
 <li>现在有一个初始状态是下面这样的B树，然后进行删除操作：</li>
 </ul>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“B树删除操作”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <ul>
 <li>删除15，这种情况是删除叶子节点的元素，如果删除之后，节点数还是大于m/2，这种情况只要直接删除即可。</li>
 </ul>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“B树删除操作”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“B树删除操作”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <ul>
 <li>接着，我们把22删除，这种情况的规则，22是非叶子节点，对于非叶子节点的删除，我们需要用后继key（元素）覆盖要删除的key，然后在后续key所在的子支中删除该后继key。对于删除22，需要将后继元素24移动到被删除的22所在的节点。对于删除22,需要将后继元素24移到被删除的22所在的节点。</li>
 </ul>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“B树删除操作”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“B树删除操作”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <ul>
 <li>此时我们发现26所在的节点只有一个元素，小于2（m/2)个，这个节点不符合要求，这时候的规则就是向兄弟节点借元素，如下图所示：</li>
 </ul>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“B树删除操作”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <ul>
 <li>移动之后，跟兄弟节点合并</li>
 </ul>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“B树删除操作”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <h5 id="B-树"><a href="#B-树" class="headerlink" title="B+树"></a>B+树</h5><p>B+树其实和B树是非常相似的，我们可以看看相同点。</p>
 <ul>
 <li>根节点至少一个元素</li>
@@ -340,55 +308,30 @@
 <li>父节点存有右孩子第一个元素的索引。</li>
 </ul>
 <p>如下图所示：</p>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“不同点”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <h6 id="插入操作"><a href="#插入操作" class="headerlink" title="插入操作"></a>插入操作</h6><p>对于插入操作很简单，只需要记住一个技巧即可：当节点元素数量大于m-1的时候，按中间元素分裂成左右两部分，中间元素分裂到父节点当作索引存储，但是，本身中间元素还是分裂右边这一部分。</p>
 <p>下面以一颗5阶B+树的插入过程为例，5阶B+树的节点最少2个元素，最多4个元素。</p>
 <ul>
 <li>插入5，10，15，20</li>
 </ul>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“插入操作”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <ul>
 <li>插入25，此时元素数量大于4个了，分裂</li>
 </ul>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“插入操作”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <ul>
 <li>接着插入26，30，继续分裂</li>
 </ul>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“插入操作”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“插入操作”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <h6 id="删除操作"><a href="#删除操作" class="headerlink" title="删除操作"></a>删除操作</h6><p>对于删除操作是比B树简单一些的，因为叶子节点有指针的存在，向兄弟节点借元素时，不需要通过父节点了，而是可以通过兄弟节点移动即可（前提是兄弟节点的元素大于m/2），然后更新父节点的索引；如果兄弟节点的元素不大于m/2（兄弟节点也没有多余的元素），则将当前节点和兄弟节点合并，并且删除父节点中的key，下面我们看看具体的实现：</p>
 <ul>
 <li>初始状态</li>
 </ul>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“删除操作”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <ul>
 <li>删除10，删除后，不满足要求，发现左边兄弟节点有多余的元素，所以去借元素，最后，修改父节点索引。</li>
 </ul>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“删除操作”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <ul>
 <li>删除元素5，发现不满足要求，并且发现左右兄弟节点都没有多余的元素，所以，可以选择和兄弟节点合并，最后修改父节点索引。</li>
 </ul>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“删除操作”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <ul>
 <li>发现父节点索引也不满足条件，所以，需要做跟上面一步一样的操作</li>
 </ul>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“删除操作”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>B+树相对于B树有一些优势，如下：</p>
 <ul>
 <li>单一节点存储的元素更多，使得查询的IO次数更多，所以也就使得它更适合作为数据库MySQL的底层数据结构。</li>
@@ -454,9 +397,6 @@
 </table>
 </div>
 <p>在这里我们要实现一些简单的set和get函数，因为非常简单，所以就不列举出来了，但是有一个函数不太简单，那就是<code>GetMinSize</code>函数，正如我们在前面所说的，根节点可以拥有少于半数的元素，而且根节点也有可能是叶节点。我们知道，内部节点的array中的第一个键值对中的键是不可用的，正如下图所示：</p>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“B+TREE PARENT PAGE”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>我们发现键总是比值少一个。所以说，如果是根节点且根节点是内部节点，那么可以拥有最少2个数组项，其中第0项是无效key的那个；如果是根节点且根节点是叶子节点，那么最少有1个数组项。</p>
 <p>在这种情况下，要想实现就很难了，所以我一开始直接简单粗暴的用内部节点来编写这个函数，如下所示：</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">BPlusTreePage::GetMinSize</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123;<span class="hljs-keyword">return</span> max_size_/<span class="hljs-number">2</span>;&#125;<br></code></pre></td></tr></table></figure>
@@ -489,9 +429,6 @@
 <li><p>然后我们来实现分裂操作，也就是节点中元素数量大于Max_Size时，我们需要做的操作，如下图所示。其中，<code>recipient</code>是分裂出来的page，，分裂的时候移动一半键值对去<code>recipient</code>page，这个时候当前page的键值对数量是等于M的。</p>
 </li>
 </ul>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“B+TREE INTERNAL PAGE”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>  代码如下：</p>
   <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">INDEX_TEMPLATE_ARGUMENTS</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">B_PLUS_TREE_INTERNAL_PAGE_TYPE::MoveHalfTo</span><span class="hljs-params">(BPlusTreeInternalPage *recipient,BufferPoolManager *buffer_pool_manager)</span> </span>&#123;<br>	  <span class="hljs-comment">// 拷贝</span><br>  <span class="hljs-keyword">int</span> last_index = <span class="hljs-built_in">GetSize</span>() - <span class="hljs-number">1</span>;<br>  <span class="hljs-keyword">int</span> start = last_index / <span class="hljs-number">2</span> + <span class="hljs-number">1</span>;<br>  <span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>;<br>  <span class="hljs-keyword">int</span> j = start;<br>  <span class="hljs-keyword">while</span> (j &lt;= last_index) &#123;<br>    recipient-&gt;array_[i].first = array_[j].first;<br>    recipient-&gt;array_[i].second = array_[j].second;<br>    i++;<br>    j++;<br>  &#125;<br><br>  <span class="hljs-comment">// 维护size</span><br>  <span class="hljs-built_in">SetSize</span>(start);<br>  recipient-&gt;<span class="hljs-built_in">SetSize</span>(last_index - start + <span class="hljs-number">1</span>);<br><br>  <span class="hljs-comment">// 维护孩子节点的parent_page_id，根据valueat函数得到page_id，子节点的page_id，</span><br>  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; recipient-&gt;<span class="hljs-built_in">GetSize</span>(); i++) &#123;<br>    <span class="hljs-keyword">auto</span> page_id = recipient-&gt;<span class="hljs-built_in">ValueAt</span>(i);<br>    <span class="hljs-keyword">auto</span> page = buffer_pool_manager-&gt;<span class="hljs-built_in">FetchPage</span>(page_id);<br>    BPlusTreePage *bp = <span class="hljs-keyword">reinterpret_cast</span>&lt;BPlusTreePage *&gt;(page-&gt;<span class="hljs-built_in">GetData</span>());<br>    bp-&gt;<span class="hljs-built_in">SetParentPageId</span>(recipient-&gt;<span class="hljs-built_in">GetPageId</span>());<br>    buffer_pool_manager-&gt;<span class="hljs-built_in">UnpinPage</span>(page_id, <span class="hljs-literal">true</span>);<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 <ul>
@@ -525,30 +462,12 @@
 </li>
 </ul>
 <h5 id="debug日志（这里就是我debug的心得了，大家不必看，我只是写着凑字数"><a href="#debug日志（这里就是我debug的心得了，大家不必看，我只是写着凑字数" class="headerlink" title="debug日志（这里就是我debug的心得了，大家不必看，我只是写着凑字数"></a>debug日志（这里就是我debug的心得了，大家不必看，我只是写着凑字数</h5><p>注意：在此时我还没有完成构建二叉树的任务，这一部分的测试是根据而他人的代码调试的。</p>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“debug日志（这里就是我debug的心得了，大家不必看，我只是写着凑字数”一节的配图，原 alt 为“tree.dot.png”；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>大家看这种情况，说明我的max_size并没有设置好，我们来debug：</p>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“debug日志（这里就是我debug的心得了，大家不必看，我只是写着凑字数”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>这里错误就很明显了我们找到对应的位置，原来insert函数写错了,应该返回size但是我误写成返回0了，当我更改后变成这个这个样子：</p>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“debug日志（这里就是我debug的心得了，大家不必看，我只是写着凑字数”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>那么在这里为什么会有两个5呢，被insert了两次？其实这里是test文件中的测试方式，测试插入相同的元素会不会有变化。那么如果我们不准插入相同的key，能不能解决这个问题呢？（这其实是后面生成树的时候的函数中的错误，但是我们还是在leafpage的insert中进行一个判断，更改代码后如下所示：</p>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“debug日志（这里就是我debug的心得了，大家不必看，我只是写着凑字数”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>这个时候我们发现已经基本正确了，但是最后一个叶子节点的指向有问题，所以我们还要debug。</p>
 <p>当我看了网上人家的代码后，我发现错误是<code>MoveHalfTo</code>函数，在这个函数中要求我们更新<code>recipient</code>页面的nextpage，当我按照提示设置<code>nextpaage</code>之后却发现出现了上述情况，这到底是哪里错了我暂且蒙古。删除相关语句后如下所示。</p>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“debug日志（这里就是我debug的心得了，大家不必看，我只是写着凑字数”一节的配图，原 alt 为“tree.dot.png”；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>当我自己完成了整个<code>b_plus_tree</code>的函数之后，我再次进行测试，发现出现如下错误：</p>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“debug日志（这里就是我debug的心得了，大家不必看，我只是写着凑字数”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>这个错误也是相当离谱的，说明我们设置的min_size没有成功而且只发生在leaf_page，但是我们之前的测试是正确的，也就是说错误应该是在<code>b_plus_tree</code>的函数里面，如果我们这个错误不解决，那么后面的<code>coalesce</code>函数肯定会出错。但先不管了，我们先完成后面的函数。</p>
 <h5 id="TASK-2-A-B-TREE-DATA-STRUCTURE-INSERTION-amp-POINT-SEARCH"><a href="#TASK-2-A-B-TREE-DATA-STRUCTURE-INSERTION-amp-POINT-SEARCH" class="headerlink" title="TASK #2.A - B+TREE DATA STRUCTURE (INSERTION &amp; POINT SEARCH)"></a>TASK #2.A - B+TREE DATA STRUCTURE (INSERTION &amp; POINT SEARCH)</h5><p>在这个任务中我们要实现<code>b_plus_tree.cpp</code>中的函数，才能完成一个完整的b+树结构。（到这里就开始折磨了</p>
 <p>在这里补充一下RID的结构，</p>
@@ -570,10 +489,6 @@
 <li><p>我们的<code>Split</code>函数和<code>InsertIntoParent</code>函数是分开的，我们用下面两幅图来解释这个过程：</p>
 </li>
 </ul>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“TASK #2.A - B+TREE DATA STRUCTURE (INSERTION &amp; POINT SEARCH)”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“TASK #2.A - B+TREE DATA STRUCTURE (INSERTION &amp; POINT SEARCH)”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>  上面这两幅图解释了<code>split</code>和<code>insertintoparent</code>这两个过程。</p>
 <p>  在这里，如果说old_node是根节点，那么整棵树直接升高一层，我们创建一个新节点R作为根节点，其关键字为key，左右孩子分别为old_node和new_node，如上图所示。</p>
   <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">if</span> (old_node-&gt;<span class="hljs-built_in">IsRootPage</span>()) &#123;  <span class="hljs-comment">// old node为根结点</span><br>   <span class="hljs-keyword">page_id_t</span> new_page_id = INVALID_PAGE_ID;<br>   <span class="hljs-comment">//拿一个新的页面到buffer pool，最为新的根节点写入</span><br>   Page *new_page = buffer_pool_manager_-&gt;<span class="hljs-built_in">NewPage</span>(&amp;new_page_id);<br>   root_page_id_ = new_page_id;<br><span class="hljs-comment">// 注意初始化parent page id和max_size</span><br>   InternalPage *new_root_node = <span class="hljs-keyword">reinterpret_cast</span>&lt;InternalPage *&gt;(new_page-&gt;<span class="hljs-built_in">GetData</span>());<br>   new_root_node-&gt;<span class="hljs-built_in">Init</span>(new_page_id, INVALID_PAGE_ID, internal_max_size_);  <br>   <span class="hljs-comment">// 修改新的根结点的孩子指针，即array[0].second指向old_node，array[1].second指向new_node；对于array[1].first则赋值为key</span><br>   new_root_node-&gt;<span class="hljs-built_in">PopulateNewRoot</span>(old_node-&gt;<span class="hljs-built_in">GetPageId</span>(), key, new_node-&gt;<span class="hljs-built_in">GetPageId</span>());<br>   <span class="hljs-comment">// 修改old_node和new_node的父指针</span><br>   old_node-&gt;<span class="hljs-built_in">SetParentPageId</span>(new_page_id);<br>   new_node-&gt;<span class="hljs-built_in">SetParentPageId</span>(new_page_id);<br><span class="hljs-comment">// dirty置为true</span><br>   buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(new_page-&gt;<span class="hljs-built_in">GetPageId</span>(), <span class="hljs-literal">true</span>);  <br>  <br>   <span class="hljs-built_in">UpdateRootPageId</span>(<span class="hljs-number">0</span>); <br>   <span class="hljs-keyword">return</span>; <br> &#125;<br></code></pre></td></tr></table></figure>
@@ -627,9 +542,6 @@
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">if</span> (old_root_node-&gt;<span class="hljs-built_in">IsLeafPage</span>() &amp;&amp; old_root_node-&gt;<span class="hljs-built_in">GetSize</span>() == <span class="hljs-number">0</span>) &#123;<br>    root_page_id_ = INVALID_PAGE_ID;<br>    <span class="hljs-built_in">UpdateRootPageId</span>(<span class="hljs-literal">false</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>  &#125;<br>  <span class="hljs-keyword">if</span> (!old_root_node-&gt;<span class="hljs-built_in">IsLeafPage</span>() &amp;&amp; old_root_node-&gt;<span class="hljs-built_in">GetSize</span>() == <span class="hljs-number">1</span>) &#123;<br>    <span class="hljs-keyword">auto</span> internal_page = <span class="hljs-keyword">reinterpret_cast</span>&lt;InternalPage *&gt;(old_root_node);<br>    <span class="hljs-keyword">auto</span> new_root_id = internal_page-&gt;<span class="hljs-built_in">RemoveAndReturnOnlyChild</span>();<br>    <span class="hljs-keyword">auto</span> new_root_page = buffer_pool_manager_-&gt;<span class="hljs-built_in">FetchPage</span>(new_root_id);<br>    <span class="hljs-keyword">auto</span> new_root_node = <span class="hljs-keyword">reinterpret_cast</span>&lt;BPlusTreePage *&gt;(new_root_page);<br>    new_root_node-&gt;<span class="hljs-built_in">SetParentPageId</span>(new_root_id);<br>    root_page_id_ = new_root_id;<br>    buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(new_root_node-&gt;<span class="hljs-built_in">GetPageId</span>(), <span class="hljs-literal">true</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>  &#125;<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br></code></pre></td></tr></table></figure>
 </li>
 </ul>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“TASK #2.B - B+TREE DATA STRUCTURE (DELETION)”一节的配图，原 alt 为“image.png”；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>​            结果如上图所示，我们的输入文件中只有一个元素1，当我们删除掉这个元素之后，我们再生成dot文件，就会出现生成文件为空的提示。</p>
 <h5 id="debug日志"><a href="#debug日志" class="headerlink" title="debug日志"></a>debug日志</h5><p>当我们进行<code>b_plus_tree_leaf_page_test</code>测试时，出现了如下错误：</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c++">#<span class="hljs-number">0</span> <span class="hljs-number">0x7f4598902c1d</span> in bustub::BPlusTreeLeafPage&lt;bustub::GenericKey&lt;<span class="hljs-number">8ul</span>&gt;, bustub::RID, bustub::GenericComparator&lt;<span class="hljs-number">8ul</span>&gt; &gt;::<span class="hljs-built_in">Lookup</span>(bustub::GenericKey&lt;<span class="hljs-number">8ul</span>&gt; <span class="hljs-keyword">const</span>&amp;, bustub::RID*, bustub::GenericComparator&lt;<span class="hljs-number">8ul</span>&gt; <span class="hljs-keyword">const</span>&amp;) <span class="hljs-keyword">const</span> /home/databrains/CLionProjects/bustub-master/src/storage/page/b_plus_tree_leaf_page.cpp:<span class="hljs-number">158</span><br></code></pre></td></tr></table></figure>
@@ -640,22 +552,10 @@
 <p>我们进行以下测试，其中测试文件为1,2,3,4,5,6：</p>
 <figure class="highlight node-repl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs node-repl">#./test/b_plus_tree_print_test<br><span class="hljs-meta">&gt;</span> <span class="javascript"><span class="hljs-number">3</span> <span class="hljs-number">3</span></span><br><span class="hljs-meta">&gt;</span> <span class="javascript">f input.txt</span><br><span class="hljs-meta">&gt;</span> <span class="javascript">d <span class="hljs-number">4</span></span><br><span class="hljs-meta">&gt;</span> <span class="javascript">g tree.dot</span><br><span class="hljs-meta">&gt;</span> <span class="javascript">q</span><br></code></pre></td></tr></table></figure>
 <p>得到如下结果：</p>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“debug日志”一节的配图，原 alt 为“tree.dot.png”；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>我们发现有两个错误，第一个错误是叶子节点的<code>min_size</code>，第二个错误是没有完全删除掉page，我们先来解决第二个错误：</p>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“debug日志”一节的配图，原 alt 为“image.png”；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>在这里<code>minsize</code>依然是1，说明是<code>InsertIntoParent</code>或<code>Split</code>函数的错误，当我们的input文件只有一个数据1时，其输出如下：</p>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“debug日志”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>这也佐证了我们的说法。</p>
 <p>当输入为1，2，3，4，5，6的时候，DEBUG如下：</p>
-<blockquote>
-<p>图片说明：原图为《CMU 15-445 Project 2: B+Tree index》中“debug日志”一节的配图；旧图床已失效，保留文字说明以承接上下文。</p>
-</blockquote>
 <p>在<code>InsertIntoParent</code>函数中就已经变成这样了，经过多次排查，问题出在<code>Split</code>函数当中，妈的终于找到错误了，原来是<code>GetMinSize</code>写错了。。。</p>
 <p>我们现在看到第一个错误，在这里我认为应该删除没有数据的leaf和其父节点中相应的键值对，但其实不删除也没错。健壮的函数会保证其增删查改的正确性，只不过开销会更大。</p>
 <h5 id="TASK-3-INDEX-ITERATOR"><a href="#TASK-3-INDEX-ITERATOR" class="headerlink" title="TASK #3 - INDEX ITERATOR"></a>TASK #3 - INDEX ITERATOR</h5><p>我们都知道，在B+树中，叶子节点link起来，可以实现快速range scan。在这个任务中，我们要构建一个通用索引迭代器来有效地检索所有叶子页面。其中，Begin函数返回一个状态为初始化的迭代器对象，End返回一个指向结束的迭代器对象。</p>
