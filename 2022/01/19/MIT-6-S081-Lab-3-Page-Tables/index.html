@@ -16,18 +16,18 @@
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
   
-    <meta name="description" content="当我第一次学习它，还是一个学生的时候，我想它是很直接的，能有多难，就是一个表要将虚拟地址映射到物理地址。或许有点复杂，但不是那么复杂。只有当用它编程时，我才知道虚拟内存是巧妙的，迷人的，非常强大。  在本次实验中，您将探索页表并修改它们以简化将数据从用户空间复制到内核空间的函数。在讲解实验之前，我们先要了解页表结构。 页表（pagetable）是用来干什么的？页表的作用是地址翻译，从Virtua">
+    <meta name="description" content="当我第一次学习它，还是一个学生的时候，我想它是很直接的，能有多难，就是一个表要将虚拟地址映射到物理地址。或许有点复杂，但不是那么复杂。只有当用它编程时，我才知道虚拟内存是巧妙的，迷人的，非常强大。  在本次实验中，您将探索页表并修改它们以简化将数据从用户空间复制到内核空间的函数。在讲解实验之前，我们先要了解页表结构。 页表（pagetable）是做地址翻译与权限控制的：把 Virtual Add">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MIT 6.S081 Lab 3: Page tables">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2022/01/19/MIT-6-S081-Lab-3-Page-Tables/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="当我第一次学习它，还是一个学生的时候，我想它是很直接的，能有多难，就是一个表要将虚拟地址映射到物理地址。或许有点复杂，但不是那么复杂。只有当用它编程时，我才知道虚拟内存是巧妙的，迷人的，非常强大。  在本次实验中，您将探索页表并修改它们以简化将数据从用户空间复制到内核空间的函数。在讲解实验之前，我们先要了解页表结构。 页表（pagetable）是用来干什么的？页表的作用是地址翻译，从Virtua">
+<meta property="og:description" content="当我第一次学习它，还是一个学生的时候，我想它是很直接的，能有多难，就是一个表要将虚拟地址映射到物理地址。或许有点复杂，但不是那么复杂。只有当用它编程时，我才知道虚拟内存是巧妙的，迷人的，非常强大。  在本次实验中，您将探索页表并修改它们以简化将数据从用户空间复制到内核空间的函数。在讲解实验之前，我们先要了解页表结构。 页表（pagetable）是做地址翻译与权限控制的：把 Virtual Add">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://pic2.zhimg.com/v2-2635bdb5168de78ce3ad23f9857fd7e9_b.jpg">
 <meta property="og:image" content="https://pic1.zhimg.com/v2-3eaf43267f882245cc176d23274c1978_b.jpg">
 <meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/493f49ab5868db801f35592c0434adda.png">
 <meta property="article:published_time" content="2022-01-18T17:57:32.000Z">
-<meta property="article:modified_time" content="2026-06-06T01:14:57.059Z">
+<meta property="article:modified_time" content="2026-06-06T01:18:03.082Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="MIT 6.S081 Lab">
 <meta name="twitter:card" content="summary_large_image">
@@ -201,7 +201,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      6k 字
+      5.9k 字
     </span>
   
 
@@ -210,7 +210,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      51 分钟
+      50 分钟
     </span>
   
 
@@ -246,7 +246,7 @@
 <p>当我第一次学习它，还是一个学生的时候，我想它是很直接的，能有多难，就是一个表要将虚拟地址映射到物理地址。或许有点复杂，但不是那么复杂。只有当用它编程时，我才知道虚拟内存是巧妙的，迷人的，非常强大。</p>
 </blockquote>
 <p>在本次实验中，您将探索页表并修改它们以简化将数据从用户空间复制到内核空间的函数。在讲解实验之前，我们先要了解页表结构。</p>
-<p>页表（pagetable）是用来干什么的？页表的作用是地址翻译，从Virtual Address(VA)到Physical Address(PA)，CPU将VA传递给MMU，MMU通过查询页表得到PA，实现地址翻译。也就是说页表是一个实现了key-value功能的数组，索引表示的是虚拟地址，数组的值表示物理地址。值得注意的是，页表存储在什么地方呢？页表存储在内存中，只需要告诉MMU页表的内存地址，这个地址应当是物理地址，我们不能让地址翻译依赖于另一个翻译，否则可能会陷入递归的无限循环中。</p>
+<p>页表（pagetable）是做地址翻译与权限控制的：把 Virtual Address (VA) 映射到 Physical Address (PA)，并检查访问权限位。更准确地说，页表不是“用虚拟地址直接做索引的一维数组”，而是按页粒度组织、由多级索引逐层查找的映射结构。页表本身放在内存中，硬件通过页表基址寄存器定位其起点。</p>
 <p>如何解决页表占用内存过大呢？</p>
 <ul>
 <li>不要为每个地址创建一个表单条目，而是为每个page创建一条表单条目</li>
@@ -260,12 +260,12 @@
 <p>以xv6使用的RISC-V框架为例，使用三级页表。我们之前所说的VA中的27bit的index，实际上是由3个9bit的数字组成（L2，L1，L0）。对于L2，其被用来索引最高级的page directory，directory中的一个条目被称为PTE(Page Table Entry)是64bit，而一个page directory是4KB，这样的话，一个PT中就有512个PTE，也就是说我们的L2的9bit可以对应一个page directory的PTE，而PTE的组成部分是PPN+Flags，这个PPN指向中间级的page directory。同理，我们使用L1找到中间级page directory的PPN，在最低级的pagedirectory，我们可以得到对应于虚拟内存地址的物理内存地址。</p>
 <p>多级页表相较于一级页表，能大大减少pagetable的大小，优化空间。</p>
 <h5 id="x86页表的实现"><a href="#x86页表的实现" class="headerlink" title="x86页表的实现"></a>x86页表的实现</h5><p>x86页表在物理内存中像一棵两层的树，也就是两级页表。树的根是一个4096字节的页目录，其中包含1024个PTE的条目（每个条目占4字节），每个条目是指向一个页表页，每个页表页包含1024个32位PTE的数组（PTE就是虚拟地址到物理地址映射的条目），如下图所示：</p>
-<p>如上图所示，一个虚拟地址有32位，10位Dir，10位table，10位offset。首先，要用10位Dir找到相应的页表页，然后使用10位table找到相应页表页中对应的PTE，然后将虚拟地址的前20位（即dir+table）变成PPN，这样就得到了32位PPN+Offset，即物理地址。</p>
+<p>如上图所示，经典 32 位两级分页里常见划分是 10 位 Dir、10 位 table、12 位 offset。先用 Dir 定位页目录项，再用 table 定位页表项，最后把页框号与 12 位 offset 组合得到物理地址。</p>
 <h4 id="xv6对页表的使用"><a href="#xv6对页表的使用" class="headerlink" title="xv6对页表的使用"></a>xv6对页表的使用</h4><p><img src="https://img-blog.csdnimg.cn/img_convert/493f49ab5868db801f35592c0434adda.png" srcset="/img/loading.gif" lazyload alt=""></p>
 <p>这个是xv6中PTE的结构，其中，53-10位是PPN，余下几位是flag位，弄懂标志位的含义对本实验至关重要，第0位V表示该PTE是否可用，第1位R表示该PTE是否可读；第2位W表示该PTE是否可写；第3位X表示是否可执行的。</p>
 <p>虚拟内存有两个主要的优点：</p>
 <ul>
-<li>隔离性：虚拟内存使得操作系统可以为每个应用程序提供属于他们自己的地址空间，所以一个应用程序不可能有意无意修改另一个应用程序的内存数据。虚拟内存同时也提供了用户空间和内核空间隔离性。</li>
+<li>隔离性：虚拟内存使操作系统可以为每个应用程序提供独立地址空间。应用程序不能直接访问其他进程或内核的内存，除非内核显式建立了可访问映射。</li>
 <li>提供了一层抽象：处理器和所有的指令都可以使用虚拟地址，而内核会定义从虚拟地址到物理地址的映射关系。</li>
 </ul>
 <h4 id="Print-a-page-table"><a href="#Print-a-page-table" class="headerlink" title="Print a page table"></a>Print a page table</h4><p>该任务是编写一个打印页表内容的函数，定义一个名为<code>vmprint()</code>的函数。</p>
@@ -274,7 +274,7 @@
 <p>在riscv.h中定义了如下所示的宏，也就是说pagetable_t参数是一个uint64类型的指针，一个页表有512个PTE。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> uint64 *<span class="hljs-keyword">pagetable_t</span>; <span class="hljs-comment">// 512 PTEs</span><br></code></pre></td></tr></table></figure>
 <p>1.我们在exec.c的<code>return argc</code>前加入下列代码：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">if</span>(p-pid==<span class="hljs-number">1</span>)&#123;<br>	vmprint(p-&gt;pagetable);<br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">if</span>(p-&gt;pid==<span class="hljs-number">1</span>)&#123;<br>	vmprint(p-&gt;pagetable);<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>2.我们在defs.h中定义vmprint函数的原型，以便在exec.c中调用它：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">void</span>            <span class="hljs-title">vmprint</span><span class="hljs-params">(<span class="hljs-keyword">pagetable_t</span>)</span></span><br></code></pre></td></tr></table></figure>
 <p>3.编写vmprint函数如下所示：</p>

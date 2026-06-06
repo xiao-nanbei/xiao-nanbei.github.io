@@ -16,15 +16,15 @@
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
   
-    <meta name="description" content="该lab要求我们实现一个流重组类，可以将Sender发来的带索引号的字节碎片重组成有序的字节写入到byte_stream。接收端从发送端读取数据，调用流重组器，流重组器对数据进行排序，排序好后写入byte_stream。 值得注意的是，无论是lab0中的byte_stream,还是lab1中的重组器，都有capasity的概念，capasity用于模拟内存，capasity由重组器中未排序的数据和">
+    <meta name="description" content="该lab要求我们实现一个流重组类，可以将Sender发来的带索引号的字节碎片重组成有序的字节写入到byte_stream。接收端从发送端读取数据，调用流重组器，流重组器对数据进行排序，排序好后写入byte_stream。 值得注意的是，无论是 lab0 中的 byte_stream，还是 lab1 中的重组器，都有 capacity 的概念。capacity 对应可用缓冲上限，它由“重组器中尚未拼">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Stanford CS144 Lab 1: Stream reassembler">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2021/11/27/Stanford-CS144-Lab-1-Stream-Reassembler/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="该lab要求我们实现一个流重组类，可以将Sender发来的带索引号的字节碎片重组成有序的字节写入到byte_stream。接收端从发送端读取数据，调用流重组器，流重组器对数据进行排序，排序好后写入byte_stream。 值得注意的是，无论是lab0中的byte_stream,还是lab1中的重组器，都有capasity的概念，capasity用于模拟内存，capasity由重组器中未排序的数据和">
+<meta property="og:description" content="该lab要求我们实现一个流重组类，可以将Sender发来的带索引号的字节碎片重组成有序的字节写入到byte_stream。接收端从发送端读取数据，调用流重组器，流重组器对数据进行排序，排序好后写入byte_stream。 值得注意的是，无论是 lab0 中的 byte_stream，还是 lab1 中的重组器，都有 capacity 的概念。capacity 对应可用缓冲上限，它由“重组器中尚未拼">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-11-27T07:42:05.000Z">
-<meta property="article:modified_time" content="2026-06-06T01:14:57.076Z">
+<meta property="article:modified_time" content="2026-06-06T01:18:03.092Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="Stanford CS144 Lab">
 <meta name="twitter:card" content="summary_large_image">
@@ -206,7 +206,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      93 分钟
+      91 分钟
     </span>
   
 
@@ -239,13 +239,13 @@
             
             <div class="markdown-body">
               <p>该lab要求我们实现一个流重组类，可以将Sender发来的带索引号的字节碎片重组成有序的字节写入到byte_stream。接收端从发送端读取数据，调用流重组器，流重组器对数据进行排序，排序好后写入byte_stream。</p>
-<p>值得注意的是，无论是lab0中的byte_stream,还是lab1中的重组器，都有capasity的概念，capasity用于模拟内存，capasity由重组器中未排序的数据和已经写入byte_stream中但还未被读取的数据组成，如下图所示：</p>
-<p>所以我们在进行重组和读写操作时应该根据capasity的大小维护重组器。为了方便起见，我们依旧使用双端队列作为重组器。</p>
+<p>值得注意的是，无论是 lab0 中的 byte_stream，还是 lab1 中的重组器，都有 <code>capacity</code> 的概念。<code>capacity</code> 对应可用缓冲上限，它由“重组器中尚未拼接的数据”与“已经写入 byte_stream 但尚未被读取的数据”共同占用。</p>
+<p>所以我们在进行重组和读写操作时，都要根据 <code>capacity</code> 约束维护重组器。为了方便起见，我们依旧使用双端队列作为重组器。</p>
 <p>在重组器类的函数中，push_substring函数完成重组工作。其参数有data(string),index(size_t),eof(bool),data是待排序的数据，index是数据首元素的序号，eof用于判断是否结束。结束后将不再有数据输入。</p>
 <p>在重组的过程中，我们会遇到重复、丢包、重叠、乱序的现象。为了使乱序的数据找到有序的位置，我使用’\0’维护重组器中数据的相对序号，例如，第一次data为make,index为0,第二次data为great,index为13,而处于两组数据中间的数据未知，我们就用’\0’代替，即make\0\0\0\0\0\0\0\0\0great。这样就维护了已经进入重组器的数据的有序。当然，写入的data中也有可能含有\0,这是，我们就需要一个bool双端队列，来记录相应位置的数据是否有序，在上述例子中，队列的bool值为111100000000011111。</p>
-<p>1.我们判断输入序号是否大于内存与已读取数据之和，也就是说，该数据是否属于unacceptable中的数据，如果是这样的数据，我们没有足够的内存写入，因为写入这样的数据需要添加\0，从而超过capasity的大小。代码如下：</p>
+<p>1.我们先判断输入序号是否超过当前可接受窗口（unacceptable 区域之外）。如果超过，说明当前缓冲容量不足以接纳该片段，需要直接丢弃。代码如下：</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">if</span>(index&gt;_output.<span class="hljs-built_in">bytes_read</span>()+_capacity)&#123;<br>    <span class="hljs-keyword">return</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>2.我们需要判断data中最后一个数据的序号是否大于内存与已读取数据之和，如果大于，我们就要将能写入的部分写入，也就是按data的顺序尽可能地写入数据而不超过capasity,在写入的过程中，我们也会遇到两种情况，一种是序号index大于此时已经在流重组器的最后一个数据的序号，在这种情况下我们要在流重组器最后一个序号与index之间填入’\0′,同时将相应的bool双端队列(_check_byte)设置为false，做完这些工作后，才开始写入新的数据。另一种情况是index的小于或者等于流重组器最后一个数据的序号，我们需要弹出冲突的数据，举个例子就是，index序号为5,此时流重组器中的数据为stanford,我们就要从序号5的数据也就是o开始弹出，变成stanf,再写入data中的数据。代码如下：</p>
+<p>2.如果 <code>data</code> 的尾部超出当前可接受范围，我们只保留窗口内可接纳的那一段。写入时常见两种情况：一是 <code>index</code> 在当前重组尾部之后，需要补占位并标记状态；二是 <code>index</code> 落在已有区间内，需要按覆盖规则处理重叠部分。代码如下：</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">if</span>(index+data.<span class="hljs-built_in">length</span>()&gt;_capacity+_output.<span class="hljs-built_in">bytes_read</span>())&#123;<br>    <span class="hljs-keyword">for</span>(<span class="hljs-keyword">size_t</span> i=_lens_un+_output.<span class="hljs-built_in">bytes_written</span>();i&lt;_capacity+_output.<span class="hljs-built_in">bytes_read</span>();i++)&#123;<br>        <span class="hljs-keyword">if</span>(i&lt;index)&#123;<br>            _unassembled_byte.<span class="hljs-built_in">push_back</span>(<span class="hljs-string">&#x27;\0&#x27;</span>);<br>            _check_byte.<span class="hljs-built_in">push_back</span>(<span class="hljs-literal">false</span>);<br><br>        &#125;<span class="hljs-keyword">else</span>&#123;<br>            _unassembled_byte.<span class="hljs-built_in">push_back</span>(data[i-index]);<br>            _check_byte.<span class="hljs-built_in">push_back</span>(<span class="hljs-literal">true</span>);<br><br>        &#125;<br>        _lens_un++;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>3.我们要判断index是否等于已经写入byte_stream(_output)中的数据，如果是的，我们就直接将data中的数据写入byte_stream,然后在重组器中弹出data.length()个数据，值得注意的是，当重组器中的数据个数小于data.length()，我们就全部弹出。代码如下：</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">if</span>(index==_output.<span class="hljs-built_in">bytes_written</span>())&#123;<br>    _output.<span class="hljs-built_in">write</span>(data);<br>    <span class="hljs-keyword">size_t</span> temp_len=std::<span class="hljs-built_in">min</span>(_lens_un,data.<span class="hljs-built_in">length</span>());<br>    _unassembled_byte.<span class="hljs-built_in">erase</span>(_unassembled_byte.<span class="hljs-built_in">begin</span>(),_unassembled_byte.<span class="hljs-built_in">begin</span>()+temp_len);<br>    _check_byte.<span class="hljs-built_in">erase</span>(_check_byte.<span class="hljs-built_in">begin</span>(),_check_byte.<span class="hljs-built_in">begin</span>()+temp_len);<br>    _lens_un-=temp_len;<br>&#125;<br></code></pre></td></tr></table></figure>

@@ -246,7 +246,7 @@
       <p class="index-excerpt">
         <a href="/2022/01/19/MIT-6-S081-Lab-3-Page-Tables/" target="_self">
           
-          当我第一次学习它，还是一个学生的时候，我想它是很直接的，能有多难，就是一个表要将虚拟地址映射到物理地址。或许有点复杂，但不是那么复杂。只有当用它编程时，我才知道虚拟内存是巧妙的，迷人的，非常强大。  在本次实验中，您将探索页表并修改它们以简化将数据从用户空间复制到内核空间的函数。在讲解实验之前，我们先要了解页表结构。 页表（pagetable）是用来干什么的？页表的作用是地址翻译，从Virtua
+          当我第一次学习它，还是一个学生的时候，我想它是很直接的，能有多难，就是一个表要将虚拟地址映射到物理地址。或许有点复杂，但不是那么复杂。只有当用它编程时，我才知道虚拟内存是巧妙的，迷人的，非常强大。  在本次实验中，您将探索页表并修改它们以简化将数据从用户空间复制到内核空间的函数。在讲解实验之前，我们先要了解页表结构。 页表（pagetable）是做地址翻译与权限控制的：把 Virtual Add
         </a>
       </p>
 
@@ -434,7 +434,7 @@
       <p class="index-excerpt">
         <a href="/2021/12/17/Go-Goroutine-and-GMP-Scheduler/" target="_self">
           
-          Goroutine是由Go运行时管理的轻量级线程（协程）。Goroutine和操作系统线程相比，Goroutine的资源占用和使用代价非常小，大小默认是2K字节。Goroutine调度的切换也不在操作系统的内部完成，代价很低。所以一个Go程序可以创建成千上万个并发的Goroutine，而把这些Goroutine按照一定算法放到cpu上执行的程序，就成了Goroutine调度器。 我在前面的文章MI
+          Goroutine 是由 Go runtime 管理的轻量级并发执行单元。它和操作系统线程不是一一对应关系：runtime 会把大量 goroutine 复用到少量线程上执行。goroutine 初始栈很小且可按需增长，因此单进程可以承载大量并发任务。 我在前面的文章MIT 6.S081: xv6 实验参考书解析中讲过进程&#x2F;线程的切换方式，当切换的时候要从用户态-&gt;内核态-&gt;另一个进程
         </a>
       </p>
 
@@ -579,7 +579,7 @@
       <p class="index-excerpt">
         <a href="/2021/11/27/Stanford-CS144-Lab-1-Stream-Reassembler/" target="_self">
           
-          该lab要求我们实现一个流重组类，可以将Sender发来的带索引号的字节碎片重组成有序的字节写入到byte_stream。接收端从发送端读取数据，调用流重组器，流重组器对数据进行排序，排序好后写入byte_stream。 值得注意的是，无论是lab0中的byte_stream,还是lab1中的重组器，都有capasity的概念，capasity用于模拟内存，capasity由重组器中未排序的数据和
+          该lab要求我们实现一个流重组类，可以将Sender发来的带索引号的字节碎片重组成有序的字节写入到byte_stream。接收端从发送端读取数据，调用流重组器，流重组器对数据进行排序，排序好后写入byte_stream。 值得注意的是，无论是 lab0 中的 byte_stream，还是 lab1 中的重组器，都有 capacity 的概念。capacity 对应可用缓冲上限，它由“重组器中尚未拼
         </a>
       </p>
 

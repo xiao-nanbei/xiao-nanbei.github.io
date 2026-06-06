@@ -16,15 +16,15 @@
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
   
-    <meta name="description" content="CS144实际上是基于UDP实现TCP，我们都知道TCP是以stream传输，而UDP是以segment传输，在CS144中，我们会将发送方的stream封装到segment中然后发送，当接收方收到segment后，会将其解析为stream，传递到上层。所以我们说基于UDP实现TCP。 Translating between 64-bit indexes and 32-bit seqnos《自顶向">
+    <meta name="description" content="CS144 这个实验并不是“在 UDP 之上封装 TCP”，而是让我们在用户态按 TCP 语义实现发送端与接收端组件（例如 sequence number、ACK、reassembly、window 等），以理解 TCP 协议机制本身。 Translating between 64-bit indexes and 32-bit seqnos《自顶向下》中，在讲到GBN协议时有这样一段话可能大家都忽">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Stanford CS144 Lab 2: TCP receiver">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2021/11/20/Stanford-CS144-Lab-2-TCP-Receiver/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="CS144实际上是基于UDP实现TCP，我们都知道TCP是以stream传输，而UDP是以segment传输，在CS144中，我们会将发送方的stream封装到segment中然后发送，当接收方收到segment后，会将其解析为stream，传递到上层。所以我们说基于UDP实现TCP。 Translating between 64-bit indexes and 32-bit seqnos《自顶向">
+<meta property="og:description" content="CS144 这个实验并不是“在 UDP 之上封装 TCP”，而是让我们在用户态按 TCP 语义实现发送端与接收端组件（例如 sequence number、ACK、reassembly、window 等），以理解 TCP 协议机制本身。 Translating between 64-bit indexes and 32-bit seqnos《自顶向下》中，在讲到GBN协议时有这样一段话可能大家都忽">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-11-20T07:29:24.000Z">
-<meta property="article:modified_time" content="2026-06-06T01:15:10.580Z">
+<meta property="article:modified_time" content="2026-06-06T01:17:47.801Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="Stanford CS144 Lab">
 <meta name="twitter:card" content="summary_large_image">
@@ -206,7 +206,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      102 分钟
+      100 分钟
     </span>
   
 
@@ -238,7 +238,7 @@
             <h1 style="display: none">Stanford CS144 Lab 2: TCP receiver</h1>
             
             <div class="markdown-body">
-              <p>CS144实际上是基于UDP实现TCP，我们都知道TCP是以stream传输，而UDP是以segment传输，在CS144中，我们会将发送方的stream封装到segment中然后发送，当接收方收到segment后，会将其解析为stream，传递到上层。所以我们说基于UDP实现TCP。</p>
+              <p>CS144 这个实验并不是“在 UDP 之上封装 TCP”，而是让我们在用户态按 TCP 语义实现发送端与接收端组件（例如 sequence number、ACK、reassembly、window 等），以理解 TCP 协议机制本身。</p>
 <h3 id="Translating-between-64-bit-indexes-and-32-bit-seqnos"><a href="#Translating-between-64-bit-indexes-and-32-bit-seqnos" class="headerlink" title="Translating between 64-bit indexes and 32-bit seqnos"></a>Translating between 64-bit indexes and 32-bit seqnos</h3><p>《自顶向下》中，在讲到GBN协议时有这样一段话可能大家都忽略了，原文如下：</p>
 <blockquote>
 <p>在实践中，一个分组的序号承载在分组首部的一个固定长度的字段中。如果分组序号字段的比特数是k,则该序号范围是[0,2^k]。 在一个有限的序号范围内，所有涉及序号的运算必须使用模2^k 运算。（即序号空间可被看作是一个长度为2^k 的环，其中序号2^k-1紧挨着0）。</p>
@@ -252,7 +252,7 @@
 <h3 id="Implementing-the-TCP-receiver"><a href="#Implementing-the-TCP-receiver" class="headerlink" title="Implementing the TCP receiver"></a>Implementing the TCP receiver</h3><p>这个任务的主要目标是实现tcp的接收部分，在实现receiver之前，我们首先要熟悉segment类，具体可以参考tcp_segment.cc中的内容。TCP头部的一些常用字段（这也是我们实验中要用到的）如下：</p>
 <ul>
 <li>序号：seqno，占32位，用来标识从发送端到接收端的字节流；</li>
-<li>确认号：ackno，占32位，只有ACK标志位为1时，确认号才有效，ackno=seqno+1；</li>
+<li>确认号：ackno，占32位，只有 ACK 标志位为 1 时才有效；它表示“期望收到的下一个序号”，并不总是简单等于 <code>seqno+1</code>。</li>
 <li>标志位：<ul>
 <li>SYN：发起一个连接；</li>
 <li>FIN：释放一个连接；</li>
@@ -262,9 +262,9 @@
 </ul>
 <p>在后面的实验中我们要用到rst标志位。</p>
 <p>1.在这个任务中我们要用到三次握手的知识，为了更好的解释实现过程，我们用以下图示解释(在下一个实验sender中也会用到该图）。</p>
-<p>我们可以将receiver简单地理解为接收syn时的server,也就是上图中第一个箭头所指向的server,客户端发送一个tcp的syn标志位置1的包，以及初始序号X，保存在包头的序列号seqno(Sequence Number)字段里。我们用syn_flag维护连接，如果传过来的syn值为1，则表示开始建立连接，（全部的建立连接过程将在lab3和lab4中完成），我们将syn_flag置为1，相反，如果syn值不为1且syn_flag不为1，则表示未开始建立连接或者根本没有建立连接，我们直接返回。代码如下：</p>
+<p>我们可以先从“被动接收 SYN 的一端”来理解 receiver：如果收到带 <code>SYN</code> 的 segment，就记录初始序号并进入已同步状态；如果还没看到 <code>SYN</code> 就收到普通数据段，则直接忽略。代码如下：</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">if</span>(seg.<span class="hljs-built_in">header</span>().syn)&#123;    <br>    syn_flag= <span class="hljs-literal">true</span>;    <span class="hljs-comment">//窗口的左端    </span><br>    ISN=seg.<span class="hljs-built_in">header</span>().seqno;<br>&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(!syn_flag)&#123;    			<br>    <span class="hljs-keyword">return</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>2.我们为了调用流重组器函数，要找到相应的data，index，eof，显然，data就是segment.payload()，index是seqno的绝对序号，请注意，在实验中syn和fin本身要占用一个序号，故除开建立连接时传过来的payload（实际上建立连接时不应该传输数据，仅本实验如此），index需要减去1。至于eof，则是根据fin值而定的。代码如下：</p>
+<p>2.为了调用流重组器函数，我们要计算 <code>data</code>、<code>index</code> 和 <code>eof</code>。其中 <code>data</code> 就是 <code>segment.payload()</code>，<code>index</code> 是 payload 对应的绝对序号起点。由于 <code>SYN/FIN</code> 都会各自占用一个序号，所以在非 <code>SYN</code> 报文上要对序号做相应偏移；<code>eof</code> 则由 <code>FIN</code> 决定。代码如下：</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">TCPReceiver::segment_received</span><span class="hljs-params">(<span class="hljs-keyword">const</span> TCPSegment &amp;seg)</span> </span>&#123;<br>    <span class="hljs-built_in">DUMMY_CODE</span>(seg);<br>    <span class="hljs-comment">//代表第一个传过来的seg</span><br>    <span class="hljs-keyword">if</span>(seg.<span class="hljs-built_in">header</span>().syn)&#123;<br>        syn_flag= <span class="hljs-literal">true</span>;<br>        <span class="hljs-comment">//窗口的左端</span><br>        ISN=seg.<span class="hljs-built_in">header</span>().seqno;<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(!syn_flag)&#123;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    <span class="hljs-keyword">uint64_t</span> received_lens=_reassembler.<span class="hljs-built_in">stream_out</span>().<span class="hljs-built_in">bytes_written</span>();<br>    <span class="hljs-keyword">size_t</span> index= <span class="hljs-built_in">unwrap</span>(seg.<span class="hljs-built_in">header</span>().seqno,ISN,received_lens);<br>    <span class="hljs-keyword">if</span>(!seg.<span class="hljs-built_in">header</span>().syn)&#123;<br>        index--;<br>    &#125;<br>    <span class="hljs-comment">//进行重组</span><br>    _reassembler.<span class="hljs-built_in">push_substring</span>(seg.<span class="hljs-built_in">payload</span>().<span class="hljs-built_in">copy</span>(),index,seg.<span class="hljs-built_in">header</span>().fin);<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>这样我们就完成了接收操作。然后我们要返回确认报文。</p>
 <p>对于要返回的ackno，如果还未建立连接，我们就返回nullptr，否则，我们分为两种情况，一种是全部数据传输未完成，我们返回写入byte_stream的数据的序号加1，这样一种是全部数据传输完成之后，end_input为true,这个时候我们的返回值应该为写入byte_streamde的数据的序号加2（因为fin标志位要占1个位置）。</p>
