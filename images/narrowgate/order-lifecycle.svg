@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="420" viewBox="0 0 960 420" role="img" aria-labelledby="title desc">
+  <title id="title">Maker order lifecycle in tick replay</title>
+  <desc id="desc">A state diagram from quote candidate to pending new, live resting order, queue consumption, fill or cancel, then markout measurement.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#344054"/>
+    </marker>
+    <style>
+      .bg { fill: #fbfcfe; }
+      .box { fill: #ffffff; stroke: #344054; stroke-width: 1.4; rx: 8; }
+      .hot { fill: #fff7ed; stroke: #b45309; }
+      .risk { fill: #fef2f2; stroke: #b42318; }
+      .ok { fill: #ecfdf3; stroke: #027a48; }
+      .note { fill: #f8fafc; stroke: #98a2b3; stroke-dasharray: 5 4; }
+      .text { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #101828; font-size: 16px; }
+      .small { font-size: 13px; fill: #475467; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px; fill: #344054; }
+      .line { stroke: #344054; stroke-width: 1.8; fill: none; marker-end: url(#arrow); }
+      .thin { stroke: #667085; stroke-width: 1.2; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="960" height="420"/>
+
+  <rect class="box" x="36" y="62" width="142" height="82"/>
+  <text class="text" x="60" y="96">Quote</text>
+  <text class="text" x="60" y="118">candidate</text>
+  <text class="small" x="60" y="138">price / side / size</text>
+
+  <rect class="box hot" x="226" y="62" width="150" height="82"/>
+  <text class="text" x="250" y="96">Pending NEW</text>
+  <text class="small" x="250" y="119">new latency clock</text>
+  <text class="mono" x="250" y="139">t + new_ms</text>
+
+  <rect class="box ok" x="424" y="62" width="166" height="82"/>
+  <text class="text" x="448" y="96">Live resting</text>
+  <text class="small" x="448" y="119">visible at price level</text>
+  <text class="mono" x="448" y="139">queue_ahead &gt;= 0</text>
+
+  <rect class="box" x="646" y="62" width="164" height="82"/>
+  <text class="text" x="670" y="96">Queue consumed</text>
+  <text class="small" x="670" y="119">aggressive flow crosses</text>
+  <text class="mono" x="670" y="139">trade_qty - queue</text>
+
+  <rect class="box ok" x="424" y="214" width="166" height="82"/>
+  <text class="text" x="448" y="248">Fill</text>
+  <text class="small" x="448" y="271">inventory / cash update</text>
+  <text class="mono" x="448" y="291">markout clock starts</text>
+
+  <rect class="box risk" x="646" y="214" width="164" height="82"/>
+  <text class="text" x="670" y="248">Cancel / TTL</text>
+  <text class="small" x="670" y="271">cancel latency applies</text>
+  <text class="mono" x="670" y="291">fragile/adaptive TTL</text>
+
+  <rect class="box" x="226" y="214" width="150" height="82"/>
+  <text class="text" x="250" y="248">Markout</text>
+  <text class="small" x="250" y="271">1s / 5s / 30s mid</text>
+  <text class="mono" x="250" y="291">maker-signed</text>
+
+  <rect class="note" x="36" y="214" width="142" height="82"/>
+  <text class="text" x="58" y="248">No fill</text>
+  <text class="small" x="58" y="271">not a loss by itself</text>
+  <text class="mono" x="58" y="291">opportunity cost</text>
+
+  <path class="line" d="M178 103 H226"/>
+  <path class="line" d="M376 103 H424"/>
+  <path class="line" d="M590 103 H646"/>
+  <path class="line" d="M728 144 V214"/>
+  <path class="line" d="M646 255 H590"/>
+  <path class="line" d="M424 255 H376"/>
+  <path class="thin" d="M507 144 V214"/>
+  <path class="thin" d="M226 255 H178"/>
+
+  <text class="small" x="190" y="91">post action</text>
+  <text class="small" x="386" y="91">accepted</text>
+  <text class="small" x="600" y="91">crossing trade</text>
+  <text class="small" x="740" y="182">if queue ahead exhausted</text>
+  <text class="small" x="612" y="244">if stale / risky / TTL</text>
+  <text class="small" x="384" y="244">future mid samples</text>
+
+  <rect class="note" x="838" y="62" width="86" height="234"/>
+  <text class="small" x="852" y="96">Key point</text>
+  <text class="small" x="852" y="125">touching</text>
+  <text class="small" x="852" y="145">the price</text>
+  <text class="small" x="852" y="165">is not</text>
+  <text class="small" x="852" y="185">enough.</text>
+  <text class="small" x="852" y="224">Queue and</text>
+  <text class="small" x="852" y="244">latency decide</text>
+  <text class="small" x="852" y="264">execution.</text>
+
+  <text class="small" x="36" y="350">Backtest parity checks compare fills, bid/ask split, final inventory, inventory-time, spread/cap and trace rows across Python and C++ engines.</text>
+</svg>

@@ -16,15 +16,19 @@
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
   
-    <meta name="description" content="最近一段时间，我一直在做一个叫 NarrowGate 的项目。它不是从“我要写一个 C++ 高频系统”开始的，而是从一个更朴素的 maker 问题开始：当市场有人急于成交时，站在被动一侧提供流动性，究竟是在收取 spread，还是在替更快的信息交易者接风险？ 最初的实现只是一个基于 Avellaneda-Stoikov 模型的 Python 研究框架。随后，为了检验这个问题，项目才逐步加入逐笔成交">
+    <meta name="description" content="NarrowGate 是我最近一段时间一直在做的 maker 研究项目。它不是从“我要写一个 C++ 高频系统”开始的，而是从一个更朴素的问题开始：当市场有人急于成交时，站在被动一侧提供流动性，究竟是在收取 spread，还是在替更快的信息交易者接风险？ 最初的实现只是一个基于 Avellaneda-Stoikov 模型的 Python 研究框架。随后，为了检验这个问题，项目才逐步加入逐笔成交、原">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate：从做市假设、脏数据与跨市场反例，到 C++ 低延时研究框架">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/06/19/NarrowGate-Cpp-Low-Latency-Market-Making/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="最近一段时间，我一直在做一个叫 NarrowGate 的项目。它不是从“我要写一个 C++ 高频系统”开始的，而是从一个更朴素的 maker 问题开始：当市场有人急于成交时，站在被动一侧提供流动性，究竟是在收取 spread，还是在替更快的信息交易者接风险？ 最初的实现只是一个基于 Avellaneda-Stoikov 模型的 Python 研究框架。随后，为了检验这个问题，项目才逐步加入逐笔成交">
+<meta property="og:description" content="NarrowGate 是我最近一段时间一直在做的 maker 研究项目。它不是从“我要写一个 C++ 高频系统”开始的，而是从一个更朴素的问题开始：当市场有人急于成交时，站在被动一侧提供流动性，究竟是在收取 spread，还是在替更快的信息交易者接风险？ 最初的实现只是一个基于 Avellaneda-Stoikov 模型的 Python 研究框架。随后，为了检验这个问题，项目才逐步加入逐笔成交、原">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/maker-hot-path.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/data-lineage.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/quote-ladder.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/order-lifecycle.svg">
 <meta property="article:published_time" content="2026-06-19T08:50:48.000Z">
-<meta property="article:modified_time" content="2026-06-21T06:49:00.000Z">
+<meta property="article:modified_time" content="2026-06-26T20:15:00.000Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="C++">
 <meta property="article:tag" content="低延时">
@@ -34,6 +38,7 @@
 <meta property="article:tag" content="机器学习">
 <meta property="article:tag" content="pybind11">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/maker-hot-path.svg">
   
   
   <title>NarrowGate：从做市假设、脏数据与跨市场反例，到 C++ 低延时研究框架 - databrains</title>
@@ -203,7 +208,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      47k 字
+      58k 字
     </span>
   
 
@@ -212,7 +217,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      396 分钟
+      480 分钟
     </span>
   
 
@@ -244,17 +249,20 @@
             <h1 style="display: none">NarrowGate：从做市假设、脏数据与跨市场反例，到 C++ 低延时研究框架</h1>
             
             <div class="markdown-body">
-              <p>最近一段时间，我一直在做一个叫 <strong>NarrowGate</strong> 的项目。它不是从“我要写一个 C++ 高频系统”开始的，而是从一个更朴素的 maker 问题开始：<strong>当市场有人急于成交时，站在被动一侧提供流动性，究竟是在收取 spread，还是在替更快的信息交易者接风险？</strong></p>
+              <p><strong>NarrowGate</strong> 是我最近一段时间一直在做的 maker 研究项目。它不是从“我要写一个 C++ 高频系统”开始的，而是从一个更朴素的问题开始：<strong>当市场有人急于成交时，站在被动一侧提供流动性，究竟是在收取 spread，还是在替更快的信息交易者接风险？</strong></p>
 <p>最初的实现只是一个基于 Avellaneda-Stoikov 模型的 Python 研究框架。随后，为了检验这个问题，项目才逐步加入逐笔成交、原生 L2 盘口、LightGBM、BTCUSDT reference、BTCUSDC/BTCUSDT spot、逐侧 quote EV、库存时间风险，以及 Python/C++ 双引擎回放。也就是说，C++ 是研究越做越深之后出现的工程结果，不是项目的前提。</p>
+<p>先把阅读边界说清楚：本文只从 C++ 低延时工程、市场微观结构、价格行为学、数据质量和回测方法的角度分析 NarrowGate，不讨论也不建议任何真实交易行为。文中的 PnL、fill、markout、A/B 都是研究指标，用来验证模型假设、执行口径和系统性能，而不是收益承诺。</p>
 <p>一路做下来，真正困难的部分并不是把某个公式写出来，而是连续回答几个会推翻直觉的问题：</p>
 <ul>
-<li>一笔被动挂单赚到的究竟是 spread，还是承担信息风险后的偶然结果？</li>
+<li>一笔被动挂单获得的究竟是 spread 补偿，还是承担信息风险后的偶然结果？</li>
 <li>新增一个数据源，为什么可能让策略更差，而不是更健壮？</li>
 <li>历史数据中缺一小时、缺一次 orderbook snapshot，会怎样污染 rolling feature、label 和回测？</li>
 <li>回测比事件引擎“更聪明”时，漂亮的结果还有多少可信度？</li>
 <li>C++ 到底应该负责什么，才能既加快研究，又不制造第二套策略？</li>
+<li>为什么 live 路径里“把单个公式搬到 C++”反而会变慢，而把 quote、policy、routing 的数据边界收紧后才开始变快？</li>
+<li>为什么 WebSocket、REST、日志和健康检查不该急着迁到 C++，真正的热路径反而是 WebSocket 上方的 rolling state 和决策包？</li>
 </ul>
-<p>这篇文章想把这些前因后果完整记录下来：先讲策略试图识别什么，再讲数据和实验如何一次次推翻过于简单的假设，最后才讲为什么 C++ 成了必要的研究基础设施。</p>
+<p>这篇文章想把这些前因后果完整记录下来：先讲策略试图识别什么，再讲数据和实验如何一次次推翻过于简单的假设，最后从 C++ 学习和分析的角度，拆开离线回测、batch research 与 live 决策路径为什么需要完全不同的优化方法。</p>
 <h2 id="先把整条因果链摊开"><a href="#先把整条因果链摊开" class="headerlink" title="先把整条因果链摊开"></a>先把整条因果链摊开</h2><p>如果只看现在的代码目录，很容易以为 NarrowGate 是一个“AS + LightGBM + C++”的技术拼盘。实际演进顺序恰好相反：每一层都是上一层暴露问题后的修正。</p>
 <div class="table-container">
 <table>
@@ -303,12 +311,125 @@
 <td>Python replay 与逐行 quote context 让完整月份实验过慢</td>
 <td>C++ batch quote core、tick replay 状态机、window cache 与双引擎 parity</td>
 </tr>
+<tr>
+<td>live C++ 优化</td>
+<td>native 代码一定比 Python 快</td>
+<td>每 tick <code>dict/dataclass/asdict</code> 往返比 quote 数学还贵，WebSocket/REST 不在 CPU 热点</td>
+<td>cached config、fixed tuple、compact context、routing bridge、fixed-array signal</td>
+</tr>
 </tbody>
 </table>
 </div>
 <p>整个研究链路可以概括成：</p>
+<p><img src="/images/narrowgate/maker-hot-path.svg" srcset="/img/loading.gif" lazyload alt="NarrowGate maker live hot path"></p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></div></td><td class="code"><pre><code class="hljs text">Binance Vision / CryptoHFTData<br>        │<br>        ▼<br>data audit + physical cleanup + gap/horizon guard<br>        │<br>        ▼<br>1s bars + BBO/L2 + reference/spot features<br>        │<br>        ├──► 主 LightGBM：ret / vol / toxicity 等状态预测<br>        │<br>        ▼<br>AS quote core + side policy + inventory controls<br>        │<br>        ▼<br>tick replay：queue / latency / TTL / maker fill gate<br>        │<br>        ▼<br>quote trace + fill markout + cross-market shock attribution<br>        │<br>        ▼<br>quote EV labels/model + monthly A/B + strict gates<br></code></pre></td></tr></table></figure>
 <p>这条链路很重要，因为 quote EV 并不是从原始行情直接训练出来的万能模型。它依赖上游报价轨迹、成交路径、未来 markout 和 cross-market context；任何一层的数据边界或执行口径出错，最后得到的 AUC 和 PnL 都可能只是被污染后的精确数字。</p>
+<p>这也是为什么数据源需要先分层，而不是全部丢进一个 dataframe。NarrowGate 里至少有四类数据：</p>
+<p><img src="/images/narrowgate/data-lineage.svg" srcset="/img/loading.gif" lazyload alt="NarrowGate research data lineage"></p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>数据层</th>
+<th>主要来源</th>
+<th>在项目中的角色</th>
+<th>最容易出错的地方</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>execution trades</td>
+<td>Binance Vision <code>daily/aggTrades</code>，perp 与 spot</td>
+<td>构造 1s/10s flow、taker tempo、spot/reference return</td>
+<td>月度容器混入坏日期；日度缺口会污染 rolling 和 future label</td>
+</tr>
+<tr>
+<td>execution orderbook</td>
+<td>CryptoHFTData 原生 hourly orderbook，重放为 daily <code>bbo/l2</code></td>
+<td>tick replay 的 BBO、top-N L2、queue ahead 和执行层 microprice</td>
+<td>小时文件缺失，或文件存在但 snapshot coverage 太低</td>
+</tr>
+<tr>
+<td>slow market context</td>
+<td>Binance OI、long/short ratio、旧 <code>bookDepth</code> 百分比桶</td>
+<td>慢变量和历史 proxy，不作为精确 L2 撮合依据</td>
+<td><code>bookDepth</code> 是百分比聚合桶，不等价于运行时 top-20 depth</td>
+</tr>
+<tr>
+<td>cross-market anchors</td>
+<td>BTCUSDT perp、BTCUSDT spot、BTCUSDC spot</td>
+<td>区分本地流动性冲击和更广泛的信息重定价</td>
+<td>多个 Binance 市场高度相关，不能伪装成独立 venue consensus</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>因此本文里的“数据清理”不是普通 ETL 卫生问题，而是模型定义的一部分。maker 的 label 常常是条件事件：先有候选 quote，再看是否 fill，fill 后再看 1s/5s/30s mid。只要 orderbook 缺口或长 gap 横跨这个链条，<code>P(fill)</code>、<code>E(markout | fill)</code> 和库存风险都会被误标。</p>
+<p>为了避免后面术语来回跳，这里先给一个小词典。它不是交易教材，只是本文后续代码和公式里的统一含义：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>在 NarrowGate 里的含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>maker</td>
+<td>挂被动限价单，等待别人主动成交；目标是收取 spread，但会承担被打穿后的逆向选择</td>
+</tr>
+<tr>
+<td>taker</td>
+<td>主动吃掉盘口流动性的人；他的成交方向常被用来估计短期 flow pressure</td>
+</tr>
+<tr>
+<td>BBO</td>
+<td>best bid / best ask，即当前最优买一和卖一</td>
+</tr>
+<tr>
+<td>mid</td>
+<td><code>(best_bid + best_ask) / 2</code>，最简单的中间价</td>
+</tr>
+<tr>
+<td>microprice</td>
+<td>用买卖一深度加权后的中间价，用来表达盘口哪侧更薄</td>
+</tr>
+<tr>
+<td>spread edge</td>
+<td>maker 买在 bid、卖在 ask 所获得的价格让步，不等于最终收益</td>
+</tr>
+<tr>
+<td>queue ahead</td>
+<td>自己挂单前方同价位或更优价位的可见数量；它决定价格触碰后是否轮到自己成交</td>
+</tr>
+<tr>
+<td>markout</td>
+<td>fill 后若干秒的价格变化，用来衡量成交质量</td>
+</tr>
+<tr>
+<td>maker-signed markout</td>
+<td>按 maker 方向归一后的 markout；买入后上涨为正，卖出后下跌为正</td>
+</tr>
+<tr>
+<td>adverse selection</td>
+<td>成交后价格向不利方向移动，说明自己被更快或更有信息的一方打到</td>
+</tr>
+<tr>
+<td>toxicity</td>
+<td>某侧成交后出现 adverse markout 的概率或强度估计</td>
+</tr>
+<tr>
+<td>quote EV</td>
+<td>针对某一侧候选报价的条件期望，不是单纯预测价格方向</td>
+</tr>
+<tr>
+<td>TTL / cooldown</td>
+<td>挂单最长存活时间 / 成交后短时间限制同侧继续暴露</td>
+</tr>
+</tbody>
+</table>
+</div>
 <h2 id="一、为什么叫-NarrowGate"><a href="#一、为什么叫-NarrowGate" class="headerlink" title="一、为什么叫 NarrowGate"></a>一、为什么叫 NarrowGate</h2><p>NarrowGate 取自“窄门”的意象。对 maker 策略来说，市场里的机会并不是越多越好。每一个 tick 都可以触发报价，但真正值得暴露的窗口必须经过几道门：</p>
 <ol>
 <li>当前 spread 是否提供了足够的流动性补偿；</li>
@@ -324,11 +445,99 @@
 <li><strong>信息冲击</strong>：BTCUSDT perp、spot 或更广泛的盘口同时重定价，此时在旧价格继续挂单，往往是在给更快的信息交易者提供退出流动性。</li>
 </ul>
 <p>所以每一侧 quote 都应该被看作一个条件 EV 问题：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">EV(side)<br>  ≈ P(fill | x)<br>    × [spread edge + E(markout | fill, x)]<br>    - adverse tail<br>    - inventory cost<br></code></pre></td></tr></table></figure>
-<p><code>P(fill)</code> 高不一定是好事。一个几乎必然成交、但成交后价格立刻向不利方向移动的报价，可能比完全不成交更糟。</p>
+<script type="math/tex; mode=display">
+\operatorname{EV}_{\text{side}}(x)
+\approx
+P(\operatorname{fill}\mid x)
+\left(
+  \operatorname{spread}_{\text{edge}}
+  + \mathbb{E}[\operatorname{markout}\mid \operatorname{fill}, x]
+\right)
+- \operatorname{adverse}_{\text{tail}}(x)
+- \operatorname{inventory}_{\text{cost}}(q, x)</script><p><code>P(fill)</code> 高不一定是好事。一个几乎必然成交、但成交后价格立刻向不利方向移动的报价，可能比完全不成交更糟。</p>
+<p>把 maker 的一次决策写成伪代码，大概是下面这样。真实系统当然有更多异常处理、日志和 REST 细节，但热路径上的逻辑并不神秘：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">on_requote_tick</span>(<span class="hljs-params">state, market, models, cfg</span>):</span><br>    <span class="hljs-comment"># 1. 更新短周期市场状态：mid、BBO、depth、trade flow、reference/spot</span><br>    signal = signal_engine.compute(<br>        exec_trades=market.btcusdc_trades,<br>        exec_book=market.btcusdc_l2,<br>        ref_perp=market.btcusdt_perp,<br>        exec_spot=market.btcusdc_spot,<br>        ref_spot=market.btcusdt_spot,<br>    )<br><br>    <span class="hljs-comment"># 2. 主模型只回答状态问题：短期 ret / vol / toxicity</span><br>    pred = models.main.predict(signal.feature_vector)<br><br>    <span class="hljs-comment"># 3. AS quote core 给出报价坐标系</span><br>    quote = compute_quote_core(<br>        mid=market.mid,<br>        inventory=state.position,<br>        sigma_sq=pred.vol_10s,<br>        ret_10s=pred.ret_10s,<br>        tox_bid=pred.tox_bid,<br>        tox_ask=pred.tox_ask,<br>        depth=market.l2_topN,<br>        cfg=cfg.quote,<br>    )<br><br>    <span class="hljs-comment"># 4. side policy 决定每一侧是否值得暴露</span><br>    bid_policy = build_side_policy(<br>        side=<span class="hljs-string">&quot;bid&quot;</span>,<br>        quote_ctx=quote.bid_ctx,<br>        inventory=state.position,<br>        fill_cooldown=state.fill_cooldown,<br>        quote_ev=models.bid_quote_ev,<br>    )<br>    ask_policy = build_side_policy(<br>        side=<span class="hljs-string">&quot;ask&quot;</span>,<br>        quote_ctx=quote.ask_ctx,<br>        inventory=state.position,<br>        fill_cooldown=state.fill_cooldown,<br>        quote_ev=models.ask_quote_ev,<br>    )<br><br>    <span class="hljs-comment"># 5. routing 只做本次订单动作：保留、撤单、换价、新挂</span><br>    decision = route_orders(<br>        quote=quote,<br>        bid_policy=bid_policy,<br>        ask_policy=ask_policy,<br>        live_orders=state.live_orders,<br>        filters=market.exchange_filters,<br>    )<br>    <span class="hljs-keyword">return</span> decision<br></code></pre></td></tr></table></figure>
+<p>这段伪代码也解释了为什么 live C++ 优化不能只盯着某一个公式。<code>compute_quote_core()</code> 的浮点数学很短；真正反复发生的是 feature state、quote context、side policy 和 routing decision 在 Python 对象之间来回搬运。C++ 如果只接住第 3 步，却每次都要复制完整 dataclass/dict，就会被边界成本反噬；如果把第 3 到第 5 步中稳定的计算和固定字段打包，才可能降低尾延迟。</p>
 <h2 id="二、从-AS-报价骨架开始"><a href="#二、从-AS-报价骨架开始" class="headerlink" title="二、从 AS 报价骨架开始"></a>二、从 AS 报价骨架开始</h2><p>项目最早使用经典 Avellaneda-Stoikov 做市模型。它给出了两个很有用的结构：reservation price 和最优 spread。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs text">r(s, q, t) = s - q × gamma × sigma^2 × (T - t)<br><br>delta = gamma × sigma^2 × (T - t)<br>        + (2 / gamma) × ln(1 + gamma / kappa)<br><br>bid = r - delta / 2<br>ask = r + delta / 2<br></code></pre></td></tr></table></figure>
-<p>其中 <code>q</code> 是库存，<code>sigma</code> 是短期波动，<code>kappa</code> 描述成交概率随报价距离衰减的速度。直觉上，库存偏多时 reservation price 下移，报价会更愿意卖出、更不愿继续买入；波动上升时 spread 变宽，以补偿更高的逆向选择风险。</p>
+<script type="math/tex; mode=display">
+r(s,q,t)=s-q\gamma\sigma^2(T-t)</script><script type="math/tex; mode=display">
+\delta
+=\gamma\sigma^2(T-t)
++\frac{2}{\gamma}\ln\left(1+\frac{\gamma}{\kappa}\right)</script><script type="math/tex; mode=display">
+\operatorname{bid}=r-\frac{\delta}{2},\qquad
+\operatorname{ask}=r+\frac{\delta}{2}</script><p>其中 <code>q</code> 是库存，<code>sigma</code> 是短期波动，<code>kappa</code> 描述成交概率随报价距离衰减的速度。直觉上，库存偏多时 reservation price 下移，报价会更愿意卖出、更不愿继续买入；波动上升时 spread 变宽，以补偿更高的逆向选择风险。</p>
+<p>这几个式子背后的论文假设可以压缩成三步。</p>
+<p>第一步，Avellaneda-Stoikov 假设中间价近似服从扩散过程：</p>
+<script type="math/tex; mode=display">
+dS_t=\sigma\,dW_t</script><p>做市商持有库存 <code>q</code>，财富受现金和库存市值共同影响，并使用 CARA utility：</p>
+<script type="math/tex; mode=display">
+U(x)=-\exp(-\gamma x)</script><p>在这个设定下，多持有一单位库存会暴露未来价格方差，CARA + Brownian price 的风险惩罚项近似为：</p>
+<script type="math/tex; mode=display">
+\operatorname{inventory\ penalty}
+\approx q\gamma\sigma^2(T-t)</script><p>于是 reservation price 可以理解成“愿意用来给库存做无差异估值的价格”：</p>
+<script type="math/tex; mode=display">
+r=s-q\gamma\sigma^2(T-t)</script><p>第二步，论文用一个很简洁的到达率假设描述“报价离中间价越远，越不容易成交”：</p>
+<script type="math/tex; mode=display">
+\lambda(\delta)=A\exp(-\kappa\delta)</script><p>在 CARA utility 下最大化一次被动成交的效用增量，会得到每一侧报价距离中的 log 项：</p>
+<script type="math/tex; mode=display">
+\operatorname{edge\ term}
+=\frac{1}{\gamma}\ln\left(1+\frac{\gamma}{\kappa}\right)</script><p>再叠加库存持有风险，得到总 spread：</p>
+<script type="math/tex; mode=display">
+\operatorname{total\ spread}
+=\gamma\sigma^2(T-t)
++\frac{2}{\gamma}\ln\left(1+\frac{\gamma}{\kappa}\right)</script><p>第三步，GLFT/Guéant 体系把“指数到达率”推广成更一般的强度函数 <code>Lambda(delta)</code>。这时不必假设所有市场都满足 <code>A exp(-kappa delta)</code>，而是通过 Hamiltonian 写成：</p>
+<script type="math/tex; mode=display">
+H(p)=
+\sup_{\delta}
+\Lambda(\delta)
+\left(1-\exp\left[-\gamma(\delta-p)\right]\right)</script><p>指数强度只是一个特例；如果真实 order arrival 对报价距离的衰减不是纯指数，就应该校准 <code>Lambda</code> 或等价的 <code>kappa_eff</code>，而不是迷信一个固定 <code>kappa</code>。NarrowGate 里保留 AS 的骨架，是因为它给出了稳定、可解释的库存坐标系；但具体的 <code>sigma</code>、<code>kappa</code>、depth half-spread、adverse widening 和 quote EV gate 都要由数据重新验证。</p>
+<p>实际系统里，AS 公式只是报价骨架。NarrowGate 的 quote core 更接近下面这个组合：</p>
+<p><img src="/images/narrowgate/quote-ladder.svg" srcset="/img/loading.gif" lazyload alt="NarrowGate quote ladder"></p>
+<script type="math/tex; mode=display">
+\operatorname{mid}=\frac{b_{\text{best}}+a_{\text{best}}}{2}</script><script type="math/tex; mode=display">
+\operatorname{microprice}
+=
+\frac{a_{\text{best}}Q_b+b_{\text{best}}Q_a}{Q_b+Q_a}</script><script type="math/tex; mode=display">
+\operatorname{fair}
+=\operatorname{mid}
++\Delta_{\text{microprice}}
++\Delta_{\text{model ret}}
++\Delta_{\text{cross-market}}</script><script type="math/tex; mode=display">
+\operatorname{inventory\ cost}
+=q\gamma\sigma^2\tau,\qquad
+r=\operatorname{fair}-\operatorname{inventory\ cost}</script><script type="math/tex; mode=display">
+h_{\text{AS}}
+=\frac{1}{2}\left[
+\gamma\sigma^2\tau
++\frac{2}{\gamma}\ln\left(1+\frac{\gamma}{\kappa}\right)
+\right]</script><script type="math/tex; mode=display">
+h
+=
+\max(h_{\text{AS}},h_{\text{depth}},h_{\text{fee floor}})
+\cdot m_{\text{regime}}
+\cdot m_{\text{adverse/defense}}</script><script type="math/tex; mode=display">
+\begin{aligned}
+\operatorname{bid}_{\text{candidate}} &= r-h+\Delta_{\text{bid side}},\\
+\operatorname{ask}_{\text{candidate}} &= r+h+\Delta_{\text{ask side}}.
+\end{aligned}</script><script type="math/tex; mode=display">
+\begin{aligned}
+\operatorname{final\ bid}
+&=\operatorname{floor\_to\_tick}
+\left(\min(\operatorname{bid}_{\text{candidate}},b_{\text{best}})\right),\\
+\operatorname{final\ ask}
+&=\operatorname{ceil\_to\_tick}
+\left(\max(\operatorname{ask}_{\text{candidate}},a_{\text{best}})\right).
+\end{aligned}</script><p>这里最容易误解的是 <code>microprice</code>。如果买一数量很厚、卖一很薄，<code>microprice</code> 会向卖一侧偏移，暗示向上打穿更容易；反过来则向买一侧偏移。它不是预测模型，而是盘口当前形状给出的局部压力。</p>
+<p>把 microprice 写成这个形式，也可以从“下一笔成交更可能打哪一侧”来理解。若 <code>bid_qty</code> 远大于 <code>ask_qty</code>，卖一更薄，价格向上移动的局部概率更高，于是 microprice 靠近 <code>best_ask</code>：</p>
+<script type="math/tex; mode=display">
+\operatorname{microprice}-\operatorname{mid}
+=
+\frac{1}{2}\operatorname{spread}
+\cdot
+\frac{Q_b-Q_a}{Q_b+Q_a}</script><p>这也是为什么它只能作为局部盘口压力，而不能替代未来收益模型。一个厚 bid 可能是支撑，也可能只是即将撤掉的虚假流动性；真正进入策略时，还必须经过 freshness、depth coverage、reference confirmation 和 fill 后 markout 验证。</p>
+<p>side policy 则在候选价格之后再做一次门控：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs text">allow_bid =<br>    fresh_book<br>    and not bid_adverse_pause<br>    and not bid_local_extreme_pause<br>    and inventory &lt; max_inventory<br>    and not fill_cooldown_blocks_bid<br><br>allow_ask =<br>    fresh_book<br>    and not ask_adverse_pause<br>    and not ask_local_extreme_pause<br>    and inventory &gt; -max_inventory<br>    and not fill_cooldown_blocks_ask<br></code></pre></td></tr></table></figure>
+<p>当库存偏多时，bid 是增加风险的一侧，ask 是降低风险的一侧；库存偏空时反过来。因此同一个 adverse guard 对 bid/ask 的含义并不对称，这也是 quote EV 必须按 side 训练和评估的原因。</p>
 <p>但真实盘口不会只服从这几个变量。因此项目后来逐步加入：</p>
 <ul>
 <li>microprice 与盘口 imbalance；</li>
@@ -344,6 +553,15 @@
 <p>AS 在这里不是一个直接给答案的“万能公式”，而是稳定的报价坐标系。机器学习和策略 guard 不应该随意取代这个坐标系，而应该回答更局部的问题：这一侧现在是否值得挂、要离 BBO 多远、该暴露多久、库存代价是否已经过高。</p>
 <p>主模型和 quote EV 在这里扮演不同角色。主 LightGBM 描述市场状态，例如短期收益、波动与 toxicity；quote EV 则站在某一笔候选报价的角度，估计“是否会成交、成交后是否有利、尾部是否危险”。前者回答市场正在发生什么，后者回答这一侧是否值得承担一次具体的 maker 暴露。把二者混成一个方向预测器，反而会丢掉 maker 最关心的条件性。</p>
 <p>项目也因此从早期 1s-bar 回测逐渐转向 tick replay。bar 回测适合快速检查公式和参数方向，但只知道价格是否触及；maker 是否真的成交，还取决于挂单前方的队列、订单到达时间、撤单延迟和同价位主动成交量。没有这些状态，回测很容易把“价格碰到过”错误地当成“我成交了”。</p>
+<p>简化后的 queue/fill 逻辑可以写成：</p>
+<p><img src="/images/narrowgate/order-lifecycle.svg" srcset="/img/loading.gif" lazyload alt="NarrowGate maker order lifecycle"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">process_aggressive_trade</span>(<span class="hljs-params">order, trade</span>):</span><br>    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> order.is_live:<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span><br><br>    <span class="hljs-comment"># BUY maker order fills only when sell aggressor trades at or below bid.</span><br>    <span class="hljs-comment"># SELL maker order fills only when buy aggressor trades at or above ask.</span><br>    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> trade.crosses(order.side, order.price):<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span><br><br>    remaining = trade.qty<br><br>    <span class="hljs-comment"># Visible queue ahead must be consumed before our order can fill.</span><br>    eaten = <span class="hljs-built_in">min</span>(order.queue_left, remaining)<br>    order.queue_left -= eaten<br>    remaining -= eaten<br><br>    <span class="hljs-keyword">if</span> remaining &lt;= <span class="hljs-number">0</span>:<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span><br><br>    fill_qty = <span class="hljs-built_in">min</span>(order.remaining_qty, remaining)<br>    order.remaining_qty -= fill_qty<br><br>    <span class="hljs-keyword">return</span> Fill(side=order.side, price=order.price, qty=fill_qty)<br></code></pre></td></tr></table></figure>
+<p>成交后再按 maker 方向计算 markout：</p>
+<script type="math/tex; mode=display">
+\operatorname{markout}_{\text{buy}}(h)
+=\operatorname{mid}(t+h)-p_{\text{fill}}</script><script type="math/tex; mode=display">
+\operatorname{markout}_{\text{sell}}(h)
+=p_{\text{fill}}-\operatorname{mid}(t+h)</script><p>这个定义让“对 maker 有利”的成交质量统一为正值。比如买入后价格上涨是正 markout，卖出后价格下跌也是正 markout。quote EV 和 adverse guard 关心的不是成交本身，而是 <code>fill</code> 条件下未来 markout 是否补偿了库存和尾部风险。</p>
 <h2 id="三、第一场真正的麻烦来自数据，而不是模型"><a href="#三、第一场真正的麻烦来自数据，而不是模型" class="headerlink" title="三、第一场真正的麻烦来自数据，而不是模型"></a>三、第一场真正的麻烦来自数据，而不是模型</h2><p>项目的数据主要来自两类来源：</p>
 <ul>
 <li>Binance Vision 的 aggTrades、bookDepth、metrics，以及后续补充的 spot 数据；</li>
@@ -378,7 +596,7 @@
 <h2 id="四、为什么加入-BTCUSDT-和-spot-后，结果反而更差"><a href="#四、为什么加入-BTCUSDT-和-spot-后，结果反而更差" class="headerlink" title="四、为什么加入 BTCUSDT 和 spot 后，结果反而更差"></a>四、为什么加入 BTCUSDT 和 spot 后，结果反而更差</h2><p>BTCUSDC 的本地成交和盘口并不是孤立市场。项目先加入 BTCUSDT perpetual 作为 reference，后来又重建 enhanced spot features：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">cv_ref_perp_*<br>cv_exec_spot_*<br>cv_ref_spot_*<br></code></pre></td></tr></table></figure>
 <p>从直觉上说，多一个高流动性的 reference、多两个 spot anchor，算法应该更健壮。数据也确实带来了信息：cross-market shock audit 显示，很多 adverse fill 能被 BTCUSDT reference move 解释；补齐 spot 后，相关窗口的 <code>spot_available_rate</code> 达到 1.0。</p>
-<p>但“数据有信息”不等于“把开关打开就能赚钱”。</p>
+<p>但“数据有信息”不等于“把开关打开就能形成正 EV”。</p>
 <p><code>multi_market.enabled=true/false</code> 的 Jan/Feb/Apr/May 月度 A/B 中，早期 minimal 口径下 true 的 raw PnL 四个月全部差于 false，合计约 <code>-14.05</code>。enhanced spot + audit-quality 重跑后，同样的整体开关仍然没有变成稳定收益来源，raw 差值合计约 <code>-18.14</code>。</p>
 <p>这次 enhanced 主模型并不是只拿几天 2026 数据做 smoke test。它的 train/validation split 实际包含 2025-08/09 和 2025-11/12，补齐后的 <code>cv_exec_spot_*</code>、<code>cv_ref_spot_*</code> 在 train/val/test 中非零覆盖率均为 1.0，audit 坏日期残留为 0。换言之，“结果更差”不能简单归因于 spot 列全零或坏日期仍在训练；它更像是 policy 对新增信息的使用方式有问题。</p>
 <p>这不是简单说明 reference 无效，而是说明当前使用方式太粗。cross-market 分组给出了更细的答案：</p>
@@ -397,7 +615,7 @@
 <li>extreme adverse probability；</li>
 <li>reference/spot 对冲击性质的确认。</li>
 </ul>
-<p>在 enhanced spot A/B 中，<code>ask_ev_soft_widen</code> 曾得到相对 baseline 的 raw PnL <code>+14.55</code>、InvAdj <code>+0.0049</code>。只看这两个数字，它很像一个可以继续推进的候选。</p>
+<p>在 enhanced spot A/B 中，<code>ask_ev_soft_widen</code> 曾得到相对 baseline 的 raw PnL <code>+14.55</code>、InvAdj <code>+0.0049</code>。只看这两个研究指标，它很像一个值得继续做 shadow 验证的候选。</p>
 <p>但再往下看，证据并不够：</p>
 <ul>
 <li>用于 baseline quote label 的真实 fill 只有 bid/ask 各约 334 条；</li>
@@ -408,12 +626,15 @@
 </ul>
 <p>后来把质量合格的 2025-08/09/11/12 加入 walk-forward，训练侧 fill 增加到 bid 414、ask 415，但 May 可用 feature 当时只覆盖到 5 月 17 日，validation 只剩 bid 26、ask 25 条有效 fill。扩样改善了训练数量，却没有解决验证集覆盖和校准问题。</p>
 <p>这里的“两万多行 labels”和“三百多条 fill”也不是矛盾。前者是被评估的候选 quote rows，绝大多数报价本来就不会成交；后者才是能够观测 fill 后 markout、用于校准条件结果的有效样本。<code>P(fill)</code> 可以从大量未成交报价中学习，但 <code>E(markout | fill)</code> 的统计强度最终仍受真实 filled rows 限制。这正是 maker quote-level 模型最容易出现“数据行很多、有效监督很少”的地方。</p>
-<p>所以目前最诚实的结论是：ask-only 的方向值得继续研究，但仍是 shadow/research 候选，不能因为一次 raw PnL 好看就跳过样本质量与校准 gate。bid 侧在 enhanced shadow eval 中还出现过明显退化，更不能把 both-side 结果当作自然升级。</p>
+<p>所以目前最诚实的结论是：ask-only 的方向值得继续研究，但仍是 shadow/research 候选，不能因为一次 raw PnL 改善就跳过样本质量与校准 gate。bid 侧在 enhanced shadow eval 中还出现过明显退化，更不能把 both-side 结果当作自然升级。</p>
 <h2 id="六、只看-PnL-还不够：把库存风险写成积分"><a href="#六、只看-PnL-还不够：把库存风险写成积分" class="headerlink" title="六、只看 PnL 还不够：把库存风险写成积分"></a>六、只看 PnL 还不够：把库存风险写成积分</h2><p>maker 策略可能用更长时间、更大库存换取同样的 PnL。如果 A/B 报告只列 raw PnL 和最终库存，这种风险会被隐藏。</p>
 <p>项目因此加入库存时间暴露：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">abs_inventory_time_s      = integral |q(t)| dt<br>signed_inventory_time_s   = integral q(t) dt<br>sq_inventory_time_s       = integral q(t)^2 dt<br>notional_inventory_time_s = integral |q(t)| × mid(t) dt<br></code></pre></td></tr></table></figure>
-<p>它表达的不是某一时刻仓位有多大，而是整个持仓期间承担了多少风险预算。两个 arm 即使最终都回到零库存，持仓 10 秒与持仓 2 小时也不应该被视为相同。</p>
-<p>这些字段被接入 tick replay summary、事件引擎 HEALTH/metrics 和 A/B report，并进一步派生 <code>time_avg_abs_inventory</code> 与 <code>pnl_per_abs_inventory_hour</code>。从此比较 ask EV、multi-market 和 enhanced spot 时，不只问“多赚了多少”，还要问“为这点收益占用了多少库存时间”。</p>
+<script type="math/tex; mode=display">
+T_{\lvert q\rvert}=\int_0^T |q(t)|\,dt,\qquad
+T_q=\int_0^T q(t)\,dt</script><script type="math/tex; mode=display">
+T_{q^2}=\int_0^T q(t)^2\,dt,\qquad
+T_{\text{notional}}=\int_0^T |q(t)|\,\operatorname{mid}(t)\,dt</script><p>它表达的不是某一时刻仓位有多大，而是整个持仓期间承担了多少风险预算。两个 arm 即使最终都回到零库存，持仓 10 秒与持仓 2 小时也不应该被视为相同。</p>
+<p>这些字段被接入 tick replay summary、事件引擎 HEALTH/metrics 和 A/B report，并进一步派生 <code>time_avg_abs_inventory</code> 与 <code>pnl_per_abs_inventory_hour</code>。从此比较 ask EV、multi-market 和 enhanced spot 时，不只问“raw PnL 改善多少”，还要问“为这点改善占用了多少库存时间”。</p>
 <h2 id="七、严格验证带来了新的工程问题"><a href="#七、严格验证带来了新的工程问题" class="headerlink" title="七、严格验证带来了新的工程问题"></a>七、严格验证带来了新的工程问题</h2><p>NarrowGate 的 tick replay 不是拿下一根 K 线 high/low 判断是否成交。为了尽量接近 maker 的执行过程，它需要模拟：</p>
 <ul>
 <li>历史 BBO 与 L2 best bid/ask；</li>
@@ -934,9 +1155,15 @@
 <p>这说明一件事：<strong>架构边界不是文档措辞，而是真的会改变工程结论。</strong> 在本机 ARM 上，早期 <code>SIGNAL_FEATURES=1</code> 曾经是负优化；经过 fixed-array/ring-state 改造后，在 x86 上它反而变成最明显的 live CPU 收益。相反，<code>SIGNAL_STATE=1</code> 在这台 x86 上没有额外收益。pin 到单个 vCPU 对均值帮助也不大，甚至可能放大 VM 上的尾部抖动。</p>
 <p><code>perf stat</code> 也给了一个现实提醒：这台 KVM 实例不暴露 <code>cycles</code>、<code>instructions</code>、<code>L1-icache-load-misses</code>、<code>iTLB-load-misses</code> 这些硬件事件，最后只能看到 context switches、cpu migrations 和 page faults。因此“x86 benchmark”也要继续细分：普通云主机能做 wall-time/tail-latency 复测，但真正要分析 L1I/iTLB/cache miss，可能需要裸金属、特定实例族或能暴露 PMU 的环境。</p>
 <h2 id="十四、live-路径的-C-优化：与-replay-完全不同的约束"><a href="#十四、live-路径的-C-优化：与-replay-完全不同的约束" class="headerlink" title="十四、live 路径的 C++ 优化：与 replay 完全不同的约束"></a>十四、live 路径的 C++ 优化：与 replay 完全不同的约束</h2><p>前面几节讲的 quote core batch、tick replay 状态机和 streaming features，都是以”吞吐量”为优化目标：输入是连续数组或完整窗口，可以释放 GIL、多线程并行、用 SoA 布局喂给 SIMD。但 live 路径是另一种世界。</p>
+<p>从 C++ 学习的角度看，live 优化最容易犯的错是把“语言更快”误解为“函数搬过去就会更快”。maker live path 里单个 quote 公式可能只要几十微秒，pybind 边界、Python 字典、dataclass 展开、日志对象构造和 feature merge 却可能比公式本身更贵。因此这里分析的重点不是 C++ 语法，而是 <strong>C++ 函数边界应该长什么样</strong>。</p>
 <p>事件引擎每隔 <code>requote_interval</code> 秒被 Python main loop 调用一次 <code>tick()</code>，整个决策链跑在同一个线程上：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs text">WebSocket callback → aggTrade/depth → signal.on_agg_trade()<br>                                              ↓<br>main loop: tick() ──► _requote()<br>           │              ├── compute_signal()          # LightGBM predict<br>           │              ├── compute_quote_core_live() # C++ compact path<br>           │              └── _update_orders()<br>           │                      ├── _build_side_policy()<br>           │                      └── REST new/cancel<br>           └── [sleep rq_interval]<br></code></pre></td></tr></table></figure>
 <p>这里没有批量处理的机会：每次报价决策只有一组 state，一个 depth snapshot。释放 GIL 换并行也不适用——WebSocket 回调、quote 决策和 REST 调用都在同一线程中串行执行，GIL 切换反而是额外开销。</p>
+<p>早期的错误迁移方式长这样：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># 每 tick 都创建大对象，再跨 pybind 边界，再返回大 dict。</span><br><span class="hljs-comment"># C++ 只算了 quote 公式，Python 仍然负责 policy/routing。</span><br>ctx = asdict(live_quote_state)               <span class="hljs-comment"># 14+ fields</span><br>cfg = asdict(live_quote_config)              <span class="hljs-comment"># 70+ fields</span><br>depth = [asdict(level) <span class="hljs-keyword">for</span> level <span class="hljs-keyword">in</span> l2_book] <span class="hljs-comment"># N levels</span><br><br>quote = narrowgate_cpp.compute_quote_core(ctx, cfg, depth)<br><br>bid_policy = build_policy_from_dict(quote[<span class="hljs-string">&quot;bid_context&quot;</span>])<br>ask_policy = build_policy_from_dict(quote[<span class="hljs-string">&quot;ask_context&quot;</span>])<br>orders = python_route_orders(quote, bid_policy, ask_policy)<br></code></pre></td></tr></table></figure>
+<p>这看起来“用了 C++”，但热路径仍然到处是 hash lookup、字符串 key、临时 dict/list、对象分配和 Python 属性访问。改造后的方向是把生命周期不同的数据拆开：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># config：几乎不变，缓存 native object</span><br>native_cfg = cached_cpp_config(cfg)<br><br><span class="hljs-comment"># state/pred：每 tick 改变，但字段位置固定</span><br>state_tuple = (<br>    mid, inventory, sigma_sq, trade_intensity,<br>    best_bid, best_ask, ber_active,<br>    mo_ema_all, mo_ema_bid, mo_ema_ask, mo_ref,<br>    position_open, hold_time_s, unrealized_pnl,<br>)<br>pred_tuple = (dir_10s, vol_10s, ret_10s, tox_bid, tox_ask)<br><br><span class="hljs-comment"># result：先返回 compact result，只有 quote EV/trace 才物化完整 context</span><br>quote = narrowgate_cpp.compute_quote_core_live(<br>    state_tuple, native_cfg, pred_tuple, depth_bids, depth_asks)<br><br>route = narrowgate_cpp.compute_live_routing_decision(<br>    routing_input_tuple,<br>    bid_policy_tuple,<br>    ask_policy_tuple,<br>)<br></code></pre></td></tr></table></figure>
+<p>这里的学习点很清楚：C++ 不是为了替代 Python 的事件编排，而是为了让高频决策包使用固定布局、固定字段、固定分支，减少每次 tick 的动态对象税。</p>
 <h3 id="14-1-热路径的三个生命周期层"><a href="#14-1-热路径的三个生命周期层" class="headerlink" title="14.1 热路径的三个生命周期层"></a>14.1 热路径的三个生命周期层</h3><p>live 路径的优化策略由三个不同的生命周期决定，不是统一的”全部 C++”：</p>
 <p><strong>第一层：几乎不变的 config（按配置对象缓存）</strong></p>
 <p><code>QuoteCoreConfig</code> 包含 70+ 个策略参数（gamma、kappa、adverse/defense 阈值、spread cap 系数等）。直接每次 requote 都从 Python cfg 解包再构造一次 native 对象，benchmark 测出来比 Python 还慢——单次约 300µs 的 object 构造完全抹平了 quote 数学的收益。</p>
@@ -953,6 +1180,13 @@
 <p>native 侧对应的是普通结构体，而不是把业务逻辑继续堆在 pybind lambda 中：</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">LiveRoutingPolicy</span> &#123;</span><br>    <span class="hljs-keyword">bool</span> allow_post;<br>    <span class="hljs-keyword">bool</span> allow_exposure_increase;<br>    <span class="hljs-keyword">double</span> spread_mult;<br>    <span class="hljs-keyword">double</span> size_mult;<br>    <span class="hljs-keyword">double</span> order_ttl_ms;<br>&#125;;<br><br><span class="hljs-function">LiveRoutingResult <span class="hljs-title">compute_live_routing_decision</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> LiveRoutingInput&amp; input,</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> LiveRoutingPolicy&amp; bid,</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> LiveRoutingPolicy&amp; ask)</span></span>;<br></code></pre></td></tr></table></figure>
 <p>它仍不是 quote → policy → routing 的完全 fused kernel，因为 <code>_build_side_policy()</code> 还在 Python；但 routing 边界自身已不再创建两个 20+ 字段 dict、逐个做字符串 key 查询、再创建结果 dict。旧/新二进制使用同一组输入做 100,000 次对照，checksum 完全一致：mean <code>6.024 → 0.472 us</code>，p99 <code>6.375 → 0.583 us</code>。这个约 92% 的下降只描述 routing binding，不代表完整 <code>_update_orders()</code> 或网络报单延迟也下降 92%。</p>
+<p>最终更理想的 live C++ 决策包应该继续向下面这个形态收敛：一次调用接收 market state、model prediction、inventory state 和 live order state，返回两个 side 的完整动作，但仍不负责 REST IO。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-keyword">class</span> <span class="hljs-title">OrderAction</span> :</span> std::<span class="hljs-keyword">uint8_t</span> &#123;<br>    Keep,<br>    Cancel,<br>    Replace,<br>    NewOrder,<br>&#125;;<br><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">LiveDecisionInput</span> &#123;</span><br>    <span class="hljs-keyword">double</span> mid;<br>    <span class="hljs-keyword">double</span> best_bid;<br>    <span class="hljs-keyword">double</span> best_ask;<br>    <span class="hljs-keyword">double</span> tick_size;<br>    <span class="hljs-keyword">double</span> lot_size;<br><br>    <span class="hljs-keyword">double</span> inventory;<br>    <span class="hljs-keyword">double</span> max_inventory;<br>    <span class="hljs-keyword">double</span> sigma_sq;<br>    <span class="hljs-keyword">double</span> ret_10s;<br>    <span class="hljs-keyword">double</span> tox_bid;<br>    <span class="hljs-keyword">double</span> tox_ask;<br><br>    ActiveOrder bid_order;<br>    ActiveOrder ask_order;<br>    DepthView depth;<br>&#125;;<br><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">SideDecision</span> &#123;</span><br>    OrderAction action;<br>    <span class="hljs-keyword">double</span> price;<br>    <span class="hljs-keyword">double</span> quantity;<br>    <span class="hljs-keyword">double</span> ttl_ms;<br>    std::<span class="hljs-keyword">uint32_t</span> reason_mask;<br>&#125;;<br><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">LiveDecision</span> &#123;</span><br>    SideDecision bid;<br>    SideDecision ask;<br>    <span class="hljs-keyword">double</span> final_spread;<br>    <span class="hljs-keyword">bool</span> inventory_blocked;<br>&#125;;<br><br><span class="hljs-function">LiveDecision <span class="hljs-title">compute_live_decision</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> LiveDecisionInput&amp; in,</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> QuoteCoreConfig&amp; quote_cfg,</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> PolicyConfig&amp; policy_cfg)</span> </span>&#123;<br>    <span class="hljs-keyword">auto</span> quote = <span class="hljs-built_in">compute_quote_core_compact</span>(in, quote_cfg);<br><br>    <span class="hljs-keyword">auto</span> bid_policy = evaluate_side_policy&lt;Side::Buy&gt;(<br>        quote.bid, in.inventory, in.tox_bid, policy_cfg);<br>    <span class="hljs-keyword">auto</span> ask_policy = evaluate_side_policy&lt;Side::Sell&gt;(<br>        quote.ask, in.inventory, in.tox_ask, policy_cfg);<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-built_in">route_quote_to_orders</span>(<br>        quote, bid_policy, ask_policy, in.bid_order, in.ask_order);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这段伪代码里有两个刻意保留的边界：</p>
+<ul>
+<li><code>ActiveOrder</code> 是当前本地状态，不在 C++ 里发 REST；C++ 只说“应该怎么做”，Python 负责实际 cancel/new 和异常处理。</li>
+<li><code>reason_mask</code> 是整数位图，不是字符串列表；日志需要人类可读 reason 时再冷路径翻译。这样热路径不做字符串拼接，也不会因为审计文本拖慢每次报价。</li>
+</ul>
 <p>设计上有一点克制：进出 REST 的部分（cancel/new order、TTL check、GIL 相关操作）仍留在 Python，不放进 C++ call 内。这条边界的理由是：REST 调用本身的延迟在 10-50ms 量级，比 C++ 函数的收益大两个数量级；强行把 REST 放进 C++ 只会让错误更难 debug，而不会降低端到端延迟。</p>
 <h3 id="14-3-最小且可预测的热指令工作集"><a href="#14-3-最小且可预测的热指令工作集" class="headerlink" title="14.3 最小且可预测的热指令工作集"></a>14.3 最小且可预测的热指令工作集</h3><p>HFT 代码短小，不是为了追求源码上的简洁，而是为了控制 CPU 前端真正看见的机器码。这里采用的标准是：<strong>让一次高频事件实际触达的指令工作集最小、稳定且分支可预测，而不是让整个扩展模块都塞进 L1I。</strong></p>
 <p>这一区别很重要。优化后 <code>narrowgate_cpp</code> 的 <code>__text</code> 是 471,364 bytes，仍然大于本机性能核 192 KiB、能效核 128 KiB 的 L1I；但其中包括 pybind 注册、Python 类型转换、异常处理、批量研究接口和 trace binding，它们不会在一次 live requote 中全部执行。使用与发布扩展一致的 Release + pybind ThinLTO 诊断构建和 linker map 查看真正的函数尺寸，结果是：</p>
