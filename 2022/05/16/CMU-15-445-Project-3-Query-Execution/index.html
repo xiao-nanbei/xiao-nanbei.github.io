@@ -16,12 +16,12 @@
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
   
-    <meta name="description" content="TASK #1 - SYSTEM CATALOG在这个任务中，我们会修改rc&#x2F;include&#x2F;catalog&#x2F;catalog.h以允许 DBMS 将新表添加到数据库并使用名称或内部对象标识符 ( table_oid_t) 检索它们。 我们在最新的BusTub中可以看到catalog的实现，但是这个版本只能实现通过6个测试， 先来看看TableInfo的结构体： 123456789101112131">
+    <meta name="description" content="TASK #1 - SYSTEM CATALOG在这个任务中，我们会修改rc&#x2F;include&#x2F;catalog&#x2F;catalog.h以允许 DBMS 将新表添加到数据库并使用名称或内部对象标识符 ( table_oid_t) 检索它们。 我们在最新的BusTub中可以看到catalog的实现，但是这个版本只能实现通过6个测试， 先来看看TableInfo的结构体： struct TableInfo &amp;">
 <meta property="og:type" content="article">
 <meta property="og:title" content="CMU 15-445 Project 3: Query execution">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2022/05/16/CMU-15-445-Project-3-Query-Execution/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="TASK #1 - SYSTEM CATALOG在这个任务中，我们会修改rc&#x2F;include&#x2F;catalog&#x2F;catalog.h以允许 DBMS 将新表添加到数据库并使用名称或内部对象标识符 ( table_oid_t) 检索它们。 我们在最新的BusTub中可以看到catalog的实现，但是这个版本只能实现通过6个测试， 先来看看TableInfo的结构体： 123456789101112131">
+<meta property="og:description" content="TASK #1 - SYSTEM CATALOG在这个任务中，我们会修改rc&#x2F;include&#x2F;catalog&#x2F;catalog.h以允许 DBMS 将新表添加到数据库并使用名称或内部对象标识符 ( table_oid_t) 检索它们。 我们在最新的BusTub中可以看到catalog的实现，但是这个版本只能实现通过6个测试， 先来看看TableInfo的结构体： struct TableInfo &amp;">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-05-16T06:09:17.000Z">
 <meta property="article:modified_time" content="2026-06-06T01:14:57.037Z">
@@ -206,7 +206,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      21 分钟
+      20 分钟
     </span>
   
 
@@ -241,10 +241,41 @@
               <h4 id="TASK-1-SYSTEM-CATALOG"><a href="#TASK-1-SYSTEM-CATALOG" class="headerlink" title="TASK #1 - SYSTEM CATALOG"></a>TASK #1 - SYSTEM CATALOG</h4><p>在这个任务中，我们会修改<code>rc/include/catalog/catalog.h</code>以允许 DBMS 将新表添加到数据库并使用名称或内部对象标识符 ( <code>table_oid_t</code>) 检索它们。</p>
 <p>我们在最新的BusTub中可以看到<code>catalog</code>的实现，但是这个版本只能实现通过6个测试，</p>
 <p>先来看看<code>TableInfo</code>的结构体：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></div></td><td class="code"><pre><code class="hljs c++"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">TableInfo</span> &#123;</span><br>  <span class="hljs-comment">/**</span><br><span class="hljs-comment">   * Construct a new TableInfo instance.</span><br><span class="hljs-comment">   * @param schema The table schema</span><br><span class="hljs-comment">   * @param name The table name</span><br><span class="hljs-comment">   * @param table An owning pointer to the table heap</span><br><span class="hljs-comment">   * @param oid The unique OID for the table</span><br><span class="hljs-comment">   */</span><br>  <span class="hljs-built_in">TableInfo</span>(Schema schema, std::string name, std::unique_ptr&lt;TableHeap&gt; &amp;&amp;table, <span class="hljs-keyword">table_oid_t</span> oid)<br>      : schema_&#123;std::<span class="hljs-built_in">move</span>(schema)&#125;, name_&#123;std::<span class="hljs-built_in">move</span>(name)&#125;, table_&#123;std::<span class="hljs-built_in">move</span>(table)&#125;, oid_&#123;oid&#125; &#123;&#125;<br>  <span class="hljs-comment">/** The table schema */</span><br>  Schema schema_;<br>  <span class="hljs-comment">/** The table name */</span><br>  <span class="hljs-keyword">const</span> std::string name_;<br>  <span class="hljs-comment">/** An owning pointer to the table heap */</span><br>  std::unique_ptr&lt;TableHeap&gt; table_;<br>  <span class="hljs-comment">/** The table OID */</span><br>  <span class="hljs-keyword">const</span> <span class="hljs-keyword">table_oid_t</span> oid_;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">TableInfo</span> &#123;</span>
+  <span class="hljs-comment">/**</span>
+<span class="hljs-comment">   * Construct a new TableInfo instance.</span>
+<span class="hljs-comment">   * @param schema The table schema</span>
+<span class="hljs-comment">   * @param name The table name</span>
+<span class="hljs-comment">   * @param table An owning pointer to the table heap</span>
+<span class="hljs-comment">   * @param oid The unique OID for the table</span>
+<span class="hljs-comment">   */</span>
+  <span class="hljs-built_in">TableInfo</span>(Schema schema, std::string name, std::unique_ptr&lt;TableHeap&gt; &amp;&amp;table, <span class="hljs-keyword">table_oid_t</span> oid)
+      : schema_&#123;std::<span class="hljs-built_in">move</span>(schema)&#125;, name_&#123;std::<span class="hljs-built_in">move</span>(name)&#125;, table_&#123;std::<span class="hljs-built_in">move</span>(table)&#125;, oid_&#123;oid&#125; &#123;&#125;
+  <span class="hljs-comment">/** The table schema */</span>
+  Schema schema_;
+  <span class="hljs-comment">/** The table name */</span>
+  <span class="hljs-keyword">const</span> std::string name_;
+  <span class="hljs-comment">/** An owning pointer to the table heap */</span>
+  std::unique_ptr&lt;TableHeap&gt; table_;
+  <span class="hljs-comment">/** The table OID */</span>
+  <span class="hljs-keyword">const</span> <span class="hljs-keyword">table_oid_t</span> oid_;
+&#125;;</code></pre></div>
 <p>我们可以看看<code>catalog</code>的成员变量：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c++">  std::unordered_map&lt;<span class="hljs-keyword">table_oid_t</span>, std::unique_ptr&lt;TableInfo&gt;&gt; tables_;<span class="hljs-comment">//无序map,也就是表信息集合</span><br>  std::unordered_map&lt;std::string, <span class="hljs-keyword">table_oid_t</span>&gt; table_names_;<span class="hljs-comment">//表名集合</span><br><span class="hljs-comment">//这里我们可以看出寻表是表名-&gt;oid-&gt;表信息</span><br>std::atomic&lt;<span class="hljs-keyword">table_oid_t</span>&gt; next_table_oid_&#123;<span class="hljs-number">0</span>&#125;;<span class="hljs-comment">//用atomic类来做多线程编程</span><br><span class="hljs-comment">//index与上述结构相似</span><br>std::unordered_map&lt;<span class="hljs-keyword">index_oid_t</span>, std::unique_ptr&lt;IndexInfo&gt;&gt; indexes_;<br>std::unordered_map&lt;std::string, std::unordered_map&lt;std::string, <span class="hljs-keyword">index_oid_t</span>&gt;&gt; index_names_;<span class="hljs-comment">//在index_names_中，是以&lt;string,&lt;string,index_oid_t&gt;&gt;作为结构，第一个string是index的name，第二个string是</span><br>std::atomic&lt;<span class="hljs-keyword">index_oid_t</span>&gt; next_index_oid_&#123;<span class="hljs-number">0</span>&#125;;<br></code></pre></td></tr></table></figure>
-<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Create a new table and return its metadata.</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> txn The transaction in which the table is being created</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> table_name The name of the new table</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> schema The schema of the new table</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@return</span> A (non-owning) pointer to the metadata for the table</span><br><span class="hljs-comment"> */</span><br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c++">  std::unordered_map&lt;<span class="hljs-keyword">table_oid_t</span>, std::unique_ptr&lt;TableInfo&gt;&gt; tables_;<span class="hljs-comment">//无序map,也就是表信息集合</span>
+  std::unordered_map&lt;std::string, <span class="hljs-keyword">table_oid_t</span>&gt; table_names_;<span class="hljs-comment">//表名集合</span>
+<span class="hljs-comment">//这里我们可以看出寻表是表名-&gt;oid-&gt;表信息</span>
+std::atomic&lt;<span class="hljs-keyword">table_oid_t</span>&gt; next_table_oid_&#123;<span class="hljs-number">0</span>&#125;;<span class="hljs-comment">//用atomic类来做多线程编程</span>
+<span class="hljs-comment">//index与上述结构相似</span>
+std::unordered_map&lt;<span class="hljs-keyword">index_oid_t</span>, std::unique_ptr&lt;IndexInfo&gt;&gt; indexes_;
+std::unordered_map&lt;std::string, std::unordered_map&lt;std::string, <span class="hljs-keyword">index_oid_t</span>&gt;&gt; index_names_;<span class="hljs-comment">//在index_names_中，是以&lt;string,&lt;string,index_oid_t&gt;&gt;作为结构，第一个string是index的name，第二个string是</span>
+std::atomic&lt;<span class="hljs-keyword">index_oid_t</span>&gt; next_index_oid_&#123;<span class="hljs-number">0</span>&#125;;</code></pre></div>
+<div class="code-wrapper"><pre><code class="hljs php"><span class="hljs-comment">/**</span>
+<span class="hljs-comment"> * Create a new table and return its metadata.</span>
+<span class="hljs-comment"> * <span class="hljs-doctag">@param</span> txn The transaction in which the table is being created</span>
+<span class="hljs-comment"> * <span class="hljs-doctag">@param</span> table_name The name of the new table</span>
+<span class="hljs-comment"> * <span class="hljs-doctag">@param</span> schema The schema of the new table</span>
+<span class="hljs-comment"> * <span class="hljs-doctag">@return</span> A (non-owning) pointer to the metadata for the table</span>
+<span class="hljs-comment"> */</span></code></pre></div>
 <p>从上面的注释可以看出，<code>CreateTable</code> 的核心并不复杂：先为表分配新的 <code>table_oid_t</code>，再用表名、schema 和 <code>TableHeap</code> 构造 <code>TableInfo</code>，最后同时维护 <code>tables_</code> 和 <code>table_names_</code> 两个索引结构。需要注意的是，<code>table_names_</code> 负责从表名查到 OID，<code>tables_</code> 负责从 OID 查到真正的元数据，两者必须保持一致。</p>
 <h4 id="TASK-2-EXECUTORS"><a href="#TASK-2-EXECUTORS" class="headerlink" title="TASK #2 - EXECUTORS"></a>TASK #2 - EXECUTORS</h4><p>Query Execution 这一部分的重点是把逻辑计划节点落实成可以迭代执行的 executor。BusTub 的 executor 通常都遵循 <code>Init()</code> + <code>Next(Tuple *tuple, RID *rid)</code> 的模式：<code>Init()</code> 负责初始化子 executor 或内部状态，<code>Next()</code> 每次产出一条结果，直到返回 <code>false</code>。</p>
 <p>比较容易出错的点有三个：</p>

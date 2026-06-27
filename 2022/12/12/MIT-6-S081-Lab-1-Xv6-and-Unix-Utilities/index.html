@@ -16,12 +16,12 @@
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
   
-    <meta name="description" content="在这个实验中要实现几个用户级别的应用程序，其对应的系统调用在kernel中都已经被实现好了。 sleep本实验要为 xv6 实现 UNIX 程序 sleep； 您的睡眠应暂停用户指定的滴答数。 滴答是 xv6 内核定义的时间概念，即来自定时器芯片的两次中断之间的时间。 我们检查参数，如果出现不是数字的参数就exit(-1)，否则进行sleep。代码如下所示： 1234567891011121314">
+    <meta name="description" content="在这个实验中要实现几个用户级别的应用程序，其对应的系统调用在kernel中都已经被实现好了。 sleep本实验要为 xv6 实现 UNIX 程序 sleep； 您的睡眠应暂停用户指定的滴答数。 滴答是 xv6 内核定义的时间概念，即来自定时器芯片的两次中断之间的时间。 我们检查参数，如果出现不是数字的参数就exit(-1)，否则进行sleep。代码如下所示： #include &quot;kern">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MIT 6.S081 Lab 1: Xv6 and Unix utilities">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2022/12/12/MIT-6-S081-Lab-1-Xv6-and-Unix-Utilities/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="在这个实验中要实现几个用户级别的应用程序，其对应的系统调用在kernel中都已经被实现好了。 sleep本实验要为 xv6 实现 UNIX 程序 sleep； 您的睡眠应暂停用户指定的滴答数。 滴答是 xv6 内核定义的时间概念，即来自定时器芯片的两次中断之间的时间。 我们检查参数，如果出现不是数字的参数就exit(-1)，否则进行sleep。代码如下所示： 1234567891011121314">
+<meta property="og:description" content="在这个实验中要实现几个用户级别的应用程序，其对应的系统调用在kernel中都已经被实现好了。 sleep本实验要为 xv6 实现 UNIX 程序 sleep； 您的睡眠应暂停用户指定的滴答数。 滴答是 xv6 内核定义的时间概念，即来自定时器芯片的两次中断之间的时间。 我们检查参数，如果出现不是数字的参数就exit(-1)，否则进行sleep。代码如下所示： #include &quot;kern">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-12-12T11:01:44.000Z">
 <meta property="article:modified_time" content="2026-06-06T01:14:57.054Z">
@@ -197,7 +197,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      6.7k 字
+      6.3k 字
     </span>
   
 
@@ -206,7 +206,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      56 分钟
+      53 分钟
     </span>
   
 
@@ -241,13 +241,49 @@
               <p>在这个实验中要实现几个用户级别的应用程序，其对应的系统调用在<code>kernel</code>中都已经被实现好了。</p>
 <h4 id="sleep"><a href="#sleep" class="headerlink" title="sleep"></a><em>sleep</em></h4><p>本实验要为 xv6 实现 UNIX 程序 sleep； 您的睡眠应暂停用户指定的滴答数。 滴答是 xv6 内核定义的时间概念，即来自定时器芯片的两次中断之间的时间。</p>
 <p>我们检查参数，如果出现不是数字的参数就<code>exit(-1)</code>，否则进行sleep。代码如下所示：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></div></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;kernel/types.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;kernel/stat.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;user/user.h&quot;</span></span><br><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">(<span class="hljs-keyword">int</span> argc,<span class="hljs-keyword">char</span> *argv[])</span></span>&#123;<br>  <span class="hljs-keyword">while</span>(argv[<span class="hljs-number">1</span>][i]!=<span class="hljs-string">&#x27;&#x27;)&#123;</span><br><span class="hljs-string">    if(argv[1][i]&gt;&#x27;</span><span class="hljs-number">9&#x27;</span>||argv[<span class="hljs-number">1</span>][i]&lt;<span class="hljs-string">&#x27;0&#x27;</span>)&#123;<br>      write(<span class="hljs-number">1</span>, <span class="hljs-string">&quot;error\n&quot;</span>, <span class="hljs-number">6</span>);<br>      <span class="hljs-built_in">exit</span>(<span class="hljs-number">-1</span>);<br>    &#125;<br>    i++; <br>  &#125;<br>  <span class="hljs-keyword">int</span> times=atoi(argv[<span class="hljs-number">1</span>]);<br>  sleep(times);<br>  <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;kernel/types.h&quot;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;kernel/stat.h&quot;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;user/user.h&quot;</span></span>
+
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">(<span class="hljs-keyword">int</span> argc,<span class="hljs-keyword">char</span> *argv[])</span></span>&#123;
+  <span class="hljs-keyword">while</span>(argv[<span class="hljs-number">1</span>][i]!=<span class="hljs-string">&#x27;&#x27;)&#123;</span>
+<span class="hljs-string">    if(argv[1][i]&gt;&#x27;</span><span class="hljs-number">9&#x27;</span>||argv[<span class="hljs-number">1</span>][i]&lt;<span class="hljs-string">&#x27;0&#x27;</span>)&#123;
+      write(<span class="hljs-number">1</span>, <span class="hljs-string">&quot;error\n&quot;</span>, <span class="hljs-number">6</span>);
+      <span class="hljs-built_in">exit</span>(<span class="hljs-number">-1</span>);
+    &#125;
+    i++; 
+  &#125;
+  <span class="hljs-keyword">int</span> times=atoi(argv[<span class="hljs-number">1</span>]);
+  sleep(times);
+  <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);
+&#125;
+</code></pre></div>
 <p>值得注意的是，程序中我们使用了一些系统调用函数，如sleep函数，write函数。我们可以在user/user.h中一窥这些函数的原型：</p>
 <p>我们来分析一下<code>write</code>函数，我们可以看到<code>write</code>函数的声明为<code>int write(int,const void*,int);</code>其中，参数中第一个<code>int</code>为文件描述符<code>fd</code>，参数中第二个<code>const void*</code>为内存地址，第三个<code>int</code>为写入的字节数量，意思就是说：将参数<code>buf</code>所指的内存写入<code>count</code>个字节到参数<code>fd</code>所指的文件，其中，fd为文件描述符。大家可以看到上述代码中的<code>write</code>函数的调用：<code>write(1,&quot;error\n&quot;,6)</code>，其中<code>fd=1</code>代表标准输出<code>stdout</code>，也就是会打印到显示器。</p>
 <p>我们来看看<code>write</code>在内核中的实现<code>sys_write</code>:</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-function">uint64</span><br><span class="hljs-function"><span class="hljs-title">sys_write</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span><br><span class="hljs-function"></span>&#123;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">file</span> *<span class="hljs-title">f</span>;</span><span class="hljs-comment">//存储文件描述符</span><br>  <span class="hljs-keyword">int</span> n;<span class="hljs-comment">//存储写入的字节数量</span><br>  uint64 p;<span class="hljs-comment">//存储内存地址</span><br><br>  <span class="hljs-keyword">if</span>(argfd(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, &amp;f) &lt; <span class="hljs-number">0</span> || argint(<span class="hljs-number">2</span>, &amp;n) &lt; <span class="hljs-number">0</span> || argaddr(<span class="hljs-number">1</span>, &amp;p) &lt; <span class="hljs-number">0</span>)<span class="hljs-comment">//分别写入</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br><br>  <span class="hljs-keyword">return</span> filewrite(f, p, n);<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-function">uint64</span>
+<span class="hljs-function"><span class="hljs-title">sys_write</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>
+<span class="hljs-function"></span>&#123;
+  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">file</span> *<span class="hljs-title">f</span>;</span><span class="hljs-comment">//存储文件描述符</span>
+  <span class="hljs-keyword">int</span> n;<span class="hljs-comment">//存储写入的字节数量</span>
+  uint64 p;<span class="hljs-comment">//存储内存地址</span>
+
+  <span class="hljs-keyword">if</span>(argfd(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, &amp;f) &lt; <span class="hljs-number">0</span> || argint(<span class="hljs-number">2</span>, &amp;n) &lt; <span class="hljs-number">0</span> || argaddr(<span class="hljs-number">1</span>, &amp;p) &lt; <span class="hljs-number">0</span>)<span class="hljs-comment">//分别写入</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;
+
+  <span class="hljs-keyword">return</span> filewrite(f, p, n);
+&#125;</code></pre></div>
 <p>在进入内核的时候，系统调用函数会将参数保存在寄存器中，然后调用<code>argfd</code>等函数将参数取出，保存在<code>f，p，n</code>中，调用<code>filewrite</code>函数。我们注意到<code>struct file</code>结构，其结构如下所示：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">file</span> &#123;</span><br>  <span class="hljs-class"><span class="hljs-keyword">enum</span> &#123;</span> FD_NONE, FD_PIPE, FD_INODE, FD_DEVICE &#125; type;<br>  <span class="hljs-keyword">int</span> ref; <span class="hljs-comment">// reference count</span><br>  <span class="hljs-keyword">char</span> readable;<br>  <span class="hljs-keyword">char</span> writable;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">pipe</span> *<span class="hljs-title">pipe</span>;</span> <span class="hljs-comment">// FD_PIPE</span><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">inode</span> *<span class="hljs-title">ip</span>;</span>  <span class="hljs-comment">// FD_INODE and FD_DEVICE</span><br>  uint off;          <span class="hljs-comment">// FD_INODE</span><br>  <span class="hljs-keyword">short</span> major;       <span class="hljs-comment">// FD_DEVICE</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">file</span> &#123;</span>
+  <span class="hljs-class"><span class="hljs-keyword">enum</span> &#123;</span> FD_NONE, FD_PIPE, FD_INODE, FD_DEVICE &#125; type;
+  <span class="hljs-keyword">int</span> ref; <span class="hljs-comment">// reference count</span>
+  <span class="hljs-keyword">char</span> readable;
+  <span class="hljs-keyword">char</span> writable;
+  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">pipe</span> *<span class="hljs-title">pipe</span>;</span> <span class="hljs-comment">// FD_PIPE</span>
+  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">inode</span> *<span class="hljs-title">ip</span>;</span>  <span class="hljs-comment">// FD_INODE and FD_DEVICE</span>
+  uint off;          <span class="hljs-comment">// FD_INODE</span>
+  <span class="hljs-keyword">short</span> major;       <span class="hljs-comment">// FD_DEVICE</span>
+&#125;</code></pre></div>
 <p><code>filewrite</code>是xv6操作系统中用于向文件写入数据的系统级函数。它在内核层面处理所有文件写入操作。函数参数 <code>filewrite(struct file **f*, uint64 *addr*, int *n*)</code></p>
 <ul>
 <li><p><code>f</code>: 文件结构体指针，包含文件的所有元数据</p>
@@ -261,21 +297,39 @@
 <ul>
 <li>管道文件 (FD_PIPE)：</li>
 </ul>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">if</span>(f-&gt;type == FD_PIPE)&#123;<br>	ret = pipewrite(f-&gt;pipe, addr, n);<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-keyword">if</span>(f-&gt;type == FD_PIPE)&#123;
+	ret = pipewrite(f-&gt;pipe, addr, n);
+&#125;</code></pre></div>
 <p>调用<code>pipewrite</code>函数处理管道写入。</p>
 <ul>
 <li>设备文件 (FD_DEVICE)</li>
 </ul>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(f-&gt;type == FD_DEVICE)&#123;<br>	<span class="hljs-keyword">if</span>(f-&gt;major &lt; <span class="hljs-number">0</span> || f-&gt;major &gt;= NDEV || !devsw[f-&gt;major].write)<br>	<span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>	ret = devsw[f-&gt;major].write(<span class="hljs-number">1</span>, addr, n);<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(f-&gt;type == FD_DEVICE)&#123;
+	<span class="hljs-keyword">if</span>(f-&gt;major &lt; <span class="hljs-number">0</span> || f-&gt;major &gt;= NDEV || !devsw[f-&gt;major].write)
+	<span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;
+	ret = devsw[f-&gt;major].write(<span class="hljs-number">1</span>, addr, n);
+&#125;</code></pre></div>
 <p>检查设备号是否有效，然后调用相应设备的写函数。</p>
 <ul>
 <li><p>普通文件 (FD_INODE)：这部分最复杂，需要特殊处理。</p>
 <p>分块写入数据：</p>
 </li>
 </ul>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>;<br><span class="hljs-keyword">while</span>(i &lt; n)&#123;<br>  <span class="hljs-keyword">int</span> n1 = n - i;<br>  <span class="hljs-keyword">if</span>(n1 &gt; max)<br>    n1 = max;<br>  <span class="hljs-comment">// ...写入逻辑...</span><br>  i += r;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>;
+<span class="hljs-keyword">while</span>(i &lt; n)&#123;
+  <span class="hljs-keyword">int</span> n1 = n - i;
+  <span class="hljs-keyword">if</span>(n1 &gt; max)
+    n1 = max;
+  <span class="hljs-comment">// ...写入逻辑...</span>
+  i += r;
+&#125;</code></pre></div>
 <p>每次写入块时都使用事务保证原子性：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c">begin_op();  <span class="hljs-comment">// 开始事务</span><br>ilock(f-&gt;ip);  <span class="hljs-comment">// 锁定inode</span><br><span class="hljs-keyword">if</span> ((r = writei(f-&gt;ip, <span class="hljs-number">1</span>, addr + i, f-&gt;off, n1)) &gt; <span class="hljs-number">0</span>)<br>  f-&gt;off += r;  <span class="hljs-comment">// 更新文件偏移量</span><br>iunlock(f-&gt;ip);  <span class="hljs-comment">// 解锁inode</span><br>end_op();  <span class="hljs-comment">// 结束事务</span><br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c">begin_op();  <span class="hljs-comment">// 开始事务</span>
+ilock(f-&gt;ip);  <span class="hljs-comment">// 锁定inode</span>
+<span class="hljs-keyword">if</span> ((r = writei(f-&gt;ip, <span class="hljs-number">1</span>, addr + i, f-&gt;off, n1)) &gt; <span class="hljs-number">0</span>)
+  f-&gt;off += r;  <span class="hljs-comment">// 更新文件偏移量</span>
+iunlock(f-&gt;ip);  <span class="hljs-comment">// 解锁inode</span>
+end_op();  <span class="hljs-comment">// 结束事务</span></code></pre></div>
 <p>说到这里了，我们提一下<code>buffer IO</code>，我感觉<code>xv6</code>是没有实现<code>buffer IO</code>的，源码里面没有找到相关的说明和代码，但是在<code>linux</code>里面是实现了的。<code>buffer IO</code>是为了提高读写效率和保护磁盘，比如我们通过<code>read</code>函数将<code>fd</code>对应的文件拷贝count个字节到<code>buf</code>对应的内存，这个时候如果是<code>buffer io</code>机制，那么我们就会先将count个字节拷贝到page cache中，然后再拷贝到<code>buf</code>对应的用户空间中。<code>write</code>操作类似。</p>
 <p>上次有位面试官问了我一个问题：什么时候将脏页刷回磁盘？</p>
 <p>我查了一下，有的说是进程退出的时候刷回去，有的说是定时刷回去。在<code>CMU15445</code>细说。</p>
@@ -292,7 +346,26 @@
 <li>xv6 上的用户程序有一组有限的库函数可供它们使用。 可以在 user/user.h 中看到列表； 源（系统调用除外）位于 user/ulib.c、user/printf.c 和 user/umalloc.c。</li>
 </ul>
 <p>代码如下：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;kernel/types.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;kernel/stat.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;user/user.h&quot;</span></span><br><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span>&#123;<br>  <span class="hljs-keyword">int</span> p_filedes[<span class="hljs-number">2</span>],s_filedes[<span class="hljs-number">2</span>];<br>  pipe(p_filedes);<br>  pipe(s_filedes);<br>  <span class="hljs-keyword">char</span> buf[<span class="hljs-number">4</span>];<br>  <span class="hljs-keyword">if</span>(fork()==<span class="hljs-number">0</span>)&#123;<br>    read(p_filedes[<span class="hljs-number">0</span>],buf,<span class="hljs-number">4</span>);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%d: received %s\n&quot;</span>,getpid(),buf);<br>    write(s_filedes[<span class="hljs-number">1</span>],<span class="hljs-string">&quot;pong&quot;</span>,<span class="hljs-number">4</span>);<br>  &#125;<span class="hljs-keyword">else</span>&#123;<br>    write(p_filedes[<span class="hljs-number">1</span>],<span class="hljs-string">&quot;ping&quot;</span>,<span class="hljs-number">4</span>);<br>    read(s_filedes[<span class="hljs-number">0</span>],buf,<span class="hljs-number">4</span>);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%d: received %s\n&quot;</span>,getpid(),buf);<br>  &#125;<br>  <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;kernel/types.h&quot;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;kernel/stat.h&quot;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;user/user.h&quot;</span></span>
+
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span>&#123;
+  <span class="hljs-keyword">int</span> p_filedes[<span class="hljs-number">2</span>],s_filedes[<span class="hljs-number">2</span>];
+  pipe(p_filedes);
+  pipe(s_filedes);
+  <span class="hljs-keyword">char</span> buf[<span class="hljs-number">4</span>];
+  <span class="hljs-keyword">if</span>(fork()==<span class="hljs-number">0</span>)&#123;
+    read(p_filedes[<span class="hljs-number">0</span>],buf,<span class="hljs-number">4</span>);
+    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%d: received %s\n&quot;</span>,getpid(),buf);
+    write(s_filedes[<span class="hljs-number">1</span>],<span class="hljs-string">&quot;pong&quot;</span>,<span class="hljs-number">4</span>);
+  &#125;<span class="hljs-keyword">else</span>&#123;
+    write(p_filedes[<span class="hljs-number">1</span>],<span class="hljs-string">&quot;ping&quot;</span>,<span class="hljs-number">4</span>);
+    read(s_filedes[<span class="hljs-number">0</span>],buf,<span class="hljs-number">4</span>);
+    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%d: received %s\n&quot;</span>,getpid(),buf);
+  &#125;
+  <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);
+&#125;</code></pre></div>
 <p>在上述代码中，我们使用了两个管道，p_filedes和s_filedes，来传递父进程和子进程之间的信息。</p>
 <p>借此机会，我们来分析一下<code>read</code>函数，read函数原型为<code>read(int,void *,int)</code>，其意义为将文件描述符<code>fd</code>所指向的文件读取<code>count</code>个数据到<code>buf</code>中。如<code>read(0,buf,10)</code>就是将标准输入读取10个字节到buf中。其底层实现为<code>sys_read</code>，</p>
 <p>这让我想到了HUST大三学生在2021年做的lab1，通过程序演示多进程并发执行和进程软中断、管道通信。实验具体描述如下：</p>
@@ -309,13 +382,155 @@
 <li>父进程等待两个子进程终止后,释放管道并输出如下信息后终止:<br>Parent Process is Killed!</li>
 </ul>
 <p>这个实验可以通过如下框架进行设计：</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><code class="hljs javascript"><span class="hljs-function"><span class="hljs-title">main</span>(<span class="hljs-params"> </span>)</span><br>&#123;<br>    创建无名管道;<br>    设置信号SIGINT处理;<br>    创建子进程<span class="hljs-number">1</span>、<span class="hljs-number">2</span>;<br>    定时发送数据;<br>    等待子进程<span class="hljs-number">1</span>、<span class="hljs-number">2</span>退出;<br>    关闭管道;<br>    打印信息、退出;<br>&#125;<br>父进程SIGINT信号处理<br>&#123;<br>    发SIGUSR1给子进程<span class="hljs-number">1</span>;<br>    发SIGUSR2给子进程<span class="hljs-number">2</span>;<br>    等待子进程<span class="hljs-number">1</span>、<span class="hljs-number">2</span>退出;<br>    关闭管道;<br>    打印信息、退出;<br>&#125;<br>子进程<span class="hljs-number">1</span>/<span class="hljs-number">2</span><br>&#123;<br>    设置信号SIGINT处理;<br>    设置SIGUSR1或<span class="hljs-number">2</span>处理;<br>    <span class="hljs-keyword">while</span>(<span class="hljs-number">1</span>) &#123;<br>        从管道接收数据;<br>        显示数据;<br>        计数器++;<br>    &#125;<br>    关闭管道;<br>    打印信息、退出;<br>&#125;<br>SIGUSR1/<span class="hljs-number">2</span>信号处理<br>&#123;<br>    关闭管道;<br>    打印信息;<br>    退出;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs javascript"><span class="hljs-function"><span class="hljs-title">main</span>(<span class="hljs-params"> </span>)</span>
+&#123;
+    创建无名管道;
+    设置信号SIGINT处理;
+    创建子进程<span class="hljs-number">1</span>、<span class="hljs-number">2</span>;
+    定时发送数据;
+    等待子进程<span class="hljs-number">1</span>、<span class="hljs-number">2</span>退出;
+    关闭管道;
+    打印信息、退出;
+&#125;
+父进程SIGINT信号处理
+&#123;
+    发SIGUSR1给子进程<span class="hljs-number">1</span>;
+    发SIGUSR2给子进程<span class="hljs-number">2</span>;
+    等待子进程<span class="hljs-number">1</span>、<span class="hljs-number">2</span>退出;
+    关闭管道;
+    打印信息、退出;
+&#125;
+子进程<span class="hljs-number">1</span>/<span class="hljs-number">2</span>
+&#123;
+    设置信号SIGINT处理;
+    设置SIGUSR1或<span class="hljs-number">2</span>处理;
+    <span class="hljs-keyword">while</span>(<span class="hljs-number">1</span>) &#123;
+        从管道接收数据;
+        显示数据;
+        计数器++;
+    &#125;
+    关闭管道;
+    打印信息、退出;
+&#125;
+SIGUSR1/<span class="hljs-number">2</span>信号处理
+&#123;
+    关闭管道;
+    打印信息;
+    退出;
+&#125;</code></pre></div>
 <p>具体代码如下：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;unistd.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;stdlib.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span><span class="hljs-meta-string">&lt;string.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span><span class="hljs-meta-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span><span class="hljs-meta-string">&lt;time.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;sys/wait.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;sys/types.h&gt;</span></span><br><span class="hljs-keyword">int</span> pid_1,pid_2;<br><span class="hljs-keyword">int</span> filedes_1[<span class="hljs-number">2</span>],filedes_2[<span class="hljs-number">2</span>];<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">fun</span><span class="hljs-params">(<span class="hljs-keyword">int</span> sig)</span></span><br><span class="hljs-function"></span>&#123;<br>	kill(pid_1,SIGUSR1);<br>	kill(pid_2,SIGUSR1);<br>    waitpid(pid_1,<span class="hljs-literal">NULL</span>,<span class="hljs-number">0</span>);<br>    waitpid(pid_2,<span class="hljs-literal">NULL</span>,<span class="hljs-number">0</span>);<br>    close(filedes_1[<span class="hljs-number">0</span>]);<br>    close(filedes_1[<span class="hljs-number">1</span>]);<br>    close(filedes_2[<span class="hljs-number">0</span>]);<br>    close(filedes_2[<span class="hljs-number">1</span>]);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Parent Process is Killed!\n&quot;</span>);<br>    <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);<br>&#125;<br><br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">fun1</span><span class="hljs-params">(<span class="hljs-keyword">int</span> sig)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\nChild1 process1  is  killed by parent!\n&quot;</span>);<br>    close(filedes_1[<span class="hljs-number">0</span>]);<br>    close(filedes_1[<span class="hljs-number">1</span>]);<br>    <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">fun2</span><span class="hljs-params">(<span class="hljs-keyword">int</span> sig)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\nChild2 process2  is  killed by parent!\n&quot;</span>);<br>    close(filedes_2[<span class="hljs-number">0</span>]);<br>    close(filedes_2[<span class="hljs-number">1</span>]);<br>    <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);<br>&#125;<br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span>&#123;<br>    pipe(filedes_1);<br>    pipe(filedes_2);<br><br>    <span class="hljs-keyword">char</span> s[<span class="hljs-number">80</span>];<br>    <span class="hljs-keyword">int</span> x=<span class="hljs-number">0</span>;<br>    pid_1=fork();<br>    <span class="hljs-keyword">if</span>(pid_1&gt;<span class="hljs-number">0</span>)&#123;<br>        pid_2=fork();<br>        <span class="hljs-keyword">if</span>(pid_2&gt;<span class="hljs-number">0</span>)&#123;<br>            signal(SIGINT,fun);<br>            <span class="hljs-keyword">while</span>(<span class="hljs-number">1</span>)&#123;<br>                x++;<br>                <span class="hljs-keyword">char</span> buf[<span class="hljs-number">80</span>];<br>                <span class="hljs-built_in">sprintf</span>(buf, <span class="hljs-string">&quot;I send you %d times&quot;</span>, x);<br>                write(filedes_1[<span class="hljs-number">1</span>],buf,<span class="hljs-keyword">sizeof</span>(buf));<br>                write(filedes_2[<span class="hljs-number">1</span>],buf,<span class="hljs-keyword">sizeof</span>(buf));<br>                sleep(<span class="hljs-number">1</span>);<br>            &#125;<br>            <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>        &#125;<br>        <span class="hljs-keyword">else</span>&#123;<br>            signal(SIGINT,SIG_IGN);<br>            signal(SIGUSR1,fun2);<br>            <span class="hljs-keyword">while</span>(<span class="hljs-number">1</span>)&#123;<br>                read(filedes_2[<span class="hljs-number">0</span>],s,<span class="hljs-keyword">sizeof</span>(s));<br>                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%s c2\n&quot;</span>,s);<br>                sleep(<span class="hljs-number">1</span>);<br>            &#125;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">else</span>&#123;<br>        signal(SIGINT,SIG_IGN);<br>        signal(SIGUSR1,fun1);<br>        <span class="hljs-keyword">while</span>(<span class="hljs-number">1</span>)&#123;<br>            read(filedes_1[<span class="hljs-number">0</span>],s,<span class="hljs-keyword">sizeof</span>(s));<br>            <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%s c1\n&quot;</span>,s);<br>            sleep(<span class="hljs-number">1</span>);<br>        &#125;<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;unistd.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;stdlib.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span><span class="hljs-meta-string">&lt;string.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span><span class="hljs-meta-string">&lt;stdio.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span><span class="hljs-meta-string">&lt;time.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;sys/wait.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;sys/types.h&gt;</span></span>
+<span class="hljs-keyword">int</span> pid_1,pid_2;
+<span class="hljs-keyword">int</span> filedes_1[<span class="hljs-number">2</span>],filedes_2[<span class="hljs-number">2</span>];
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">fun</span><span class="hljs-params">(<span class="hljs-keyword">int</span> sig)</span></span>
+<span class="hljs-function"></span>&#123;
+	kill(pid_1,SIGUSR1);
+	kill(pid_2,SIGUSR1);
+    waitpid(pid_1,<span class="hljs-literal">NULL</span>,<span class="hljs-number">0</span>);
+    waitpid(pid_2,<span class="hljs-literal">NULL</span>,<span class="hljs-number">0</span>);
+    close(filedes_1[<span class="hljs-number">0</span>]);
+    close(filedes_1[<span class="hljs-number">1</span>]);
+    close(filedes_2[<span class="hljs-number">0</span>]);
+    close(filedes_2[<span class="hljs-number">1</span>]);
+    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Parent Process is Killed!\n&quot;</span>);
+    <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);
+&#125;
+
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">fun1</span><span class="hljs-params">(<span class="hljs-keyword">int</span> sig)</span></span>
+<span class="hljs-function"></span>&#123;
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\nChild1 process1  is  killed by parent!\n&quot;</span>);
+    close(filedes_1[<span class="hljs-number">0</span>]);
+    close(filedes_1[<span class="hljs-number">1</span>]);
+    <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);
+&#125;
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">fun2</span><span class="hljs-params">(<span class="hljs-keyword">int</span> sig)</span></span>
+<span class="hljs-function"></span>&#123;
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\nChild2 process2  is  killed by parent!\n&quot;</span>);
+    close(filedes_2[<span class="hljs-number">0</span>]);
+    close(filedes_2[<span class="hljs-number">1</span>]);
+    <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);
+&#125;
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span>&#123;
+    pipe(filedes_1);
+    pipe(filedes_2);
+
+    <span class="hljs-keyword">char</span> s[<span class="hljs-number">80</span>];
+    <span class="hljs-keyword">int</span> x=<span class="hljs-number">0</span>;
+    pid_1=fork();
+    <span class="hljs-keyword">if</span>(pid_1&gt;<span class="hljs-number">0</span>)&#123;
+        pid_2=fork();
+        <span class="hljs-keyword">if</span>(pid_2&gt;<span class="hljs-number">0</span>)&#123;
+            signal(SIGINT,fun);
+            <span class="hljs-keyword">while</span>(<span class="hljs-number">1</span>)&#123;
+                x++;
+                <span class="hljs-keyword">char</span> buf[<span class="hljs-number">80</span>];
+                <span class="hljs-built_in">sprintf</span>(buf, <span class="hljs-string">&quot;I send you %d times&quot;</span>, x);
+                write(filedes_1[<span class="hljs-number">1</span>],buf,<span class="hljs-keyword">sizeof</span>(buf));
+                write(filedes_2[<span class="hljs-number">1</span>],buf,<span class="hljs-keyword">sizeof</span>(buf));
+                sleep(<span class="hljs-number">1</span>);
+            &#125;
+            <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+        &#125;
+        <span class="hljs-keyword">else</span>&#123;
+            signal(SIGINT,SIG_IGN);
+            signal(SIGUSR1,fun2);
+            <span class="hljs-keyword">while</span>(<span class="hljs-number">1</span>)&#123;
+                read(filedes_2[<span class="hljs-number">0</span>],s,<span class="hljs-keyword">sizeof</span>(s));
+                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%s c2\n&quot;</span>,s);
+                sleep(<span class="hljs-number">1</span>);
+            &#125;
+        &#125;
+    &#125;
+    <span class="hljs-keyword">else</span>&#123;
+        signal(SIGINT,SIG_IGN);
+        signal(SIGUSR1,fun1);
+        <span class="hljs-keyword">while</span>(<span class="hljs-number">1</span>)&#123;
+            read(filedes_1[<span class="hljs-number">0</span>],s,<span class="hljs-keyword">sizeof</span>(s));
+            <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%s c1\n&quot;</span>,s);
+            sleep(<span class="hljs-number">1</span>);
+        &#125;
+    &#125;
+&#125;
+</code></pre></div>
 <h4 id="xargs"><a href="#xargs" class="headerlink" title="xargs"></a><em>xargs</em></h4><p>xarg是给命令传递参数的一个过滤器，也是组合多个命令的一个工具。xarg可以将管道或标准输入数据转换成命令行参数，也能够从文件的输出中读取数据。</p>
 <p>在实验中我们要完成的xargs程序与linux命令类似。</p>
 <p>代码如下：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;kernel/types.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;kernel/param.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;user/user.h&quot;</span></span><br><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">(<span class="hljs-keyword">int</span> argc, <span class="hljs-keyword">char</span> *argv[])</span> </span>&#123;<br>    <span class="hljs-keyword">char</span> line[<span class="hljs-number">256</span>], *p[MAXARG], ch;<br>    <span class="hljs-keyword">int</span> lines = <span class="hljs-number">0</span>, linen, ps = <span class="hljs-number">0</span>, pn, i, j;<br>    <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; argc - <span class="hljs-number">1</span>; i++) &#123;<br>        p[ps++] = line + lines;<br>        <span class="hljs-keyword">for</span> (j = <span class="hljs-number">0</span>; j &lt; <span class="hljs-built_in">strlen</span>(argv[i + <span class="hljs-number">1</span>]); j++)<br>            line[lines++] = argv[i + <span class="hljs-number">1</span>][j];<br>        line[lines++] = <span class="hljs-string">&#x27;\0&#x27;</span>;<br>    &#125;<br>    linen = lines; pn = ps; p[pn++] = line + linen;<br>    <span class="hljs-keyword">while</span> (read(<span class="hljs-number">0</span>, &amp;ch, <span class="hljs-number">1</span>) &gt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">if</span> (ch == <span class="hljs-string">&#x27;\n&#x27;</span>) &#123;<br>            line[linen++] = <span class="hljs-string">&#x27;\0&#x27;</span>; p[pn++] = <span class="hljs-number">0</span>;<br>            <span class="hljs-keyword">if</span> (fork() == <span class="hljs-number">0</span>) exec(argv[<span class="hljs-number">1</span>], p);<br>            <span class="hljs-keyword">else</span> &#123;<br>                wait(<span class="hljs-number">0</span>); linen = lines; pn = ps; p[pn++] = line + linen;<br>            &#125;<br>        &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (ch == <span class="hljs-string">&#x27; &#x27;</span>) &#123;<br>            line[linen++] = <span class="hljs-string">&#x27;\0&#x27;</span>; p[pn++] = line + linen;<br>        &#125; <span class="hljs-keyword">else</span> line[linen++] = ch;<br>    &#125;<br>    <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;kernel/types.h&quot;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;kernel/param.h&quot;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;user/user.h&quot;</span></span>
+
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">(<span class="hljs-keyword">int</span> argc, <span class="hljs-keyword">char</span> *argv[])</span> </span>&#123;
+    <span class="hljs-keyword">char</span> line[<span class="hljs-number">256</span>], *p[MAXARG], ch;
+    <span class="hljs-keyword">int</span> lines = <span class="hljs-number">0</span>, linen, ps = <span class="hljs-number">0</span>, pn, i, j;
+    <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; argc - <span class="hljs-number">1</span>; i++) &#123;
+        p[ps++] = line + lines;
+        <span class="hljs-keyword">for</span> (j = <span class="hljs-number">0</span>; j &lt; <span class="hljs-built_in">strlen</span>(argv[i + <span class="hljs-number">1</span>]); j++)
+            line[lines++] = argv[i + <span class="hljs-number">1</span>][j];
+        line[lines++] = <span class="hljs-string">&#x27;\0&#x27;</span>;
+    &#125;
+    linen = lines; pn = ps; p[pn++] = line + linen;
+    <span class="hljs-keyword">while</span> (read(<span class="hljs-number">0</span>, &amp;ch, <span class="hljs-number">1</span>) &gt; <span class="hljs-number">0</span>) &#123;
+        <span class="hljs-keyword">if</span> (ch == <span class="hljs-string">&#x27;\n&#x27;</span>) &#123;
+            line[linen++] = <span class="hljs-string">&#x27;\0&#x27;</span>; p[pn++] = <span class="hljs-number">0</span>;
+            <span class="hljs-keyword">if</span> (fork() == <span class="hljs-number">0</span>) exec(argv[<span class="hljs-number">1</span>], p);
+            <span class="hljs-keyword">else</span> &#123;
+                wait(<span class="hljs-number">0</span>); linen = lines; pn = ps; p[pn++] = line + linen;
+            &#125;
+        &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (ch == <span class="hljs-string">&#x27; &#x27;</span>) &#123;
+            line[linen++] = <span class="hljs-string">&#x27;\0&#x27;</span>; p[pn++] = line + linen;
+        &#125; <span class="hljs-keyword">else</span> line[linen++] = ch;
+    &#125;
+    <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);
+&#125;</code></pre></div>
 
             </div>
             <hr>

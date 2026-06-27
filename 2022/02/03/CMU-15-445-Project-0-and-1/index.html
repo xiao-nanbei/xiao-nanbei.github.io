@@ -197,7 +197,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      16k 字
+      15k 字
     </span>
   
 
@@ -206,7 +206,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      133 分钟
+      129 分钟
     </span>
   
 
@@ -317,14 +317,50 @@
 </li>
 </ol>
 <p>在LRUReplacer中我们要实现一个队列<code>std::list&lt;frame_id_t&gt; lru_list_;</code>，这个队列用来维护page写入frame。我们可以将LRUReplacer当作是一个替换器，在初始状态下，LRUReplacer应当被初始化为不包含任何frames。当page加入到buffer pool的某个frame后，调用Pin删除在LRU队列中的frame<em>id，表示该frame已经不应该成为victim；Unpin则将未固定page的frame加入到LRU队列，表示该frame使用情况比较差（页面的引用计数变为0）；victim方法则是将LRU队列中最后一名frame_id弹出（在另外的对应的函数中会删除对应页面）。LRUReplacer的最大页数与缓冲池的大小相同（这样做是为了管理缓冲池中的所有frames），因此我们在LRUReplacer的构造函数中将capacity</em>的大小设置为参数num_pages，如下所示：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><pre><code class="hljs c++">LRUReplacer::<span class="hljs-built_in">LRUReplacer</span>(<span class="hljs-keyword">size_t</span> num_pages) &#123;<br>  capacity_ = num_pages;  <span class="hljs-comment">// Initialization the capacity</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c++">LRUReplacer::<span class="hljs-built_in">LRUReplacer</span>(<span class="hljs-keyword">size_t</span> num_pages) &#123;
+  capacity_ = num_pages;  <span class="hljs-comment">// Initialization the capacity</span>
+&#125;</code></pre></div>
 <p>当我们将page加入到BufferPoolManager中的frame后，需要从LRUReplacer中删除相应的frame。Pin函数如下所示：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">LRUReplacer::Pin</span><span class="hljs-params">(<span class="hljs-keyword">frame_id_t</span> frame_id)</span> </span>&#123;<br>  <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lck</span><span class="hljs-params">(latch_)</span></span>;<br>  <span class="hljs-keyword">if</span> (map_.<span class="hljs-built_in">count</span>(frame_id) == <span class="hljs-number">0</span>) &#123;<br>    <span class="hljs-keyword">return</span>;<br>  &#125;<br><span class="hljs-comment">//</span><br>  <span class="hljs-keyword">auto</span> iter = map_[frame_id];<br>  lru_list_.<span class="hljs-built_in">erase</span>(iter);<br>  map_.<span class="hljs-built_in">erase</span>(frame_id);<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">LRUReplacer::Pin</span><span class="hljs-params">(<span class="hljs-keyword">frame_id_t</span> frame_id)</span> </span>&#123;
+  <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lck</span><span class="hljs-params">(latch_)</span></span>;
+  <span class="hljs-keyword">if</span> (map_.<span class="hljs-built_in">count</span>(frame_id) == <span class="hljs-number">0</span>) &#123;
+    <span class="hljs-keyword">return</span>;
+  &#125;
+<span class="hljs-comment">//</span>
+  <span class="hljs-keyword">auto</span> iter = map_[frame_id];
+  lru_list_.<span class="hljs-built_in">erase</span>(iter);
+  map_.<span class="hljs-built_in">erase</span>(frame_id);
+&#125;</code></pre></div>
 <p><strong>值得注意的是，我们在对LRUReplacer进行操作时应该上锁，以避免内存中特定的数据结构不会因为并发访问而导致错误。</strong>其实我们在每个函数前面用unique_lock是最稳妥的，既不会死锁，也保证安全。</p>
 <p>当页面的引用计数为0时，应该调用Unpin，这个方法应该将未固定 page 的 frame 添加到 LRUReplacer，表示有被victim的风险。代码如下所示：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">LRUReplacer::Unpin</span><span class="hljs-params">(<span class="hljs-keyword">frame_id_t</span> frame_id)</span> </span>&#123;<br>  <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lck</span><span class="hljs-params">(latch_)</span></span>;<br>  <span class="hljs-keyword">if</span> (map_.<span class="hljs-built_in">count</span>(frame_id) != <span class="hljs-number">0</span>) &#123;<span class="hljs-comment">//如果map里面已经没有这一帧/页了，就直接返回</span><br>    <span class="hljs-keyword">return</span>;<br>  &#125;<br><br>  <span class="hljs-keyword">if</span> (lru_list_.<span class="hljs-built_in">size</span>() == capacity_) &#123;<br>    <span class="hljs-keyword">return</span>;<br>  &#125;<br><br>  lru_list_.<span class="hljs-built_in">push_front</span>(frame_id);<br>  map_.<span class="hljs-built_in">emplace</span>(frame_id, lru_list_.<span class="hljs-built_in">begin</span>());<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">LRUReplacer::Unpin</span><span class="hljs-params">(<span class="hljs-keyword">frame_id_t</span> frame_id)</span> </span>&#123;
+  <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lck</span><span class="hljs-params">(latch_)</span></span>;
+  <span class="hljs-keyword">if</span> (map_.<span class="hljs-built_in">count</span>(frame_id) != <span class="hljs-number">0</span>) &#123;<span class="hljs-comment">//如果map里面已经没有这一帧/页了，就直接返回</span>
+    <span class="hljs-keyword">return</span>;
+  &#125;
+
+  <span class="hljs-keyword">if</span> (lru_list_.<span class="hljs-built_in">size</span>() == capacity_) &#123;
+    <span class="hljs-keyword">return</span>;
+  &#125;
+
+  lru_list_.<span class="hljs-built_in">push_front</span>(frame_id);
+  map_.<span class="hljs-built_in">emplace</span>(frame_id, lru_list_.<span class="hljs-built_in">begin</span>());
+&#125;
+</code></pre></div>
 <p>Replacer跟踪与所有元素相比最近访问次数最少的对象并删除，将其删除页号存储在输出参数中，并返回 True。如果 Replacer 为空则返回 False。代码如下：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">LRUReplacer::Victim</span><span class="hljs-params">(<span class="hljs-keyword">frame_id_t</span> *frame_id)</span> </span>&#123;<br>  <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lck</span><span class="hljs-params">(latch_)</span></span>;<br><br>  <span class="hljs-keyword">if</span> (map_.<span class="hljs-built_in">empty</span>()) &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br><span class="hljs-comment">//将需要删除的frame_id写入参数</span><br>  *frame_id = lru_list_.<span class="hljs-built_in">back</span>();<br>  map_.<span class="hljs-built_in">erase</span>(*frame_id);<br>  lru_list_.<span class="hljs-built_in">pop_back</span>();<br><br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">LRUReplacer::Victim</span><span class="hljs-params">(<span class="hljs-keyword">frame_id_t</span> *frame_id)</span> </span>&#123;
+  <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lck</span><span class="hljs-params">(latch_)</span></span>;
+
+  <span class="hljs-keyword">if</span> (map_.<span class="hljs-built_in">empty</span>()) &#123;
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+  &#125;
+<span class="hljs-comment">//将需要删除的frame_id写入参数</span>
+  *frame_id = lru_list_.<span class="hljs-built_in">back</span>();
+  map_.<span class="hljs-built_in">erase</span>(*frame_id);
+  lru_list_.<span class="hljs-built_in">pop_back</span>();
+
+  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+&#125;</code></pre></div>
 <h4 id="缓冲池管理器实例"><a href="#缓冲池管理器实例" class="headerlink" title="缓冲池管理器实例"></a>缓冲池管理器实例</h4><p>接下来，需要在系统中实现缓冲池管理器实例，该BufferPoolManagerInstance负责从DiskManager中读取数据库页并将它们存储在内存中。</p>
 <p>我们来看看该类的数据结构：</p>
 <ul>
@@ -347,11 +383,35 @@
 <p>题外话：由刷盘想到的——面试官问我，刷盘时机怎么选择，就比如微博的热榜tag数据，本来这个tag不是热数据，但是这个tag数据可能激增，激增之后刷盘策略要怎么改变来适应，热度又会慢慢降低，这个时候又怎么改变刷盘策略，主要是刷盘时机。</p>
 </li>
 </ul>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">BufferPoolManagerInstance::FlushPgImp</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> page_id)</span> </span>&#123;<br>  <span class="hljs-comment">// Make sure you call DiskManager::WritePage</span><br>  <span class="hljs-comment">//在这里也是一样，每个函数前面加上unique_lock</span><br>  <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lck</span><span class="hljs-params">(latch_)</span></span>;<br>  <span class="hljs-comment">//如果page id不合法，或者page_id不存在于页表中，直接返回</span><br>  <span class="hljs-keyword">if</span>(page_id==INVALID_PAGE_ID||page_table_.<span class="hljs-built_in">count</span>(page_id)==<span class="hljs-number">0</span>)&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br>  <span class="hljs-comment">//找到之后获取frame_id</span><br>  <span class="hljs-keyword">auto</span> iter=page_table_.<span class="hljs-built_in">find</span>(page_id);<br>  <span class="hljs-keyword">frame_id_t</span> frame_id=iter-&gt;second;<br>  <span class="hljs-comment">//获取相应的page</span><br>  Page *page=&amp;pages_[frame_id];<br>  <span class="hljs-comment">//将page写入磁盘</span><br>  disk_manager_-&gt;<span class="hljs-built_in">WritePage</span>(page-&gt;page_id_, page-&gt;data_);<span class="hljs-comment">//这里的page-&gt;page_id_就是参数page_id</span><br>  <span class="hljs-comment">//写回磁盘之后将page设置为不是脏页</span><br>  page-&gt;is_dirty_ = <span class="hljs-literal">false</span>;<span class="hljs-comment">//这里的is_dirty就是说是否在数据更改之后被刷回到盘里了，如果数据没有更改就是false,数据更改了还没有被刷回到盘里就是true</span><br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">BufferPoolManagerInstance::FlushPgImp</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> page_id)</span> </span>&#123;
+  <span class="hljs-comment">// Make sure you call DiskManager::WritePage</span>
+  <span class="hljs-comment">//在这里也是一样，每个函数前面加上unique_lock</span>
+  <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lck</span><span class="hljs-params">(latch_)</span></span>;
+  <span class="hljs-comment">//如果page id不合法，或者page_id不存在于页表中，直接返回</span>
+  <span class="hljs-keyword">if</span>(page_id==INVALID_PAGE_ID||page_table_.<span class="hljs-built_in">count</span>(page_id)==<span class="hljs-number">0</span>)&#123;
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+  &#125;
+  <span class="hljs-comment">//找到之后获取frame_id</span>
+  <span class="hljs-keyword">auto</span> iter=page_table_.<span class="hljs-built_in">find</span>(page_id);
+  <span class="hljs-keyword">frame_id_t</span> frame_id=iter-&gt;second;
+  <span class="hljs-comment">//获取相应的page</span>
+  Page *page=&amp;pages_[frame_id];
+  <span class="hljs-comment">//将page写入磁盘</span>
+  disk_manager_-&gt;<span class="hljs-built_in">WritePage</span>(page-&gt;page_id_, page-&gt;data_);<span class="hljs-comment">//这里的page-&gt;page_id_就是参数page_id</span>
+  <span class="hljs-comment">//写回磁盘之后将page设置为不是脏页</span>
+  page-&gt;is_dirty_ = <span class="hljs-literal">false</span>;<span class="hljs-comment">//这里的is_dirty就是说是否在数据更改之后被刷回到盘里了，如果数据没有更改就是false,数据更改了还没有被刷回到盘里就是true</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+&#125;</code></pre></div>
 <ul>
 <li><code>FlushAllPgsImp</code>函数，刷新所有页面到磁盘。</li>
 </ul>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">BufferPoolManagerInstance::FlushAllPgsImp</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lck</span><span class="hljs-params">(latch_)</span></span>;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">size_t</span> i=<span class="hljs-number">0</span>;i&lt;pool_size_;++i)&#123;<br>      Page *page=&amp;pages_[i];<br>      <span class="hljs-built_in">FlushPgImp</span>(page-&gt;page_id_);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">BufferPoolManagerInstance::FlushAllPgsImp</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lck</span><span class="hljs-params">(latch_)</span></span>;
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">size_t</span> i=<span class="hljs-number">0</span>;i&lt;pool_size_;++i)&#123;
+      Page *page=&amp;pages_[i];
+      <span class="hljs-built_in">FlushPgImp</span>(page-&gt;page_id_);
+    &#125;
+&#125;</code></pre></div>
 <ul>
 <li><code>NewPgImp</code>函数：在缓冲池创建一个新页面。</li>
 </ul>
@@ -360,9 +420,58 @@
 <li>确保你调用<code>allocatepage</code>函数；</li>
 <li>如果所有在buffer pool的page都pinned，那么返回nullptr；</li>
 <li><p>从空闲列表或替换器中选择一个受害者页面 P。 始终首先从空闲列表中选择。</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">page_id_t</span> <span class="hljs-title">BufferPoolManagerInstance::AllocatePage</span><span class="hljs-params">()</span> </span>&#123;<br>  <br>  <span class="hljs-keyword">const</span> <span class="hljs-keyword">page_id_t</span> next_page_id = next_page_id_;<br>  <span class="hljs-comment">//一旦拿出一个next_page_id，就加上num_instances，到下一个next_page_id</span><br>  next_page_id_ += num_instances_;<br>  <span class="hljs-built_in">ValidatePageId</span>(next_page_id);<br>  <span class="hljs-keyword">return</span> next_page_id;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">page_id_t</span> <span class="hljs-title">BufferPoolManagerInstance::AllocatePage</span><span class="hljs-params">()</span> </span>&#123;
+  
+  <span class="hljs-keyword">const</span> <span class="hljs-keyword">page_id_t</span> next_page_id = next_page_id_;
+  <span class="hljs-comment">//一旦拿出一个next_page_id，就加上num_instances，到下一个next_page_id</span>
+  next_page_id_ += num_instances_;
+  <span class="hljs-built_in">ValidatePageId</span>(next_page_id);
+  <span class="hljs-keyword">return</span> next_page_id;
+&#125;</code></pre></div>
 <p>那么我们看具体的代码实现：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">Page *<span class="hljs-title">BufferPoolManagerInstance::NewPgImp</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> *page_id)</span> </span>&#123;<br>  <span class="hljs-comment">// 0.   Make sure you call AllocatePage!</span><br>  <span class="hljs-comment">// 1.   If all the pages in the buffer pool are pinned, return nullptr.</span><br>  <span class="hljs-comment">// 2.   Pick a victim page P from either the free list or the replacer. Always pick from the free list first.</span><br>  <span class="hljs-comment">// 3.   Update P&#x27;s metadata, zero out memory and add P to the page table.</span><br>  <span class="hljs-comment">// 4.   Set the page ID output parameter. Return a pointer to P.</span><br>  <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lck</span><span class="hljs-params">(latch_)</span></span>;<br>  <span class="hljs-keyword">bool</span> all_pinned = <span class="hljs-literal">true</span>;<br>  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">size_t</span> i = <span class="hljs-number">0</span>; i &lt; pool_size_; ++i) &#123;<br>    <span class="hljs-keyword">if</span> (pages_[i].pin_count_ &lt;= <span class="hljs-number">0</span>) &#123;<br>      all_pinned = <span class="hljs-literal">false</span>;<br>      <span class="hljs-keyword">break</span>;<br>    &#125;<br>  &#125;<br>  <span class="hljs-keyword">if</span> (all_pinned) &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;<br>  &#125;<br>  <span class="hljs-keyword">frame_id_t</span> frame_id=<span class="hljs-number">-1</span>;<br>  <span class="hljs-keyword">if</span>(!free_list_.<span class="hljs-built_in">empty</span>())&#123;<br>    <span class="hljs-keyword">if</span>(!replacer_-&gt;<span class="hljs-built_in">Victim</span>(&amp;frame_id))&#123;<br>      <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;<br>    &#125;<br>  &#125;<span class="hljs-keyword">else</span>&#123;<br>    frame_id=free_list_.<span class="hljs-built_in">front</span>();<br>    free_list_.<span class="hljs-built_in">pop_front</span>();<br>  &#125;<br>  *page_id=<span class="hljs-built_in">AllocatePage</span>();<span class="hljs-comment">//</span><br>  Page *page = &amp;pages_[frame_id];<span class="hljs-comment">//我们找到pages序列中对应的要被替换的一帧</span><br>  <span class="hljs-comment">//disk page-&gt;pool page</span><br>  <span class="hljs-keyword">if</span> (page-&gt;<span class="hljs-built_in">IsDirty</span>()) &#123;<span class="hljs-comment">//如果这一页数据是dirty,先把这一页数据写回去</span><br>    disk_manager_-&gt;<span class="hljs-built_in">WritePage</span>(page-&gt;page_id_, page-&gt;data_);<br>    page-&gt;is_dirty_ = <span class="hljs-literal">false</span>;<br>  &#125;<br>  page_table_.<span class="hljs-built_in">erase</span>(page-&gt;page_id_);<br>  <span class="hljs-keyword">if</span> (*page_id != INVALID_PAGE_ID) &#123;<br>    page_table_.<span class="hljs-built_in">emplace</span>(*page_id, frame_id);<br>  &#125;<br>  page-&gt;<span class="hljs-built_in">ResetMemory</span>();<br>  page-&gt;page_id_ = *page_id;<br>  replacer_-&gt;<span class="hljs-built_in">Pin</span>(frame_id);<br>  page-&gt;pin_count_=<span class="hljs-number">1</span>;<br>  <span class="hljs-keyword">return</span> page;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-function">Page *<span class="hljs-title">BufferPoolManagerInstance::NewPgImp</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> *page_id)</span> </span>&#123;
+  <span class="hljs-comment">// 0.   Make sure you call AllocatePage!</span>
+  <span class="hljs-comment">// 1.   If all the pages in the buffer pool are pinned, return nullptr.</span>
+  <span class="hljs-comment">// 2.   Pick a victim page P from either the free list or the replacer. Always pick from the free list first.</span>
+  <span class="hljs-comment">// 3.   Update P&#x27;s metadata, zero out memory and add P to the page table.</span>
+  <span class="hljs-comment">// 4.   Set the page ID output parameter. Return a pointer to P.</span>
+  <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lck</span><span class="hljs-params">(latch_)</span></span>;
+  <span class="hljs-keyword">bool</span> all_pinned = <span class="hljs-literal">true</span>;
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">size_t</span> i = <span class="hljs-number">0</span>; i &lt; pool_size_; ++i) &#123;
+    <span class="hljs-keyword">if</span> (pages_[i].pin_count_ &lt;= <span class="hljs-number">0</span>) &#123;
+      all_pinned = <span class="hljs-literal">false</span>;
+      <span class="hljs-keyword">break</span>;
+    &#125;
+  &#125;
+  <span class="hljs-keyword">if</span> (all_pinned) &#123;
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;
+  &#125;
+  <span class="hljs-keyword">frame_id_t</span> frame_id=<span class="hljs-number">-1</span>;
+  <span class="hljs-keyword">if</span>(!free_list_.<span class="hljs-built_in">empty</span>())&#123;
+    <span class="hljs-keyword">if</span>(!replacer_-&gt;<span class="hljs-built_in">Victim</span>(&amp;frame_id))&#123;
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;
+    &#125;
+  &#125;<span class="hljs-keyword">else</span>&#123;
+    frame_id=free_list_.<span class="hljs-built_in">front</span>();
+    free_list_.<span class="hljs-built_in">pop_front</span>();
+  &#125;
+  *page_id=<span class="hljs-built_in">AllocatePage</span>();<span class="hljs-comment">//</span>
+  Page *page = &amp;pages_[frame_id];<span class="hljs-comment">//我们找到pages序列中对应的要被替换的一帧</span>
+  <span class="hljs-comment">//disk page-&gt;pool page</span>
+  <span class="hljs-keyword">if</span> (page-&gt;<span class="hljs-built_in">IsDirty</span>()) &#123;<span class="hljs-comment">//如果这一页数据是dirty,先把这一页数据写回去</span>
+    disk_manager_-&gt;<span class="hljs-built_in">WritePage</span>(page-&gt;page_id_, page-&gt;data_);
+    page-&gt;is_dirty_ = <span class="hljs-literal">false</span>;
+  &#125;
+  page_table_.<span class="hljs-built_in">erase</span>(page-&gt;page_id_);
+  <span class="hljs-keyword">if</span> (*page_id != INVALID_PAGE_ID) &#123;
+    page_table_.<span class="hljs-built_in">emplace</span>(*page_id, frame_id);
+  &#125;
+  page-&gt;<span class="hljs-built_in">ResetMemory</span>();
+  page-&gt;page_id_ = *page_id;
+  replacer_-&gt;<span class="hljs-built_in">Pin</span>(frame_id);
+  page-&gt;pin_count_=<span class="hljs-number">1</span>;
+  <span class="hljs-keyword">return</span> page;
+&#125;</code></pre></div>
 </li>
 </ol>
 <ul>
@@ -380,7 +489,51 @@
 </li>
 </ul>
 <p>​        代码如下，具体解析在注释中：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">Page *<span class="hljs-title">BufferPoolManagerInstance::FetchPgImp</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> page_id)</span> </span>&#123;<br>  <span class="hljs-comment">// 1.     Search the page table for the requested page (P).</span><br>  <span class="hljs-comment">// 1.1    If P exists, pin it and return it immediately.</span><br>  <span class="hljs-comment">// 1.2    If P does not exist, find a replacement page (R) from either the free list or the replacer.</span><br>  <span class="hljs-comment">//        Note that pages are always found from the free list first.</span><br>  <span class="hljs-comment">// 2.     If R is dirty, write it back to the disk.</span><br>  <span class="hljs-comment">// 3.     Delete R from the page table and insert P.</span><br>  <span class="hljs-comment">// 4.     Update P&#x27;s metadata, read in the page content from disk, and then return a pointer to P.</span><br>  <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lck</span><span class="hljs-params">(latch_)</span></span>;<br>  <span class="hljs-keyword">if</span>(page_id==INVALID_PAGE_ID)&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;<br>  &#125;<br>  <span class="hljs-keyword">auto</span> iter = page_table_.<span class="hljs-built_in">find</span>(page_id);<br>  <span class="hljs-keyword">if</span>(iter==page_table_.<span class="hljs-built_in">end</span>())&#123;<br>    <span class="hljs-keyword">frame_id_t</span> frame_id=<span class="hljs-number">-1</span>;<br>    <span class="hljs-keyword">if</span>(free_list_.<span class="hljs-built_in">empty</span>()&amp;&amp;!replacer_-&gt;<span class="hljs-built_in">Victim</span>(&amp;frame_id))&#123;<br>      <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;<br>    &#125;<br>    <span class="hljs-keyword">if</span>(!free_list_.<span class="hljs-built_in">empty</span>())&#123;<br>      frame_id=free_list_.<span class="hljs-built_in">front</span>();<br>      free_list_.<span class="hljs-built_in">pop_front</span>();<br>    &#125;<span class="hljs-keyword">else</span>&#123;<br>      <span class="hljs-keyword">auto</span> old_page_id=page_table_[frame_id];<br>      <span class="hljs-keyword">auto</span> page=&amp;pages_[frame_id];<br>      <span class="hljs-keyword">if</span>(page-&gt;<span class="hljs-built_in">IsDirty</span>())&#123;<br>        disk_manager_-&gt;<span class="hljs-built_in">WritePage</span>(page-&gt;page_id_,page-&gt;data_);<br>        page-&gt;is_dirty_=<span class="hljs-literal">false</span>;<br>      &#125;<br>      page_table_.<span class="hljs-built_in">erase</span>(old_page_id);<br>    &#125;<br>    page_table_.<span class="hljs-built_in">emplace</span>(page_id, frame_id);<br>    <span class="hljs-keyword">auto</span> tar = &amp;pages_[frame_id];<br>    tar-&gt;page_id_=page_id;<br>    tar-&gt;<span class="hljs-built_in">ResetMemory</span>();<br>    disk_manager_-&gt;<span class="hljs-built_in">ReadPage</span>(page_id, tar-&gt;data_);<br>    replacer_-&gt;<span class="hljs-built_in">Pin</span>(frame_id);<br>    tar-&gt;pin_count_ = <span class="hljs-number">1</span>;<br>    <span class="hljs-keyword">return</span> tar;<br>  &#125;<span class="hljs-comment">//如果pool中有该page</span><br>  <span class="hljs-keyword">frame_id_t</span> frame_id=iter-&gt;second;<br>  <span class="hljs-keyword">auto</span> tar=&amp;pages_[frame_id];<span class="hljs-comment">//获取相应的page_id</span><br>  replacer_-&gt;<span class="hljs-built_in">Pin</span>(frame_id);<span class="hljs-comment">//不管replacer里面有没有我们都调用一次</span><br>  tar-&gt;pin_count_++;<br>  <span class="hljs-keyword">return</span> tar;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-function">Page *<span class="hljs-title">BufferPoolManagerInstance::FetchPgImp</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> page_id)</span> </span>&#123;
+  <span class="hljs-comment">// 1.     Search the page table for the requested page (P).</span>
+  <span class="hljs-comment">// 1.1    If P exists, pin it and return it immediately.</span>
+  <span class="hljs-comment">// 1.2    If P does not exist, find a replacement page (R) from either the free list or the replacer.</span>
+  <span class="hljs-comment">//        Note that pages are always found from the free list first.</span>
+  <span class="hljs-comment">// 2.     If R is dirty, write it back to the disk.</span>
+  <span class="hljs-comment">// 3.     Delete R from the page table and insert P.</span>
+  <span class="hljs-comment">// 4.     Update P&#x27;s metadata, read in the page content from disk, and then return a pointer to P.</span>
+  <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lck</span><span class="hljs-params">(latch_)</span></span>;
+  <span class="hljs-keyword">if</span>(page_id==INVALID_PAGE_ID)&#123;
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;
+  &#125;
+  <span class="hljs-keyword">auto</span> iter = page_table_.<span class="hljs-built_in">find</span>(page_id);
+  <span class="hljs-keyword">if</span>(iter==page_table_.<span class="hljs-built_in">end</span>())&#123;
+    <span class="hljs-keyword">frame_id_t</span> frame_id=<span class="hljs-number">-1</span>;
+    <span class="hljs-keyword">if</span>(free_list_.<span class="hljs-built_in">empty</span>()&amp;&amp;!replacer_-&gt;<span class="hljs-built_in">Victim</span>(&amp;frame_id))&#123;
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;
+    &#125;
+    <span class="hljs-keyword">if</span>(!free_list_.<span class="hljs-built_in">empty</span>())&#123;
+      frame_id=free_list_.<span class="hljs-built_in">front</span>();
+      free_list_.<span class="hljs-built_in">pop_front</span>();
+    &#125;<span class="hljs-keyword">else</span>&#123;
+      <span class="hljs-keyword">auto</span> old_page_id=page_table_[frame_id];
+      <span class="hljs-keyword">auto</span> page=&amp;pages_[frame_id];
+      <span class="hljs-keyword">if</span>(page-&gt;<span class="hljs-built_in">IsDirty</span>())&#123;
+        disk_manager_-&gt;<span class="hljs-built_in">WritePage</span>(page-&gt;page_id_,page-&gt;data_);
+        page-&gt;is_dirty_=<span class="hljs-literal">false</span>;
+      &#125;
+      page_table_.<span class="hljs-built_in">erase</span>(old_page_id);
+    &#125;
+    page_table_.<span class="hljs-built_in">emplace</span>(page_id, frame_id);
+    <span class="hljs-keyword">auto</span> tar = &amp;pages_[frame_id];
+    tar-&gt;page_id_=page_id;
+    tar-&gt;<span class="hljs-built_in">ResetMemory</span>();
+    disk_manager_-&gt;<span class="hljs-built_in">ReadPage</span>(page_id, tar-&gt;data_);
+    replacer_-&gt;<span class="hljs-built_in">Pin</span>(frame_id);
+    tar-&gt;pin_count_ = <span class="hljs-number">1</span>;
+    <span class="hljs-keyword">return</span> tar;
+  &#125;<span class="hljs-comment">//如果pool中有该page</span>
+  <span class="hljs-keyword">frame_id_t</span> frame_id=iter-&gt;second;
+  <span class="hljs-keyword">auto</span> tar=&amp;pages_[frame_id];<span class="hljs-comment">//获取相应的page_id</span>
+  replacer_-&gt;<span class="hljs-built_in">Pin</span>(frame_id);<span class="hljs-comment">//不管replacer里面有没有我们都调用一次</span>
+  tar-&gt;pin_count_++;
+  <span class="hljs-keyword">return</span> tar;
+&#125;</code></pre></div>
 <ul>
 <li><code>UnpinPgImp函数</code>：这个函数就是完成对该页面操作之后，进行Unpin操作。<ol>
 <li>如果一开始<code>pin_couter==0</code>，直接返回。</li>
@@ -390,7 +543,32 @@
 </li>
 </ul>
 <p>​        其代码如下：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">BufferPoolManagerInstance::UnpinPgImp</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> page_id, <span class="hljs-keyword">bool</span> is_dirty)</span> </span>&#123;<br>  <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lck</span><span class="hljs-params">(latch_)</span></span>;<br>  <span class="hljs-comment">//如果page id不合法，或者page_id不存在于页表中，直接返回</span><br>  <span class="hljs-keyword">if</span>(page_id==INVALID_PAGE_ID||page_table_.<span class="hljs-built_in">count</span>(page_id)==<span class="hljs-number">0</span>)&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br>  <span class="hljs-comment">//找到之后获取frame_id</span><br>  <span class="hljs-keyword">auto</span> iter=page_table_.<span class="hljs-built_in">find</span>(page_id);<br><br>  <span class="hljs-keyword">frame_id_t</span> frame_id = iter-&gt;second;<br>  Page *page = &amp;pages_[frame_id];<br>  <span class="hljs-comment">//如果直接是等于0的，说明不需要unpin操作，直接返回</span><br>  <span class="hljs-keyword">if</span> (page-&gt;pin_count_ == <span class="hljs-number">0</span>) &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br>  <span class="hljs-comment">//如果之前被调用过，执行下列操作</span><br>  page-&gt;pin_count_--;<br>  <span class="hljs-keyword">if</span> (page-&gt;pin_count_ == <span class="hljs-number">0</span>) &#123;<br>    replacer_-&gt;<span class="hljs-built_in">Unpin</span>(frame_id);<br>  &#125;<br>  <span class="hljs-keyword">if</span> (is_dirty) &#123;<br>    page-&gt;is_dirty_ = <span class="hljs-literal">true</span>;<br>  &#125;<br><br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">BufferPoolManagerInstance::UnpinPgImp</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> page_id, <span class="hljs-keyword">bool</span> is_dirty)</span> </span>&#123;
+  <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lck</span><span class="hljs-params">(latch_)</span></span>;
+  <span class="hljs-comment">//如果page id不合法，或者page_id不存在于页表中，直接返回</span>
+  <span class="hljs-keyword">if</span>(page_id==INVALID_PAGE_ID||page_table_.<span class="hljs-built_in">count</span>(page_id)==<span class="hljs-number">0</span>)&#123;
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+  &#125;
+  <span class="hljs-comment">//找到之后获取frame_id</span>
+  <span class="hljs-keyword">auto</span> iter=page_table_.<span class="hljs-built_in">find</span>(page_id);
+
+  <span class="hljs-keyword">frame_id_t</span> frame_id = iter-&gt;second;
+  Page *page = &amp;pages_[frame_id];
+  <span class="hljs-comment">//如果直接是等于0的，说明不需要unpin操作，直接返回</span>
+  <span class="hljs-keyword">if</span> (page-&gt;pin_count_ == <span class="hljs-number">0</span>) &#123;
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+  &#125;
+  <span class="hljs-comment">//如果之前被调用过，执行下列操作</span>
+  page-&gt;pin_count_--;
+  <span class="hljs-keyword">if</span> (page-&gt;pin_count_ == <span class="hljs-number">0</span>) &#123;
+    replacer_-&gt;<span class="hljs-built_in">Unpin</span>(frame_id);
+  &#125;
+  <span class="hljs-keyword">if</span> (is_dirty) &#123;
+    page-&gt;is_dirty_ = <span class="hljs-literal">true</span>;
+  &#125;
+
+  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+&#125;</code></pre></div>
 <ul>
 <li><p><code>DeletePgImp</code>函数：从缓冲池删除一个页面，如果页面存在但无法删除，则返回 false，如果页面不存在或删除成功，则返回 true。</p>
 <ol>
@@ -401,7 +579,35 @@
 <li>Otherwise, P can be deleted. Remove P from the page table, reset its metadata and return it to the free list.</li>
 </ol>
 <p>代码如下：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">BufferPoolManagerInstance::DeletePgImp</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> page_id)</span> </span>&#123;<br>  <span class="hljs-comment">// 0.   Make sure you call DeallocatePage!</span><br>  <span class="hljs-comment">// 1.   Search the page table for the requested page (P).</span><br>  <span class="hljs-comment">// 1.   If P does not exist, return true.</span><br>  <span class="hljs-comment">// 2.   If P exists, but has a non-zero pin-count, return false. Someone is using the page.</span><br>  <span class="hljs-comment">// 3.   Otherwise, P can be deleted. Remove P from the page table, reset its metadata and return it to the free list.</span><br>  <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lck</span><span class="hljs-params">(latch_)</span></span>;<br>  <span class="hljs-keyword">auto</span> iter = page_table_.<span class="hljs-built_in">find</span>(page_id);<br>  <span class="hljs-keyword">if</span>(iter==page_table_.<span class="hljs-built_in">end</span>())&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>  &#125;<br>  <span class="hljs-keyword">if</span>(pages_[iter-&gt;second].pin_count_&gt;<span class="hljs-number">0</span>)&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br><br>  <span class="hljs-built_in">DeallocatePage</span>(page_id);<br>  <span class="hljs-keyword">frame_id_t</span> frame_id=page_table_[page_id];<br>  <span class="hljs-keyword">auto</span> page=&amp;pages_[frame_id];<br>  <span class="hljs-keyword">if</span>(page-&gt;<span class="hljs-built_in">IsDirty</span>())&#123;<br>    disk_manager_-&gt;<span class="hljs-built_in">WritePage</span>(page-&gt;page_id_,page-&gt;data_);<br>    page-&gt;is_dirty_=<span class="hljs-literal">false</span>;<br>  &#125;<br>  page-&gt;<span class="hljs-built_in">ResetMemory</span>();<br>  page-&gt;page_id_=INVALID_PAGE_ID;<br>  free_list_.<span class="hljs-built_in">push_back</span>(frame_id);<br>  page_table_.<span class="hljs-built_in">erase</span>(page_id);<br><br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">BufferPoolManagerInstance::DeletePgImp</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> page_id)</span> </span>&#123;
+  <span class="hljs-comment">// 0.   Make sure you call DeallocatePage!</span>
+  <span class="hljs-comment">// 1.   Search the page table for the requested page (P).</span>
+  <span class="hljs-comment">// 1.   If P does not exist, return true.</span>
+  <span class="hljs-comment">// 2.   If P exists, but has a non-zero pin-count, return false. Someone is using the page.</span>
+  <span class="hljs-comment">// 3.   Otherwise, P can be deleted. Remove P from the page table, reset its metadata and return it to the free list.</span>
+  <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lck</span><span class="hljs-params">(latch_)</span></span>;
+  <span class="hljs-keyword">auto</span> iter = page_table_.<span class="hljs-built_in">find</span>(page_id);
+  <span class="hljs-keyword">if</span>(iter==page_table_.<span class="hljs-built_in">end</span>())&#123;
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+  &#125;
+  <span class="hljs-keyword">if</span>(pages_[iter-&gt;second].pin_count_&gt;<span class="hljs-number">0</span>)&#123;
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+  &#125;
+
+  <span class="hljs-built_in">DeallocatePage</span>(page_id);
+  <span class="hljs-keyword">frame_id_t</span> frame_id=page_table_[page_id];
+  <span class="hljs-keyword">auto</span> page=&amp;pages_[frame_id];
+  <span class="hljs-keyword">if</span>(page-&gt;<span class="hljs-built_in">IsDirty</span>())&#123;
+    disk_manager_-&gt;<span class="hljs-built_in">WritePage</span>(page-&gt;page_id_,page-&gt;data_);
+    page-&gt;is_dirty_=<span class="hljs-literal">false</span>;
+  &#125;
+  page-&gt;<span class="hljs-built_in">ResetMemory</span>();
+  page-&gt;page_id_=INVALID_PAGE_ID;
+  free_list_.<span class="hljs-built_in">push_back</span>(frame_id);
+  page_table_.<span class="hljs-built_in">erase</span>(page_id);
+
+  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+&#125;</code></pre></div>
 </li>
 </ul>
 <h4 id="并行缓冲池管理器"><a href="#并行缓冲池管理器" class="headerlink" title="并行缓冲池管理器"></a>并行缓冲池管理器</h4><p>正如上个任务中看到的，每一个缓冲池都有一个锁来保证线程安全。这可能导致性能问题，因为每个线程在与缓冲池交互时都会争夺该锁。一个可行的解决方案是同时维护多个缓冲池，每个缓冲池都有独立的锁。</p>
@@ -417,9 +623,69 @@
 <li><code>uint32_t instance_index_ = 0</code>：实例的索引</li>
 </ul>
 <p>有了上面的讲解，那么下面两个函数的实现就很容易了：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ParallelBufferPoolManager::GetPoolSize</span><span class="hljs-params">()</span> </span>&#123;<br>  <span class="hljs-comment">// Get size of all BufferPoolManagerInstances</span><br>  <span class="hljs-keyword">return</span> pool_size_ * num_instances_;<br>&#125;<br><br><span class="hljs-function">BufferPoolManager *<span class="hljs-title">ParallelBufferPoolManager::GetBufferPoolManager</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> page_id)</span> </span>&#123;<br>  <span class="hljs-comment">// Get BufferPoolManager responsible for handling given page id. You can use this method in your other methods.</span><br><br>  <span class="hljs-keyword">return</span> parallel_bmi_[page_id% num_instances_];<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ParallelBufferPoolManager::GetPoolSize</span><span class="hljs-params">()</span> </span>&#123;
+  <span class="hljs-comment">// Get size of all BufferPoolManagerInstances</span>
+  <span class="hljs-keyword">return</span> pool_size_ * num_instances_;
+&#125;
+
+<span class="hljs-function">BufferPoolManager *<span class="hljs-title">ParallelBufferPoolManager::GetBufferPoolManager</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> page_id)</span> </span>&#123;
+  <span class="hljs-comment">// Get BufferPoolManager responsible for handling given page id. You can use this method in your other methods.</span>
+
+  <span class="hljs-keyword">return</span> parallel_bmi_[page_id% num_instances_];
+&#125;</code></pre></div>
 <p>对于缓冲区实例的操作也很简单了，我们只需要在获得page_id参数之后用<code>GetBufferPoolManager</code>，来知道是在哪一个实例当中，就可以了，代码如下所示：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">Page *<span class="hljs-title">ParallelBufferPoolManager::FetchPgImp</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> page_id)</span> </span>&#123;<br>  <span class="hljs-comment">// Fetch page for page_id from responsible BufferPoolManagerInstance</span><br>  BufferPoolManager *manager = <span class="hljs-built_in">GetBufferPoolManager</span>(page_id);<br>  <span class="hljs-keyword">return</span> manager-&gt;<span class="hljs-built_in">FetchPage</span>(page_id);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">ParallelBufferPoolManager::UnpinPgImp</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> page_id, <span class="hljs-keyword">bool</span> is_dirty)</span> </span>&#123;<br>  <span class="hljs-comment">// Unpin page_id from responsible BufferPoolManagerInstance</span><br>  BufferPoolManager *manager = <span class="hljs-built_in">GetBufferPoolManager</span>(page_id);<br>  <span class="hljs-keyword">return</span> manager-&gt;<span class="hljs-built_in">UnpinPage</span>(page_id, is_dirty);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">ParallelBufferPoolManager::FlushPgImp</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> page_id)</span> </span>&#123;<br>  <span class="hljs-comment">// Flush page_id from responsible BufferPoolManagerInstance</span><br>  BufferPoolManager *manager = <span class="hljs-built_in">GetBufferPoolManager</span>(page_id);<br>  <span class="hljs-keyword">return</span> manager-&gt;<span class="hljs-built_in">FlushPage</span>(page_id);<br>&#125;<br><br><span class="hljs-function">Page *<span class="hljs-title">ParallelBufferPoolManager::NewPgImp</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> *page_id)</span> </span>&#123;<br>  <span class="hljs-comment">// create new page. We will request page allocation in a round robin manner from the underlying</span><br>  <span class="hljs-comment">// BufferPoolManagerInstances</span><br>  <span class="hljs-comment">// 1.   From a starting index of the BPMIs, call NewPageImpl until either 1) success and return 2) looped around to</span><br>  <span class="hljs-comment">// starting index and return nullptr</span><br>  <span class="hljs-comment">// 2.   Bump the starting index (mod number of instances) to start search at a different BPMI each time this function</span><br>  <span class="hljs-comment">// is called</span><br>  Page *page = <span class="hljs-literal">nullptr</span>;<br>  <span class="hljs-keyword">size_t</span> index = start_id_;<br><br>  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">size_t</span> i = <span class="hljs-number">0</span>; i &lt; num_instances_; ++i) &#123;<br>    page = parallel_bmi_[index]-&gt;<span class="hljs-built_in">NewPage</span>(page_id);<br>    <span class="hljs-keyword">if</span> (page != <span class="hljs-literal">nullptr</span>) &#123;<br>      start_id_ = (index + <span class="hljs-number">1</span>) % num_instances_;<br>      <span class="hljs-keyword">break</span>;<br>    &#125;<br>    index = (index + <span class="hljs-number">1</span>) % num_instances_;<br>  &#125;<br><br>  <span class="hljs-keyword">return</span> page;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">ParallelBufferPoolManager::DeletePgImp</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> page_id)</span> </span>&#123;<br>  <span class="hljs-comment">// Delete page_id from responsible BufferPoolManagerInstance</span><br>  BufferPoolManager *manager = <span class="hljs-built_in">GetBufferPoolManager</span>(page_id);<br>  <span class="hljs-keyword">return</span> manager-&gt;<span class="hljs-built_in">DeletePage</span>(page_id);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">ParallelBufferPoolManager::FlushAllPgsImp</span><span class="hljs-params">()</span> </span>&#123;<br>  <span class="hljs-comment">// flush all pages from all BufferPoolManagerInstances</span><br>  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">size_t</span> i = <span class="hljs-number">0</span>; i &lt; num_instances_; i++) &#123;<br>    parallel_bmi_[i]-&gt;<span class="hljs-built_in">FlushAllPages</span>();<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-function">Page *<span class="hljs-title">ParallelBufferPoolManager::FetchPgImp</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> page_id)</span> </span>&#123;
+  <span class="hljs-comment">// Fetch page for page_id from responsible BufferPoolManagerInstance</span>
+  BufferPoolManager *manager = <span class="hljs-built_in">GetBufferPoolManager</span>(page_id);
+  <span class="hljs-keyword">return</span> manager-&gt;<span class="hljs-built_in">FetchPage</span>(page_id);
+&#125;
+
+<span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">ParallelBufferPoolManager::UnpinPgImp</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> page_id, <span class="hljs-keyword">bool</span> is_dirty)</span> </span>&#123;
+  <span class="hljs-comment">// Unpin page_id from responsible BufferPoolManagerInstance</span>
+  BufferPoolManager *manager = <span class="hljs-built_in">GetBufferPoolManager</span>(page_id);
+  <span class="hljs-keyword">return</span> manager-&gt;<span class="hljs-built_in">UnpinPage</span>(page_id, is_dirty);
+&#125;
+
+<span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">ParallelBufferPoolManager::FlushPgImp</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> page_id)</span> </span>&#123;
+  <span class="hljs-comment">// Flush page_id from responsible BufferPoolManagerInstance</span>
+  BufferPoolManager *manager = <span class="hljs-built_in">GetBufferPoolManager</span>(page_id);
+  <span class="hljs-keyword">return</span> manager-&gt;<span class="hljs-built_in">FlushPage</span>(page_id);
+&#125;
+
+<span class="hljs-function">Page *<span class="hljs-title">ParallelBufferPoolManager::NewPgImp</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> *page_id)</span> </span>&#123;
+  <span class="hljs-comment">// create new page. We will request page allocation in a round robin manner from the underlying</span>
+  <span class="hljs-comment">// BufferPoolManagerInstances</span>
+  <span class="hljs-comment">// 1.   From a starting index of the BPMIs, call NewPageImpl until either 1) success and return 2) looped around to</span>
+  <span class="hljs-comment">// starting index and return nullptr</span>
+  <span class="hljs-comment">// 2.   Bump the starting index (mod number of instances) to start search at a different BPMI each time this function</span>
+  <span class="hljs-comment">// is called</span>
+  Page *page = <span class="hljs-literal">nullptr</span>;
+  <span class="hljs-keyword">size_t</span> index = start_id_;
+
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">size_t</span> i = <span class="hljs-number">0</span>; i &lt; num_instances_; ++i) &#123;
+    page = parallel_bmi_[index]-&gt;<span class="hljs-built_in">NewPage</span>(page_id);
+    <span class="hljs-keyword">if</span> (page != <span class="hljs-literal">nullptr</span>) &#123;
+      start_id_ = (index + <span class="hljs-number">1</span>) % num_instances_;
+      <span class="hljs-keyword">break</span>;
+    &#125;
+    index = (index + <span class="hljs-number">1</span>) % num_instances_;
+  &#125;
+
+  <span class="hljs-keyword">return</span> page;
+&#125;
+
+<span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">ParallelBufferPoolManager::DeletePgImp</span><span class="hljs-params">(<span class="hljs-keyword">page_id_t</span> page_id)</span> </span>&#123;
+  <span class="hljs-comment">// Delete page_id from responsible BufferPoolManagerInstance</span>
+  BufferPoolManager *manager = <span class="hljs-built_in">GetBufferPoolManager</span>(page_id);
+  <span class="hljs-keyword">return</span> manager-&gt;<span class="hljs-built_in">DeletePage</span>(page_id);
+&#125;
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">ParallelBufferPoolManager::FlushAllPgsImp</span><span class="hljs-params">()</span> </span>&#123;
+  <span class="hljs-comment">// flush all pages from all BufferPoolManagerInstances</span>
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">size_t</span> i = <span class="hljs-number">0</span>; i &lt; num_instances_; i++) &#123;
+    parallel_bmi_[i]-&gt;<span class="hljs-built_in">FlushAllPages</span>();
+  &#125;
+&#125;</code></pre></div>
 
             </div>
             <hr>

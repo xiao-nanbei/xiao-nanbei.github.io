@@ -201,7 +201,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      5.9k 字
+      5.7k 字
     </span>
   
 
@@ -210,7 +210,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      50 分钟
+      48 分钟
     </span>
   
 
@@ -272,24 +272,146 @@
 <p><code>在 exec.c 中的return argc</code>之前插入<code>if(p-&gt;pid==1) vmprint(p-&gt;pagetable)</code>，以打印第一个进程的页表。也就是说</p>
 <p>这个pagetable_t参数指的就是进程的页表号，或者说对应的页表中的首地址（暂时来看这是最好的理解）。</p>
 <p>在riscv.h中定义了如下所示的宏，也就是说pagetable_t参数是一个uint64类型的指针，一个页表有512个PTE。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> uint64 *<span class="hljs-keyword">pagetable_t</span>; <span class="hljs-comment">// 512 PTEs</span><br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> uint64 *<span class="hljs-keyword">pagetable_t</span>; <span class="hljs-comment">// 512 PTEs</span></code></pre></div>
 <p>1.我们在exec.c的<code>return argc</code>前加入下列代码：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">if</span>(p-&gt;pid==<span class="hljs-number">1</span>)&#123;<br>	vmprint(p-&gt;pagetable);<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-keyword">if</span>(p-&gt;pid==<span class="hljs-number">1</span>)&#123;
+	vmprint(p-&gt;pagetable);
+&#125;</code></pre></div>
 <p>2.我们在defs.h中定义vmprint函数的原型，以便在exec.c中调用它：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">void</span>            <span class="hljs-title">vmprint</span><span class="hljs-params">(<span class="hljs-keyword">pagetable_t</span>)</span></span><br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">void</span>            <span class="hljs-title">vmprint</span><span class="hljs-params">(<span class="hljs-keyword">pagetable_t</span>)</span></span></code></pre></div>
 <p>3.编写vmprint函数如下所示：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">void</span> </span><br><span class="hljs-function"><span class="hljs-title">printwalk</span><span class="hljs-params">(<span class="hljs-keyword">pagetable_t</span> pagetable, uint level)</span> </span>&#123;<br>  <span class="hljs-keyword">char</span>* prefix;<br>  <span class="hljs-comment">//不同级别的页表打印不同的..</span><br>  <span class="hljs-keyword">if</span> (level == <span class="hljs-number">2</span>) prefix = <span class="hljs-string">&quot;..&quot;</span>;<br>  <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (level == <span class="hljs-number">1</span>) prefix = <span class="hljs-string">&quot;.. ..&quot;</span>;<br>  <span class="hljs-keyword">else</span> prefix = <span class="hljs-string">&quot;.. .. ..&quot;</span>;<br>  <span class="hljs-keyword">for</span>(<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">512</span>; i++)&#123; <span class="hljs-comment">// 每级页表有512项</span><br>    <span class="hljs-keyword">pte_t</span> pte = pagetable[i];<br>    <span class="hljs-keyword">if</span>(pte &amp; PTE_V)&#123; <span class="hljs-comment">// 该页表项有效</span><br>      uint64 pa = PTE2PA(pte); <span class="hljs-comment">// 将pte中转化为pa</span><br>      <span class="hljs-comment">//打印PTE对应的PA</span><br>      <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%s%d: pte %p pa %p\n&quot;</span>, prefix, i, pte, pa);<br>      <span class="hljs-keyword">if</span>((pte &amp; (PTE_R|PTE_W|PTE_X)) == <span class="hljs-number">0</span>)&#123; <span class="hljs-comment">// 如果有下一级页表</span><br>         printwalk((<span class="hljs-keyword">pagetable_t</span>)pa, level - <span class="hljs-number">1</span>);<br>      &#125;<br>    &#125;<br>  &#125;<br>&#125;<br> <br><span class="hljs-function"><span class="hljs-keyword">void</span></span><br><span class="hljs-function"><span class="hljs-title">vmprint</span><span class="hljs-params">(<span class="hljs-keyword">pagetable_t</span> pagetable)</span> </span>&#123;<br>  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;page table %p\n&quot;</span>, pagetable);<br>  printwalk(pagetable, <span class="hljs-number">2</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">void</span> </span>
+<span class="hljs-function"><span class="hljs-title">printwalk</span><span class="hljs-params">(<span class="hljs-keyword">pagetable_t</span> pagetable, uint level)</span> </span>&#123;
+  <span class="hljs-keyword">char</span>* prefix;
+  <span class="hljs-comment">//不同级别的页表打印不同的..</span>
+  <span class="hljs-keyword">if</span> (level == <span class="hljs-number">2</span>) prefix = <span class="hljs-string">&quot;..&quot;</span>;
+  <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (level == <span class="hljs-number">1</span>) prefix = <span class="hljs-string">&quot;.. ..&quot;</span>;
+  <span class="hljs-keyword">else</span> prefix = <span class="hljs-string">&quot;.. .. ..&quot;</span>;
+  <span class="hljs-keyword">for</span>(<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">512</span>; i++)&#123; <span class="hljs-comment">// 每级页表有512项</span>
+    <span class="hljs-keyword">pte_t</span> pte = pagetable[i];
+    <span class="hljs-keyword">if</span>(pte &amp; PTE_V)&#123; <span class="hljs-comment">// 该页表项有效</span>
+      uint64 pa = PTE2PA(pte); <span class="hljs-comment">// 将pte中转化为pa</span>
+      <span class="hljs-comment">//打印PTE对应的PA</span>
+      <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%s%d: pte %p pa %p\n&quot;</span>, prefix, i, pte, pa);
+      <span class="hljs-keyword">if</span>((pte &amp; (PTE_R|PTE_W|PTE_X)) == <span class="hljs-number">0</span>)&#123; <span class="hljs-comment">// 如果有下一级页表</span>
+         printwalk((<span class="hljs-keyword">pagetable_t</span>)pa, level - <span class="hljs-number">1</span>);
+      &#125;
+    &#125;
+  &#125;
+&#125;
+ 
+<span class="hljs-function"><span class="hljs-keyword">void</span></span>
+<span class="hljs-function"><span class="hljs-title">vmprint</span><span class="hljs-params">(<span class="hljs-keyword">pagetable_t</span> pagetable)</span> </span>&#123;
+  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;page table %p\n&quot;</span>, pagetable);
+  printwalk(pagetable, <span class="hljs-number">2</span>);
+&#125;</code></pre></div>
 <p>如果PTE_V==1，则说明该页表项有效。如果pte中的PTE_R、PTE_W和PTE_X位都是0，则说明有下一级页表，可以通过递归进入下一级页表。</p>
 <h4 id="A-kernel-page-table-per-process"><a href="#A-kernel-page-table-per-process" class="headerlink" title="A kernel page table per process"></a>A kernel page table per process</h4><p>xv6为每个进程的用户地址空间提供一个单独的页表，然而从用户态进入内核态中，多个进程使用的是一个内核页表。这个任务的目标是让每一个进程进入内核态后，都能有自己的独立内核页表。</p>
 <p>首先，我们要在进程的结构体proc中添加一个<code>pagetable_t kernel_pagetable</code>，表示每个进程在内核态中有自己独立的内核页表，结构体如下所示：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// kernel/proc.h</span><br><span class="hljs-comment">// Per-process state</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> &#123;</span><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">spinlock</span> <span class="hljs-title">lock</span>;</span><br><br>  <span class="hljs-comment">// p-&gt;lock must be held when using these:</span><br>  <span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-title">procstate</span> <span class="hljs-title">state</span>;</span>        <span class="hljs-comment">// Process state</span><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">parent</span>;</span>         <span class="hljs-comment">// Parent process</span><br>  <span class="hljs-keyword">void</span> *chan;                  <span class="hljs-comment">// If non-zero, sleeping on chan</span><br>  <span class="hljs-keyword">int</span> killed;                  <span class="hljs-comment">// If non-zero, have been killed</span><br>  <span class="hljs-keyword">int</span> xstate;                  <span class="hljs-comment">// Exit status to be returned to parent&#x27;s wait</span><br>  <span class="hljs-keyword">int</span> pid;                     <span class="hljs-comment">// Process ID</span><br><br>  <span class="hljs-comment">// these are private to the process, so p-&gt;lock need not be held.</span><br>  uint64 kstack;               <span class="hljs-comment">// Virtual address of kernel stack</span><br>  uint64 sz;                   <span class="hljs-comment">// Size of process memory (bytes)</span><br>  <span class="hljs-keyword">pagetable_t</span> pagetable;       <span class="hljs-comment">// User page table</span><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">trapframe</span> *<span class="hljs-title">trapframe</span>;</span> <span class="hljs-comment">// data page for trampoline.S</span><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">context</span> <span class="hljs-title">context</span>;</span>      <span class="hljs-comment">// swtch() here to run process</span><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">file</span> *<span class="hljs-title">ofile</span>[<span class="hljs-title">NOFILE</span>];</span>  <span class="hljs-comment">// Open files</span><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">inode</span> *<span class="hljs-title">cwd</span>;</span>           <span class="hljs-comment">// Current directory</span><br>  <span class="hljs-keyword">char</span> name[<span class="hljs-number">16</span>];               <span class="hljs-comment">// Process name (debugging)</span><br>  <span class="hljs-keyword">pagetable_t</span> kernel_pb;     <span class="hljs-comment">// Kernel page table （在 proc 中添加该 field）</span><br>&#125;;<br><br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-comment">// kernel/proc.h</span>
+<span class="hljs-comment">// Per-process state</span>
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> &#123;</span>
+  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">spinlock</span> <span class="hljs-title">lock</span>;</span>
+
+  <span class="hljs-comment">// p-&gt;lock must be held when using these:</span>
+  <span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-title">procstate</span> <span class="hljs-title">state</span>;</span>        <span class="hljs-comment">// Process state</span>
+  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">parent</span>;</span>         <span class="hljs-comment">// Parent process</span>
+  <span class="hljs-keyword">void</span> *chan;                  <span class="hljs-comment">// If non-zero, sleeping on chan</span>
+  <span class="hljs-keyword">int</span> killed;                  <span class="hljs-comment">// If non-zero, have been killed</span>
+  <span class="hljs-keyword">int</span> xstate;                  <span class="hljs-comment">// Exit status to be returned to parent&#x27;s wait</span>
+  <span class="hljs-keyword">int</span> pid;                     <span class="hljs-comment">// Process ID</span>
+
+  <span class="hljs-comment">// these are private to the process, so p-&gt;lock need not be held.</span>
+  uint64 kstack;               <span class="hljs-comment">// Virtual address of kernel stack</span>
+  uint64 sz;                   <span class="hljs-comment">// Size of process memory (bytes)</span>
+  <span class="hljs-keyword">pagetable_t</span> pagetable;       <span class="hljs-comment">// User page table</span>
+  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">trapframe</span> *<span class="hljs-title">trapframe</span>;</span> <span class="hljs-comment">// data page for trampoline.S</span>
+  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">context</span> <span class="hljs-title">context</span>;</span>      <span class="hljs-comment">// swtch() here to run process</span>
+  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">file</span> *<span class="hljs-title">ofile</span>[<span class="hljs-title">NOFILE</span>];</span>  <span class="hljs-comment">// Open files</span>
+  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">inode</span> *<span class="hljs-title">cwd</span>;</span>           <span class="hljs-comment">// Current directory</span>
+  <span class="hljs-keyword">char</span> name[<span class="hljs-number">16</span>];               <span class="hljs-comment">// Process name (debugging)</span>
+  <span class="hljs-keyword">pagetable_t</span> kernel_pb;     <span class="hljs-comment">// Kernel page table （在 proc 中添加该 field）</span>
+&#125;;
+</code></pre></div>
 <p>至于proc结构体在下一个实验前细说。</p>
 <p>在<code>kernel/vm.c</code>中，我们发现了如下变量：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * the kernel&#x27;s page table.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">pagetable_t</span> kernel_pagetable;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-comment">/*</span>
+<span class="hljs-comment"> * the kernel&#x27;s page table.</span>
+<span class="hljs-comment"> */</span>
+<span class="hljs-keyword">pagetable_t</span> kernel_pagetable;</code></pre></div>
 <p>这就是我们内核中的唯一的<code>kernel_pagetable</code>，在原版本中，vm.c中的<code>void kvminit(void)</code>会调用kvmake函数来修改kernel_pagetable，那么现在我们需要修改kvminit函数，来让我们的每个进程在内核中都有自己的内核页表。我们先来看看原版本中的实现：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// Initialize the one kernel_pagetable</span><br><span class="hljs-function"><span class="hljs-keyword">void</span></span><br><span class="hljs-function"><span class="hljs-title">kvminit</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span><br><span class="hljs-function"></span>&#123;<br>  kernel_pagetable = kvmmake();<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">pagetable_t</span></span><br><span class="hljs-function"><span class="hljs-title">kvmmake</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span><br><span class="hljs-function"></span>&#123;<br>  <span class="hljs-keyword">pagetable_t</span> kpgtbl;<br><br>  kpgtbl = (<span class="hljs-keyword">pagetable_t</span>) kalloc();<br>  <span class="hljs-built_in">memset</span>(kpgtbl, <span class="hljs-number">0</span>, PGSIZE);<br><br>  <span class="hljs-comment">// uart registers</span><br>  kvmmap(kpgtbl, UART0, UART0, PGSIZE, PTE_R | PTE_W);<br><br>  <span class="hljs-comment">// virtio mmio disk interface</span><br>  kvmmap(kpgtbl, VIRTIO0, VIRTIO0, PGSIZE, PTE_R | PTE_W);<br><br>  <span class="hljs-comment">// PLIC</span><br>  kvmmap(kpgtbl, PLIC, PLIC, <span class="hljs-number">0x400000</span>, PTE_R | PTE_W);<br><br>  <span class="hljs-comment">// map kernel text executable and read-only.</span><br>  kvmmap(kpgtbl, KERNBASE, KERNBASE, (uint64)etext-KERNBASE, PTE_R | PTE_X);<br><br>  <span class="hljs-comment">// map kernel data and the physical RAM we&#x27;ll make use of.</span><br>  kvmmap(kpgtbl, (uint64)etext, (uint64)etext, PHYSTOP-(uint64)etext, PTE_R | PTE_W);<br><br>  <span class="hljs-comment">// map the trampoline for trap entry/exit to</span><br>  <span class="hljs-comment">// the highest virtual address in the kernel.</span><br>  kvmmap(kpgtbl, TRAMPOLINE, (uint64)trampoline, PGSIZE, PTE_R | PTE_X);<br><br>  <span class="hljs-comment">// map kernel stacks</span><br>  proc_mapstacks(kpgtbl);<br>  <br>  <span class="hljs-keyword">return</span> kpgtbl;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">void</span></span><br><span class="hljs-function"><span class="hljs-title">kvmmap</span><span class="hljs-params">(<span class="hljs-keyword">pagetable_t</span> kpgtbl, uint64 va, uint64 pa, uint64 sz, <span class="hljs-keyword">int</span> perm)</span></span><br><span class="hljs-function"></span>&#123;<br>  <span class="hljs-keyword">if</span>(mappages(kpgtbl, va, sz, pa, perm) != <span class="hljs-number">0</span>)<br>    panic(<span class="hljs-string">&quot;kvmmap&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-comment">// Initialize the one kernel_pagetable</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span></span>
+<span class="hljs-function"><span class="hljs-title">kvminit</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>
+<span class="hljs-function"></span>&#123;
+  kernel_pagetable = kvmmake();
+&#125;
+
+<span class="hljs-function"><span class="hljs-keyword">pagetable_t</span></span>
+<span class="hljs-function"><span class="hljs-title">kvmmake</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>
+<span class="hljs-function"></span>&#123;
+  <span class="hljs-keyword">pagetable_t</span> kpgtbl;
+
+  kpgtbl = (<span class="hljs-keyword">pagetable_t</span>) kalloc();
+  <span class="hljs-built_in">memset</span>(kpgtbl, <span class="hljs-number">0</span>, PGSIZE);
+
+  <span class="hljs-comment">// uart registers</span>
+  kvmmap(kpgtbl, UART0, UART0, PGSIZE, PTE_R | PTE_W);
+
+  <span class="hljs-comment">// virtio mmio disk interface</span>
+  kvmmap(kpgtbl, VIRTIO0, VIRTIO0, PGSIZE, PTE_R | PTE_W);
+
+  <span class="hljs-comment">// PLIC</span>
+  kvmmap(kpgtbl, PLIC, PLIC, <span class="hljs-number">0x400000</span>, PTE_R | PTE_W);
+
+  <span class="hljs-comment">// map kernel text executable and read-only.</span>
+  kvmmap(kpgtbl, KERNBASE, KERNBASE, (uint64)etext-KERNBASE, PTE_R | PTE_X);
+
+  <span class="hljs-comment">// map kernel data and the physical RAM we&#x27;ll make use of.</span>
+  kvmmap(kpgtbl, (uint64)etext, (uint64)etext, PHYSTOP-(uint64)etext, PTE_R | PTE_W);
+
+  <span class="hljs-comment">// map the trampoline for trap entry/exit to</span>
+  <span class="hljs-comment">// the highest virtual address in the kernel.</span>
+  kvmmap(kpgtbl, TRAMPOLINE, (uint64)trampoline, PGSIZE, PTE_R | PTE_X);
+
+  <span class="hljs-comment">// map kernel stacks</span>
+  proc_mapstacks(kpgtbl);
+  
+  <span class="hljs-keyword">return</span> kpgtbl;
+&#125;
+
+<span class="hljs-function"><span class="hljs-keyword">void</span></span>
+<span class="hljs-function"><span class="hljs-title">kvmmap</span><span class="hljs-params">(<span class="hljs-keyword">pagetable_t</span> kpgtbl, uint64 va, uint64 pa, uint64 sz, <span class="hljs-keyword">int</span> perm)</span></span>
+<span class="hljs-function"></span>&#123;
+  <span class="hljs-keyword">if</span>(mappages(kpgtbl, va, sz, pa, perm) != <span class="hljs-number">0</span>)
+    panic(<span class="hljs-string">&quot;kvmmap&quot;</span>);
+&#125;</code></pre></div>
 <p>我们可以模仿内核页表初始化的方式初始化用户进程的kernel pagetable。</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// 模仿vm.c中kvminit的方式构建每个进程自己</span><br><span class="hljs-comment">// 的内核映射表 <span class="hljs-doctag">TODO:</span>删除</span><br><span class="hljs-function"><span class="hljs-keyword">pagetable_t</span></span><br><span class="hljs-function"><span class="hljs-title">proc_kpt_init</span><span class="hljs-params">()</span></span><br><span class="hljs-function"></span>&#123;<br>  <span class="hljs-keyword">pagetable_t</span> kpt;<br>  kpt = <span class="hljs-built_in">uvmcreate</span>();<br>  <span class="hljs-keyword">if</span> (kpt == <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>  <span class="hljs-built_in">uvmmap</span>(kpt, UART0, UART0, PGSIZE, PTE_R | PTE_W);<br>  <span class="hljs-built_in">uvmmap</span>(kpt, VIRTIO0, VIRTIO0, PGSIZE, PTE_R | PTE_W);<br>  <span class="hljs-built_in">uvmmap</span>(kpt, CLINT, CLINT, <span class="hljs-number">0x10000</span>, PTE_R | PTE_W);<br>  <span class="hljs-built_in">uvmmap</span>(kpt, PLIC, PLIC, <span class="hljs-number">0x400000</span>, PTE_R | PTE_W);<br>  <span class="hljs-built_in">uvmmap</span>(kpt, KERNBASE, KERNBASE, (uint64)etext-KERNBASE, PTE_R | PTE_X);<br>  <span class="hljs-built_in">uvmmap</span>(kpt, (uint64)etext, (uint64)etext, PHYSTOP-(uint64)etext, PTE_R | PTE_W);<br>  <span class="hljs-built_in">uvmmap</span>(kpt, TRAMPOLINE, (uint64)trampoline, PGSIZE, PTE_R | PTE_X);<br>  <span class="hljs-keyword">return</span> kpt;<br>&#125;<br><br><span class="hljs-comment">// 添加映射到用户进程的kernel pagetable</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> </span><br><span class="hljs-function"><span class="hljs-title">uvmmap</span><span class="hljs-params">(<span class="hljs-keyword">pagetable_t</span> pagetable, uint64 va, uint64 pa, uint64 sz, <span class="hljs-keyword">int</span> perm)</span></span><br><span class="hljs-function"></span>&#123;<br>  <span class="hljs-keyword">if</span>(<span class="hljs-built_in">mappages</span>(pagetable, va, sz, pa, perm) != <span class="hljs-number">0</span>)<br>    <span class="hljs-built_in">panic</span>(<span class="hljs-string">&quot;uvmmap&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-comment">// 模仿vm.c中kvminit的方式构建每个进程自己</span>
+<span class="hljs-comment">// 的内核映射表 <span class="hljs-doctag">TODO:</span>删除</span>
+<span class="hljs-function"><span class="hljs-keyword">pagetable_t</span></span>
+<span class="hljs-function"><span class="hljs-title">proc_kpt_init</span><span class="hljs-params">()</span></span>
+<span class="hljs-function"></span>&#123;
+  <span class="hljs-keyword">pagetable_t</span> kpt;
+  kpt = <span class="hljs-built_in">uvmcreate</span>();
+  <span class="hljs-keyword">if</span> (kpt == <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+  <span class="hljs-built_in">uvmmap</span>(kpt, UART0, UART0, PGSIZE, PTE_R | PTE_W);
+  <span class="hljs-built_in">uvmmap</span>(kpt, VIRTIO0, VIRTIO0, PGSIZE, PTE_R | PTE_W);
+  <span class="hljs-built_in">uvmmap</span>(kpt, CLINT, CLINT, <span class="hljs-number">0x10000</span>, PTE_R | PTE_W);
+  <span class="hljs-built_in">uvmmap</span>(kpt, PLIC, PLIC, <span class="hljs-number">0x400000</span>, PTE_R | PTE_W);
+  <span class="hljs-built_in">uvmmap</span>(kpt, KERNBASE, KERNBASE, (uint64)etext-KERNBASE, PTE_R | PTE_X);
+  <span class="hljs-built_in">uvmmap</span>(kpt, (uint64)etext, (uint64)etext, PHYSTOP-(uint64)etext, PTE_R | PTE_W);
+  <span class="hljs-built_in">uvmmap</span>(kpt, TRAMPOLINE, (uint64)trampoline, PGSIZE, PTE_R | PTE_X);
+  <span class="hljs-keyword">return</span> kpt;
+&#125;
+
+<span class="hljs-comment">// 添加映射到用户进程的kernel pagetable</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> </span>
+<span class="hljs-function"><span class="hljs-title">uvmmap</span><span class="hljs-params">(<span class="hljs-keyword">pagetable_t</span> pagetable, uint64 va, uint64 pa, uint64 sz, <span class="hljs-keyword">int</span> perm)</span></span>
+<span class="hljs-function"></span>&#123;
+  <span class="hljs-keyword">if</span>(<span class="hljs-built_in">mappages</span>(pagetable, va, sz, pa, perm) != <span class="hljs-number">0</span>)
+    <span class="hljs-built_in">panic</span>(<span class="hljs-string">&quot;uvmmap&quot;</span>);
+&#125;</code></pre></div>
 <h4 id="Simplify-copyin-copyinstr"><a href="#Simplify-copyin-copyinstr" class="headerlink" title="Simplify copyin/copyinstr"></a>Simplify <code>copyin/copyinstr</code></h4>
             </div>
             <hr>

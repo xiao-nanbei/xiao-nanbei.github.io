@@ -198,7 +198,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      2.7k 字
+      2.6k 字
     </span>
   
 
@@ -246,11 +246,18 @@
 <li>内存泄漏：对象已经不再需要，但程序没有释放它。</li>
 </ol>
 <p>例如：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></div></td><td class="code"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">char</span> *p = (<span class="hljs-keyword">char</span> *)<span class="hljs-built_in">malloc</span>(<span class="hljs-number">100</span>);<br>    <span class="hljs-built_in">strcpy</span>(p, <span class="hljs-string">&quot;hello&quot;</span>);<br>    <span class="hljs-built_in">free</span>(p);<br>    <span class="hljs-keyword">if</span> (p != <span class="hljs-literal">NULL</span>) &#123;<br>        <span class="hljs-built_in">strcpy</span>(p, <span class="hljs-string">&quot;world&quot;</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">char</span> *p = (<span class="hljs-keyword">char</span> *)<span class="hljs-built_in">malloc</span>(<span class="hljs-number">100</span>);
+    <span class="hljs-built_in">strcpy</span>(p, <span class="hljs-string">&quot;hello&quot;</span>);
+    <span class="hljs-built_in">free</span>(p);
+    <span class="hljs-keyword">if</span> (p != <span class="hljs-literal">NULL</span>) &#123;
+        <span class="hljs-built_in">strcpy</span>(p, <span class="hljs-string">&quot;world&quot;</span>);
+    &#125;
+&#125;</code></pre></div>
 <p><code>free(p)</code> 释放的是 <code>p</code> 指向的内存，不会自动把 <code>p</code> 置空。因此 <code>p != NULL</code> 不能证明这块内存仍然可用。这个例子说明：手动内存管理的问题不只是“忘记释放”，还包括释放时机和所有权边界很难在局部代码中判断。</p>
 <h3 id="Go-的内存分配路径"><a href="#Go-的内存分配路径" class="headerlink" title="Go 的内存分配路径"></a>Go 的内存分配路径</h3><p>Go 程序中的对象通常先由编译器决定放在栈上还是堆上。能被证明只在当前函数内使用的对象优先放在栈上；生命周期可能超过当前栈帧，或者大小/类型在编译期难以确定的对象会逃逸到堆上。</p>
 <p>可以用下面命令观察逃逸分析：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">go build -gcflags=<span class="hljs-string">&#x27;-m=2&#x27;</span> ./...<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs bash">go build -gcflags=<span class="hljs-string">&#x27;-m=2&#x27;</span> ./...</code></pre></div>
 <p>常见逃逸场景包括：</p>
 <ol>
 <li>返回局部变量指针。</li>
@@ -292,7 +299,9 @@
 <p>如果 <code>GOGC</code> 调小，GC 更频繁，内存占用更低，但 CPU 消耗更高；如果 <code>GOGC</code> 调大，GC 更少，吞吐可能更好，但峰值内存更高。线上服务需要结合延迟、吞吐和内存预算来调。</p>
 <p>Go 1.19 之后还可以用 <code>GOMEMLIMIT</code> 给 runtime 一个软内存上限。相比只调 <code>GOGC</code>，<code>GOMEMLIMIT</code> 更适合容器环境，因为容器里真正危险的是触碰 cgroup limit 后被 OOM kill。</p>
 <h3 id="怎么降低-GC-压力"><a href="#怎么降低-GC-压力" class="headerlink" title="怎么降低 GC 压力"></a>怎么降低 GC 压力</h3><p>优化 GC 不应该从“关闭 GC”开始，而应该先定位分配来源：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">go <span class="hljs-built_in">test</span> -bench=. -benchmem ./...<br>go tool pprof -alloc_space http://host/debug/pprof/heap<br>go tool pprof -inuse_space http://host/debug/pprof/heap<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs bash">go <span class="hljs-built_in">test</span> -bench=. -benchmem ./...
+go tool pprof -alloc_space http://host/debug/pprof/heap
+go tool pprof -inuse_space http://host/debug/pprof/heap</code></pre></div>
 <p>常见有效手段包括：</p>
 <ol>
 <li>减少临时对象：热点路径上避免无意义的字符串拼接、切片扩容和装箱。</li>

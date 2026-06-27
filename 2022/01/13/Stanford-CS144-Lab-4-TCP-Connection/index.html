@@ -199,7 +199,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      4.9k 字
+      4.8k 字
     </span>
   
 
@@ -293,15 +293,41 @@
 <p>把这些测试场景串起来看，<code>TCPConnection</code> 要做的事其实很清楚：<code>TCPSender</code> 负责“我还能发什么”，<code>TCPReceiver</code> 负责“我收到了什么以及该 ACK 到哪里”，而 <code>TCPConnection</code> 负责把两边粘起来，处理 RST、ACK、窗口、定时器和连接生命周期。</p>
 <p>我们先来看看到底要实现哪些类</p>
 <p>在上述代码中，可以看到有一个之前没有接触过的类——<code>TCPConfig</code>，所以我们首先来了解一下<code>TCPConfig</code>。我们到<code>TCPConfig</code>类中可以看到，它是对一些相关参数设置默认大小，如下所示：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></div></td><td class="code"><pre><code class="hljs c++"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TCPConfig</span> &#123;</span><br>  <span class="hljs-keyword">public</span>:<br>    <span class="hljs-keyword">static</span> <span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">size_t</span> DEFAULT_CAPACITY = <span class="hljs-number">64000</span>;  <span class="hljs-comment">//!&lt; Default capacity</span><br>    <span class="hljs-keyword">static</span> <span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">size_t</span> MAX_PAYLOAD_SIZE = <span class="hljs-number">1000</span>;   <span class="hljs-comment">//!&lt; Conservative max payload size for real Internet</span><br>    <span class="hljs-keyword">static</span> <span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">uint16_t</span> TIMEOUT_DFLT = <span class="hljs-number">1000</span>;     <span class="hljs-comment">//!&lt; Default re-transmit timeout is 1 second</span><br>    <span class="hljs-keyword">static</span> <span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">unsigned</span> MAX_RETX_ATTEMPTS = <span class="hljs-number">8</span>;   <span class="hljs-comment">//!&lt; Maximum re-transmit attempts before giving up</span><br><br>    <span class="hljs-keyword">uint16_t</span> rt_timeout = TIMEOUT_DFLT;       <span class="hljs-comment">//!&lt; Initial value of the retransmission timeout, in milliseconds</span><br>    <span class="hljs-keyword">size_t</span> recv_capacity = DEFAULT_CAPACITY;  <span class="hljs-comment">//!&lt; Receive capacity, in bytes</span><br>    <span class="hljs-keyword">size_t</span> send_capacity = DEFAULT_CAPACITY;  <span class="hljs-comment">//!&lt; Sender capacity, in bytes</span><br>    std::optional&lt;WrappingInt32&gt; fixed_isn&#123;&#125;;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TCPConfig</span> &#123;</span>
+  <span class="hljs-keyword">public</span>:
+    <span class="hljs-keyword">static</span> <span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">size_t</span> DEFAULT_CAPACITY = <span class="hljs-number">64000</span>;  <span class="hljs-comment">//!&lt; Default capacity</span>
+    <span class="hljs-keyword">static</span> <span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">size_t</span> MAX_PAYLOAD_SIZE = <span class="hljs-number">1000</span>;   <span class="hljs-comment">//!&lt; Conservative max payload size for real Internet</span>
+    <span class="hljs-keyword">static</span> <span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">uint16_t</span> TIMEOUT_DFLT = <span class="hljs-number">1000</span>;     <span class="hljs-comment">//!&lt; Default re-transmit timeout is 1 second</span>
+    <span class="hljs-keyword">static</span> <span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">unsigned</span> MAX_RETX_ATTEMPTS = <span class="hljs-number">8</span>;   <span class="hljs-comment">//!&lt; Maximum re-transmit attempts before giving up</span>
+
+    <span class="hljs-keyword">uint16_t</span> rt_timeout = TIMEOUT_DFLT;       <span class="hljs-comment">//!&lt; Initial value of the retransmission timeout, in milliseconds</span>
+    <span class="hljs-keyword">size_t</span> recv_capacity = DEFAULT_CAPACITY;  <span class="hljs-comment">//!&lt; Receive capacity, in bytes</span>
+    <span class="hljs-keyword">size_t</span> send_capacity = DEFAULT_CAPACITY;  <span class="hljs-comment">//!&lt; Sender capacity, in bytes</span>
+    std::optional&lt;WrappingInt32&gt; fixed_isn&#123;&#125;;
+&#125;;</code></pre></div>
 <p>在<code>_receiver</code>等变量中通过<code>TCPConfig</code>默认大小。刚看到<code>TCPConnection</code>类时可能无从下手，我们先运行一下check程序，从第一个 failed 入手（没错，本懒狗是边做lab边写博客，面向tests编程）。</p>
 <p>我们可以看到第一个 failed 出现在第35个测试，也就是fsm_passive_close，这个测试检测的是有限状态机中的初始状态（？）我们在项目中找到指定位置，开始debug，发现是<code>void TCPConnection::connect()</code>方法的错误，当我们要建立连接的时候，我们想到的还是三次握手，如下图：</p>
 <p>（还是以客户端为例子）首先，我们要进行第一次握手，也就是客户端发送SYN报文，在TCPSender类中，我们实现了fill_window方法，里面包含了三次握手中第一次握手的过程。在TCPConnection中，有相关的建立连接的方法，即<code>void TCPConnection::connect()</code>方法，于是我们将sender中的握手的过程加入函数当中，如下所示：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">TCPConnection::connect</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-comment">// send SYN</span><br>    _sender.<span class="hljs-built_in">fill_window</span>();<br>    <span class="hljs-built_in">real_send</span>();<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">TCPConnection::connect</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-comment">// send SYN</span>
+    _sender.<span class="hljs-built_in">fill_window</span>();
+    <span class="hljs-built_in">real_send</span>();
+&#125;</code></pre></div>
 <p>这就是第一次握手时的场景，调用了fill_window()，在没有预设参数的情况下，fill_window会默认是第一次握手，从而设置对应的syn和seqno值。这样就完成了建立连接的第一步。为了使得发送报文可以模块化操作，实现real_send函数，real_send函数负责将_sender.segment_out队列中的报文拿出来，放入到 _segment_out队列中，代码如下所示：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">TCPConnection::real_send</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">bool</span> isSend = <span class="hljs-literal">false</span>;<br>    <span class="hljs-keyword">while</span> (!_sender.<span class="hljs-built_in">segments_out</span>().<span class="hljs-built_in">empty</span>()) &#123;<br>        isSend = <span class="hljs-literal">true</span>;<br>        TCPSegment segment = _sender.<span class="hljs-built_in">segments_out</span>().<span class="hljs-built_in">front</span>();<br>        _sender.<span class="hljs-built_in">segments_out</span>().<span class="hljs-built_in">pop</span>();<br>        <span class="hljs-built_in">set_ack_and_windowsize</span>(segment);<br>        _segments_out.<span class="hljs-built_in">push</span>(segment);<br>    &#125;<br>    <span class="hljs-keyword">return</span> isSend;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">TCPConnection::real_send</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">bool</span> isSend = <span class="hljs-literal">false</span>;
+    <span class="hljs-keyword">while</span> (!_sender.<span class="hljs-built_in">segments_out</span>().<span class="hljs-built_in">empty</span>()) &#123;
+        isSend = <span class="hljs-literal">true</span>;
+        TCPSegment segment = _sender.<span class="hljs-built_in">segments_out</span>().<span class="hljs-built_in">front</span>();
+        _sender.<span class="hljs-built_in">segments_out</span>().<span class="hljs-built_in">pop</span>();
+        <span class="hljs-built_in">set_ack_and_windowsize</span>(segment);
+        _segments_out.<span class="hljs-built_in">push</span>(segment);
+    &#125;
+    <span class="hljs-keyword">return</span> isSend;
+&#125;</code></pre></div>
 <p>当收到服务器的第二次握手时，就会调用TCPConnection中的<code>void TCPConnection::segment_received(const TCPSegment &amp;seg)</code>函数，这个函数的参数是收到的segment，当收到这个segment的时候，客户端就要进行第三次握手，当然，我们的第三次握手就可以看成正常的发送报文了。那么我们来看看收到报文之后应该如何处理。首先，我们将segment给到我们的 _receiver中：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">// give the segment to receiver</span><br>_receiver.<span class="hljs-built_in">segment_received</span>(seg);<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-comment">// give the segment to receiver</span>
+_receiver.<span class="hljs-built_in">segment_received</span>(seg);</code></pre></div>
 <p><img src="https://imgconvert.csdnimg.cn/aHR0cDovL2ltZy5ibG9nLmNzZG4ubmV0LzIwMTcwNjA2MDg0ODUxMjcy?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload alt=""></p>
 <p>在TCP协议中，rst用来异常的关闭连接。在TCP的设计中它是不可或缺的，发送rst段关闭连接时，不必等缓冲区的数据都发送出去，直接丢弃缓冲区中的数据，而接收端收到rst后，也不必发送ack来确认。</p>
 <p>什么时候发送RST包：</p>
@@ -311,9 +337,24 @@
 <li>请求超时。 使用setsockopt的SO_RCVTIMEO选项设置recv的超时时间。接收数据超时时，会发送RST包。</li>
 </ol>
 <p>当收到的segment的rst段为1，那么我们直接断开连接（非正常关闭），而不必发送ack来确认，如下所示：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">if</span> (seg.<span class="hljs-built_in">header</span>().rst) &#123;<br>    _sender.<span class="hljs-built_in">stream_in</span>().<span class="hljs-built_in">set_error</span>();<br>    _receiver.<span class="hljs-built_in">stream_out</span>().<span class="hljs-built_in">set_error</span>();<br>    _active = <span class="hljs-literal">false</span>;<br>    <span class="hljs-keyword">return</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-keyword">if</span> (seg.<span class="hljs-built_in">header</span>().rst) &#123;
+    _sender.<span class="hljs-built_in">stream_in</span>().<span class="hljs-built_in">set_error</span>();
+    _receiver.<span class="hljs-built_in">stream_out</span>().<span class="hljs-built_in">set_error</span>();
+    _active = <span class="hljs-literal">false</span>;
+    <span class="hljs-keyword">return</span>;
+&#125;</code></pre></div>
 <p>在<code>write</code>函数中，我们需要将数据写入到stream中，然后返回写入stream的data的长度，如下所示：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">TCPConnection::write</span><span class="hljs-params">(<span class="hljs-keyword">const</span> string &amp;data)</span> </span>&#123;<br>    <span class="hljs-comment">//如果data的为空则直接返回</span><br>    <span class="hljs-keyword">if</span> (data.<span class="hljs-built_in">empty</span>()) <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    <span class="hljs-comment">//否则将数据写入_sender的stream_in，等待fill_window将其封装为报文</span><br>    <span class="hljs-keyword">size_t</span> actually_write = _sender.<span class="hljs-built_in">stream_in</span>().<span class="hljs-built_in">write</span>(data);<br>    <span class="hljs-comment">//封装data为segment</span><br>    _sender.<span class="hljs-built_in">fill_window</span>();<br>    <span class="hljs-built_in">real_send</span>();<br>    <span class="hljs-comment">//返回实际长度</span><br>    <span class="hljs-keyword">return</span> actually_write;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">TCPConnection::write</span><span class="hljs-params">(<span class="hljs-keyword">const</span> string &amp;data)</span> </span>&#123;
+    <span class="hljs-comment">//如果data的为空则直接返回</span>
+    <span class="hljs-keyword">if</span> (data.<span class="hljs-built_in">empty</span>()) <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+    <span class="hljs-comment">//否则将数据写入_sender的stream_in，等待fill_window将其封装为报文</span>
+    <span class="hljs-keyword">size_t</span> actually_write = _sender.<span class="hljs-built_in">stream_in</span>().<span class="hljs-built_in">write</span>(data);
+    <span class="hljs-comment">//封装data为segment</span>
+    _sender.<span class="hljs-built_in">fill_window</span>();
+    <span class="hljs-built_in">real_send</span>();
+    <span class="hljs-comment">//返回实际长度</span>
+    <span class="hljs-keyword">return</span> actually_write;
+&#125;</code></pre></div>
 <p>在关闭TCP连接也就是“四次握手”的时候，我们会有一个<code>TIME_WAIT</code>的状态，在这个状态下客户端会等待2MSL才断开，这其实有两个原因：</p>
 <ol>
 <li>保证全双工的连接能够可靠关闭。</li>
@@ -321,7 +362,11 @@
 </ol>
 <p>在这里我们要创建一个real_send()函数，我们都知道在sender中其实只是把数据传到了队列segment_out里面来作为发送数据的操作，在这个任务中我们将完成剩余的操作，也就是将数据发送出去，所以我们需要完成real_send()函数。</p>
 <p>在segment_received()函数中，我们要模拟的是TCP收到数据的情况，其框架如下：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++">_receiver.<span class="hljs-built_in">segment_received</span>(seg);<span class="hljs-comment">//将收到的seg交给_receiver的相关函数进行处理</span><br><span class="hljs-keyword">if</span> (seg.<span class="hljs-built_in">header</span>().ack) &#123;<br>	<span class="hljs-comment">//收到ack报文的相关操作，也就是将其ackno和win交给_sender的相关函数，让其准备下一次发送</span><br>    <span class="hljs-comment">//</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c++">_receiver.<span class="hljs-built_in">segment_received</span>(seg);<span class="hljs-comment">//将收到的seg交给_receiver的相关函数进行处理</span>
+<span class="hljs-keyword">if</span> (seg.<span class="hljs-built_in">header</span>().ack) &#123;
+	<span class="hljs-comment">//收到ack报文的相关操作，也就是将其ackno和win交给_sender的相关函数，让其准备下一次发送</span>
+    <span class="hljs-comment">//</span>
+&#125;</code></pre></div>
 <p>在tick函数中，</p>
 <p>在lab4中，我们可以检测出前面实验的错误：</p>
 <ol>
@@ -339,7 +384,7 @@
 </ol>
 <p>再补充一个知识点——<code>socket</code></p>
 <h5 id="TCP长连接"><a href="#TCP长连接" class="headerlink" title="TCP长连接"></a>TCP长连接</h5><p>在HTTP1.0中，默认使用的是短连接。也就是说，浏览器和服务器每进行一次HTTP操作，就建立一次连接，但任务结束后就中断连接。但从HTTP1.1开始，默认使用长连接，用以保持连接特性。使用长连接的HTTP协议，会在响应头加入如下字段:</p>
-<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs armasm"><span class="hljs-symbol">Connection:</span><span class="hljs-meta">keep</span>-alive<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs armasm"><span class="hljs-symbol">Connection:</span><span class="hljs-meta">keep</span>-alive</code></pre></div>
 <p>HTTP协议的长连接和短连接，实质上是TCP协议的长连接和短连接。</p>
 <h6 id="TCP保活机制"><a href="#TCP保活机制" class="headerlink" title="TCP保活机制"></a>TCP保活机制</h6><p>保活功能主要为服务器应用提供，服务器应用希望知道客户主机是否崩溃，从而可以代表客户使用资源。如果客户已经消失，使得服务器上保留一个半开放的连接，而服务器又在等待来自客户端的数据，则服务器将应远等待客户端的数据，保活功能就是试图在服务器端检测到这种半开放的连接。对于设置了keepalive来说，当<strong>tcp</strong>检测到对端<strong>socket</strong>不再可用时<strong>(</strong>不能发出探测包<strong>,</strong>或探测包没有收到<strong>ACK</strong>的响应包<strong>),select</strong>会返回<strong>socket</strong>可读<strong>,</strong>并且在<strong>recv</strong>时返回<strong>-1,</strong>同时置上<strong>errno</strong>为ETIMEDOUT。此时TCP的状态是断开的。</p>
 

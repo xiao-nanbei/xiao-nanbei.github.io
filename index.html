@@ -192,14 +192,14 @@
       <h1 class="index-header">
         
         <a href="/2026/06/19/NarrowGate-Cpp-Low-Latency-Market-Making/" target="_self">
-          NarrowGate：从做市假设、脏数据与跨市场反例，到 C++ 低延时研究框架
+          NarrowGate：从 Maker Quote EV 到 C++ Tick Replay 的低延迟研究框架
         </a>
       </h1>
 
       <p class="index-excerpt">
         <a href="/2026/06/19/NarrowGate-Cpp-Low-Latency-Market-Making/" target="_self">
           
-          NarrowGate 是我最近一段时间一直在做的 maker 研究项目。它不是从“我要写一个 C++ 高频系统”开始的，而是从一个更朴素的问题开始：当市场有人急于成交时，站在被动一侧提供流动性，究竟是在收取 spread，还是在替更快的信息交易者接风险？ 最初的实现只是一个基于 Avellaneda-Stoikov 模型的 Python 研究框架。随后，为了检验这个问题，项目才逐步加入逐笔成交、原
+          TL;DR：读者收益摘要NarrowGate 不是一个“C++ 高频做市系统已经跑通并盈利”的项目，而是一个用于验证 maker quote EV 的研究框架。它的核心不是证明某个做市策略有效，而是建立一套让错误结论更难通过的 maker 研究系统。 读完这篇文章，至少可以得到四个结论：  maker fill 不能简单等价于 spread 收益，必须用 fill 后 markout 和 inve
         </a>
       </p>
 
@@ -305,7 +305,7 @@
       <p class="index-excerpt">
         <a href="/2022/12/12/MIT-6-S081-Lab-1-Xv6-and-Unix-Utilities/" target="_self">
           
-          在这个实验中要实现几个用户级别的应用程序，其对应的系统调用在kernel中都已经被实现好了。 sleep本实验要为 xv6 实现 UNIX 程序 sleep； 您的睡眠应暂停用户指定的滴答数。 滴答是 xv6 内核定义的时间概念，即来自定时器芯片的两次中断之间的时间。 我们检查参数，如果出现不是数字的参数就exit(-1)，否则进行sleep。代码如下所示： 1234567891011121314
+          在这个实验中要实现几个用户级别的应用程序，其对应的系统调用在kernel中都已经被实现好了。 sleep本实验要为 xv6 实现 UNIX 程序 sleep； 您的睡眠应暂停用户指定的滴答数。 滴答是 xv6 内核定义的时间概念，即来自定时器芯片的两次中断之间的时间。 我们检查参数，如果出现不是数字的参数就exit(-1)，否则进行sleep。代码如下所示： #include &quot;kern
         </a>
       </p>
 
@@ -352,7 +352,7 @@
       <p class="index-excerpt">
         <a href="/2022/05/29/%E8%AE%B0%E4%B8%80%E6%AC%A1manjaro-OS%E6%81%A2%E5%A4%8D/" target="_self">
           
-          我的PC前段时间短路了，更换主板之后重新启动电脑没有manjaro OS和Windows的启动项选择界面了，而是直接进入Winows，查看BOIS之后发现只有一个Winows启动项，遂开始恢复。 首先我发现只有一个Winows启动项，于是直接在Winows下管理员cmd中输入如下命令增加启动项： 1$bcdedit &#x2F;set &quot;&amp;#123;bootmgr&amp;#125;&quot; path
+          我的PC前段时间短路了，更换主板之后重新启动电脑没有manjaro OS和Windows的启动项选择界面了，而是直接进入Winows，查看BOIS之后发现只有一个Winows启动项，遂开始恢复。 首先我发现只有一个Winows启动项，于是直接在Winows下管理员cmd中输入如下命令增加启动项： $bcdedit &#x2F;set &quot;&amp;#123;bootmgr&amp;#125;&quot; path
         </a>
       </p>
 
@@ -385,7 +385,7 @@
       <p class="index-excerpt">
         <a href="/2022/05/16/CMU-15-445-Project-3-Query-Execution/" target="_self">
           
-          TASK #1 - SYSTEM CATALOG在这个任务中，我们会修改rc&#x2F;include&#x2F;catalog&#x2F;catalog.h以允许 DBMS 将新表添加到数据库并使用名称或内部对象标识符 ( table_oid_t) 检索它们。 我们在最新的BusTub中可以看到catalog的实现，但是这个版本只能实现通过6个测试， 先来看看TableInfo的结构体： 123456789101112131
+          TASK #1 - SYSTEM CATALOG在这个任务中，我们会修改rc&#x2F;include&#x2F;catalog&#x2F;catalog.h以允许 DBMS 将新表添加到数据库并使用名称或内部对象标识符 ( table_oid_t) 检索它们。 我们在最新的BusTub中可以看到catalog的实现，但是这个版本只能实现通过6个测试， 先来看看TableInfo的结构体： struct TableInfo &amp;
         </a>
       </p>
 
@@ -432,7 +432,7 @@
       <p class="index-excerpt">
         <a href="/2022/04/03/Go-select-and-IO-multiplexing/" target="_self">
           
-          selectGo 的 select 关键字用到了“多路等待”的思想，但它本身不是操作系统层面的 I&#x2F;O 多路复用，因为 select 面向的是 channel，而不是文件描述符。先看下面的例子： 123456789101112131415161718192021222324package mainimport (	&quot;fmt&quot;	&quot;sync&quot;)func main
+          selectGo 的 select 关键字用到了“多路等待”的思想，但它本身不是操作系统层面的 I&#x2F;O 多路复用，因为 select 面向的是 channel，而不是文件描述符。先看下面的例子： package main  import ( 	&quot;fmt&quot; 	&quot;sync&quot; ) func main() &amp;#123; 	c1 :&#x3D; make(chan int, 1
         </a>
       </p>
 

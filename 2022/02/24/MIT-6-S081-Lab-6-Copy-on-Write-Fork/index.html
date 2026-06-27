@@ -197,7 +197,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      3.8k 字
+      3.6k 字
     </span>
   
 
@@ -206,7 +206,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      32 分钟
+      30 分钟
     </span>
   
 
@@ -252,23 +252,136 @@
 <hr>
 <p>我们需要修改<code>uvmcopy()</code>，在复制副进程的内存到子进程的时候，不立即进行复制数据，而是建立指向原物理页的映射，并将父子两端的页表项都设置为不可写。</p>
 <p>我们首先看到<code>sys_fork</code>函数：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></div></td><td class="code"><pre><code class="hljs c"><span class="hljs-function">uint64</span><br><span class="hljs-function"><span class="hljs-title">sys_fork</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span><br><span class="hljs-function"></span>&#123;<br>  <span class="hljs-keyword">return</span> fork();<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-function">uint64</span>
+<span class="hljs-function"><span class="hljs-title">sys_fork</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>
+<span class="hljs-function"></span>&#123;
+  <span class="hljs-keyword">return</span> fork();
+&#125;</code></pre></div>
 <p>这个<code>fork</code>函数如下所示，我将自己的理解写在了注释中：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">int</span></span><br><span class="hljs-function"><span class="hljs-title">fork</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span><br><span class="hljs-function"></span>&#123;<br>  <span class="hljs-keyword">int</span> i, pid;<br>  <span class="hljs-comment">//新建proc</span><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">np</span>;</span><br>  <span class="hljs-comment">//准备好当前的proc,用来复制</span><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">p</span> =</span> myproc();<br><br>  <span class="hljs-comment">// Allocate process.</span><br>  <span class="hljs-keyword">if</span>((np = allocproc()) == <span class="hljs-number">0</span>)&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>  &#125;<br><br>  <span class="hljs-comment">// Copy user memory from parent to child.</span><br>  <span class="hljs-comment">//分配内存</span><br>  <span class="hljs-keyword">if</span>(uvmcopy(p-&gt;pagetable, np-&gt;pagetable, p-&gt;sz) &lt; <span class="hljs-number">0</span>)&#123;<br>    freeproc(np);<br>    release(&amp;np-&gt;lock);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>  &#125;<br>  np-&gt;sz = p-&gt;sz;<br><br>  <span class="hljs-comment">// copy saved user registers.</span><br>  *(np-&gt;trapframe) = *(p-&gt;trapframe);<br><br>  <span class="hljs-comment">// Cause fork to return 0 in the child.</span><br>  np-&gt;trapframe-&gt;a0 = <span class="hljs-number">0</span>;<br><br>  <span class="hljs-comment">// increment reference counts on open file descriptors.</span><br>  <span class="hljs-keyword">for</span>(i = <span class="hljs-number">0</span>; i &lt; NOFILE; i++)<br>    <span class="hljs-keyword">if</span>(p-&gt;ofile[i])<br>      np-&gt;ofile[i] = filedup(p-&gt;ofile[i]);<br>  np-&gt;cwd = idup(p-&gt;cwd);<br>  <br>  safestrcpy(np-&gt;name, p-&gt;name, <span class="hljs-keyword">sizeof</span>(p-&gt;name));<br>  <br>  pid = np-&gt;pid;<br><br>  release(&amp;np-&gt;lock);<br>  <span class="hljs-comment">//获取锁</span><br>  acquire(&amp;wait_lock);<br>  <br>  np-&gt;parent = p;<br>  release(&amp;wait_lock);<br><br>  acquire(&amp;np-&gt;lock);<br>  np-&gt;state = RUNNABLE;<br>  <br>  release(&amp;np-&gt;lock);<br>  <span class="hljs-comment">//返回进程id</span><br>  <span class="hljs-keyword">return</span> pid;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">int</span></span>
+<span class="hljs-function"><span class="hljs-title">fork</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>
+<span class="hljs-function"></span>&#123;
+  <span class="hljs-keyword">int</span> i, pid;
+  <span class="hljs-comment">//新建proc</span>
+  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">np</span>;</span>
+  <span class="hljs-comment">//准备好当前的proc,用来复制</span>
+  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">p</span> =</span> myproc();
+
+  <span class="hljs-comment">// Allocate process.</span>
+  <span class="hljs-keyword">if</span>((np = allocproc()) == <span class="hljs-number">0</span>)&#123;
+    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;
+  &#125;
+
+  <span class="hljs-comment">// Copy user memory from parent to child.</span>
+  <span class="hljs-comment">//分配内存</span>
+  <span class="hljs-keyword">if</span>(uvmcopy(p-&gt;pagetable, np-&gt;pagetable, p-&gt;sz) &lt; <span class="hljs-number">0</span>)&#123;
+    freeproc(np);
+    release(&amp;np-&gt;lock);
+    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;
+  &#125;
+  np-&gt;sz = p-&gt;sz;
+
+  <span class="hljs-comment">// copy saved user registers.</span>
+  *(np-&gt;trapframe) = *(p-&gt;trapframe);
+
+  <span class="hljs-comment">// Cause fork to return 0 in the child.</span>
+  np-&gt;trapframe-&gt;a0 = <span class="hljs-number">0</span>;
+
+  <span class="hljs-comment">// increment reference counts on open file descriptors.</span>
+  <span class="hljs-keyword">for</span>(i = <span class="hljs-number">0</span>; i &lt; NOFILE; i++)
+    <span class="hljs-keyword">if</span>(p-&gt;ofile[i])
+      np-&gt;ofile[i] = filedup(p-&gt;ofile[i]);
+  np-&gt;cwd = idup(p-&gt;cwd);
+  
+  safestrcpy(np-&gt;name, p-&gt;name, <span class="hljs-keyword">sizeof</span>(p-&gt;name));
+  
+  pid = np-&gt;pid;
+
+  release(&amp;np-&gt;lock);
+  <span class="hljs-comment">//获取锁</span>
+  acquire(&amp;wait_lock);
+  
+  np-&gt;parent = p;
+  release(&amp;wait_lock);
+
+  acquire(&amp;np-&gt;lock);
+  np-&gt;state = RUNNABLE;
+  
+  release(&amp;np-&gt;lock);
+  <span class="hljs-comment">//返回进程id</span>
+  <span class="hljs-keyword">return</span> pid;
+&#125;</code></pre></div>
 <p>我们先来说说进程的<code>state</code>字段：</p>
 <p>A question about the <code>fork</code> function</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-title">procstate</span> &#123;</span> UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE &#125;;<br><span class="hljs-comment">//未运行、已运行（终止）、阻塞、就绪、运行、僵死</span><br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-title">procstate</span> &#123;</span> UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE &#125;;
+<span class="hljs-comment">//未运行、已运行（终止）、阻塞、就绪、运行、僵死</span></code></pre></div>
 <blockquote>
 <p>英文术语<em>zombie process</em>源自丧尸——不死之人，隐喻子进程已死但仍然没有被回收。与正常进程不同，<code>kill</code>命令对僵尸进程无效。</p>
 </blockquote>
 <p>在类Unix系统中，僵死进程是指完成执行，但在操作系统进程表中仍然存在其进程控制块，处于”终止状态“的进程。</p>
 <p>下面是一个进程僵死的例子，解释在注释中：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;sys/wait.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;stdlib.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;unistd.h&gt;</span></span><br><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-keyword">pid_t</span> pids[<span class="hljs-number">10</span>];<br>	<span class="hljs-keyword">int</span> i;<br><br>	<span class="hljs-keyword">for</span> (i = <span class="hljs-number">9</span>; i &gt;= <span class="hljs-number">0</span>; --i) &#123;<br>		pids[i] = fork();<br>		<span class="hljs-keyword">if</span> (pids[i] == <span class="hljs-number">0</span>) &#123;<br>			sleep(i+<span class="hljs-number">1</span>);<br>			_exit(<span class="hljs-number">0</span>);<span class="hljs-comment">//在这之后已经完成执行了</span><br>		&#125;<br>	&#125;<br><br>	<span class="hljs-keyword">for</span> (i = <span class="hljs-number">9</span>; i &gt;= <span class="hljs-number">0</span>; --i)<br>        <span class="hljs-comment">//我们在这里有个wait，所以操作系统会保留其PCB，这就是僵尸装在</span><br>		waitpid(pids[i], <span class="hljs-literal">NULL</span>, <span class="hljs-number">0</span>);<br><br>	<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;sys/wait.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;stdlib.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;unistd.h&gt;</span></span>
+
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>
+<span class="hljs-function"></span>&#123;
+	<span class="hljs-keyword">pid_t</span> pids[<span class="hljs-number">10</span>];
+	<span class="hljs-keyword">int</span> i;
+
+	<span class="hljs-keyword">for</span> (i = <span class="hljs-number">9</span>; i &gt;= <span class="hljs-number">0</span>; --i) &#123;
+		pids[i] = fork();
+		<span class="hljs-keyword">if</span> (pids[i] == <span class="hljs-number">0</span>) &#123;
+			sleep(i+<span class="hljs-number">1</span>);
+			_exit(<span class="hljs-number">0</span>);<span class="hljs-comment">//在这之后已经完成执行了</span>
+		&#125;
+	&#125;
+
+	<span class="hljs-keyword">for</span> (i = <span class="hljs-number">9</span>; i &gt;= <span class="hljs-number">0</span>; --i)
+        <span class="hljs-comment">//我们在这里有个wait，所以操作系统会保留其PCB，这就是僵尸装在</span>
+		waitpid(pids[i], <span class="hljs-literal">NULL</span>, <span class="hljs-number">0</span>);
+
+	<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+&#125;</code></pre></div>
 <p>在<code>kernel/proc.c</code>的<code>fork</code>函数中，我们会将子进程设置为<code>RUNNABLE</code>状态，也就是拿到当前的就绪队列中，等待调度了，值得注意的是，在对<code>np</code>的状态进行状态赋值的时候我们会上锁，为什么呢？</p>
 <p>我们来看看<code>kernel/proc.c</code>中的<code>proc</code>函数，调用了<code>uvmcopy</code>函数，将父进程的页表以及内存拷贝到子进程，如下所示：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// Copy user memory from parent to child.</span><br><span class="hljs-keyword">if</span>(uvmcopy(p-&gt;pagetable, np-&gt;pagetable, p-&gt;sz) &lt; <span class="hljs-number">0</span>)&#123;<span class="hljs-comment">//将副进程的页表拷贝</span><br>  freeproc(np);<span class="hljs-comment">//释放一个proc结构和挂在它上面的数据</span><br>  release(&amp;np-&gt;lock);<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>&#125;<br>np-&gt;sz = p-&gt;sz;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-comment">// Copy user memory from parent to child.</span>
+<span class="hljs-keyword">if</span>(uvmcopy(p-&gt;pagetable, np-&gt;pagetable, p-&gt;sz) &lt; <span class="hljs-number">0</span>)&#123;<span class="hljs-comment">//将副进程的页表拷贝</span>
+  freeproc(np);<span class="hljs-comment">//释放一个proc结构和挂在它上面的数据</span>
+  release(&amp;np-&gt;lock);
+  <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;
+&#125;
+np-&gt;sz = p-&gt;sz;</code></pre></div>
 <p><code>uvmcopy</code>函数如下所示：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">int</span></span><br><span class="hljs-function"><span class="hljs-title">uvmcopy</span><span class="hljs-params">(<span class="hljs-keyword">pagetable_t</span> old, <span class="hljs-keyword">pagetable_t</span> <span class="hljs-keyword">new</span>, uint64 sz)</span></span><br><span class="hljs-function"></span>&#123;<br>  <span class="hljs-keyword">pte_t</span> *pte;<br>  uint64 pa, i;<br>  uint flags;<br>  <span class="hljs-keyword">char</span> *mem;<br><br>  <span class="hljs-keyword">for</span>(i = <span class="hljs-number">0</span>; i &lt; sz; i += PGSIZE)&#123;<br>    <span class="hljs-keyword">if</span>((pte = walk(old, i, <span class="hljs-number">0</span>)) == <span class="hljs-number">0</span>)<br>      <span class="hljs-keyword">continue</span>; <span class="hljs-comment">// 如果一个页不存在，则认为是懒加载的页，忽略即可</span><br>    <span class="hljs-keyword">if</span>((*pte &amp; PTE_V) == <span class="hljs-number">0</span>)<br>      <span class="hljs-keyword">continue</span>; <span class="hljs-comment">// 如果一个页不存在，则认为是懒加载的页，忽略即可</span><br>    pa = PTE2PA(*pte);<br>    flags = PTE_FLAGS(*pte);<br>    <span class="hljs-comment">//if((mem = kalloc()) == 0)</span><br>      <span class="hljs-comment">//goto err;</span><br>    <span class="hljs-comment">//memmove(mem, (char*)pa, PGSIZE);</span><br>    <span class="hljs-keyword">if</span>(mappages(<span class="hljs-keyword">new</span>, i, PGSIZE, (uint64)mem, flags) != <span class="hljs-number">0</span>)&#123;<br>      <span class="hljs-comment">//kfree(mem);</span><br>      <span class="hljs-keyword">goto</span> err;<br>    &#125;<br>  &#125;<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br><br> err:<br>  uvmunmap(<span class="hljs-keyword">new</span>, <span class="hljs-number">0</span>, i / PGSIZE, <span class="hljs-number">1</span>);<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">int</span></span>
+<span class="hljs-function"><span class="hljs-title">uvmcopy</span><span class="hljs-params">(<span class="hljs-keyword">pagetable_t</span> old, <span class="hljs-keyword">pagetable_t</span> <span class="hljs-keyword">new</span>, uint64 sz)</span></span>
+<span class="hljs-function"></span>&#123;
+  <span class="hljs-keyword">pte_t</span> *pte;
+  uint64 pa, i;
+  uint flags;
+  <span class="hljs-keyword">char</span> *mem;
+
+  <span class="hljs-keyword">for</span>(i = <span class="hljs-number">0</span>; i &lt; sz; i += PGSIZE)&#123;
+    <span class="hljs-keyword">if</span>((pte = walk(old, i, <span class="hljs-number">0</span>)) == <span class="hljs-number">0</span>)
+      <span class="hljs-keyword">continue</span>; <span class="hljs-comment">// 如果一个页不存在，则认为是懒加载的页，忽略即可</span>
+    <span class="hljs-keyword">if</span>((*pte &amp; PTE_V) == <span class="hljs-number">0</span>)
+      <span class="hljs-keyword">continue</span>; <span class="hljs-comment">// 如果一个页不存在，则认为是懒加载的页，忽略即可</span>
+    pa = PTE2PA(*pte);
+    flags = PTE_FLAGS(*pte);
+    <span class="hljs-comment">//if((mem = kalloc()) == 0)</span>
+      <span class="hljs-comment">//goto err;</span>
+    <span class="hljs-comment">//memmove(mem, (char*)pa, PGSIZE);</span>
+    <span class="hljs-keyword">if</span>(mappages(<span class="hljs-keyword">new</span>, i, PGSIZE, (uint64)mem, flags) != <span class="hljs-number">0</span>)&#123;
+      <span class="hljs-comment">//kfree(mem);</span>
+      <span class="hljs-keyword">goto</span> err;
+    &#125;
+  &#125;
+  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+
+ err:
+  uvmunmap(<span class="hljs-keyword">new</span>, <span class="hljs-number">0</span>, i / PGSIZE, <span class="hljs-number">1</span>);
+  <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;
+&#125;</code></pre></div>
 <p>当我们在面试的时候很多面试官也会问<code>malloc</code>的底层实现，那么我们就根据xv版本的代码来具体看看：</p>
 
             </div>

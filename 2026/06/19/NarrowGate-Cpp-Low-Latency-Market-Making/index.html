@@ -16,19 +16,19 @@
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
   
-    <meta name="description" content="NarrowGate 是我最近一段时间一直在做的 maker 研究项目。它不是从“我要写一个 C++ 高频系统”开始的，而是从一个更朴素的问题开始：当市场有人急于成交时，站在被动一侧提供流动性，究竟是在收取 spread，还是在替更快的信息交易者接风险？ 最初的实现只是一个基于 Avellaneda-Stoikov 模型的 Python 研究框架。随后，为了检验这个问题，项目才逐步加入逐笔成交、原">
+    <meta name="description" content="TL;DR：读者收益摘要NarrowGate 不是一个“C++ 高频做市系统已经跑通并盈利”的项目，而是一个用于验证 maker quote EV 的研究框架。它的核心不是证明某个做市策略有效，而是建立一套让错误结论更难通过的 maker 研究系统。 读完这篇文章，至少可以得到四个结论：  maker fill 不能简单等价于 spread 收益，必须用 fill 后 markout 和 inve">
 <meta property="og:type" content="article">
-<meta property="og:title" content="NarrowGate：从做市假设、脏数据与跨市场反例，到 C++ 低延时研究框架">
+<meta property="og:title" content="NarrowGate：从 Maker Quote EV 到 C++ Tick Replay 的低延迟研究框架">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/06/19/NarrowGate-Cpp-Low-Latency-Market-Making/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="NarrowGate 是我最近一段时间一直在做的 maker 研究项目。它不是从“我要写一个 C++ 高频系统”开始的，而是从一个更朴素的问题开始：当市场有人急于成交时，站在被动一侧提供流动性，究竟是在收取 spread，还是在替更快的信息交易者接风险？ 最初的实现只是一个基于 Avellaneda-Stoikov 模型的 Python 研究框架。随后，为了检验这个问题，项目才逐步加入逐笔成交、原">
+<meta property="og:description" content="TL;DR：读者收益摘要NarrowGate 不是一个“C++ 高频做市系统已经跑通并盈利”的项目，而是一个用于验证 maker quote EV 的研究框架。它的核心不是证明某个做市策略有效，而是建立一套让错误结论更难通过的 maker 研究系统。 读完这篇文章，至少可以得到四个结论：  maker fill 不能简单等价于 spread 收益，必须用 fill 后 markout 和 inve">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/maker-hot-path.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/data-lineage.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/quote-ladder.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/order-lifecycle.svg">
 <meta property="article:published_time" content="2026-06-19T08:50:48.000Z">
-<meta property="article:modified_time" content="2026-06-26T20:45:00.000Z">
+<meta property="article:modified_time" content="2026-06-26T22:20:00.000Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="C++">
 <meta property="article:tag" content="低延时">
@@ -41,7 +41,7 @@
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/maker-hot-path.svg">
   
   
-  <title>NarrowGate：从做市假设、脏数据与跨市场反例，到 C++ 低延时研究框架 - databrains</title>
+  <title>NarrowGate：从 Maker Quote EV 到 C++ Tick Replay 的低延迟研究框架 - databrains</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
 
@@ -187,7 +187,7 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="NarrowGate：从做市假设、脏数据与跨市场反例，到 C++ 低延时研究框架">
+            <span class="h2" id="subtitle" title="NarrowGate：从 Maker Quote EV 到 C++ Tick Replay 的低延迟研究框架">
               
             </span>
 
@@ -208,7 +208,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      58k 字
+      60k 字
     </span>
   
 
@@ -217,7 +217,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      486 分钟
+      503 分钟
     </span>
   
 
@@ -246,11 +246,20 @@
         <div class="py-5" id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">NarrowGate：从做市假设、脏数据与跨市场反例，到 C++ 低延时研究框架</h1>
+            <h1 style="display: none">NarrowGate：从 Maker Quote EV 到 C++ Tick Replay 的低延迟研究框架</h1>
             
             <div class="markdown-body">
-              <p><strong>NarrowGate</strong> 是我最近一段时间一直在做的 maker 研究项目。它不是从“我要写一个 C++ 高频系统”开始的，而是从一个更朴素的问题开始：<strong>当市场有人急于成交时，站在被动一侧提供流动性，究竟是在收取 spread，还是在替更快的信息交易者接风险？</strong></p>
-<p>最初的实现只是一个基于 Avellaneda-Stoikov 模型的 Python 研究框架。随后，为了检验这个问题，项目才逐步加入逐笔成交、原生 L2 盘口、LightGBM、BTCUSDT reference、BTCUSDC/BTCUSDT spot、逐侧 quote EV、库存时间风险，以及 Python/C++ 双引擎回放。也就是说，C++ 是研究越做越深之后出现的工程结果，不是项目的前提。</p>
+              <h2 id="TL-DR：读者收益摘要"><a href="#TL-DR：读者收益摘要" class="headerlink" title="TL;DR：读者收益摘要"></a>TL;DR：读者收益摘要</h2><p><strong>NarrowGate</strong> 不是一个“C++ 高频做市系统已经跑通并盈利”的项目，而是一个用于验证 maker quote EV 的研究框架。它的核心不是证明某个做市策略有效，而是建立一套让错误结论更难通过的 maker 研究系统。</p>
+<p>读完这篇文章，至少可以得到四个结论：</p>
+<ol>
+<li>maker fill 不能简单等价于 spread 收益，必须用 fill 后 markout 和 inventory exposure 衡量；</li>
+<li>多市场 reference 有信息量，但不等于统一打开 <code>multi_market</code> 就有正 EV；</li>
+<li>tick replay、queue ahead、latency、TTL 和 maker fill gate 会显著改变 bar 回测结论；</li>
+<li>C++ 的价值不是替代 Python 写策略，而是把 replay、feature state、quote core 和 live hot path 中稳定、高频、低基数的部分收紧边界。</li>
+</ol>
+<p>换句话说，C++ 没有替项目找到策略答案。它做的是更有用的事：让错误答案更快暴露，让好看的数字更难逃过验证。</p>
+<p><strong>NarrowGate</strong> 是我最近一段时间一直在做的 maker/被动做市研究项目。它不是从“我要写一个 C++ 高频系统”开始的，而是从一个更朴素的问题开始：<strong>当市场有人急于成交时，站在被动一侧提供流动性，究竟是在收取 spread，还是在替更快的信息交易者接风险？</strong></p>
+<p>最初的实现只是一个基于 Avellaneda-Stoikov 模型的 Python 研究框架。随后，为了检验这个问题，项目才逐步加入逐笔成交、原生 L2 盘口、LightGBM、BTCUSDT 永续 reference、BTCUSDC/BTCUSDT spot anchor、逐侧 quote EV、库存时间风险，以及 Python/C++ 双引擎回放。也就是说，C++ 是研究越做越深之后出现的工程结果，不是项目的前提。</p>
 <p>先把阅读边界说清楚：本文只从 C++ 低延时工程、市场微观结构、价格行为学、数据质量和回测方法的角度分析 NarrowGate，不讨论也不建议任何真实交易行为。文中的 PnL、fill、markout、A/B 都是研究指标，用来验证模型假设、执行口径和系统性能，而不是收益承诺。</p>
 <p>一路做下来，真正困难的部分并不是把某个公式写出来，而是连续回答几个会推翻直觉的问题：</p>
 <ul>
@@ -328,7 +337,27 @@
 </div>
 <p>整个研究链路可以概括成：</p>
 <p><img src="/images/narrowgate/maker-hot-path.svg" srcset="/img/loading.gif" lazyload alt="NarrowGate maker live hot path"></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></div></td><td class="code"><pre><code class="hljs text">Binance Vision / CryptoHFTData<br>        │<br>        ▼<br>data audit + physical cleanup + gap/horizon guard<br>        │<br>        ▼<br>1s bars + BBO/L2 + reference/spot features<br>        │<br>        ├──► 主 LightGBM：ret / vol / toxicity 等状态预测<br>        │<br>        ▼<br>AS quote core + side policy + inventory controls<br>        │<br>        ▼<br>tick replay：queue / latency / TTL / maker fill gate<br>        │<br>        ▼<br>quote trace + fill markout + cross-market shock attribution<br>        │<br>        ▼<br>quote EV labels/model + monthly A/B + strict gates<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs text">Binance Vision / CryptoHFTData
+        │
+        ▼
+data audit + physical cleanup + gap/horizon guard
+        │
+        ▼
+1s bars + BBO/L2 + reference/spot features
+        │
+        ├──► 主 LightGBM：ret / vol / toxicity 等状态预测
+        │
+        ▼
+AS quote core + side policy + inventory controls
+        │
+        ▼
+tick replay：queue / latency / TTL / maker fill gate
+        │
+        ▼
+quote trace + fill markout + cross-market shock attribution
+        │
+        ▼
+quote EV labels/model + monthly A/B + strict gates</code></pre></div>
 <p>这条链路很重要，因为 quote EV 并不是从原始行情直接训练出来的万能模型。它依赖上游报价轨迹、成交路径、未来 markout 和 cross-market context；任何一层的数据边界或执行口径出错，最后得到的 AUC 和 PnL 都可能只是被污染后的精确数字。</p>
 <p>这也是为什么数据源需要先分层，而不是全部丢进一个 dataframe。NarrowGate 里至少有四类数据：</p>
 <p><img src="/images/narrowgate/data-lineage.svg" srcset="/img/loading.gif" lazyload alt="NarrowGate research data lineage"></p>
@@ -383,7 +412,7 @@
 <tbody>
 <tr>
 <td>maker</td>
-<td>挂被动限价单，等待别人主动成交；目标是收取 spread，但会承担被打穿后的逆向选择</td>
+<td>挂被动限价单，等待别人主动成交；不是追着价格打单，而是在盘口提供流动性</td>
 </tr>
 <tr>
 <td>taker</td>
@@ -399,19 +428,19 @@
 </tr>
 <tr>
 <td>microprice</td>
-<td>用买卖一深度加权后的中间价，用来表达盘口哪侧更薄</td>
+<td>用买卖一深度加权后的中间价；它不是预测模型，只是表达盘口哪侧更薄</td>
 </tr>
 <tr>
 <td>spread edge</td>
-<td>maker 买在 bid、卖在 ask 所获得的价格让步，不等于最终收益</td>
+<td>maker 买在 bid、卖在 ask 所获得的价格让步；这是毛收益来源，不等于最终收益</td>
 </tr>
 <tr>
 <td>queue ahead</td>
-<td>自己挂单前方同价位或更优价位的可见数量；它决定价格触碰后是否轮到自己成交</td>
+<td>自己挂单前方同价位或更优价位的可见数量；价格碰到不代表一定轮到自己成交</td>
 </tr>
 <tr>
 <td>markout</td>
-<td>fill 后若干秒的价格变化，用来衡量成交质量</td>
+<td>fill 后若干秒的价格变化；用来问“这笔成交后来是不是变成了坏成交”</td>
 </tr>
 <tr>
 <td>maker-signed markout</td>
@@ -419,7 +448,7 @@
 </tr>
 <tr>
 <td>adverse selection</td>
-<td>成交后价格向不利方向移动，说明自己被更快或更有信息的一方打到</td>
+<td>成交后价格向不利方向移动；直觉上就是“我被更快或更有信息的一方打到了”</td>
 </tr>
 <tr>
 <td>toxicity</td>
@@ -427,7 +456,7 @@
 </tr>
 <tr>
 <td>quote EV</td>
-<td>针对某一侧候选报价的条件期望，不是单纯预测价格方向</td>
+<td>不是预测价格涨跌，而是问“这一侧、这个价格、这一笔被动挂单，成交之后是否值得”</td>
 </tr>
 <tr>
 <td>TTL / cooldown</td>
@@ -463,7 +492,56 @@ P(\operatorname{fill}\mid x)
 - \operatorname{adverse}_{\text{tail}}(x)
 - \operatorname{inventory}_{\text{cost}}(q, x)</script><p><code>P(fill)</code> 高不一定是好事。一个几乎必然成交、但成交后价格立刻向不利方向移动的报价，可能比完全不成交更糟。</p>
 <p>把 maker 的一次决策写成伪代码，大概是下面这样。真实系统当然有更多异常处理、日志和 REST 细节，但热路径上的逻辑并不神秘：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">on_requote_tick</span>(<span class="hljs-params">state, market, models, cfg</span>):</span><br>    <span class="hljs-comment"># 1. 更新短周期市场状态：mid、BBO、depth、trade flow、reference/spot</span><br>    signal = signal_engine.compute(<br>        exec_trades=market.btcusdc_trades,<br>        exec_book=market.btcusdc_l2,<br>        ref_perp=market.btcusdt_perp,<br>        exec_spot=market.btcusdc_spot,<br>        ref_spot=market.btcusdt_spot,<br>    )<br><br>    <span class="hljs-comment"># 2. 主模型只回答状态问题：短期 ret / vol / toxicity</span><br>    pred = models.main.predict(signal.feature_vector)<br><br>    <span class="hljs-comment"># 3. AS quote core 给出报价坐标系</span><br>    quote = compute_quote_core(<br>        mid=market.mid,<br>        inventory=state.position,<br>        sigma_sq=pred.vol_10s,<br>        ret_10s=pred.ret_10s,<br>        tox_bid=pred.tox_bid,<br>        tox_ask=pred.tox_ask,<br>        depth=market.l2_topN,<br>        cfg=cfg.quote,<br>    )<br><br>    <span class="hljs-comment"># 4. side policy 决定每一侧是否值得暴露</span><br>    bid_policy = build_side_policy(<br>        side=<span class="hljs-string">&quot;bid&quot;</span>,<br>        quote_ctx=quote.bid_ctx,<br>        inventory=state.position,<br>        fill_cooldown=state.fill_cooldown,<br>        quote_ev=models.bid_quote_ev,<br>    )<br>    ask_policy = build_side_policy(<br>        side=<span class="hljs-string">&quot;ask&quot;</span>,<br>        quote_ctx=quote.ask_ctx,<br>        inventory=state.position,<br>        fill_cooldown=state.fill_cooldown,<br>        quote_ev=models.ask_quote_ev,<br>    )<br><br>    <span class="hljs-comment"># 5. routing 只做本次订单动作：保留、撤单、换价、新挂</span><br>    decision = route_orders(<br>        quote=quote,<br>        bid_policy=bid_policy,<br>        ask_policy=ask_policy,<br>        live_orders=state.live_orders,<br>        filters=market.exchange_filters,<br>    )<br>    <span class="hljs-keyword">return</span> decision<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">on_requote_tick</span>(<span class="hljs-params">state, market, models, cfg</span>):</span>
+    <span class="hljs-comment"># 1. 更新短周期市场状态：mid、BBO、depth、trade flow、reference/spot</span>
+    signal = signal_engine.compute(
+        exec_trades=market.btcusdc_trades,
+        exec_book=market.btcusdc_l2,
+        ref_perp=market.btcusdt_perp,
+        exec_spot=market.btcusdc_spot,
+        ref_spot=market.btcusdt_spot,
+    )
+
+    <span class="hljs-comment"># 2. 主模型只回答状态问题：短期 ret / vol / toxicity</span>
+    pred = models.main.predict(signal.feature_vector)
+
+    <span class="hljs-comment"># 3. AS quote core 给出报价坐标系</span>
+    quote = compute_quote_core(
+        mid=market.mid,
+        inventory=state.position,
+        sigma_sq=pred.vol_10s,
+        ret_10s=pred.ret_10s,
+        tox_bid=pred.tox_bid,
+        tox_ask=pred.tox_ask,
+        depth=market.l2_topN,
+        cfg=cfg.quote,
+    )
+
+    <span class="hljs-comment"># 4. side policy 决定每一侧是否值得暴露</span>
+    bid_policy = build_side_policy(
+        side=<span class="hljs-string">&quot;bid&quot;</span>,
+        quote_ctx=quote.bid_ctx,
+        inventory=state.position,
+        fill_cooldown=state.fill_cooldown,
+        quote_ev=models.bid_quote_ev,
+    )
+    ask_policy = build_side_policy(
+        side=<span class="hljs-string">&quot;ask&quot;</span>,
+        quote_ctx=quote.ask_ctx,
+        inventory=state.position,
+        fill_cooldown=state.fill_cooldown,
+        quote_ev=models.ask_quote_ev,
+    )
+
+    <span class="hljs-comment"># 5. routing 只做本次订单动作：保留、撤单、换价、新挂</span>
+    decision = route_orders(
+        quote=quote,
+        bid_policy=bid_policy,
+        ask_policy=ask_policy,
+        live_orders=state.live_orders,
+        filters=market.exchange_filters,
+    )
+    <span class="hljs-keyword">return</span> decision</code></pre></div>
 <p>这段伪代码也解释了为什么 live C++ 优化不能只盯着某一个公式。<code>compute_quote_core()</code> 的浮点数学很短；真正反复发生的是 feature state、quote context、side policy 和 routing decision 在 Python 对象之间来回搬运。C++ 如果只接住第 3 步，却每次都要复制完整 dataclass/dict，就会被边界成本反噬；如果把第 3 到第 5 步中稳定的计算和固定字段打包，才可能降低尾延迟。</p>
 <h3 id="1-2-从-AS-报价骨架开始"><a href="#1-2-从-AS-报价骨架开始" class="headerlink" title="1.2 从 AS 报价骨架开始"></a>1.2 从 AS 报价骨架开始</h3><p>项目最早使用经典 Avellaneda-Stoikov 做市模型。它给出了两个很有用的结构：reservation price 和最优 spread。</p>
 <script type="math/tex; mode=display">
@@ -543,7 +621,19 @@ h
 \cdot
 \frac{Q_b-Q_a}{Q_b+Q_a}</script><p>这也是为什么它只能作为局部盘口压力，而不能替代未来收益模型。一个厚 bid 可能是支撑，也可能只是即将撤掉的虚假流动性；真正进入策略时，还必须经过 freshness、depth coverage、reference confirmation 和 fill 后 markout 验证。</p>
 <p>side policy 则在候选价格之后再做一次门控：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs text">allow_bid =<br>    fresh_book<br>    and not bid_adverse_pause<br>    and not bid_local_extreme_pause<br>    and inventory &lt; max_inventory<br>    and not fill_cooldown_blocks_bid<br><br>allow_ask =<br>    fresh_book<br>    and not ask_adverse_pause<br>    and not ask_local_extreme_pause<br>    and inventory &gt; -max_inventory<br>    and not fill_cooldown_blocks_ask<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs text">allow_bid =
+    fresh_book
+    and not bid_adverse_pause
+    and not bid_local_extreme_pause
+    and inventory &lt; max_inventory
+    and not fill_cooldown_blocks_bid
+
+allow_ask =
+    fresh_book
+    and not ask_adverse_pause
+    and not ask_local_extreme_pause
+    and inventory &gt; -max_inventory
+    and not fill_cooldown_blocks_ask</code></pre></div>
 <p>当库存偏多时，bid 是增加风险的一侧，ask 是降低风险的一侧；库存偏空时反过来。因此同一个 adverse guard 对 bid/ask 的含义并不对称，这也是 quote EV 必须按 side 训练和评估的原因。</p>
 <p>但真实盘口不会只服从这几个变量。因此项目后来逐步加入：</p>
 <ul>
@@ -562,7 +652,29 @@ h
 <p>项目也因此从早期 1s-bar 回测逐渐转向 tick replay。bar 回测适合快速检查公式和参数方向，但只知道价格是否触及；maker 是否真的成交，还取决于挂单前方的队列、订单到达时间、撤单延迟和同价位主动成交量。没有这些状态，回测很容易把“价格碰到过”错误地当成“我成交了”。</p>
 <p>简化后的 queue/fill 逻辑可以写成：</p>
 <p><img src="/images/narrowgate/order-lifecycle.svg" srcset="/img/loading.gif" lazyload alt="NarrowGate maker order lifecycle"></p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">process_aggressive_trade</span>(<span class="hljs-params">order, trade</span>):</span><br>    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> order.is_live:<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span><br><br>    <span class="hljs-comment"># BUY maker order fills only when sell aggressor trades at or below bid.</span><br>    <span class="hljs-comment"># SELL maker order fills only when buy aggressor trades at or above ask.</span><br>    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> trade.crosses(order.side, order.price):<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span><br><br>    remaining = trade.qty<br><br>    <span class="hljs-comment"># Visible queue ahead must be consumed before our order can fill.</span><br>    eaten = <span class="hljs-built_in">min</span>(order.queue_left, remaining)<br>    order.queue_left -= eaten<br>    remaining -= eaten<br><br>    <span class="hljs-keyword">if</span> remaining &lt;= <span class="hljs-number">0</span>:<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span><br><br>    fill_qty = <span class="hljs-built_in">min</span>(order.remaining_qty, remaining)<br>    order.remaining_qty -= fill_qty<br><br>    <span class="hljs-keyword">return</span> Fill(side=order.side, price=order.price, qty=fill_qty)<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">process_aggressive_trade</span>(<span class="hljs-params">order, trade</span>):</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> order.is_live:
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span>
+
+    <span class="hljs-comment"># BUY maker order fills only when sell aggressor trades at or below bid.</span>
+    <span class="hljs-comment"># SELL maker order fills only when buy aggressor trades at or above ask.</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> trade.crosses(order.side, order.price):
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span>
+
+    remaining = trade.qty
+
+    <span class="hljs-comment"># Visible queue ahead must be consumed before our order can fill.</span>
+    eaten = <span class="hljs-built_in">min</span>(order.queue_left, remaining)
+    order.queue_left -= eaten
+    remaining -= eaten
+
+    <span class="hljs-keyword">if</span> remaining &lt;= <span class="hljs-number">0</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span>
+
+    fill_qty = <span class="hljs-built_in">min</span>(order.remaining_qty, remaining)
+    order.remaining_qty -= fill_qty
+
+    <span class="hljs-keyword">return</span> Fill(side=order.side, price=order.price, qty=fill_qty)</code></pre></div>
 <p>成交后再按 maker 方向计算 markout：</p>
 <script type="math/tex; mode=display">
 \operatorname{markout}_{\text{buy}}(h)
@@ -591,17 +703,62 @@ h
 </ol>
 <p>这样既避免磁盘继续保留不可用数据，也让物理层和逻辑层使用同一份质量边界。2026-06-06 的清理最终保留了 375 个好日期日度文件、删除 23 个月度容器，并验证坏日期命中与月度容器残留都为 0。</p>
 <h4 id="1-3-3-rolling-与-label-使用同一套连续段定义"><a href="#1-3-3-rolling-与-label-使用同一套连续段定义" class="headerlink" title="1.3.3 rolling 与 label 使用同一套连续段定义"></a>1.3.3 rolling 与 label 使用同一套连续段定义</h4><p>项目增加了统一的：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python">continuous_segment_ids(index, max_gap_s=<span class="hljs-number">5</span>)<br>mask_valid_horizon(index, horizon_s, max_gap_s=<span class="hljs-number">5</span>)<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs python">continuous_segment_ids(index, max_gap_s=<span class="hljs-number">5</span>)
+mask_valid_horizon(index, horizon_s, max_gap_s=<span class="hljs-number">5</span>)</code></pre></div>
 <p>这两个函数不是简单的 <code>dropna</code>。连续段要同时切断无效时间戳、时间倒退和超长间隔；future label 则先用 <code>searchsorted</code> 找到目标 horizon 的第一条观测，再验证它仍处于同一 segment，并且没有晚于目标太多。当前 Python fallback 的核心逻辑如下（省略时间戳类型兼容代码）：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">continuous_segment_ids</span>(<span class="hljs-params">index_like, max_gap_s=<span class="hljs-number">5.0</span></span>):</span><br>    ts = _coerce_utc_timestamps(index_like)<br>    ns = ts.view(<span class="hljs-string">&quot;int64&quot;</span>)<br>    invalid = np.asarray(ts.isna(), dtype=<span class="hljs-built_in">bool</span>)<br><br>    breaks = np.zeros(<span class="hljs-built_in">len</span>(ts), dtype=<span class="hljs-built_in">bool</span>)<br>    breaks[<span class="hljs-number">0</span>] = <span class="hljs-literal">True</span><br>    <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(ts) &gt; <span class="hljs-number">1</span>:<br>        delta = ns[<span class="hljs-number">1</span>:].astype(<span class="hljs-built_in">float</span>) - ns[:-<span class="hljs-number">1</span>].astype(<span class="hljs-built_in">float</span>)<br>        breaks[<span class="hljs-number">1</span>:] = (<br>            invalid[:-<span class="hljs-number">1</span>]<br>            | invalid[<span class="hljs-number">1</span>:]<br>            | (delta &lt; <span class="hljs-number">0.0</span>)<br>            | (delta &gt; max_gap_s * <span class="hljs-number">1e9</span>)<br>        )<br>    <span class="hljs-keyword">return</span> np.cumsum(breaks, dtype=np.int64) - <span class="hljs-number">1</span><br><br><br><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">mask_valid_horizon</span>(<span class="hljs-params">index_like, horizon_s, max_gap_s=<span class="hljs-number">5.0</span></span>):</span><br>    ts = _coerce_utc_timestamps(index_like)<br>    ns = ts.view(<span class="hljs-string">&quot;int64&quot;</span>)<br>    segments = continuous_segment_ids(ts, max_gap_s)<br><br>    target_ns = ns.astype(<span class="hljs-built_in">float</span>) + horizon_s * <span class="hljs-number">1e9</span><br>    future_idx = np.searchsorted(ns, target_ns, side=<span class="hljs-string">&quot;left&quot;</span>)<br>    valid = (~ts.isna()) &amp; (future_idx &lt; <span class="hljs-built_in">len</span>(ts))<br><br>    rows = np.flatnonzero(valid)<br>    future = future_idx[rows]<br>    valid[rows] = (<br>        (segments[future] == segments[rows])<br>        &amp; ((ns[future] - target_ns[rows]) &lt;= max_gap_s * <span class="hljs-number">1e9</span>)<br>    )<br>    <span class="hljs-keyword">return</span> valid<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">continuous_segment_ids</span>(<span class="hljs-params">index_like, max_gap_s=<span class="hljs-number">5.0</span></span>):</span>
+    ts = _coerce_utc_timestamps(index_like)
+    ns = ts.view(<span class="hljs-string">&quot;int64&quot;</span>)
+    invalid = np.asarray(ts.isna(), dtype=<span class="hljs-built_in">bool</span>)
+
+    breaks = np.zeros(<span class="hljs-built_in">len</span>(ts), dtype=<span class="hljs-built_in">bool</span>)
+    breaks[<span class="hljs-number">0</span>] = <span class="hljs-literal">True</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(ts) &gt; <span class="hljs-number">1</span>:
+        delta = ns[<span class="hljs-number">1</span>:].astype(<span class="hljs-built_in">float</span>) - ns[:-<span class="hljs-number">1</span>].astype(<span class="hljs-built_in">float</span>)
+        breaks[<span class="hljs-number">1</span>:] = (
+            invalid[:-<span class="hljs-number">1</span>]
+            | invalid[<span class="hljs-number">1</span>:]
+            | (delta &lt; <span class="hljs-number">0.0</span>)
+            | (delta &gt; max_gap_s * <span class="hljs-number">1e9</span>)
+        )
+    <span class="hljs-keyword">return</span> np.cumsum(breaks, dtype=np.int64) - <span class="hljs-number">1</span>
+
+
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">mask_valid_horizon</span>(<span class="hljs-params">index_like, horizon_s, max_gap_s=<span class="hljs-number">5.0</span></span>):</span>
+    ts = _coerce_utc_timestamps(index_like)
+    ns = ts.view(<span class="hljs-string">&quot;int64&quot;</span>)
+    segments = continuous_segment_ids(ts, max_gap_s)
+
+    target_ns = ns.astype(<span class="hljs-built_in">float</span>) + horizon_s * <span class="hljs-number">1e9</span>
+    future_idx = np.searchsorted(ns, target_ns, side=<span class="hljs-string">&quot;left&quot;</span>)
+    valid = (~ts.isna()) &amp; (future_idx &lt; <span class="hljs-built_in">len</span>(ts))
+
+    rows = np.flatnonzero(valid)
+    future = future_idx[rows]
+    valid[rows] = (
+        (segments[future] == segments[rows])
+        &amp; ((ns[future] - target_ns[rows]) &lt;= max_gap_s * <span class="hljs-number">1e9</span>)
+    )
+    <span class="hljs-keyword">return</span> valid</code></pre></div>
 <p>rolling feature 则按 segment 分组后再滚动，而不是算完 rolling 再把坏日期删掉：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs python">segment = continuous_segment_ids(frame.index, max_gap_s=<span class="hljs-number">5</span>)<br>frame[<span class="hljs-string">&quot;ret_std_60s&quot;</span>] = (<br>    frame.groupby(segment, sort=<span class="hljs-literal">False</span>)[<span class="hljs-string">&quot;log_ret&quot;</span>]<br>         .rolling(<span class="hljs-number">60</span>, min_periods=<span class="hljs-number">20</span>)<br>         .std()<br>         .reset_index(level=<span class="hljs-number">0</span>, drop=<span class="hljs-literal">True</span>)<br>)<br><br>valid_30s = mask_valid_horizon(frame.index, horizon_s=<span class="hljs-number">30</span>, max_gap_s=<span class="hljs-number">5</span>)<br>labels.loc[~valid_30s, <span class="hljs-string">&quot;markout_30s&quot;</span>] = np.nan<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs python">segment = continuous_segment_ids(frame.index, max_gap_s=<span class="hljs-number">5</span>)
+frame[<span class="hljs-string">&quot;ret_std_60s&quot;</span>] = (
+    frame.groupby(segment, sort=<span class="hljs-literal">False</span>)[<span class="hljs-string">&quot;log_ret&quot;</span>]
+         .rolling(<span class="hljs-number">60</span>, min_periods=<span class="hljs-number">20</span>)
+         .std()
+         .reset_index(level=<span class="hljs-number">0</span>, drop=<span class="hljs-literal">True</span>)
+)
+
+valid_30s = mask_valid_horizon(frame.index, horizon_s=<span class="hljs-number">30</span>, max_gap_s=<span class="hljs-number">5</span>)
+labels.loc[~valid_30s, <span class="hljs-string">&quot;markout_30s&quot;</span>] = np.nan</code></pre></div>
 <p>在时间戳全部有效时，同一语义还能委托给 C++ 的 <code>continuous_segment_ids_ms</code> / <code>mask_valid_horizon_ms</code>；有非法值时保留 Python fallback，避免 native 快路径为了性能吞掉数据异常。</p>
 <p><code>feature_engineer.py</code>、<code>cross_market_shock_audit.py</code> 和 <code>train_quote_ev.py</code> 共用同一口径。rolling feature 只在连续 segment 内计算，未来 horizon 跨 gap 时 label 直接失效。</p>
 <p>这件事看起来不像模型升级，但它比多加几十个 feature 更重要。一个更复杂的模型只会更擅长拟合被污染的数据。</p>
 <p>到这里，项目的研究顺序也被迫改变了：不是先训练一个更大的模型，再在结果异常时检查数据；而是先证明每个 feature 和 label 都来自连续、可用的市场片段，然后才允许它进入训练和回放。对于订单生命周期很短的 maker 来说，日与日之间不连续未必有问题，<strong>跨越不连续边界计算 rolling 或 future horizon 才是问题</strong>。</p>
 <h3 id="1-4-为什么加入-BTCUSDT-和-spot-后，结果反而更差"><a href="#1-4-为什么加入-BTCUSDT-和-spot-后，结果反而更差" class="headerlink" title="1.4 为什么加入 BTCUSDT 和 spot 后，结果反而更差"></a>1.4 为什么加入 BTCUSDT 和 spot 后，结果反而更差</h3><p>BTCUSDC 的本地成交和盘口并不是孤立市场。项目先加入 BTCUSDT perpetual 作为 reference，后来又重建 enhanced spot features：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">cv_ref_perp_*<br>cv_exec_spot_*<br>cv_ref_spot_*<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs text">cv_ref_perp_*
+cv_exec_spot_*
+cv_ref_spot_*</code></pre></div>
 <p>从直觉上说，多一个高流动性的 reference、多两个 spot anchor，算法应该更健壮。数据也确实带来了信息：cross-market shock audit 显示，很多 adverse fill 能被 BTCUSDT reference move 解释；补齐 spot 后，相关窗口的 <code>spot_available_rate</code> 达到 1.0。</p>
 <p>但“数据有信息”不等于“把开关打开就能形成正 EV”。</p>
 <p><code>multi_market.enabled=true/false</code> 的 Jan/Feb/Apr/May 月度 A/B 中，早期 minimal 口径下 true 的 raw PnL 四个月全部差于 false，合计约 <code>-14.05</code>。enhanced spot + audit-quality 重跑后，同样的整体开关仍然没有变成稳定收益来源，raw 差值合计约 <code>-18.14</code>。</p>
@@ -642,6 +799,15 @@ T_q=\int_0^T q(t)\,dt</script><script type="math/tex; mode=display">
 T_{q^2}=\int_0^T q(t)^2\,dt,\qquad
 T_{\text{notional}}=\int_0^T |q(t)|\,\operatorname{mid}(t)\,dt</script><p>它表达的不是某一时刻仓位有多大，而是整个持仓期间承担了多少风险预算。两个 arm 即使最终都回到零库存，持仓 10 秒与持仓 2 小时也不应该被视为相同。</p>
 <p>这些字段被接入 tick replay summary、事件引擎 HEALTH/metrics 和 A/B report，并进一步派生 <code>time_avg_abs_inventory</code> 与 <code>pnl_per_abs_inventory_hour</code>。从此比较 ask EV、multi-market 和 enhanced spot 时，不只问“raw PnL 改善多少”，还要问“为这点改善占用了多少库存时间”。</p>
+<blockquote>
+<p><strong>本节工程结论</strong></p>
+<ul>
+<li>maker 研究不能只看 <code>spread</code> 或 raw PnL，必须把 fill 后 markout、库存时间和校准质量放进同一张表。</li>
+<li>多市场数据首先用于解释冲击来源，不应该直接变成一个全局开关。</li>
+<li>数据质量不是 ETL 细节，而是模型定义的一部分；rolling feature 和 future label 必须共享连续段口径。</li>
+<li>quote EV 的 promotion gate 应该先过样本量、Brier/calibration、bucket realized-vs-pred 和分侧稳定性，再谈上线。</li>
+</ul>
+</blockquote>
 <h2 id="第二部分：从算法验证到工程问题"><a href="#第二部分：从算法验证到工程问题" class="headerlink" title="第二部分：从算法验证到工程问题"></a>第二部分：从算法验证到工程问题</h2><p>到这里，maker 算法部分已经形成了一个闭环：候选报价、排队成交、fill 后 markout、cross-market attribution、quote EV 校准和库存时间积分。但这个闭环一旦严格起来，工程问题就不再是“以后再说”的附属项。因为每一次反例验证都要重新跑真实窗口、真实队列和真实 policy state，系统吞吐量本身会决定研究能不能继续。</p>
 <p>这一部分是算法和 C++ 之间的桥。它回答的不是“怎么写 native 代码”，而是“为什么验证流程会需要 native 状态机”。</p>
 <h3 id="2-1-严格验证带来了新的工程问题"><a href="#2-1-严格验证带来了新的工程问题" class="headerlink" title="2.1 严格验证带来了新的工程问题"></a>2.1 严格验证带来了新的工程问题</h3><p>NarrowGate 的 tick replay 不是拿下一根 K 线 high/low 判断是否成交。为了尽量接近 maker 的执行过程，它需要模拟：</p>
@@ -661,7 +827,26 @@ T_{\text{notional}}=\int_0^T |q(t)|\,\operatorname{mid}(t)\,dt</script><p>它表
 <p>还有一个比速度更重要的问题：如果某个 guard 只存在于回测，或回测拥有事件引擎没有的 queue/TTL 信息，那么回测会比实际策略“更聪明”。此时加速一套不一致的模拟，只会更快地产生错误信心。</p>
 <p>前面的数据审计、逐月 A/B、strict calibration gate 都指向同一个现实：这类策略不能靠一两个漂亮窗口下结论，必须反复跑多个真实月份、多个 side policy 和多个风险口径。也正是在这里，Python 循环从“足够灵活”变成了研究吞吐量的瓶颈。</p>
 <p>所以 C++ 迁移的第一目标不是炫耀速度，而是让更严格的验证在时间上可负担；第二目标才是建立同一批真实数据下的 Python/C++ parity，并借此把 policy 边界显式化。若两套引擎不能解释同一条成交路径，跑得再快也没有研究价值。</p>
+<blockquote>
+<p><strong>本节工程结论</strong></p>
+<ul>
+<li>严格 tick replay 的价值不是“更复杂”，而是阻止 bar 回测把触价误判成成交。</li>
+<li>Python/C++ 双引擎先做 parity，再做 sweep 加速；路径不一致时，速度没有意义。</li>
+<li>A/B 不能只比最终 PnL，还要比 fills、bid/ask split、final inventory、InvAdj、inventory time、spread/cap 和 trace 行数。</li>
+<li>replay、queue、TTL、latency、guard 是强顺序状态机，适合一次 C++ 调用跑完整窗口；pandas IO 和训练编排继续留给 Python。</li>
+</ul>
+</blockquote>
 <h2 id="第三部分：Python-C-技术实现"><a href="#第三部分：Python-C-技术实现" class="headerlink" title="第三部分：Python/C++ 技术实现"></a>第三部分：Python/C++ 技术实现</h2><p>从这里开始才进入 C++。前面的 maker 章节回答“应该验证什么”，这一部分回答“哪些计算形态适合迁移、迁移后如何保证和 Python 口径一致”。因此它不会把下载、pandas 清洗、LightGBM 训练和报告生成都重写，而只关注状态长期驻留、调用粒度足够大、语义相对稳定的路径。</p>
+<p>如果从量化 C++ 面试展示角度看，这部分真正想展示的不是“我会写 pybind11”，而是这些工程判断：</p>
+<ul>
+<li>pybind11 边界成本和 object materialization 往往比公式本身更贵；</li>
+<li>native path 必须 fail fast，不能静默 fallback 后仍把结果当 C++ benchmark；</li>
+<li>parity test 用来区分策略差异、对象转换差异和 ABI 差异；</li>
+<li>SoA view、fixed-array feature vector、ring buffer 和 O(1) rolling state 比“把函数搬到 C++”更重要；</li>
+<li>PMR 只适合生命周期清楚的 replay scratch，不应该跨 Python 边界泄漏 arena 生命周期；</li>
+<li>live scalar path 和 offline batch path 是两种问题：<strong>offline 关心吞吐，live 关心尾延迟；offline 可以 batch，live 只能 scalar；offline 释放 GIL 有意义，live 主路径通常没有</strong>；</li>
+<li>benchmark 要看 p99/p99.9，而不是只看 mean；KVM 不暴露 PMU 时，要明确 wall-time soak 的局限。</li>
+</ul>
 <h3 id="3-1-为什么-C-是结果，而不是起点"><a href="#3-1-为什么-C-是结果，而不是起点" class="headerlink" title="3.1 为什么 C++ 是结果，而不是起点"></a>3.1 为什么 C++ 是结果，而不是起点</h3><p>Python 仍然很适合：</p>
 <ul>
 <li>数据下载、清洗和 parquet/CSV IO；</li>
@@ -678,15 +863,74 @@ T_{\text{notional}}=\int_0^T |q(t)|\,\operatorname{mid}(t)\,dt</script><p>它表
 </ul>
 <p>这里有一个很关键的取舍：项目没有把数据下载、pandas 清洗、LightGBM 训练和报告生成全部重写。它们要么不是 CPU 热点，要么迭代频繁、Python 生态更合适。迁移对象集中在“状态长期驻留、每 tick 重复执行、分支语义相对稳定”的部分。这样 C++ 服务的是研究方法，而不是制造一个难以验证的新系统。</p>
 <p>最终的分层大致是：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs text">Python / pandas / LightGBM<br>  - 数据质量、特征工程、模型训练、校准和报告<br><br>C++ extension<br>  - quote core batch<br>  - tick replay state machine<br>  - streaming feature state<br>  - queue / latency / TTL / policy execution<br><br>Python wrapper<br>  - 加载数组和模型产物<br>  - 调用 C++ batch/replay<br>  - 写 trace、label 和 A/B summary<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs text">Python / pandas / LightGBM
+  - 数据质量、特征工程、模型训练、校准和报告
+
+C++ extension
+  - quote core batch
+  - tick replay state machine
+  - streaming feature state
+  - queue / latency / TTL / policy execution
+
+Python wrapper
+  - 加载数组和模型产物
+  - 调用 C++ batch/replay
+  - 写 trace、label 和 A/B summary</code></pre></div>
 <p>C++ 目录由 pybind11 暴露给 Python：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs text">cpp/<br>  CMakeLists.txt<br>  pyproject.toml<br>  narrowgate_cpp/<br>    bindings.cpp<br>    common.hpp<br>    quote_core.hpp / quote_core.cpp<br>    tick_replay.hpp / tick_replay.cpp<br>    streaming_features.hpp / streaming_features.cpp<br><br>tests/<br>  test_cpp_quote_core_parity.py<br>  test_cpp_tick_replay_parity.py<br>  test_cpp_signal_features.py<br><br>bench/<br>  bench_live_path.py<br>  bench_quote_core.py<br>  bench_tick_replay.py<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs text">cpp/
+  CMakeLists.txt
+  pyproject.toml
+  narrowgate_cpp/
+    bindings.cpp
+    common.hpp
+    quote_core.hpp / quote_core.cpp
+    tick_replay.hpp / tick_replay.cpp
+    streaming_features.hpp / streaming_features.cpp
+
+tests/
+  test_cpp_quote_core_parity.py
+  test_cpp_tick_replay_parity.py
+  test_cpp_signal_features.py
+
+bench/
+  bench_live_path.py
+  bench_quote_core.py
+  bench_tick_replay.py</code></pre></div>
 <p><code>bindings.cpp</code> 只处理边界，业务逻辑留在普通 C++ 类型和函数里。这样 quote core 和 replay 可以脱离 Python binding 单独测试，也更容易发现“是策略差异，还是对象转换差异”。</p>
 <p>构建层使用 <code>scikit-build-core + CMake + pybind11</code>。extension 由当前虚拟环境的 CPython ABI 编译成 <code>.so</code>，并不是在运行时解释 C++：</p>
-<figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs toml"><span class="hljs-comment"># cpp/pyproject.toml</span><br><span class="hljs-section">[build-system]</span><br><span class="hljs-attr">requires</span> = [<span class="hljs-string">&quot;scikit-build-core&gt;=0.10&quot;</span>, <span class="hljs-string">&quot;pybind11&gt;=2.12&quot;</span>]<br><span class="hljs-attr">build-backend</span> = <span class="hljs-string">&quot;scikit_build_core.build&quot;</span><br></code></pre></td></tr></table></figure>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-comment"># cpp/CMakeLists.txt</span><br><span class="hljs-keyword">set</span>(CMAKE_CXX_STANDARD <span class="hljs-number">17</span>)<br><span class="hljs-keyword">find_package</span>(Python COMPONENTS Interpreter Development.Module REQUIRED)<br><span class="hljs-keyword">find_package</span>(pybind11 CONFIG REQUIRED)<br><br>pybind11_add_module(narrowgate_cpp<br>    narrowgate_cpp/bindings.cpp<br>    narrowgate_cpp/quote_core.cpp<br>    narrowgate_cpp/tick_replay.cpp<br>    narrowgate_cpp/streaming_features.cpp<br>)<br><span class="hljs-keyword">install</span>(TARGETS narrowgate_cpp LIBRARY DESTINATION .)<br></code></pre></td></tr></table></figure>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash">python3.12 -m venv .venv<br>.venv/bin/pip install -r requirements.txt<br>.venv/bin/pip install -e cpp<br>.venv/bin/python -c \<br>  <span class="hljs-string">&#x27;import narrowgate_cpp; print(narrowgate_cpp.__file__)&#x27;</span><br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs toml"><span class="hljs-comment"># cpp/pyproject.toml</span>
+<span class="hljs-section">[build-system]</span>
+<span class="hljs-attr">requires</span> = [<span class="hljs-string">&quot;scikit-build-core&gt;=0.10&quot;</span>, <span class="hljs-string">&quot;pybind11&gt;=2.12&quot;</span>]
+<span class="hljs-attr">build-backend</span> = <span class="hljs-string">&quot;scikit_build_core.build&quot;</span></code></pre></div>
+<div class="code-wrapper"><pre><code class="hljs cmake"><span class="hljs-comment"># cpp/CMakeLists.txt</span>
+<span class="hljs-keyword">set</span>(CMAKE_CXX_STANDARD <span class="hljs-number">20</span>)
+<span class="hljs-keyword">set</span>(CMAKE_CXX_STANDARD_REQUIRED <span class="hljs-keyword">ON</span>)
+<span class="hljs-keyword">set</span>(CMAKE_CXX_EXTENSIONS <span class="hljs-keyword">OFF</span>)
+<span class="hljs-keyword">find_package</span>(Python COMPONENTS Interpreter Development.Module REQUIRED)
+<span class="hljs-keyword">find_package</span>(pybind11 CONFIG REQUIRED)
+
+pybind11_add_module(narrowgate_cpp
+    narrowgate_cpp/bindings.cpp
+    narrowgate_cpp/quote_core.cpp
+    narrowgate_cpp/tick_replay.cpp
+    narrowgate_cpp/streaming_features.cpp
+)
+<span class="hljs-keyword">install</span>(TARGETS narrowgate_cpp LIBRARY DESTINATION .)</code></pre></div>
+<div class="code-wrapper"><pre><code class="hljs bash">python3.12 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+.venv/bin/pip install -e cpp
+.venv/bin/python -c \
+  <span class="hljs-string">&#x27;import narrowgate_cpp; print(narrowgate_cpp.__file__)&#x27;</span></code></pre></div>
 <p>最后一行很重要。BTCUSDC 和 BTCUSDT 两个仓库都暴露名为 <code>narrowgate_cpp</code> 的模块，共用一个环境时可能导入另一份 build。loader 因此检查模块路径和 editable-install 的 <code>direct_url.json</code> 是否指向当前 repo，也允许用 <code>NARROWGATE_CPP_EXPECT_MODULE_TOKEN</code> 显式约束；<code>NARROWGATE_CPP_STRICT=1</code> 下来源不符会直接失败，不允许悄悄 fallback 到 Python。</p>
+<blockquote>
+<p><strong>本节工程结论</strong></p>
+<ul>
+<li>不把 Python binding 和业务逻辑揉在一起：<code>bindings.cpp</code> 只做边界，quote/replay/signal core 用普通 C++ 类型实现。</li>
+<li>C++ core 必须可以脱离 pybind 单测；否则无法区分策略差异、对象转换差异和 ABI 差异。</li>
+<li><code>NARROWGATE_CPP_STRICT=1</code> 是开发期默认心态：模块来源、字段缺失、shape 错误必须 fail fast。</li>
+<li>同名 extension 在多个 repo 之间很容易碰撞，import path 和 editable install 来源必须进入 sanity check。</li>
+</ul>
+</blockquote>
 <h3 id="3-2-quote-core：真正慢的是“每-tick-全量物化”"><a href="#3-2-quote-core：真正慢的是“每-tick-全量物化”" class="headerlink" title="3.2 quote core：真正慢的是“每 tick 全量物化”"></a>3.2 quote core：真正慢的是“每 tick 全量物化”</h3><p>做市 quote core 包含 microprice、reservation price、volatility/kappa/depth spread、inventory skew、adverse/defense guard，以及最终 bid/ask 到 BBO 的距离。它的浮点计算并不重，早期 scalar C++ 路径却明显更慢：</p>
 <div class="table-container">
 <table>
@@ -714,6 +958,14 @@ T_{\text{notional}}=\int_0^T |q(t)|\,\operatorname{mid}(t)\,dt</script><p>它表
 </tbody>
 </table>
 </div>
+<blockquote>
+<p><strong>这张表怎么读</strong></p>
+<ul>
+<li>说明什么：单独把 quote 公式搬到 C++，在 pybind/dataclass/dict 往返很重时会负优化。</li>
+<li>不能说明什么：不能说明 C++ quote core 算法本身慢，也不能说明所有 native path 都不值得做。</li>
+<li>下一步验证：拆掉每 tick 全量物化后，重新测 compact ABI，并同时跑 quote-field parity。</li>
+</ul>
+</blockquote>
 <p>profile 后发现，时间并没有花在 <code>quote_core.cpp</code> 的公式里，而是花在边界两端：每 tick 都要重新创建并复制约 70 个 config 字段、14 个 state 字段、5 个 prediction 字段和整本 depth levels；C++ 返回以后，Python 又把 native result 展开成两个完整 <code>quote_context</code>、quote flags、diagnostics 和 dataclass。一次报价所需的数学运算很少，对象搬运反而成了主任务。</p>
 <h4 id="3-2-1-解决方法：热路径紧凑，完整对象按需物化"><a href="#3-2-1-解决方法：热路径紧凑，完整对象按需物化" class="headerlink" title="3.2.1 解决方法：热路径紧凑，完整对象按需物化"></a>3.2.1 解决方法：热路径紧凑，完整对象按需物化</h4><p>这次没有继续微调 C++ 公式，而是重新设计边界：</p>
 <ol>
@@ -724,11 +976,78 @@ T_{\text{notional}}=\int_0^T |q(t)|\,\operatorname{mid}(t)\,dt</script><p>它表
 </ol>
 <p>也就是说，完整 context 不是被删除，而是从“每 tick 固定税”变成“功能真正需要时才支付的成本”。</p>
 <h4 id="3-2-2-把配置、状态和诊断分成三种生命周期"><a href="#3-2-2-把配置、状态和诊断分成三种生命周期" class="headerlink" title="3.2.2 把配置、状态和诊断分成三种生命周期"></a>3.2.2 把配置、状态和诊断分成三种生命周期</h4><p>原接口几乎把 Python dataclass 一比一复制成 pybind 对象。改造后，配置只在对象变化时同步；高频 state/pred 使用固定位置 tuple；L2 sequence 由 binding 直接读取。下面是实际 wrapper 的裁剪版：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs python">_CPP_STATE_FIELDS = (<br>    <span class="hljs-string">&quot;mid&quot;</span>, <span class="hljs-string">&quot;inventory&quot;</span>, <span class="hljs-string">&quot;sigma_sq&quot;</span>, <span class="hljs-string">&quot;trade_intensity&quot;</span>,<br>    <span class="hljs-string">&quot;best_bid&quot;</span>, <span class="hljs-string">&quot;best_ask&quot;</span>, <span class="hljs-string">&quot;ber_active&quot;</span>,<br>    <span class="hljs-string">&quot;mo_ema_all&quot;</span>, <span class="hljs-string">&quot;mo_ema_bid&quot;</span>, <span class="hljs-string">&quot;mo_ema_ask&quot;</span>, <span class="hljs-string">&quot;mo_ref&quot;</span>,<br>    <span class="hljs-string">&quot;position_open&quot;</span>, <span class="hljs-string">&quot;hold_time_s&quot;</span>, <span class="hljs-string">&quot;unrealized_pnl&quot;</span>,<br>)<br><br><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">_cached_cpp_config</span>(<span class="hljs-params">cpp, cfg</span>):</span><br>    <span class="hljs-keyword">global</span> _CPP_CFG_CACHE_KEY, _CPP_CFG_CACHE_REF, _CPP_CFG_CACHE_VALUE<br>    cached = _CPP_CFG_CACHE_REF() <span class="hljs-keyword">if</span> _CPP_CFG_CACHE_REF <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span><br>    <span class="hljs-keyword">if</span> _CPP_CFG_CACHE_KEY == <span class="hljs-built_in">id</span>(cfg) <span class="hljs-keyword">and</span> cached <span class="hljs-keyword">is</span> cfg:<br>        <span class="hljs-keyword">return</span> _CPP_CFG_CACHE_VALUE<br>    native = _copy_attrs(cfg, cpp.QuoteCoreConfig(), _CPP_CFG_FIELDS)<br>    _CPP_CFG_CACHE_KEY = <span class="hljs-built_in">id</span>(cfg)<br>    _CPP_CFG_CACHE_REF = weakref.ref(cfg)<br>    _CPP_CFG_CACHE_VALUE = native<br>    <span class="hljs-keyword">return</span> native<br><br>result = cpp.compute_quote_core_live(<br>    <span class="hljs-built_in">tuple</span>(<span class="hljs-built_in">getattr</span>(state, name) <span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> _CPP_STATE_FIELDS),<br>    _cached_cpp_config(cpp, cfg),<br>    (pred_dir, pred_vol, pred_ret, tox_bid, tox_ask),<br>    depth.bids <span class="hljs-keyword">if</span> depth <span class="hljs-keyword">else</span> (),<br>    depth.asks <span class="hljs-keyword">if</span> depth <span class="hljs-keyword">else</span> (),<br>)<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs python">_CPP_STATE_FIELDS = (
+    <span class="hljs-string">&quot;mid&quot;</span>, <span class="hljs-string">&quot;inventory&quot;</span>, <span class="hljs-string">&quot;sigma_sq&quot;</span>, <span class="hljs-string">&quot;trade_intensity&quot;</span>,
+    <span class="hljs-string">&quot;best_bid&quot;</span>, <span class="hljs-string">&quot;best_ask&quot;</span>, <span class="hljs-string">&quot;ber_active&quot;</span>,
+    <span class="hljs-string">&quot;mo_ema_all&quot;</span>, <span class="hljs-string">&quot;mo_ema_bid&quot;</span>, <span class="hljs-string">&quot;mo_ema_ask&quot;</span>, <span class="hljs-string">&quot;mo_ref&quot;</span>,
+    <span class="hljs-string">&quot;position_open&quot;</span>, <span class="hljs-string">&quot;hold_time_s&quot;</span>, <span class="hljs-string">&quot;unrealized_pnl&quot;</span>,
+)
+
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">_cached_cpp_config</span>(<span class="hljs-params">cpp, cfg</span>):</span>
+    <span class="hljs-keyword">global</span> _CPP_CFG_CACHE_KEY, _CPP_CFG_CACHE_REF, _CPP_CFG_CACHE_VALUE
+    cached = _CPP_CFG_CACHE_REF() <span class="hljs-keyword">if</span> _CPP_CFG_CACHE_REF <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>
+    <span class="hljs-keyword">if</span> _CPP_CFG_CACHE_KEY == <span class="hljs-built_in">id</span>(cfg) <span class="hljs-keyword">and</span> cached <span class="hljs-keyword">is</span> cfg:
+        <span class="hljs-keyword">return</span> _CPP_CFG_CACHE_VALUE
+    native = _copy_attrs(cfg, cpp.QuoteCoreConfig(), _CPP_CFG_FIELDS)
+    _CPP_CFG_CACHE_KEY = <span class="hljs-built_in">id</span>(cfg)
+    _CPP_CFG_CACHE_REF = weakref.ref(cfg)
+    _CPP_CFG_CACHE_VALUE = native
+    <span class="hljs-keyword">return</span> native
+
+result = cpp.compute_quote_core_live(
+    <span class="hljs-built_in">tuple</span>(<span class="hljs-built_in">getattr</span>(state, name) <span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> _CPP_STATE_FIELDS),
+    _cached_cpp_config(cpp, cfg),
+    (pred_dir, pred_vol, pred_ret, tox_bid, tox_ask),
+    depth.bids <span class="hljs-keyword">if</span> depth <span class="hljs-keyword">else</span> (),
+    depth.asks <span class="hljs-keyword">if</span> depth <span class="hljs-keyword">else</span> (),
+)</code></pre></div>
 <p>C++ binding 则对 tuple 做长度检查并填充栈上的普通结构体，depth 不再逐档创建 <code>DepthLevel</code> Python wrapper：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs cpp">m.<span class="hljs-built_in">def</span>(<span class="hljs-string">&quot;compute_quote_core_live&quot;</span>,<br>    [](py::sequence state_values,<br>       <span class="hljs-keyword">const</span> QuoteCoreConfig&amp; cfg,<br>       py::sequence pred_values,<br>       py::handle bids,<br>       py::handle asks) &#123;<br>        <span class="hljs-keyword">if</span> (py::<span class="hljs-built_in">len</span>(state_values) != <span class="hljs-number">14</span> || py::<span class="hljs-built_in">len</span>(pred_values) != <span class="hljs-number">5</span>)<br>            <span class="hljs-keyword">throw</span> std::<span class="hljs-built_in">invalid_argument</span>(<span class="hljs-string">&quot;live quote state/pred length mismatch&quot;</span>);<br><br>        QuoteState s;<br>        s.mid             = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(state_values[<span class="hljs-number">0</span>]);<br>        s.inventory       = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(state_values[<span class="hljs-number">1</span>]);<br>        s.sigma_sq        = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(state_values[<span class="hljs-number">2</span>]);<br>        s.trade_intensity = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(state_values[<span class="hljs-number">3</span>]);<br>        s.best_bid        = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(state_values[<span class="hljs-number">4</span>]);<br>        s.best_ask        = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(state_values[<span class="hljs-number">5</span>]);<br>        <span class="hljs-comment">// ...其余状态按固定位置读取</span><br><br>        QuotePrediction p;<br>        p.dir_10s = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(pred_values[<span class="hljs-number">0</span>]);<br>        p.vol_10s = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(pred_values[<span class="hljs-number">1</span>]);<br>        p.ret_10s = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(pred_values[<span class="hljs-number">2</span>]);<br>        p.tox_bid = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(pred_values[<span class="hljs-number">3</span>]);<br>        p.tox_ask = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(pred_values[<span class="hljs-number">4</span>]);<br><br>        <span class="hljs-keyword">return</span> <span class="hljs-built_in">compute_quote_core</span>(<br>            s, cfg, p, <span class="hljs-built_in">depth_from_python_levels</span>(bids, asks));<br>    &#125;);<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cpp">m.<span class="hljs-built_in">def</span>(<span class="hljs-string">&quot;compute_quote_core_live&quot;</span>,
+    [](py::sequence state_values,
+       <span class="hljs-keyword">const</span> QuoteCoreConfig&amp; cfg,
+       py::sequence pred_values,
+       py::handle bids,
+       py::handle asks) &#123;
+        <span class="hljs-keyword">if</span> (py::<span class="hljs-built_in">len</span>(state_values) != <span class="hljs-number">14</span> || py::<span class="hljs-built_in">len</span>(pred_values) != <span class="hljs-number">5</span>)
+            <span class="hljs-keyword">throw</span> std::<span class="hljs-built_in">invalid_argument</span>(<span class="hljs-string">&quot;live quote state/pred length mismatch&quot;</span>);
+
+        QuoteState s;
+        s.mid             = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(state_values[<span class="hljs-number">0</span>]);
+        s.inventory       = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(state_values[<span class="hljs-number">1</span>]);
+        s.sigma_sq        = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(state_values[<span class="hljs-number">2</span>]);
+        s.trade_intensity = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(state_values[<span class="hljs-number">3</span>]);
+        s.best_bid        = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(state_values[<span class="hljs-number">4</span>]);
+        s.best_ask        = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(state_values[<span class="hljs-number">5</span>]);
+        <span class="hljs-comment">// ...其余状态按固定位置读取</span>
+
+        QuotePrediction p;
+        p.dir_10s = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(pred_values[<span class="hljs-number">0</span>]);
+        p.vol_10s = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(pred_values[<span class="hljs-number">1</span>]);
+        p.ret_10s = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(pred_values[<span class="hljs-number">2</span>]);
+        p.tox_bid = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(pred_values[<span class="hljs-number">3</span>]);
+        p.tox_ask = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(pred_values[<span class="hljs-number">4</span>]);
+
+        <span class="hljs-keyword">return</span> <span class="hljs-built_in">compute_quote_core</span>(
+            s, cfg, p, <span class="hljs-built_in">depth_from_python_levels</span>(bids, asks));
+    &#125;);</code></pre></div>
 <h4 id="3-2-3-diagnostics-不是全有或全无"><a href="#3-2-3-diagnostics-不是全有或全无" class="headerlink" title="3.2.3 diagnostics 不是全有或全无"></a>3.2.3 diagnostics 不是全有或全无</h4><p>side policy 每 tick 真正读取的字段远少于离线 quote EV。compact path 只物化 guard、距离、TTL 和少量 cap 诊断：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">compact_side_context</span>(<span class="hljs-params">side, ctx, result</span>):</span><br>    <span class="hljs-keyword">return</span> &#123;<br>        <span class="hljs-string">&quot;near_depth_total&quot;</span>: <span class="hljs-built_in">float</span>(result.near_depth_total),<br>        <span class="hljs-string">&quot;final_quote_delta_to_bbo&quot;</span>: <span class="hljs-built_in">float</span>(ctx.final_quote_delta_to_bbo),<br>        <span class="hljs-string">&quot;side_adverse&quot;</span>: <span class="hljs-built_in">bool</span>(ctx.side_adverse),<br>        <span class="hljs-string">&quot;side_adverse_pause&quot;</span>: <span class="hljs-built_in">bool</span>(ctx.side_adverse_pause),<br>        <span class="hljs-string">&quot;defense_guard&quot;</span>: <span class="hljs-built_in">bool</span>(ctx.defense_guard),<br>        <span class="hljs-string">&quot;defense_pause&quot;</span>: <span class="hljs-built_in">bool</span>(ctx.defense_pause),<br>        <span class="hljs-string">&quot;mid_guard&quot;</span>: <span class="hljs-built_in">bool</span>(ctx.mid_guard),<br>        <span class="hljs-string">&quot;post_only&quot;</span>: <span class="hljs-built_in">bool</span>(ctx.post_only),<br>        <span class="hljs-string">&quot;delta_cap&quot;</span>: <span class="hljs-built_in">bool</span>(result.flags.delta_cap),<br>    &#125;<br><br><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">compute_quote_core_live</span>(<span class="hljs-params">..., require_full_context=<span class="hljs-literal">False</span></span>):</span><br>    <span class="hljs-keyword">if</span> cpp_enabled <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> require_full_context:<br>        <span class="hljs-keyword">return</span> _compute_quote_core_cpp_compact(...)<br>    <span class="hljs-keyword">return</span> compute_quote_core(...)       <span class="hljs-comment"># quote EV 需要完整 feature context</span><br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">compact_side_context</span>(<span class="hljs-params">side, ctx, result</span>):</span>
+    <span class="hljs-keyword">return</span> &#123;
+        <span class="hljs-string">&quot;near_depth_total&quot;</span>: <span class="hljs-built_in">float</span>(result.near_depth_total),
+        <span class="hljs-string">&quot;final_quote_delta_to_bbo&quot;</span>: <span class="hljs-built_in">float</span>(ctx.final_quote_delta_to_bbo),
+        <span class="hljs-string">&quot;side_adverse&quot;</span>: <span class="hljs-built_in">bool</span>(ctx.side_adverse),
+        <span class="hljs-string">&quot;side_adverse_pause&quot;</span>: <span class="hljs-built_in">bool</span>(ctx.side_adverse_pause),
+        <span class="hljs-string">&quot;defense_guard&quot;</span>: <span class="hljs-built_in">bool</span>(ctx.defense_guard),
+        <span class="hljs-string">&quot;defense_pause&quot;</span>: <span class="hljs-built_in">bool</span>(ctx.defense_pause),
+        <span class="hljs-string">&quot;mid_guard&quot;</span>: <span class="hljs-built_in">bool</span>(ctx.mid_guard),
+        <span class="hljs-string">&quot;post_only&quot;</span>: <span class="hljs-built_in">bool</span>(ctx.post_only),
+        <span class="hljs-string">&quot;delta_cap&quot;</span>: <span class="hljs-built_in">bool</span>(result.flags.delta_cap),
+    &#125;
+
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">compute_quote_core_live</span>(<span class="hljs-params">..., require_full_context=<span class="hljs-literal">False</span></span>):</span>
+    <span class="hljs-keyword">if</span> cpp_enabled <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> require_full_context:
+        <span class="hljs-keyword">return</span> _compute_quote_core_cpp_compact(...)
+    <span class="hljs-keyword">return</span> compute_quote_core(...)       <span class="hljs-comment"># quote EV 需要完整 feature context</span></code></pre></div>
 <p>这个方案的关键不是少返回几个字段，而是明确了三种生命周期：几乎不变的 config 被缓存，每 tick 变化的 state 用紧凑序列，只有模型训练、trace 或调试需要的长 diagnostics 才完整物化。可观测性仍在，只是不再无条件出现在最热路径。</p>
 <p>固定环境复测使用 Python 3.12.13、AppleClang Release build、ML 关闭以隔离 quote/feature CPU，<code>--n 10000 --signal-n 1000</code>，每项跑三次取 mean 的中位数：</p>
 <div class="table-container">
@@ -757,6 +1076,14 @@ T_{\text{notional}}=\int_0^T |q(t)|\,\operatorname{mid}(t)\,dt</script><p>它表
 </tbody>
 </table>
 </div>
+<blockquote>
+<p><strong>这张表怎么读</strong></p>
+<ul>
+<li>说明什么：边界收紧后，scalar native path 从负优化翻转为小幅正收益。</li>
+<li>不能说明什么：不能把这组数字套到 quote EV 开启后的完整 context 路径，也不能推出端到端报单延迟改善 16%。</li>
+<li>下一步验证：在目标 x86 live 机型上做 p99/p99.9 soak，并确认 strict 模式没有 fallback。</li>
+</ul>
+</blockquote>
 <p>这不是数量级加速，但它完成了更重要的翻转：scalar native path 终于不再因为 Python 对象往返而负优化。它仍保持显式 opt-in，quote EV 开启后的完整 context 路径也不能套用这组数字。</p>
 <p>离线 quote decomposition、shock audit 和 quote EV label 仍使用 depth-aware batch binding。batch 场景一次传连续数组，跨语言成本被大量样本摊薄，依然比 scalar 更适合 C++。<code>book_imb</code>、<code>near_depth_total</code>、kappa/depth、adverse/defense 等字段继续纳入 parity 审计；性能优化不能把 C++ 悄悄变成另一套策略。</p>
 <h3 id="3-3-tick-replay：先迁完整状态机，再谈加速倍数"><a href="#3-3-tick-replay：先迁完整状态机，再谈加速倍数" class="headerlink" title="3.3 tick replay：先迁完整状态机，再谈加速倍数"></a>3.3 tick replay：先迁完整状态机，再谈加速倍数</h3><p>tick replay 是整个迁移中最适合 C++ 的部分，因为 queue、latency、TTL、inventory 和 fill path 都是顺序相关状态。若只把某个公式做成 scalar binding，Python 仍要在每个 tick 调度所有状态；把完整 replay loop 放进一次 C++ 调用，跨语言边界才只出现于窗口输入和 summary/trace 输出。</p>
@@ -774,19 +1101,110 @@ T_{\text{notional}}=\int_0^T |q(t)|\,\operatorname{mid}(t)\,dt</script><p>它表
 <li>完整 trace 和 summary 字段。</li>
 </ul>
 <h4 id="3-3-1-输入是只读-view，窗口数据不再逐-tick-穿过-Python"><a href="#3-3-1-输入是只读-view，窗口数据不再逐-tick-穿过-Python" class="headerlink" title="3.3.1 输入是只读 view，窗口数据不再逐 tick 穿过 Python"></a>3.3.1 输入是只读 view，窗口数据不再逐 tick 穿过 Python</h4><p>replay 的入口不是 <code>on_trade(dict)</code>，而是一组生命周期覆盖整个调用的连续数组 view。Python 完成 parquet/Arrow 加载和 dtype 归一化后，只跨一次 pybind 边界：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">TickReplayInput</span> &#123;</span><br>    ArrayView&lt;std::<span class="hljs-keyword">int64_t</span>&gt; trade_ts_ms;<br>    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; trade_price;<br>    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; trade_qty;<br>    ArrayView&lt;std::<span class="hljs-keyword">uint8_t</span>&gt; is_buyer_maker;<br><br>    ArrayView&lt;std::<span class="hljs-keyword">int64_t</span>&gt; bbo_ts_ms;<br>    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; bbo_best_bid;<br>    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; bbo_best_ask;<br><br>    ArrayView&lt;std::<span class="hljs-keyword">int64_t</span>&gt; l2_ts_ms;<br>    MatrixView&lt;<span class="hljs-keyword">double</span>&gt; l2_bid_px;<br>    MatrixView&lt;<span class="hljs-keyword">double</span>&gt; l2_bid_qty;<br>    MatrixView&lt;<span class="hljs-keyword">double</span>&gt; l2_ask_px;<br>    MatrixView&lt;<span class="hljs-keyword">double</span>&gt; l2_ask_qty;<br><br>    ArrayView&lt;std::<span class="hljs-keyword">int64_t</span>&gt; quote_ev_ts_ms;<br>    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; bid_quote_ev_30s;<br>    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; ask_quote_ev_30s;<br>&#125;;<br><br><span class="hljs-function">TickReplayResult <span class="hljs-title">simulate_tick_arrays</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> TickReplayInput&amp; input,</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> TickReplayParams&amp; params)</span></span>;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">TickReplayInput</span> &#123;</span>
+    ArrayView&lt;std::<span class="hljs-keyword">int64_t</span>&gt; trade_ts_ms;
+    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; trade_price;
+    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; trade_qty;
+    ArrayView&lt;std::<span class="hljs-keyword">uint8_t</span>&gt; is_buyer_maker;
+
+    ArrayView&lt;std::<span class="hljs-keyword">int64_t</span>&gt; bbo_ts_ms;
+    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; bbo_best_bid;
+    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; bbo_best_ask;
+
+    ArrayView&lt;std::<span class="hljs-keyword">int64_t</span>&gt; l2_ts_ms;
+    MatrixView&lt;<span class="hljs-keyword">double</span>&gt; l2_bid_px;
+    MatrixView&lt;<span class="hljs-keyword">double</span>&gt; l2_bid_qty;
+    MatrixView&lt;<span class="hljs-keyword">double</span>&gt; l2_ask_px;
+    MatrixView&lt;<span class="hljs-keyword">double</span>&gt; l2_ask_qty;
+
+    ArrayView&lt;std::<span class="hljs-keyword">int64_t</span>&gt; quote_ev_ts_ms;
+    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; bid_quote_ev_30s;
+    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; ask_quote_ev_30s;
+&#125;;
+
+<span class="hljs-function">TickReplayResult <span class="hljs-title">simulate_tick_arrays</span><span class="hljs-params">(</span></span>
+<span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> TickReplayInput&amp; input,</span></span>
+<span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> TickReplayParams&amp; params)</span></span>;</code></pre></div>
 <p><code>ArrayView/MatrixView</code> 只保存指针和 shape，不拥有数据。binding 在调用期间持有 NumPy array，C++ 内循环读取连续内存；结果结束后一次性返回 summary 和可选 trace。这样优化的是整个状态机，而不是把每个 tick 的 Python callback 换成一次 pybind callback。</p>
 <h4 id="3-3-2-queue-policy-用模板固定-side-与模式"><a href="#3-3-2-queue-policy-用模板固定-side-与模式" class="headerlink" title="3.3.2 queue policy 用模板固定 side 与模式"></a>3.3.2 queue policy 用模板固定 side 与模式</h4><p>bid/ask 和 exact-level/through-level queue 的分支在循环内非常频繁。这里用模板把 side 和 queue mode 固定到编译期：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span> &lt;Side S, QueueAheadMode Mode&gt;<br><span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">visible_queue_ahead</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; prices,</span></span><br><span class="hljs-params"><span class="hljs-function">    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; quantities,</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">double</span> quote_price,</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">double</span> tolerance)</span> </span>&#123;<br><br>    <span class="hljs-keyword">double</span> visible = <span class="hljs-number">0.0</span>;<br>    <span class="hljs-keyword">for</span> (std::<span class="hljs-keyword">size_t</span> i = <span class="hljs-number">0</span>; i &lt; prices.<span class="hljs-built_in">size</span>(); ++i) &#123;<br>        <span class="hljs-keyword">bool</span> include = <span class="hljs-literal">false</span>;<br>        <span class="hljs-function"><span class="hljs-keyword">if</span> <span class="hljs-title">constexpr</span> <span class="hljs-params">(Mode == QueueAheadMode::ExactLevel)</span> </span>&#123;<br>            include = std::<span class="hljs-built_in">abs</span>(prices.<span class="hljs-built_in">data</span>()[i] - quote_price) &lt;= tolerance;<br>        &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> <span class="hljs-built_in"><span class="hljs-keyword">constexpr</span></span> (is_buy_v&lt;S&gt;) &#123;<br>            include = prices.<span class="hljs-built_in">data</span>()[i] &gt;= quote_price;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            include = prices.<span class="hljs-built_in">data</span>()[i] &lt;= quote_price;<br>        &#125;<br>        <span class="hljs-keyword">if</span> (include) visible += std::<span class="hljs-built_in">max</span>(<span class="hljs-number">0.0</span>, quantities.<span class="hljs-built_in">data</span>()[i]);<br>    &#125;<br>    <span class="hljs-keyword">return</span> visible;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span> &lt;Side S, QueueAheadMode Mode&gt;
+<span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">visible_queue_ahead</span><span class="hljs-params">(</span></span>
+<span class="hljs-params"><span class="hljs-function">    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; prices,</span></span>
+<span class="hljs-params"><span class="hljs-function">    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; quantities,</span></span>
+<span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">double</span> quote_price,</span></span>
+<span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">double</span> tolerance)</span> </span>&#123;
+
+    <span class="hljs-keyword">double</span> visible = <span class="hljs-number">0.0</span>;
+    <span class="hljs-keyword">for</span> (std::<span class="hljs-keyword">size_t</span> i = <span class="hljs-number">0</span>; i &lt; prices.<span class="hljs-built_in">size</span>(); ++i) &#123;
+        <span class="hljs-keyword">bool</span> include = <span class="hljs-literal">false</span>;
+        <span class="hljs-function"><span class="hljs-keyword">if</span> <span class="hljs-title">constexpr</span> <span class="hljs-params">(Mode == QueueAheadMode::ExactLevel)</span> </span>&#123;
+            include = std::<span class="hljs-built_in">abs</span>(prices.<span class="hljs-built_in">data</span>()[i] - quote_price) &lt;= tolerance;
+        &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> <span class="hljs-built_in"><span class="hljs-keyword">constexpr</span></span> (is_buy_v&lt;S&gt;) &#123;
+            include = prices.<span class="hljs-built_in">data</span>()[i] &gt;= quote_price;
+        &#125; <span class="hljs-keyword">else</span> &#123;
+            include = prices.<span class="hljs-built_in">data</span>()[i] &lt;= quote_price;
+        &#125;
+        <span class="hljs-keyword">if</span> (include) visible += std::<span class="hljs-built_in">max</span>(<span class="hljs-number">0.0</span>, quantities.<span class="hljs-built_in">data</span>()[i]);
+    &#125;
+    <span class="hljs-keyword">return</span> visible;
+&#125;</code></pre></div>
 <p>订单本身是一个显式状态机：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">ReplayOrder</span> &#123;</span><br>    Side side;<br>    <span class="hljs-keyword">double</span> price, quantity, remaining;<br>    <span class="hljs-keyword">double</span> queue_left, queue_init;<br>    std::<span class="hljs-keyword">int64_t</span> quote_ts, activate_ts, cancel_effective_ts;<br>    std::<span class="hljs-keyword">int64_t</span> ttl_ms;<br>    OrderState state;<br>    <span class="hljs-keyword">bool</span> side_adverse, defense_guard, local_extreme_guard, quote_ev;<br><br>    <span class="hljs-comment">// 默认不分配；只有打开 trace 时才指向冷诊断对象。</span><br>    TraceOrderPtr trace;<br>&#125;;<br><br>order.activate_ts = ts + sampled_new_latency_ms;<br>order.state = sampled_new_latency_ms &gt; <span class="hljs-number">0</span> ? ORDER_PENDING_NEW : ORDER_OPEN;<br><br><span class="hljs-keyword">if</span> (order.ttl_ms &gt; <span class="hljs-number">0</span> &amp;&amp; ts - order.quote_ts &gt;= order.ttl_ms) &#123;<br>    order.state = ORDER_PENDING_CANCEL;<br>    order.cancel_effective_ts = ts + sampled_cancel_latency_ms;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">ReplayOrder</span> &#123;</span>
+    Side side;
+    <span class="hljs-keyword">double</span> price, quantity, remaining;
+    <span class="hljs-keyword">double</span> queue_left, queue_init;
+    std::<span class="hljs-keyword">int64_t</span> quote_ts, activate_ts, cancel_effective_ts;
+    std::<span class="hljs-keyword">int64_t</span> ttl_ms;
+    OrderState state;
+    <span class="hljs-keyword">bool</span> side_adverse, defense_guard, local_extreme_guard, quote_ev;
+
+    <span class="hljs-comment">// 默认不分配；只有打开 trace 时才指向冷诊断对象。</span>
+    TraceOrderPtr trace;
+&#125;;
+
+order.activate_ts = ts + sampled_new_latency_ms;
+order.state = sampled_new_latency_ms &gt; <span class="hljs-number">0</span> ? ORDER_PENDING_NEW : ORDER_OPEN;
+
+<span class="hljs-keyword">if</span> (order.ttl_ms &gt; <span class="hljs-number">0</span> &amp;&amp; ts - order.quote_ts &gt;= order.ttl_ms) &#123;
+    order.state = ORDER_PENDING_CANCEL;
+    order.cancel_effective_ts = ts + sampled_cancel_latency_ms;
+&#125;</code></pre></div>
 <p><code>PENDING_CANCEL</code> 期间仍允许成交，因此 trace 会单独统计 <code>pending_cancel_fills</code>。这类语义如果只保留“请求撤单后立即删除订单”的简化实现，回测会系统性低估撤单延迟风险。</p>
 <h4 id="3-3-3-fill-先消耗-queue，再改变-inventory"><a href="#3-3-3-fill-先消耗-queue，再改变-inventory" class="headerlink" title="3.3.3 fill 先消耗 queue，再改变 inventory"></a>3.3.3 fill 先消耗 queue，再改变 inventory</h4><p>maker fill 不由价格 touch 直接触发。主动成交必须跨过订单价格，并先消耗 <code>queue_left</code>：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">if</span> (!trade_crosses_order&lt;S&gt;(trade_price, order.price))<br>    <span class="hljs-keyword">continue</span>;<br><br><span class="hljs-keyword">if</span> (order.queue_left &gt; <span class="hljs-number">0.0</span>) &#123;<br>    <span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span> eaten = std::<span class="hljs-built_in">min</span>(order.queue_left, remaining_trade_qty);<br>    order.queue_left -= eaten;<br>    remaining_trade_qty -= eaten;<br>&#125;<br><br><span class="hljs-keyword">double</span> fill_qty = <span class="hljs-built_in">floor_lot</span>(<br>    std::<span class="hljs-built_in">min</span>(order.remaining, remaining_trade_qty), lot_size);<br><span class="hljs-keyword">if</span> (fill_qty &lt; lot_size)<br>    <span class="hljs-keyword">continue</span>;<br><br>cash += side_cash_delta&lt;S&gt;(order.price, fill_qty, maker_fee);<br>inventory += inventory_delta_sign&lt;S&gt;() * fill_qty;<br>order.remaining -= fill_qty;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">if</span> (!trade_crosses_order&lt;S&gt;(trade_price, order.price))
+    <span class="hljs-keyword">continue</span>;
+
+<span class="hljs-keyword">if</span> (order.queue_left &gt; <span class="hljs-number">0.0</span>) &#123;
+    <span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span> eaten = std::<span class="hljs-built_in">min</span>(order.queue_left, remaining_trade_qty);
+    order.queue_left -= eaten;
+    remaining_trade_qty -= eaten;
+&#125;
+
+<span class="hljs-keyword">double</span> fill_qty = <span class="hljs-built_in">floor_lot</span>(
+    std::<span class="hljs-built_in">min</span>(order.remaining, remaining_trade_qty), lot_size);
+<span class="hljs-keyword">if</span> (fill_qty &lt; lot_size)
+    <span class="hljs-keyword">continue</span>;
+
+cash += side_cash_delta&lt;S&gt;(order.price, fill_qty, maker_fee);
+inventory += inventory_delta_sign&lt;S&gt;() * fill_qty;
+order.remaining -= fill_qty;</code></pre></div>
 <p>库存时间风险也在同一事件时钟中积分，不使用“最终仓位乘总时长”的粗略近似：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span> dt_s = (ts[i] - ts[i - <span class="hljs-number">1</span>]) / <span class="hljs-number">1000.0</span>;<br><span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span> mark = trade_price[i - <span class="hljs-number">1</span>];<br><br>summary.signed_inventory_time_s += inventory * dt_s;<br>summary.abs_inventory_time_s += std::<span class="hljs-built_in">abs</span>(inventory) * dt_s;<br>summary.sq_inventory_time_s += inventory * inventory * dt_s;<br>summary.notional_inventory_time_s += std::<span class="hljs-built_in">abs</span>(inventory) * mark * dt_s;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span> dt_s = (ts[i] - ts[i - <span class="hljs-number">1</span>]) / <span class="hljs-number">1000.0</span>;
+<span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span> mark = trade_price[i - <span class="hljs-number">1</span>];
+
+summary.signed_inventory_time_s += inventory * dt_s;
+summary.abs_inventory_time_s += std::<span class="hljs-built_in">abs</span>(inventory) * dt_s;
+summary.sq_inventory_time_s += inventory * inventory * dt_s;
+summary.notional_inventory_time_s += std::<span class="hljs-built_in">abs</span>(inventory) * mark * dt_s;</code></pre></div>
 <p>迁移顺序刻意很慢：每增加一个机制，就在固定真实窗口同时跑 Python 和 C++，比较：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs text">PnL<br>fills / bid-ask split<br>final inventory<br>InvAdj<br>inventory time<br>spread&lt;100 / cap_hit<br>Sharpe<br>trace rows<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs text">PnL
+fills / bid-ask split
+final inventory
+InvAdj
+inventory time
+spread&lt;100 / cap_hit
+Sharpe
+trace rows</code></pre></div>
 <p>golden window 覆盖正常、高波动、低成交/稀疏以及不同月份。只有差异能够被解释，C++ engine 才被允许进入 sweep、cap A/B、quote EV A/B 等批量 runner。默认行为仍保留 Python，显式 <code>--engine cpp</code> 才切换，strict 模式下 extension 不可用会直接报错，避免静默 fallback 让人误以为跑了 C++。</p>
 <p>完整 CLI 的 wall time 还包含 parquet、模型和窗口加载，因此不能拿 C++ 内层循环的 microbenchmark 直接宣称整月回测有同样倍数。对回测来说，<strong>路径一致比一个夸张的加速倍数更重要</strong>。</p>
 <h3 id="3-4-quote-EV-fast-screening：快筛不是最终裁决"><a href="#3-4-quote-EV-fast-screening：快筛不是最终裁决" class="headerlink" title="3.4 quote EV fast screening：快筛不是最终裁决"></a>3.4 quote EV fast screening：快筛不是最终裁决</h3><p>quote EV online inference 会对大量 quote 逐行构造 feature 并调用模型，完整月度 A/B 很慢。为此项目增加了一条研究快筛路径：</p>
@@ -799,21 +1217,107 @@ T_{\text{notional}}=\int_0^T |q(t)|\,\operatorname{mid}(t)\,dt</script><p>它表
 </ol>
 <p>本机接电后的 wall-time 记录是：Jan/Feb/Apr/May arrays 预计算约 <code>57.84s</code>，C++ replay 跑四臂约 <code>7.84s</code>。</p>
 <p>研究链路不是一句“打开 C++”就结束，而是把昂贵步骤和快速步骤拆开。下面是实际命令形态（路径缩短为变量）：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs bash">RESULTS=~/MarketData/NarrowGate_BTCUSDC/backtest_results_btcusdc<br>MODEL=models/saved_btcusdc_quote_ev_xmarket_cpp_context_20260618<br><br><span class="hljs-comment"># 1. baseline context 下只做一次 online inference，写成按时间对齐的 arrays</span><br>.venv/bin/python models/precompute_quote_ev_arrays.py \<br>  --symbol BTCUSDC \<br>  --months 2026-01 2026-02 2026-04 2026-05 \<br>  --model-dir <span class="hljs-string">&quot;<span class="hljs-variable">$MODEL</span>&quot;</span> \<br>  --orders <span class="hljs-string">&quot;<span class="hljs-variable">$RESULTS</span>/cross_market_shock_audit.orders_features.parquet&quot;</span> \<br>  --tag cpp_fast_screen<br><br><span class="hljs-comment"># 2. 四个 policy arm 复用同一份窗口 cache 与 EV arrays</span><br>NARROWGATE_CPP_STRICT=1 .venv/bin/python models/quote_ev_ab_tick.py \<br>  --symbol BTCUSDC \<br>  --months 2026-01 2026-02 2026-04 2026-05 \<br>  --arms baseline bid_ev_soft_widen ask_ev_soft_widen both_ev_soft_widen \<br>  --engine cpp \<br>  --cpp-quote-ev-data <span class="hljs-string">&quot;<span class="hljs-variable">$RESULTS</span>/quote_ev_arrays_cpp_fast_screen_btcusdc.parquet&quot;</span> \<br>  --window-cache-dir /tmp/narrowgate_tick_window_cache \<br>  --workers 1<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs bash">RESULTS=~/MarketData/NarrowGate_BTCUSDC/backtest_results_btcusdc
+MODEL=models/saved_btcusdc_quote_ev_xmarket_cpp_context_20260618
+
+<span class="hljs-comment"># 1. baseline context 下只做一次 online inference，写成按时间对齐的 arrays</span>
+.venv/bin/python models/precompute_quote_ev_arrays.py \
+  --symbol BTCUSDC \
+  --months 2026-01 2026-02 2026-04 2026-05 \
+  --model-dir <span class="hljs-string">&quot;<span class="hljs-variable">$MODEL</span>&quot;</span> \
+  --orders <span class="hljs-string">&quot;<span class="hljs-variable">$RESULTS</span>/cross_market_shock_audit.orders_features.parquet&quot;</span> \
+  --tag cpp_fast_screen
+
+<span class="hljs-comment"># 2. 四个 policy arm 复用同一份窗口 cache 与 EV arrays</span>
+NARROWGATE_CPP_STRICT=1 .venv/bin/python models/quote_ev_ab_tick.py \
+  --symbol BTCUSDC \
+  --months 2026-01 2026-02 2026-04 2026-05 \
+  --arms baseline bid_ev_soft_widen ask_ev_soft_widen both_ev_soft_widen \
+  --engine cpp \
+  --cpp-quote-ev-data <span class="hljs-string">&quot;<span class="hljs-variable">$RESULTS</span>/quote_ev_arrays_cpp_fast_screen_btcusdc.parquet&quot;</span> \
+  --window-cache-dir /tmp/narrowgate_tick_window_cache \
+  --workers 1</code></pre></div>
 <p>数组必须按 <code>quote_ev_ts_ms</code> 与 replay 时钟做 backward/as-of 对齐，并在 C++ 入口验证所有 bid/ask EV 列长度一致。<code>NARROWGATE_CPP_STRICT=1</code> 则保证模块不可用、字段缺失或 shape 错误时直接终止，而不是改走 Python 后仍输出一个看似成功的 A/B 文件。</p>
 <p>这个数字不能被误读成“完整研究只需八秒”。EV score 被冻结在 baseline context；某个 arm 改变报价后，成交路径、库存和后续 context 都会漂移，而预计算数组不会重算。它适合 screening，不适合 promotion。</p>
 <p>同样，C++ loop 变快以后，CLI wall time 可能仍受 parquet、模型和数据加载支配。后续优化重点因此转向 window cache、数组复用和批量 quote decomposition，而不是继续微调一个已经很快的循环。</p>
 <h3 id="3-5-streaming-feature：迁状态，而不是反复搬列表"><a href="#3-5-streaming-feature：迁状态，而不是反复搬列表" class="headerlink" title="3.5 streaming feature：迁状态，而不是反复搬列表"></a>3.5 streaming feature：迁状态，而不是反复搬列表</h3><p>逐笔成交进入系统后，需要更新 1s bar、10s feature、taker tempo、rolling volume、L2 execution 和 cross-market state。</p>
 <p>第一版 <code>SIGNAL_FEATURES=1</code> 恰好犯了 quote scalar 相同的错误：每十秒把最多 320 根 Python <code>Bar1s</code> 和全部 feature history 逐字段复制成 pybind 对象，C++ 算完 overlay 后再返回 dict。旧基准从 Python 约 1.40ms 变成 C++ 约 2.65ms，明显负优化。</p>
 <p>修正后的 <code>SignalFeatureEngine</code> 长期持有最近 320 根 1s bars 和最多 60,480 条 10s history。Python 每完成一根 1s bar 增量推送一次，每十秒只推一条新的 history，再请求一个 feature snapshot：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">on_trade(price, qty, side, ts)<br>  -&gt; update current 1s bar<br>  -&gt; close gap/completed bars<br>  -&gt; update rolling state<br>  -&gt; emit compact feature snapshot<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs text">on_trade(price, qty, side, ts)
+  -&gt; update current 1s bar
+  -&gt; close gap/completed bars
+  -&gt; update rolling state
+  -&gt; emit compact feature snapshot</code></pre></div>
 <p>固定时间窗的基础统计用模板表达。每次 push 只追加新值并从 deque 左侧淘汰过期值，<code>mean/stddev</code> 直接使用累计的一阶、二阶矩，不再扫描整个窗口：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">int</span> WindowSeconds&gt;<br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RollingStats</span> &#123;</span><br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">push</span><span class="hljs-params">(std::<span class="hljs-keyword">int64_t</span> ts_ms, <span class="hljs-keyword">double</span> value)</span> </span>&#123;<br>        values_.<span class="hljs-built_in">push_back</span>(&#123;ts_ms, value&#125;);<br>        sum_ += value;<br>        sum_sq_ += value * value;<br>        <span class="hljs-built_in">expire</span>(ts_ms);<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">expire</span><span class="hljs-params">(std::<span class="hljs-keyword">int64_t</span> now_ms)</span> </span>&#123;<br>        <span class="hljs-keyword">const</span> <span class="hljs-keyword">auto</span> cutoff = now_ms - WindowSeconds * <span class="hljs-number">1000LL</span>;<br>        <span class="hljs-keyword">while</span> (!values_.<span class="hljs-built_in">empty</span>() &amp;&amp; values_.<span class="hljs-built_in">front</span>().first &lt;= cutoff) &#123;<br>            <span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span> old = values_.<span class="hljs-built_in">front</span>().second;<br>            sum_ -= old;<br>            sum_sq_ -= old * old;<br>            values_.<span class="hljs-built_in">pop_front</span>();<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">mean</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> values_.<span class="hljs-built_in">empty</span>() ? <span class="hljs-number">0.0</span> : sum_ / values_.<span class="hljs-built_in">size</span>();<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">variance</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123;<br>        <span class="hljs-keyword">if</span> (values_.<span class="hljs-built_in">size</span>() &lt; <span class="hljs-number">2</span>) <span class="hljs-keyword">return</span> <span class="hljs-number">0.0</span>;<br>        <span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span> mu = <span class="hljs-built_in">mean</span>();<br>        <span class="hljs-keyword">return</span> std::<span class="hljs-built_in">max</span>(<span class="hljs-number">0.0</span>, sum_sq_ / values_.<span class="hljs-built_in">size</span>() - mu * mu);<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    std::deque&lt;std::pair&lt;std::<span class="hljs-keyword">int64_t</span>, <span class="hljs-keyword">double</span>&gt;&gt; values_;<br>    <span class="hljs-keyword">double</span> sum_ = <span class="hljs-number">0.0</span>;<br>    <span class="hljs-keyword">double</span> sum_sq_ = <span class="hljs-number">0.0</span>;<br>&#125;;<br><br>RollingStats&lt;<span class="hljs-number">3</span>&gt;  tick_sign_3s;<br>RollingStats&lt;<span class="hljs-number">10</span>&gt; tick_sign_10s;<br>RollingStats&lt;<span class="hljs-number">60</span>&gt; log_ret_60s;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">int</span> WindowSeconds&gt;
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RollingStats</span> &#123;</span>
+<span class="hljs-keyword">public</span>:
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">push</span><span class="hljs-params">(std::<span class="hljs-keyword">int64_t</span> ts_ms, <span class="hljs-keyword">double</span> value)</span> </span>&#123;
+        values_.<span class="hljs-built_in">push_back</span>(&#123;ts_ms, value&#125;);
+        sum_ += value;
+        sum_sq_ += value * value;
+        <span class="hljs-built_in">expire</span>(ts_ms);
+    &#125;
+
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">expire</span><span class="hljs-params">(std::<span class="hljs-keyword">int64_t</span> now_ms)</span> </span>&#123;
+        <span class="hljs-keyword">const</span> <span class="hljs-keyword">auto</span> cutoff = now_ms - WindowSeconds * <span class="hljs-number">1000LL</span>;
+        <span class="hljs-keyword">while</span> (!values_.<span class="hljs-built_in">empty</span>() &amp;&amp; values_.<span class="hljs-built_in">front</span>().first &lt;= cutoff) &#123;
+            <span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span> old = values_.<span class="hljs-built_in">front</span>().second;
+            sum_ -= old;
+            sum_sq_ -= old * old;
+            values_.<span class="hljs-built_in">pop_front</span>();
+        &#125;
+    &#125;
+
+    <span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">mean</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123;
+        <span class="hljs-keyword">return</span> values_.<span class="hljs-built_in">empty</span>() ? <span class="hljs-number">0.0</span> : sum_ / values_.<span class="hljs-built_in">size</span>();
+    &#125;
+
+    <span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">variance</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123;
+        <span class="hljs-keyword">if</span> (values_.<span class="hljs-built_in">size</span>() &lt; <span class="hljs-number">2</span>) <span class="hljs-keyword">return</span> <span class="hljs-number">0.0</span>;
+        <span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span> mu = <span class="hljs-built_in">mean</span>();
+        <span class="hljs-keyword">return</span> std::<span class="hljs-built_in">max</span>(<span class="hljs-number">0.0</span>, sum_sq_ / values_.<span class="hljs-built_in">size</span>() - mu * mu);
+    &#125;
+
+<span class="hljs-keyword">private</span>:
+    std::deque&lt;std::pair&lt;std::<span class="hljs-keyword">int64_t</span>, <span class="hljs-keyword">double</span>&gt;&gt; values_;
+    <span class="hljs-keyword">double</span> sum_ = <span class="hljs-number">0.0</span>;
+    <span class="hljs-keyword">double</span> sum_sq_ = <span class="hljs-number">0.0</span>;
+&#125;;
+
+RollingStats&lt;<span class="hljs-number">3</span>&gt;  tick_sign_3s;
+RollingStats&lt;<span class="hljs-number">10</span>&gt; tick_sign_10s;
+RollingStats&lt;<span class="hljs-number">60</span>&gt; log_ret_60s;</code></pre></div>
 <p>更高层的 engine 只暴露增量接口：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SignalFeatureEngine</span> &#123;</span><br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-built_in">SignalFeatureEngine</span>(std::<span class="hljs-keyword">size_t</span> max_bars = <span class="hljs-number">320</span>,<br>                        std::<span class="hljs-keyword">size_t</span> max_history = <span class="hljs-number">60480</span>);<br>    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">push_bar</span><span class="hljs-params">(<span class="hljs-keyword">const</span> Bar1s&amp; bar)</span></span>;<br>    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">push_history</span><span class="hljs-params">(<span class="hljs-keyword">const</span> FeatureHistoryRow&amp; row)</span></span>;<br>    [[nodiscard]] <span class="hljs-function">SignalFeatureVector <span class="hljs-title">compute</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">        <span class="hljs-keyword">const</span> Bar1s&amp; bar_10s)</span> <span class="hljs-keyword">const</span></span>;<br><br><span class="hljs-keyword">private</span>:<br>    CircularBuffer&lt;Bar1s&gt; bars_;<br>    CircularBuffer&lt;FeatureHistoryRow&gt; history_;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SignalFeatureEngine</span> &#123;</span>
+<span class="hljs-keyword">public</span>:
+    <span class="hljs-built_in">SignalFeatureEngine</span>(std::<span class="hljs-keyword">size_t</span> max_bars = <span class="hljs-number">320</span>,
+                        std::<span class="hljs-keyword">size_t</span> max_history = <span class="hljs-number">60480</span>);
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">push_bar</span><span class="hljs-params">(<span class="hljs-keyword">const</span> Bar1s&amp; bar)</span></span>;
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">push_history</span><span class="hljs-params">(<span class="hljs-keyword">const</span> FeatureHistoryRow&amp; row)</span></span>;
+    [[nodiscard]] <span class="hljs-function">SignalFeatureVector <span class="hljs-title">compute</span><span class="hljs-params">(</span></span>
+<span class="hljs-params"><span class="hljs-function">        <span class="hljs-keyword">const</span> Bar1s&amp; bar_10s)</span> <span class="hljs-keyword">const</span></span>;
+
+<span class="hljs-keyword">private</span>:
+    CircularBuffer&lt;Bar1s&gt; bars_;
+    CircularBuffer&lt;FeatureHistoryRow&gt; history_;
+&#125;;</code></pre></div>
 <p>这里的返回值也不再是热路径上的 <code>std::map&lt;std::string, double&gt;</code>。80 个稳定字段在 C++ 内部使用 <code>enum class SignalFeatureId</code> 定位，值存进 <code>std::array&lt;double, 80&gt;</code>；只有跨过 pybind 边界返回 Python 时，才按 compile-time 字段表物化一次 dict。这样同时去掉了红黑树节点分配、字符串比较和字段拼写漂移。</p>
 <p>Python 只在 warmup/reconnect 后 seed 一次，正常运行时逐根追加：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">_ensure_cpp_feature_engine</span>(<span class="hljs-params">self</span>):</span><br>    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> self._cpp_feature_engine_seeded:<br>        <span class="hljs-keyword">for</span> bar <span class="hljs-keyword">in</span> <span class="hljs-built_in">list</span>(self._bar_buffer)[-<span class="hljs-number">320</span>:]:<br>            self._cpp_feature_engine.push_bar(self._bar_to_cpp(bar))<br>        <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> self._feat_history:<br>            self._cpp_feature_engine.push_history(self._history_to_cpp(row))<br>        self._cpp_feature_engine_seeded = <span class="hljs-literal">True</span><br>    <span class="hljs-keyword">return</span> self._cpp_feature_engine<br><br><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">_finalize_bar</span>(<span class="hljs-params">self, bar</span>):</span><br>    self._bar_buffer.append(bar)<br>    self._ensure_cpp_feature_engine().push_bar(self._bar_to_cpp(bar))<br><br>overlay = self._ensure_cpp_feature_engine().compute(cpp_bar_10s)<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">_ensure_cpp_feature_engine</span>(<span class="hljs-params">self</span>):</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> self._cpp_feature_engine_seeded:
+        <span class="hljs-keyword">for</span> bar <span class="hljs-keyword">in</span> <span class="hljs-built_in">list</span>(self._bar_buffer)[-<span class="hljs-number">320</span>:]:
+            self._cpp_feature_engine.push_bar(self._bar_to_cpp(bar))
+        <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> self._feat_history:
+            self._cpp_feature_engine.push_history(self._history_to_cpp(row))
+        self._cpp_feature_engine_seeded = <span class="hljs-literal">True</span>
+    <span class="hljs-keyword">return</span> self._cpp_feature_engine
+
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">_finalize_bar</span>(<span class="hljs-params">self, bar</span>):</span>
+    self._bar_buffer.append(bar)
+    self._ensure_cpp_feature_engine().push_bar(self._bar_to_cpp(bar))
+
+overlay = self._ensure_cpp_feature_engine().compute(cpp_bar_10s)</code></pre></div>
 <p>这里故意没有把所有 cross-market book/trade state 一次迁完。当前 C++ overlay 负责稳定、重复的 rolling 数值部分，Python 继续补 execution L2、cross-market、time 和 metrics features。这样的分层可以逐列做 parity；若一口气迁完整 82-feature pipeline，任何时间对齐差异都会很难定位。</p>
 <p>Python 负责事件和研究编排，C++ 负责持续演化的数值状态。这个边界也更接近未来真正值得优化的“计算/决策层”，而不是去重写 WebSocket 和 IO。</p>
 <p>同一组固定环境三轮中位数中，完整“喂入十秒事件并计算 features”的路径从 Python <code>803.20 us</code> 降到 C++ persistent state <code>563.26 us</code>，快约 <strong>29.9%</strong>。单独的 1s ingest 会从 <code>22.42 us</code> 增到约 <code>25.44 us</code>，但十秒整体仍有净收益，因为昂贵的窗口重拷贝被移除了。</p>
@@ -855,6 +1359,14 @@ T_{\text{notional}}=\int_0^T |q(t)|\,\operatorname{mid}(t)\,dt</script><p>它表
 </tbody>
 </table>
 </div>
+<blockquote>
+<p><strong>这张表怎么读</strong></p>
+<ul>
+<li>说明什么：迁移对象应该按“状态是否能常驻、单次调用是否足够大”来选择。</li>
+<li>不能说明什么：不能简单得出“Python 慢、C++ 快”；接口形状比语言标签更关键。</li>
+<li>下一步验证：每个 native 开关都必须同时通过 parity、wall-time 和 strict import/source 检查。</li>
+</ul>
+</blockquote>
 <p>因此现在的判断标准是：</p>
 <ul>
 <li>计算很少、对象很多时，保留 Python；</li>
@@ -865,11 +1377,33 @@ T_{\text{notional}}=\int_0^T |q(t)|\,\operatorname{mid}(t)\,dt</script><p>它表
 <li>每个开关都必须同时通过 parity 和 wall-time，不能只证明“确实执行了 C++”。</li>
 </ul>
 <h4 id="3-6-1-一条-native-path-要过三层测试"><a href="#3-6-1-一条-native-path-要过三层测试" class="headerlink" title="3.6.1 一条 native path 要过三层测试"></a>3.6.1 一条 native path 要过三层测试</h4><p>第一层是小输入的字段 parity，用专门构造的 inventory、depth、adverse/defense 场景逐字段比较；第二层是 synthetic replay，检查成交路径、queue、latency、TTL 和 emergency 分支；第三层才是真实窗口 golden test：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># quote / signal / synthetic replay</span><br>.venv/bin/python -m pytest \<br>  tests/test_cpp_quote_core_parity.py \<br>  tests/test_cpp_signal_features.py \<br>  tests/test_cpp_tick_replay_parity.py -q<br><br><span class="hljs-comment"># 正常、高波动、稀疏和跨月真实窗口</span><br>RUN_NARROWGATE_GOLDEN=1 NARROWGATE_CPP_STRICT=1 \<br>  .venv/bin/python -m pytest \<br>  tests/test_cpp_tick_replay_golden_parity.py -q<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs bash"><span class="hljs-comment"># quote / signal / synthetic replay</span>
+.venv/bin/python -m pytest \
+  tests/test_cpp_quote_core_parity.py \
+  tests/test_cpp_signal_features.py \
+  tests/test_cpp_tick_replay_parity.py -q
+
+<span class="hljs-comment"># 正常、高波动、稀疏和跨月真实窗口</span>
+RUN_NARROWGATE_GOLDEN=1 NARROWGATE_CPP_STRICT=1 \
+  .venv/bin/python -m pytest \
+  tests/test_cpp_tick_replay_golden_parity.py -q</code></pre></div>
 <p>golden test 不要求所有浮点数逐 bit 相同，但必须给每类差异设显式容忍度。尤其不能只比最终 PnL，因为两条不同成交路径可能偶然得到接近的 PnL。当前比较集合至少包括：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs python">SUMMARY_KEYS = (<br>    <span class="hljs-string">&quot;pnl&quot;</span>, <span class="hljs-string">&quot;inventory_adjusted_pnl&quot;</span>, <span class="hljs-string">&quot;inventory_pnl&quot;</span>,<br>    <span class="hljs-string">&quot;fills_total&quot;</span>, <span class="hljs-string">&quot;fills_bid&quot;</span>, <span class="hljs-string">&quot;fills_ask&quot;</span>, <span class="hljs-string">&quot;final_inventory&quot;</span>,<br>    <span class="hljs-string">&quot;avg_markout&quot;</span>, <span class="hljs-string">&quot;markout_count&quot;</span>,<br>    <span class="hljs-string">&quot;abs_inventory_time_s&quot;</span>, <span class="hljs-string">&quot;signed_inventory_time_s&quot;</span>,<br>    <span class="hljs-string">&quot;sq_inventory_time_s&quot;</span>, <span class="hljs-string">&quot;notional_inventory_time_s&quot;</span>,<br>    <span class="hljs-string">&quot;avg_spread&quot;</span>, <span class="hljs-string">&quot;avg_final_spread&quot;</span>, <span class="hljs-string">&quot;n_requotes&quot;</span>,<br>    <span class="hljs-string">&quot;quote_spread_lt_100_rate&quot;</span>, <span class="hljs-string">&quot;cap_hit_rate&quot;</span>,<br>    <span class="hljs-string">&quot;sharpe&quot;</span>, <span class="hljs-string">&quot;max_drawdown&quot;</span>,<br>)<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs python">SUMMARY_KEYS = (
+    <span class="hljs-string">&quot;pnl&quot;</span>, <span class="hljs-string">&quot;inventory_adjusted_pnl&quot;</span>, <span class="hljs-string">&quot;inventory_pnl&quot;</span>,
+    <span class="hljs-string">&quot;fills_total&quot;</span>, <span class="hljs-string">&quot;fills_bid&quot;</span>, <span class="hljs-string">&quot;fills_ask&quot;</span>, <span class="hljs-string">&quot;final_inventory&quot;</span>,
+    <span class="hljs-string">&quot;avg_markout&quot;</span>, <span class="hljs-string">&quot;markout_count&quot;</span>,
+    <span class="hljs-string">&quot;abs_inventory_time_s&quot;</span>, <span class="hljs-string">&quot;signed_inventory_time_s&quot;</span>,
+    <span class="hljs-string">&quot;sq_inventory_time_s&quot;</span>, <span class="hljs-string">&quot;notional_inventory_time_s&quot;</span>,
+    <span class="hljs-string">&quot;avg_spread&quot;</span>, <span class="hljs-string">&quot;avg_final_spread&quot;</span>, <span class="hljs-string">&quot;n_requotes&quot;</span>,
+    <span class="hljs-string">&quot;quote_spread_lt_100_rate&quot;</span>, <span class="hljs-string">&quot;cap_hit_rate&quot;</span>,
+    <span class="hljs-string">&quot;sharpe&quot;</span>, <span class="hljs-string">&quot;max_drawdown&quot;</span>,
+)</code></pre></div>
 <p>开发阶段还必须打开 strict 模式：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash">NARROWGATE_CPP_QUOTE_CORE=1 \<br>NARROWGATE_CPP_SIGNAL_FEATURES=1 \<br>NARROWGATE_CPP_STRICT=1 \<br>.venv/bin/python bench/bench_live_path.py \<br>  --n 10000 --signal-n 1000 --engine cpp --strict-cpp<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs bash">NARROWGATE_CPP_QUOTE_CORE=1 \
+NARROWGATE_CPP_SIGNAL_FEATURES=1 \
+NARROWGATE_CPP_STRICT=1 \
+.venv/bin/python bench/bench_live_path.py \
+  --n 10000 --signal-n 1000 --engine cpp --strict-cpp</code></pre></div>
 <p>如果 C++ import、模块来源检查或某个 native 调用失败，这条命令必须非零退出。否则 benchmark 很可能测到 fallback 后的 Python，却被错误记录为 C++ 性能。</p>
 <h4 id="3-6-2-是否迁移，用“状态驻留-×-调用粒度”决定"><a href="#3-6-2-是否迁移，用“状态驻留-×-调用粒度”决定" class="headerlink" title="3.6.2 是否迁移，用“状态驻留 × 调用粒度”决定"></a>3.6.2 是否迁移，用“状态驻留 × 调用粒度”决定</h4><p>项目现在用下面这套决策矩阵，而不是看到 Python 函数就重写：</p>
 <div class="table-container">
@@ -922,21 +1456,98 @@ T_{\text{notional}}=\int_0^T |q(t)|\,\operatorname{mid}(t)\,dt</script><p>它表
 </tbody>
 </table>
 </div>
+<blockquote>
+<p><strong>这张表怎么读</strong></p>
+<ul>
+<li>说明什么：迁移优先级来自计算形态，不来自文件名或语言偏好。</li>
+<li>不能说明什么：不能说明 WebSocket、REST、日志这些冷路径没有工程价值，只是它们不是当前 CPU 热点。</li>
+<li>下一步验证：对候选迁移点先做 flame/profile，再设计最小 native API，而不是照搬 Python 对象模型。</li>
+</ul>
+</blockquote>
 <p>这张表也解释了为什么 WebSocket 层没有成为 C++ 迁移重点。网络等待、JSON 解码和 Python callback 不是当前最大的可控 CPU 成本；真正值得迁的是 WebSocket 上方的 rolling state、quote/policy bundle 和订单状态机。把 IO 也改写，只会扩大维护面，却不一定缩短决策尾延迟。</p>
 <p>当前相关 quote、signal、tick replay 快速测试共 <code>20 passed</code>；显式开启的四个真实窗口 golden tests 也全部通过。这些 benchmark 是同机 synthetic CPU isolation，关闭 ML 以分离 feature/quote 成本；它们不代表网络延迟、模型推理或完整事件引擎的端到端耗时，也不能直接决定 live 默认配置。</p>
 <h4 id="3-6-3-C-20-现代化：改的是数据运动，不只是标准号"><a href="#3-6-3-C-20-现代化：改的是数据运动，不只是标准号" class="headerlink" title="3.6.3 C++20 现代化：改的是数据运动，不只是标准号"></a>3.6.3 C++20 现代化：改的是数据运动，不只是标准号</h4><p>完成 Python/C++ parity 后，构建标准从 C++17 升到了 C++20：</p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-keyword">set</span>(CMAKE_CXX_STANDARD <span class="hljs-number">20</span>)<br><span class="hljs-keyword">set</span>(CMAKE_CXX_STANDARD_REQUIRED <span class="hljs-keyword">ON</span>)<br><span class="hljs-keyword">set</span>(CMAKE_CXX_EXTENSIONS <span class="hljs-keyword">OFF</span>)<br><span class="hljs-keyword">target_compile_features</span>(narrowgate_cpp PRIVATE cxx_std_20)<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cmake"><span class="hljs-keyword">set</span>(CMAKE_CXX_STANDARD <span class="hljs-number">20</span>)
+<span class="hljs-keyword">set</span>(CMAKE_CXX_STANDARD_REQUIRED <span class="hljs-keyword">ON</span>)
+<span class="hljs-keyword">set</span>(CMAKE_CXX_EXTENSIONS <span class="hljs-keyword">OFF</span>)
+<span class="hljs-keyword">target_compile_features</span>(narrowgate_cpp PRIVATE cxx_std_20)</code></pre></div>
 <p>选择 C++20 并不是为了把所有新语法都塞进交易路径，而是优先使用几项收益明确、行为容易验证的能力。</p>
 <p>第一项是用 <code>concept</code> 和 <code>std::span</code> 表达“不拥有、连续、只读的数值数组”。quote core、tick replay 和 streaming feature 不再各自传裸指针与长度：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> T&gt;<br><span class="hljs-keyword">concept</span> Arithmetic = std::is_arithmetic_v&lt;T&gt;;<br><br><span class="hljs-keyword">template</span> &lt;Arithmetic T&gt;<br><span class="hljs-keyword">using</span> ArrayView = std::span&lt;<span class="hljs-keyword">const</span> T&gt;;<br><br><span class="hljs-keyword">template</span> &lt;Arithmetic T&gt;<br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">MatrixView</span> &#123;</span><br>    ArrayView&lt;T&gt; values;<br>    std::<span class="hljs-keyword">size_t</span> rows&#123;&#125;;<br>    std::<span class="hljs-keyword">size_t</span> cols&#123;&#125;;<br><br>    [[nodiscard]] <span class="hljs-function">T <span class="hljs-title">at</span><span class="hljs-params">(std::<span class="hljs-keyword">size_t</span> row,</span></span><br><span class="hljs-params"><span class="hljs-function">                       std::<span class="hljs-keyword">size_t</span> col)</span> <span class="hljs-keyword">const</span> <span class="hljs-keyword">noexcept</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> values[row * cols + col];<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> T&gt;
+<span class="hljs-keyword">concept</span> Arithmetic = std::is_arithmetic_v&lt;T&gt;;
+
+<span class="hljs-keyword">template</span> &lt;Arithmetic T&gt;
+<span class="hljs-keyword">using</span> ArrayView = std::span&lt;<span class="hljs-keyword">const</span> T&gt;;
+
+<span class="hljs-keyword">template</span> &lt;Arithmetic T&gt;
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">MatrixView</span> &#123;</span>
+    ArrayView&lt;T&gt; values;
+    std::<span class="hljs-keyword">size_t</span> rows&#123;&#125;;
+    std::<span class="hljs-keyword">size_t</span> cols&#123;&#125;;
+
+    [[nodiscard]] <span class="hljs-function">T <span class="hljs-title">at</span><span class="hljs-params">(std::<span class="hljs-keyword">size_t</span> row,</span></span>
+<span class="hljs-params"><span class="hljs-function">                       std::<span class="hljs-keyword">size_t</span> col)</span> <span class="hljs-keyword">const</span> <span class="hljs-keyword">noexcept</span> </span>&#123;
+        <span class="hljs-keyword">return</span> values[row * cols + col];
+    &#125;
+&#125;;</code></pre></div>
 <p>这不会自动让循环变快，但它把 shape、ownership 和 constness 写进类型，减少 Python buffer 绑定和 replay 数组新增字段时的错误面。<code>[[nodiscard]]</code> 则放在 quote result、feature snapshot 和 replay result 上，避免调用方无意丢弃策略结果。</p>
 <p>第二项是固定容量 ring buffer。旧的 60,480 行 history 使用 <code>vector.erase(begin())</code> 淘汰头部，每次满载 push 都会搬动后续元素；现在只覆盖 head：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> T&gt;<br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CircularBuffer</span> &#123;</span><br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-keyword">explicit</span> <span class="hljs-title">CircularBuffer</span><span class="hljs-params">(std::<span class="hljs-keyword">size_t</span> capacity)</span></span><br><span class="hljs-function">        : storage_(capacity) &#123;</span>&#125;<br><br>    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">push</span><span class="hljs-params">(<span class="hljs-keyword">const</span> T&amp; value)</span> </span>&#123;<br>        <span class="hljs-keyword">if</span> (size_ &lt; storage_.<span class="hljs-built_in">size</span>()) &#123;<br>            storage_[(head_ + size_) % storage_.<span class="hljs-built_in">size</span>()] = value;<br>            ++size_;<br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br>        storage_[head_] = value;<br>        head_ = (head_ + <span class="hljs-number">1</span>) % storage_.<span class="hljs-built_in">size</span>();<br>    &#125;<br><br>    [[nodiscard]] <span class="hljs-keyword">const</span> T&amp; <span class="hljs-keyword">operator</span>[](std::<span class="hljs-keyword">size_t</span> i) <span class="hljs-keyword">const</span> &#123;<br>        <span class="hljs-keyword">return</span> storage_[(head_ + i) % storage_.<span class="hljs-built_in">size</span>()];<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    std::vector&lt;T&gt; storage_;<br>    std::<span class="hljs-keyword">size_t</span> head_&#123;&#125;;<br>    std::<span class="hljs-keyword">size_t</span> size_&#123;&#125;;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> T&gt;
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CircularBuffer</span> &#123;</span>
+<span class="hljs-keyword">public</span>:
+    <span class="hljs-function"><span class="hljs-keyword">explicit</span> <span class="hljs-title">CircularBuffer</span><span class="hljs-params">(std::<span class="hljs-keyword">size_t</span> capacity)</span></span>
+<span class="hljs-function">        : storage_(capacity) &#123;</span>&#125;
+
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">push</span><span class="hljs-params">(<span class="hljs-keyword">const</span> T&amp; value)</span> </span>&#123;
+        <span class="hljs-keyword">if</span> (size_ &lt; storage_.<span class="hljs-built_in">size</span>()) &#123;
+            storage_[(head_ + size_) % storage_.<span class="hljs-built_in">size</span>()] = value;
+            ++size_;
+            <span class="hljs-keyword">return</span>;
+        &#125;
+        storage_[head_] = value;
+        head_ = (head_ + <span class="hljs-number">1</span>) % storage_.<span class="hljs-built_in">size</span>();
+    &#125;
+
+    [[nodiscard]] <span class="hljs-keyword">const</span> T&amp; <span class="hljs-keyword">operator</span>[](std::<span class="hljs-keyword">size_t</span> i) <span class="hljs-keyword">const</span> &#123;
+        <span class="hljs-keyword">return</span> storage_[(head_ + i) % storage_.<span class="hljs-built_in">size</span>()];
+    &#125;
+
+<span class="hljs-keyword">private</span>:
+    std::vector&lt;T&gt; storage_;
+    std::<span class="hljs-keyword">size_t</span> head_&#123;&#125;;
+    std::<span class="hljs-keyword">size_t</span> size_&#123;&#125;;
+&#125;;</code></pre></div>
 <p>对应的 80 维 feature 输出改成稳定布局；字段名只在边界出现：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-keyword">class</span> <span class="hljs-title">SignalFeatureId</span> :</span> std::<span class="hljs-keyword">size_t</span> &#123;<br>    AggressionImbalance10s,<br>    BookImbalance,<br>    <span class="hljs-comment">// ... 其余稳定字段</span><br>    Count<br>&#125;;<br><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">SignalFeatureVector</span> &#123;</span><br>    std::array&lt;<span class="hljs-keyword">double</span>,<br>        <span class="hljs-keyword">static_cast</span>&lt;std::<span class="hljs-keyword">size_t</span>&gt;(SignalFeatureId::Count)&gt; values&#123;&#125;;<br><br>    <span class="hljs-keyword">double</span>&amp; <span class="hljs-keyword">operator</span>[](SignalFeatureId id) <span class="hljs-keyword">noexcept</span> &#123;<br>        <span class="hljs-keyword">return</span> values[<span class="hljs-keyword">static_cast</span>&lt;std::<span class="hljs-keyword">size_t</span>&gt;(id)];<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-keyword">class</span> <span class="hljs-title">SignalFeatureId</span> :</span> std::<span class="hljs-keyword">size_t</span> &#123;
+    AggressionImbalance10s,
+    BookImbalance,
+    <span class="hljs-comment">// ... 其余稳定字段</span>
+    Count
+&#125;;
+
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">SignalFeatureVector</span> &#123;</span>
+    std::array&lt;<span class="hljs-keyword">double</span>,
+        <span class="hljs-keyword">static_cast</span>&lt;std::<span class="hljs-keyword">size_t</span>&gt;(SignalFeatureId::Count)&gt; values&#123;&#125;;
+
+    <span class="hljs-keyword">double</span>&amp; <span class="hljs-keyword">operator</span>[](SignalFeatureId id) <span class="hljs-keyword">noexcept</span> &#123;
+        <span class="hljs-keyword">return</span> values[<span class="hljs-keyword">static_cast</span>&lt;std::<span class="hljs-keyword">size_t</span>&gt;(id)];
+    &#125;
+&#125;;</code></pre></div>
 <p>名称诊断使用 <code>std::ranges::lower_bound</code>，失败路径附带 <code>std::source_location</code>；窗口常量使用 <code>std::to_array</code>。这些都在冷路径或编译期工作，不给每 tick 增加新分配。</p>
 <p>第三项是让 replay 的状态和 trace 从字符串变成强类型枚举，并用 <code>std::pmr::monotonic_buffer_resource</code> 承担单次 replay 内部短生命周期容器：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-keyword">class</span> <span class="hljs-title">OrderState</span> :</span> std::<span class="hljs-keyword">uint8_t</span> &#123;<br>    PendingNew, Active, PendingCancel, Filled, Cancelled<br>&#125;;<br><br><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-keyword">class</span> <span class="hljs-title">TraceOutcome</span> :</span> std::<span class="hljs-keyword">uint8_t</span> &#123;<br>    None, Filled, Cancelled, Expired, Rejected<br>&#125;;<br><br>std::array&lt;std::byte, 64 * 1024&gt; replay_scratch&#123;&#125;;<br>std::<span class="hljs-function">pmr::monotonic_buffer_resource <span class="hljs-title">arena</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">    replay_scratch.data(), replay_scratch.size())</span></span>;<br>std::pmr::vector&lt;ReplayOrder&gt; bid_orders&#123;&amp;arena&#125;;<br>std::pmr::vector&lt;ReplayOrder&gt; ask_orders&#123;&amp;arena&#125;;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-keyword">class</span> <span class="hljs-title">OrderState</span> :</span> std::<span class="hljs-keyword">uint8_t</span> &#123;
+    PendingNew, Active, PendingCancel, Filled, Cancelled
+&#125;;
+
+<span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-keyword">class</span> <span class="hljs-title">TraceOutcome</span> :</span> std::<span class="hljs-keyword">uint8_t</span> &#123;
+    None, Filled, Cancelled, Expired, Rejected
+&#125;;
+
+std::array&lt;std::byte, 64 * 1024&gt; replay_scratch&#123;&#125;;
+std::<span class="hljs-function">pmr::monotonic_buffer_resource <span class="hljs-title">arena</span><span class="hljs-params">(</span></span>
+<span class="hljs-params"><span class="hljs-function">    replay_scratch.data(), replay_scratch.size())</span></span>;
+std::pmr::vector&lt;ReplayOrder&gt; bid_orders&#123;&amp;arena&#125;;
+std::pmr::vector&lt;ReplayOrder&gt; ask_orders&#123;&amp;arena&#125;;</code></pre></div>
 <p>pybind property 仍返回旧的字符串值，所以 Python trace schema、parquet 报告和 A/B 脚本无需改变。PMR 只管理函数内部的临时订单和 pending markout；需要返回 Python 的结果继续使用普通 owning container，避免把 arena 生命周期泄漏到边界外。</p>
 <p>本次现代化后的同机结果如下：</p>
 <div class="table-container">
@@ -977,28 +1588,77 @@ T_{\text{notional}}=\int_0^T |q(t)|\,\operatorname{mid}(t)\,dt</script><p>它表
 </tbody>
 </table>
 </div>
+<blockquote>
+<p><strong>这张表怎么读</strong></p>
+<ul>
+<li>说明什么：C++20 现代化主要减少数据搬移和生命周期错误，短路径不一定会显著变快。</li>
+<li>不能说明什么：<code>0.0026 us</code> 不是 live 总延迟，也不是策略收益，只是一个容器操作微基准。</li>
+<li>下一步验证：继续看真实窗口 golden parity、长 history p99，以及目标 Linux CPU 上的 PMU 或 wall-time soak。</li>
+</ul>
+</blockquote>
 <p>第三行尤其不能直接解读成 live 总延迟快了三万倍：它只隔离测量“满载后保留尾部”的容器操作。真实路径还包含 Python event、pybind、模型和路由。它说明的是旧容器在长时间运行后存在确定的线性成本，而不是给系统吞吐量制造一个夸张数字。</p>
 <p>验证也按风险分层完成：第一轮快速 quote/signal/replay 测试为 <code>18 passed, 4 skipped</code>；另行显式运行 May 正常、高波动、Feb 稀疏和 Jan 窗口的 golden parity 为 <code>4 passed</code>。此外三个 C++ 核心翻译单元用 <code>-std=c++20 -Wall -Wextra -Wpedantic</code> 编译为零 warning。由于短路径收益接近噪声，本次只更新 native 基础设施和研究路径，没有修改 live 配置。</p>
 <h4 id="3-6-4-第二轮：消除-depth-分配，拆开热状态与诊断状态"><a href="#3-6-4-第二轮：消除-depth-分配，拆开热状态与诊断状态" class="headerlink" title="3.6.4 第二轮：消除 depth 分配，拆开热状态与诊断状态"></a>3.6.4 第二轮：消除 depth 分配，拆开热状态与诊断状态</h4><p>第一轮解决了 Python/C++ 边界和长 history 头删，但 profile 里还有三类成本：每次 requote 临时构造 L2 vectors、热订单携带完整 trace、长周期 vol-regime 每次重新扫历史。第二轮没有改策略公式，而是继续压缩数据运动。</p>
 <h4 id="L2-使用-view，不再逐行复制"><a href="#L2-使用-view，不再逐行复制" class="headerlink" title="L2 使用 view，不再逐行复制"></a>L2 使用 view，不再逐行复制</h4><p>原始 L2 输入是四个 SoA 矩阵：bid price/qty、ask price/qty。把它们先拼成 <code>vector&lt;DepthLevel&gt;</code>，既分配又把 SoA 重新交错。现在 quote core 直接消费两个 span pair：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">DepthSideView</span> &#123;</span><br>    std::span&lt;<span class="hljs-keyword">const</span> DepthLevel&gt; levels; <span class="hljs-comment">// owned API 可用</span><br>    std::span&lt;<span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span>&gt; prices;     <span class="hljs-comment">// matrix row 可用</span><br>    std::span&lt;<span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span>&gt; quantities;<br><br>    [[nodiscard]] <span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">price</span><span class="hljs-params">(std::<span class="hljs-keyword">size_t</span> i)</span> <span class="hljs-keyword">const</span> <span class="hljs-keyword">noexcept</span></span>;<br>    [[nodiscard]] <span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">quantity</span><span class="hljs-params">(std::<span class="hljs-keyword">size_t</span> i)</span> <span class="hljs-keyword">const</span> <span class="hljs-keyword">noexcept</span></span>;<br>&#125;;<br><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">DepthView</span> &#123;</span><br>    DepthSideView bids;<br>    DepthSideView asks;<br>&#125;;<br><br><span class="hljs-keyword">const</span> DepthView depth&#123;<br>    DepthSideView&#123;&#123;&#125;, bid_px.<span class="hljs-built_in">row</span>(i), bid_qty.<span class="hljs-built_in">row</span>(i)&#125;,<br>    DepthSideView&#123;&#123;&#125;, ask_px.<span class="hljs-built_in">row</span>(i), ask_qty.<span class="hljs-built_in">row</span>(i)&#125;,<br>&#125;;<br><span class="hljs-keyword">const</span> <span class="hljs-keyword">auto</span> quote = <span class="hljs-built_in">compute_quote_core</span>(state, cfg, pred, depth);<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">DepthSideView</span> &#123;</span>
+    std::span&lt;<span class="hljs-keyword">const</span> DepthLevel&gt; levels; <span class="hljs-comment">// owned API 可用</span>
+    std::span&lt;<span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span>&gt; prices;     <span class="hljs-comment">// matrix row 可用</span>
+    std::span&lt;<span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span>&gt; quantities;
+
+    [[nodiscard]] <span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">price</span><span class="hljs-params">(std::<span class="hljs-keyword">size_t</span> i)</span> <span class="hljs-keyword">const</span> <span class="hljs-keyword">noexcept</span></span>;
+    [[nodiscard]] <span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">quantity</span><span class="hljs-params">(std::<span class="hljs-keyword">size_t</span> i)</span> <span class="hljs-keyword">const</span> <span class="hljs-keyword">noexcept</span></span>;
+&#125;;
+
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">DepthView</span> &#123;</span>
+    DepthSideView bids;
+    DepthSideView asks;
+&#125;;
+
+<span class="hljs-keyword">const</span> DepthView depth&#123;
+    DepthSideView&#123;&#123;&#125;, bid_px.<span class="hljs-built_in">row</span>(i), bid_qty.<span class="hljs-built_in">row</span>(i)&#125;,
+    DepthSideView&#123;&#123;&#125;, ask_px.<span class="hljs-built_in">row</span>(i), ask_qty.<span class="hljs-built_in">row</span>(i)&#125;,
+&#125;;
+<span class="hljs-keyword">const</span> <span class="hljs-keyword">auto</span> quote = <span class="hljs-built_in">compute_quote_core</span>(state, cfg, pred, depth);</code></pre></div>
 <p>公开 pybind API 仍保留 owning <code>DepthSnapshot</code>，它只需提供 <code>.view()</code>。replay 和 batch 则直接 view NumPy buffer 的矩阵行，不再为每个 tick/row 分配两个 vector。</p>
 <p>BBO/L2 的 current-time snapshot 也从每次 binary search 改成 loop-owned cursor：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs cpp">bbo_idx = <span class="hljs-built_in">advance_index</span>(input.bbo_ts_ms, bbo_idx, ts);<br>l2_idx = <span class="hljs-built_in">advance_index</span>(input.l2_ts_ms, l2_idx, ts);<br><span class="hljs-keyword">const</span> <span class="hljs-keyword">auto</span> book = <span class="hljs-built_in">book_snapshot_at</span>(input, ts, bbo_idx, l2_idx, ...);<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cpp">bbo_idx = <span class="hljs-built_in">advance_index</span>(input.bbo_ts_ms, bbo_idx, ts);
+l2_idx = <span class="hljs-built_in">advance_index</span>(input.l2_ts_ms, l2_idx, ts);
+<span class="hljs-keyword">const</span> <span class="hljs-keyword">auto</span> book = <span class="hljs-built_in">book_snapshot_at</span>(input, ts, bbo_idx, l2_idx, ...);</code></pre></div>
 <p>这里有一个不能“顺手优化”的边界：queue ahead 使用未来 <code>activate_ts</code>，而 latency jitter 会让相邻订单的 activation timestamp 不保证单调。它不能共享 current-time cursor，因此仍保留二分。错误共享 cursor 会把未来盘口泄漏给当前 quote，速度快了，回测却坏了。</p>
 <h4 id="ReplayOrder-只保存会参与成交循环的字段"><a href="#ReplayOrder-只保存会参与成交循环的字段" class="headerlink" title="ReplayOrder 只保存会参与成交循环的字段"></a>ReplayOrder 只保存会参与成交循环的字段</h4><p>旧 <code>ReplayOrder</code> 同时持有完整 <code>SideQuoteContext</code> 和 <code>TraceOrderRow</code>。即使 trace 关闭，<code>transition_orders()</code>、<code>best_live_order()</code>、<code>process_side_fill()</code> 扫描的每个订单也背着一大块冷数据。现在热结构只保留成交状态：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">ReplayOrder</span> &#123;</span><br>    Side side;<br>    <span class="hljs-keyword">double</span> price, remaining, queue_left, queue_init;<br>    std::<span class="hljs-keyword">int64_t</span> quote_ts, activate_ts, cancel_effective_ts, ttl_ms;<br>    OrderState state;<br>    <span class="hljs-keyword">bool</span> side_adverse, defense_guard, local_extreme_guard, quote_ev;<br>    TraceOrderRow* trace = <span class="hljs-literal">nullptr</span>;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">ReplayOrder</span> &#123;</span>
+    Side side;
+    <span class="hljs-keyword">double</span> price, remaining, queue_left, queue_init;
+    std::<span class="hljs-keyword">int64_t</span> quote_ts, activate_ts, cancel_effective_ts, ttl_ms;
+    OrderState state;
+    <span class="hljs-keyword">bool</span> side_adverse, defense_guard, local_extreme_guard, quote_ev;
+    TraceOrderRow* trace = <span class="hljs-literal">nullptr</span>;
+&#125;;</code></pre></div>
 <p>只有 <code>trace_quotes_max</code> 或 <code>trace_fills_max</code> 大于零时，才从 arena-backed <code>unsynchronized_pool_resource</code> 分配 cold row。hot order 用带 PMR deleter 的 RAII pointer；订单退出后 slot 回到 pool，不会像纯 monotonic allocation 一样随长窗口持续累积。输出 trace 仍复制到 owning result vector，pool pointer 不跨函数生命周期。</p>
 <p>fill trace 的时间窗也改成 <code>lower_bound/upper_bound</code> 定位，不再从第零条成交开始扫；1s/5s/30s markout 同样用 <code>lower_bound</code> 找 horizon。trace 默认关闭，这项优化主要服务大规模 quote decomposition。</p>
 <h4 id="summary-only-不是简单丢掉曲线"><a href="#summary-only-不是简单丢掉曲线" class="headerlink" title="summary-only 不是简单丢掉曲线"></a>summary-only 不是简单丢掉曲线</h4><p>PnL curves 原先还承担 Python 侧 Sharpe 和 max drawdown，所以不能直接禁用。C++ replay 现在每次 requote 在线维护 peak、drawdown、PnL delta、时间增量以及标准化 delta 的一、二阶矩：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span> normalized = pnl_delta / std::<span class="hljs-built_in">sqrt</span>(dt_s);<br>pnl_delta_sum += pnl_delta;<br>pnl_dt_sum += dt_s;<br>normalized_sum += normalized;<br>normalized_sq_sum += normalized * normalized;<br>peak_pnl = std::<span class="hljs-built_in">max</span>(peak_pnl, current_pnl);<br>max_drawdown = std::<span class="hljs-built_in">max</span>(max_drawdown, peak_pnl - current_pnl);<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span> normalized = pnl_delta / std::<span class="hljs-built_in">sqrt</span>(dt_s);
+pnl_delta_sum += pnl_delta;
+pnl_dt_sum += dt_s;
+normalized_sum += normalized;
+normalized_sq_sum += normalized * normalized;
+peak_pnl = std::<span class="hljs-built_in">max</span>(peak_pnl, current_pnl);
+max_drawdown = std::<span class="hljs-built_in">max</span>(max_drawdown, peak_pnl - current_pnl);</code></pre></div>
 <p>单次 API 的 <code>collect_curves=true</code> 保持兼容；C++ sweep、cap A/B、统一 <code>tick_ab.py</code> 和 quote-EV A/B 自动使用 summary-only。2M trades、200k requotes 的 synthetic replay 中，CPU 只从 42.18ms 降到 41.77ms，约 1%；真正收益是三条 200k vector 变成零行，也无需再转成 NumPy。</p>
 <h4 id="长周期-moments-增量化，但保持数值稳定"><a href="#长周期-moments-增量化，但保持数值稳定" class="headerlink" title="长周期 moments 增量化，但保持数值稳定"></a>长周期 moments 增量化，但保持数值稳定</h4><p>长 history 的主要扫描来自 2,160/8,640 条 <code>return_abs</code> 均值和最多 60,480 条 <code>vol_regime_6h</code> z-score。它们现在由 fixed-count rolling moments 在 <code>push_history()</code> 时更新。</p>
 <p>简单维护 <code>sum_sq - sum²/n</code> 在低方差序列上会严重消差；长历史 parity test 正好抓到了这个问题。因此实现使用支持删除最旧值的 Welford <code>mean/M2</code> 更新，而不是放宽测试：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">remove_value</span><span class="hljs-params">(<span class="hljs-keyword">double</span> x, std::<span class="hljs-keyword">size_t</span> n,</span></span><br><span class="hljs-params"><span class="hljs-function">                         <span class="hljs-keyword">double</span>&amp; mean, <span class="hljs-keyword">double</span>&amp; m2)</span> <span class="hljs-keyword">noexcept</span> </span>&#123;<br>    <span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span> next_mean = (n * mean - x) / (n - <span class="hljs-number">1</span>);<br>    m2 = std::<span class="hljs-built_in">max</span>(<span class="hljs-number">0.0</span>, m2 - (x - mean) * (x - next_mean));<br>    mean = next_mean;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">remove_value</span><span class="hljs-params">(<span class="hljs-keyword">double</span> x, std::<span class="hljs-keyword">size_t</span> n,</span></span>
+<span class="hljs-params"><span class="hljs-function">                         <span class="hljs-keyword">double</span>&amp; mean, <span class="hljs-keyword">double</span>&amp; m2)</span> <span class="hljs-keyword">noexcept</span> </span>&#123;
+    <span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span> next_mean = (n * mean - x) / (n - <span class="hljs-number">1</span>);
+    m2 = std::<span class="hljs-built_in">max</span>(<span class="hljs-number">0.0</span>, m2 - (x - mean) * (x - next_mean));
+    mean = next_mean;
+&#125;</code></pre></div>
 <p><code>SignalFeatureEngine.compute_values()</code> 返回固定顺序的 NumPy array；<code>SIGNAL_FEATURE_NAMES</code> 只在模块初始化时创建一次。旧 dict API 仍兼容。满 60,480 history 时，fixed-array snapshot 从第一轮约 111.23us 降到 1.90us，兼容 dict 为 4.42us。短历史 live 整体仍受 Python feature merge/model 路径影响，没有据此切换 live 默认配置。</p>
 <h4 id="只给逐行独立-batch-加线程"><a href="#只给逐行独立-batch-加线程" class="headerlink" title="只给逐行独立 batch 加线程"></a>只给逐行独立 batch 加线程</h4><p>单个 replay 的订单、库存、现金和 latency 状态强顺序依赖，仍保持单线程。depth quote batch 的每一行独立，才新增显式 <code>workers</code> 参数；默认 1，每 worker 至少 4,096 行：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs cpp">std::vector&lt;std::jthread&gt; threads;<br><span class="hljs-keyword">for</span> (std::<span class="hljs-keyword">size_t</span> worker = <span class="hljs-number">0</span>; worker &lt; worker_count; ++worker) &#123;<br>    threads.<span class="hljs-built_in">emplace_back</span>(run_rows, begin[worker], end[worker]);<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cpp">std::vector&lt;std::jthread&gt; threads;
+<span class="hljs-keyword">for</span> (std::<span class="hljs-keyword">size_t</span> worker = <span class="hljs-number">0</span>; worker &lt; worker_count; ++worker) &#123;
+    threads.<span class="hljs-built_in">emplace_back</span>(run_rows, begin[worker], end[worker]);
+&#125;</code></pre></div>
 <p>100k rows × 10 levels 的 Release benchmark：1 worker 为 35.48ms / 2.82M rows/s，4 workers 为 10.08ms / 9.92M rows/s，快 3.52x。参数已经贯通到 <code>cross_market_shock_audit.py --quote-context-workers N</code>，但不会自动开启：若外层已经按 month/window/arm 多进程并行，再把每个进程开满内部线程只会过度订阅。</p>
 <p>第二轮验证结果为快速 suite <code>20 passed, 4 skipped</code>，四个真实窗口 golden parity <code>4 passed</code>，核心 C++20 翻译单元仍为零 warning。优化改变了 allocation、cache footprint 和输出策略，没有改变成交路径，也没有修改 live 配置。</p>
 <h4 id="3-6-5-ARM-本机-benchmark-与-x86-live-的边界"><a href="#3-6-5-ARM-本机-benchmark-与-x86-live-的边界" class="headerlink" title="3.6.5 ARM 本机 benchmark 与 x86 live 的边界"></a>3.6.5 ARM 本机 benchmark 与 x86 live 的边界</h4><p>这里还要补一个容易被忽略的限制：我的训练和回测主要在 Apple Silicon/ARM64 本机上完成，而真正的 live 机器往往是 x86 Linux。两边的 CPU 前端、cache 层级、memory ordering、线程调度、LightGBM/OpenMP runtime 都可能不同。更细一点说，x86 的原子读改写通常对应 <code>LOCK</code> 前缀一类硬件原语和更强的内存模型；ARM 上常见实现会通过 load-exclusive / store-exclusive retry loop 或 LSE 指令完成，不同 CPU、编译参数和竞争程度下成本差异很大。</p>
@@ -1069,15 +1729,29 @@ T_{\text{notional}}=\int_0^T |q(t)|\,\operatorname{mid}(t)\,dt</script><p>它表
 <li>tick replay 的 allocator/cache locality benchmark。<code>DepthView</code>、hot/cold order、summary-only curves 和 PMR trace pool 减少了 replay 的内存运动与 Python 转换，但它们首先服务离线研究吞吐，不自动证明 live quote/routing 更快。</li>
 </ul>
 <p>第二类是在 x86 live 目标机器上必须单独 benchmark 的开关：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">scripts/x86_live_env_audit.sh<br>scripts/x86_live_benchmark.sh<br>scripts/x86_live_soak.sh<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs bash">scripts/x86_live_env_audit.sh
+scripts/x86_live_benchmark.sh
+scripts/x86_live_soak.sh</code></pre></div>
 <p>这些 benchmark 也不能只看 mean。live 关心 p99/p99.9、偶发抖动和是否触发跨语言 fallback。目标 x86 Linux 上应该同时看 <code>cycles</code>、<code>instructions</code>、<code>branch-misses</code>、<code>L1-icache-load-misses</code>、<code>iTLB-load-misses</code>、LLC miss、context switches。只有这些指标和策略 parity 一起过，native 开关才有资格从 shadow 变成配置候选。</p>
 <p>后来我真的拿了一台 x86 EC2 机器做了这件事：Amazon Linux 2023、Intel Xeon Platinum 8259CL、2 vCPU（一个物理核的两个 SMT 线程）、L1d/L1i 都是 32KiB，clocksource 是 <code>tsc</code>。这台机器一开始甚至没有 <code>gcc/g++/cmake</code>，所以第一步不是调参数，而是把 live benchmark 环境和训练环境拆开。</p>
 <p>这里有个很现实的坑：如果在 Linux live 机器上直接 <code>pip install -r requirements.txt</code>，<code>torch</code> 会默认拉一大串 CUDA wheels。它对这个 maker live path 没帮助，却会把 32G 根盘迅速塞满。我最后只装了 live benchmark 需要的轻量依赖：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs bash">python3.11 -m venv .venv<br><span class="hljs-built_in">source</span> .venv/bin/activate<br><br>pip install numpy pandas pyarrow lightgbm scikit-learn scipy \<br>  pyyaml requests binance-futures-connector websocket-client \<br>  pycryptodome zstandard pytest<br>pip install -e cpp<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs bash">python3.11 -m venv .venv
+<span class="hljs-built_in">source</span> .venv/bin/activate
+
+pip install numpy pandas pyarrow lightgbm scikit-learn scipy \
+  pyyaml requests binance-futures-connector websocket-client \
+  pycryptodome zstandard pytest
+pip install -e cpp</code></pre></div>
 <p>为了不再靠手敲命令，我加了两个脚本：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">scripts/x86_live_env_audit.sh<br>scripts/x86_live_benchmark.sh<br>scripts/x86_live_soak.sh<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs bash">scripts/x86_live_env_audit.sh
+scripts/x86_live_benchmark.sh
+scripts/x86_live_soak.sh</code></pre></div>
 <p>第一个脚本记录 OS、CPU/cache、clocksource、sysctl、IRQ、Python/narrowgate_cpp import 和 NumPy backend。第二个脚本做短跑 smoke：Python baseline、C++ quote core、C++ signal features、候选组合和 compact live-routing ABI。第三个脚本只跑候选组合长样本 soak，用来观察 p99.9。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">export</span> OMP_NUM_THREADS=1<br><span class="hljs-built_in">export</span> OPENBLAS_NUM_THREADS=1<br><span class="hljs-built_in">export</span> MKL_NUM_THREADS=1<br><span class="hljs-built_in">export</span> NUMEXPR_NUM_THREADS=1<br><span class="hljs-built_in">export</span> MALLOC_ARENA_MAX=1<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs bash"><span class="hljs-built_in">export</span> OMP_NUM_THREADS=1
+<span class="hljs-built_in">export</span> OPENBLAS_NUM_THREADS=1
+<span class="hljs-built_in">export</span> MKL_NUM_THREADS=1
+<span class="hljs-built_in">export</span> NUMEXPR_NUM_THREADS=1
+<span class="hljs-built_in">export</span> MALLOC_ARENA_MAX=1</code></pre></div>
 <p>然后依次跑 Python baseline、C++ quote core、C++ signal features、候选组合和 compact live-routing ABI。</p>
 <p>这次 x86 结果很有意思，因为它和 Apple Silicon 本机结论并不完全一致：</p>
 <div class="table-container">
@@ -1123,6 +1797,14 @@ T_{\text{notional}}=\int_0^T |q(t)|\,\operatorname{mid}(t)\,dt</script><p>它表
 </tbody>
 </table>
 </div>
+<blockquote>
+<p><strong>这张表怎么读</strong></p>
+<ul>
+<li>说明什么：ARM 本机结论不能直接外推到 x86 live；目标机型上 quote core 和 signal features 的方向都要重新测。</li>
+<li>不能说明什么：短跑 smoke 不能代表长时间 p99.9，也不能代表网络、REST 和交易所响应。</li>
+<li>下一步验证：固定 BLAS/OMP 线程后跑 soak，并确认没有 CPU migration、page fault 或 fallback 尖刺。</li>
+</ul>
+</blockquote>
 <p>短跑只能说明方向，所以我又在同一台最终 live 机型上跑了更长的 soak：baseline 和候选各 <code>--n 100000 --signal-n 10000</code>，routing compact ABI <code>--n 200000</code>。这次输出 p99.9：</p>
 <div class="table-container">
 <table>
@@ -1162,17 +1844,63 @@ T_{\text{notional}}=\int_0^T |q(t)|\,\operatorname{mid}(t)\,dt</script><p>它表
 </tbody>
 </table>
 </div>
+<blockquote>
+<p><strong>这张表怎么读</strong></p>
+<ul>
+<li>说明什么：x86 上最明显的 live CPU 收益来自 fixed-array signal features；quote core 更像稳定降低小路径尾部。</li>
+<li>不能说明什么：它不包含 Binance 网络延迟、REST new/cancel、交易所撮合和真实异常恢复。</li>
+<li>下一步验证：在真实 live 进程旁路 shadow 打点，比较开启/关闭 native 开关时的 HEALTH、requote、ORDER_UPDATE 和 p99.9。</li>
+</ul>
+</blockquote>
 <p>这说明一件事：<strong>架构边界不是文档措辞，而是真的会改变工程结论。</strong> 在本机 ARM 上，早期 <code>SIGNAL_FEATURES=1</code> 曾经是负优化；经过 fixed-array/ring-state 改造后，在 x86 上它反而变成最明显的 live CPU 收益。相反，<code>SIGNAL_STATE=1</code> 在这台 x86 上没有额外收益。pin 到单个 vCPU 对均值帮助也不大，甚至可能放大 VM 上的尾部抖动。</p>
 <p><code>perf stat</code> 也给了一个现实提醒：这台 KVM 实例不暴露 <code>cycles</code>、<code>instructions</code>、<code>L1-icache-load-misses</code>、<code>iTLB-load-misses</code> 这些硬件事件，最后只能看到 context switches、cpu migrations 和 page faults。因此“x86 benchmark”也要继续细分：普通云主机能做 wall-time/tail-latency 复测，但真正要分析 L1I/iTLB/cache miss，可能需要裸金属、特定实例族或能暴露 PMU 的环境。</p>
 <h3 id="3-7-live-路径的-C-优化：与-replay-完全不同的约束"><a href="#3-7-live-路径的-C-优化：与-replay-完全不同的约束" class="headerlink" title="3.7 live 路径的 C++ 优化：与 replay 完全不同的约束"></a>3.7 live 路径的 C++ 优化：与 replay 完全不同的约束</h3><p>前面几节讲的 quote core batch、tick replay 状态机和 streaming features，都是以”吞吐量”为优化目标：输入是连续数组或完整窗口，可以释放 GIL、多线程并行、用 SoA 布局喂给 SIMD。但 live 路径是另一种世界。</p>
 <p>从 C++ 学习的角度看，live 优化最容易犯的错是把“语言更快”误解为“函数搬过去就会更快”。maker live path 里单个 quote 公式可能只要几十微秒，pybind 边界、Python 字典、dataclass 展开、日志对象构造和 feature merge 却可能比公式本身更贵。因此这里分析的重点不是 C++ 语法，而是 <strong>C++ 函数边界应该长什么样</strong>。</p>
 <p>事件引擎每隔 <code>requote_interval</code> 秒被 Python main loop 调用一次 <code>tick()</code>，整个决策链跑在同一个线程上：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs text">WebSocket callback → aggTrade/depth → signal.on_agg_trade()<br>                                              ↓<br>main loop: tick() ──► _requote()<br>           │              ├── compute_signal()          # LightGBM predict<br>           │              ├── compute_quote_core_live() # C++ compact path<br>           │              └── _update_orders()<br>           │                      ├── _build_side_policy()<br>           │                      └── REST new/cancel<br>           └── [sleep rq_interval]<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs text">WebSocket callback → aggTrade/depth → signal.on_agg_trade()
+                                              ↓
+main loop: tick() ──► _requote()
+           │              ├── compute_signal()          # LightGBM predict
+           │              ├── compute_quote_core_live() # C++ compact path
+           │              └── _update_orders()
+           │                      ├── _build_side_policy()
+           │                      └── REST new/cancel
+           └── [sleep rq_interval]</code></pre></div>
 <p>这里没有批量处理的机会：每次报价决策只有一组 state，一个 depth snapshot。释放 GIL 换并行也不适用——WebSocket 回调、quote 决策和 REST 调用都在同一线程中串行执行，GIL 切换反而是额外开销。</p>
 <p>早期的错误迁移方式长这样：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># 每 tick 都创建大对象，再跨 pybind 边界，再返回大 dict。</span><br><span class="hljs-comment"># C++ 只算了 quote 公式，Python 仍然负责 policy/routing。</span><br>ctx = asdict(live_quote_state)               <span class="hljs-comment"># 14+ fields</span><br>cfg = asdict(live_quote_config)              <span class="hljs-comment"># 70+ fields</span><br>depth = [asdict(level) <span class="hljs-keyword">for</span> level <span class="hljs-keyword">in</span> l2_book] <span class="hljs-comment"># N levels</span><br><br>quote = narrowgate_cpp.compute_quote_core(ctx, cfg, depth)<br><br>bid_policy = build_policy_from_dict(quote[<span class="hljs-string">&quot;bid_context&quot;</span>])<br>ask_policy = build_policy_from_dict(quote[<span class="hljs-string">&quot;ask_context&quot;</span>])<br>orders = python_route_orders(quote, bid_policy, ask_policy)<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-comment"># 每 tick 都创建大对象，再跨 pybind 边界，再返回大 dict。</span>
+<span class="hljs-comment"># C++ 只算了 quote 公式，Python 仍然负责 policy/routing。</span>
+ctx = asdict(live_quote_state)               <span class="hljs-comment"># 14+ fields</span>
+cfg = asdict(live_quote_config)              <span class="hljs-comment"># 70+ fields</span>
+depth = [asdict(level) <span class="hljs-keyword">for</span> level <span class="hljs-keyword">in</span> l2_book] <span class="hljs-comment"># N levels</span>
+
+quote = narrowgate_cpp.compute_quote_core(ctx, cfg, depth)
+
+bid_policy = build_policy_from_dict(quote[<span class="hljs-string">&quot;bid_context&quot;</span>])
+ask_policy = build_policy_from_dict(quote[<span class="hljs-string">&quot;ask_context&quot;</span>])
+orders = python_route_orders(quote, bid_policy, ask_policy)</code></pre></div>
 <p>这看起来“用了 C++”，但热路径仍然到处是 hash lookup、字符串 key、临时 dict/list、对象分配和 Python 属性访问。改造后的方向是把生命周期不同的数据拆开：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># config：几乎不变，缓存 native object</span><br>native_cfg = cached_cpp_config(cfg)<br><br><span class="hljs-comment"># state/pred：每 tick 改变，但字段位置固定</span><br>state_tuple = (<br>    mid, inventory, sigma_sq, trade_intensity,<br>    best_bid, best_ask, ber_active,<br>    mo_ema_all, mo_ema_bid, mo_ema_ask, mo_ref,<br>    position_open, hold_time_s, unrealized_pnl,<br>)<br>pred_tuple = (dir_10s, vol_10s, ret_10s, tox_bid, tox_ask)<br><br><span class="hljs-comment"># result：先返回 compact result，只有 quote EV/trace 才物化完整 context</span><br>quote = narrowgate_cpp.compute_quote_core_live(<br>    state_tuple, native_cfg, pred_tuple, depth_bids, depth_asks)<br><br>route = narrowgate_cpp.compute_live_routing_decision(<br>    routing_input_tuple,<br>    bid_policy_tuple,<br>    ask_policy_tuple,<br>)<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-comment"># config：几乎不变，缓存 native object</span>
+native_cfg = cached_cpp_config(cfg)
+
+<span class="hljs-comment"># state/pred：每 tick 改变，但字段位置固定</span>
+state_tuple = (
+    mid, inventory, sigma_sq, trade_intensity,
+    best_bid, best_ask, ber_active,
+    mo_ema_all, mo_ema_bid, mo_ema_ask, mo_ref,
+    position_open, hold_time_s, unrealized_pnl,
+)
+pred_tuple = (dir_10s, vol_10s, ret_10s, tox_bid, tox_ask)
+
+<span class="hljs-comment"># result：先返回 compact result，只有 quote EV/trace 才物化完整 context</span>
+quote = narrowgate_cpp.compute_quote_core_live(
+    state_tuple, native_cfg, pred_tuple, depth_bids, depth_asks)
+
+route = narrowgate_cpp.compute_live_routing_decision(
+    routing_input_tuple,
+    bid_policy_tuple,
+    ask_policy_tuple,
+)</code></pre></div>
 <p>这里的学习点很清楚：C++ 不是为了替代 Python 的事件编排，而是为了让高频决策包使用固定布局、固定字段、固定分支，减少每次 tick 的动态对象税。</p>
 <h4 id="3-7-1-热路径的三个生命周期层"><a href="#3-7-1-热路径的三个生命周期层" class="headerlink" title="3.7.1 热路径的三个生命周期层"></a>3.7.1 热路径的三个生命周期层</h4><p>live 路径的优化策略由三个不同的生命周期决定，不是统一的”全部 C++”：</p>
 <p><strong>第一层：几乎不变的 config（按配置对象缓存）</strong></p>
@@ -1186,12 +1914,103 @@ T_{\text{notional}}=\int_0^T |q(t)|\,\operatorname{mid}(t)\,dt</script><p>它表
 <h4 id="3-7-2-routing-bridge：当前还不是完整-native-决策包"><a href="#3-7-2-routing-bridge：当前还不是完整-native-决策包" class="headerlink" title="3.7.2 routing bridge：当前还不是完整 native 决策包"></a>3.7.2 routing bridge：当前还不是完整 native 决策包</h4><p><code>_build_side_policy()</code> 是 live 路径的另一个计算热点。它接收 quote_context、L2 metrics 和 pred，输出 <code>spread_mult</code>、<code>size_mult</code>、<code>allow_post</code>、<code>reason_mask</code>，大量工作是评估 10+ 个 policy guard 的条件。</p>
 <p>这些条件判断本身不重，但每次需要访问 Python dict（<code>quote_ctx.get(&quot;side_adverse&quot;, False)</code> 等），在单 tick 热路径上积少成多。</p>
 <p><code>NARROWGATE_CPP_LIVE_ROUTING</code> 仍只接管后半段的价格调整、spread cap、库存准入、size 和 cancel/replace 判断，但跨语言接口已经从动态 dict 收紧为固定布局：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs python">bid_policy = self._build_side_policy(Side.BUY, mid, q, pred)<br>ask_policy = self._build_side_policy(Side.SELL, mid, q, pred)<br><br>routed = cpp_route.compute_live_routing_decision(<br>    (<br>        mid, q, base_bid_price, base_ask_price,<br>        best_bid, best_ask, tick, lot, min_qty, min_notional,<br>        order_size, max_inventory, eta, symmetric_size,<br>        requote_threshold_bps, max_spread,<br>        bid_alive, bid_active_price, bid_age_ms,<br>        ask_alive, ask_active_price, ask_age_ms,<br>    ),<br>    (<br>        bid_policy.allow_post,<br>        bid_policy.allow_exposure_increase,<br>        bid_policy.spread_mult,<br>        bid_policy.size_mult,<br>        bid_policy.order_ttl_ms,<br>    ),<br>    (<br>        ask_policy.allow_post,<br>        ask_policy.allow_exposure_increase,<br>        ask_policy.spread_mult,<br>        ask_policy.size_mult,<br>        ask_policy.order_ttl_ms,<br>    ),<br>)<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs python">bid_policy = self._build_side_policy(Side.BUY, mid, q, pred)
+ask_policy = self._build_side_policy(Side.SELL, mid, q, pred)
+
+routed = cpp_route.compute_live_routing_decision(
+    (
+        mid, q, base_bid_price, base_ask_price,
+        best_bid, best_ask, tick, lot, min_qty, min_notional,
+        order_size, max_inventory, eta, symmetric_size,
+        requote_threshold_bps, max_spread,
+        bid_alive, bid_active_price, bid_age_ms,
+        ask_alive, ask_active_price, ask_age_ms,
+    ),
+    (
+        bid_policy.allow_post,
+        bid_policy.allow_exposure_increase,
+        bid_policy.spread_mult,
+        bid_policy.size_mult,
+        bid_policy.order_ttl_ms,
+    ),
+    (
+        ask_policy.allow_post,
+        ask_policy.allow_exposure_increase,
+        ask_policy.spread_mult,
+        ask_policy.size_mult,
+        ask_policy.order_ttl_ms,
+    ),
+)</code></pre></div>
 <p>native 侧对应的是普通结构体，而不是把业务逻辑继续堆在 pybind lambda 中：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">LiveRoutingPolicy</span> &#123;</span><br>    <span class="hljs-keyword">bool</span> allow_post;<br>    <span class="hljs-keyword">bool</span> allow_exposure_increase;<br>    <span class="hljs-keyword">double</span> spread_mult;<br>    <span class="hljs-keyword">double</span> size_mult;<br>    <span class="hljs-keyword">double</span> order_ttl_ms;<br>&#125;;<br><br><span class="hljs-function">LiveRoutingResult <span class="hljs-title">compute_live_routing_decision</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> LiveRoutingInput&amp; input,</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> LiveRoutingPolicy&amp; bid,</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> LiveRoutingPolicy&amp; ask)</span></span>;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">LiveRoutingPolicy</span> &#123;</span>
+    <span class="hljs-keyword">bool</span> allow_post;
+    <span class="hljs-keyword">bool</span> allow_exposure_increase;
+    <span class="hljs-keyword">double</span> spread_mult;
+    <span class="hljs-keyword">double</span> size_mult;
+    <span class="hljs-keyword">double</span> order_ttl_ms;
+&#125;;
+
+<span class="hljs-function">LiveRoutingResult <span class="hljs-title">compute_live_routing_decision</span><span class="hljs-params">(</span></span>
+<span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> LiveRoutingInput&amp; input,</span></span>
+<span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> LiveRoutingPolicy&amp; bid,</span></span>
+<span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> LiveRoutingPolicy&amp; ask)</span></span>;</code></pre></div>
 <p>它仍不是 quote → policy → routing 的完全 fused kernel，因为 <code>_build_side_policy()</code> 还在 Python；但 routing 边界自身已不再创建两个 20+ 字段 dict、逐个做字符串 key 查询、再创建结果 dict。旧/新二进制使用同一组输入做 100,000 次对照，checksum 完全一致：mean <code>6.024 → 0.472 us</code>，p99 <code>6.375 → 0.583 us</code>。这个约 92% 的下降只描述 routing binding，不代表完整 <code>_update_orders()</code> 或网络报单延迟也下降 92%。</p>
 <p>最终更理想的 live C++ 决策包应该继续向下面这个形态收敛：一次调用接收 market state、model prediction、inventory state 和 live order state，返回两个 side 的完整动作，但仍不负责 REST IO。</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-keyword">class</span> <span class="hljs-title">OrderAction</span> :</span> std::<span class="hljs-keyword">uint8_t</span> &#123;<br>    Keep,<br>    Cancel,<br>    Replace,<br>    NewOrder,<br>&#125;;<br><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">LiveDecisionInput</span> &#123;</span><br>    <span class="hljs-keyword">double</span> mid;<br>    <span class="hljs-keyword">double</span> best_bid;<br>    <span class="hljs-keyword">double</span> best_ask;<br>    <span class="hljs-keyword">double</span> tick_size;<br>    <span class="hljs-keyword">double</span> lot_size;<br><br>    <span class="hljs-keyword">double</span> inventory;<br>    <span class="hljs-keyword">double</span> max_inventory;<br>    <span class="hljs-keyword">double</span> sigma_sq;<br>    <span class="hljs-keyword">double</span> ret_10s;<br>    <span class="hljs-keyword">double</span> tox_bid;<br>    <span class="hljs-keyword">double</span> tox_ask;<br><br>    ActiveOrder bid_order;<br>    ActiveOrder ask_order;<br>    DepthView depth;<br>&#125;;<br><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">SideDecision</span> &#123;</span><br>    OrderAction action;<br>    <span class="hljs-keyword">double</span> price;<br>    <span class="hljs-keyword">double</span> quantity;<br>    <span class="hljs-keyword">double</span> ttl_ms;<br>    std::<span class="hljs-keyword">uint32_t</span> reason_mask;<br>&#125;;<br><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">LiveDecision</span> &#123;</span><br>    SideDecision bid;<br>    SideDecision ask;<br>    <span class="hljs-keyword">double</span> final_spread;<br>    <span class="hljs-keyword">bool</span> inventory_blocked;<br>&#125;;<br><br><span class="hljs-function">LiveDecision <span class="hljs-title">compute_live_decision</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> LiveDecisionInput&amp; in,</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> QuoteCoreConfig&amp; quote_cfg,</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> PolicyConfig&amp; policy_cfg)</span> </span>&#123;<br>    <span class="hljs-keyword">auto</span> quote = <span class="hljs-built_in">compute_quote_core_compact</span>(in, quote_cfg);<br><br>    <span class="hljs-keyword">auto</span> bid_policy = evaluate_side_policy&lt;Side::Buy&gt;(<br>        quote.bid, in.inventory, in.tox_bid, policy_cfg);<br>    <span class="hljs-keyword">auto</span> ask_policy = evaluate_side_policy&lt;Side::Sell&gt;(<br>        quote.ask, in.inventory, in.tox_ask, policy_cfg);<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-built_in">route_quote_to_orders</span>(<br>        quote, bid_policy, ask_policy, in.bid_order, in.ask_order);<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-keyword">class</span> <span class="hljs-title">OrderAction</span> :</span> std::<span class="hljs-keyword">uint8_t</span> &#123;
+    Keep,
+    Cancel,
+    Replace,
+    NewOrder,
+&#125;;
+
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">LiveDecisionInput</span> &#123;</span>
+    <span class="hljs-keyword">double</span> mid;
+    <span class="hljs-keyword">double</span> best_bid;
+    <span class="hljs-keyword">double</span> best_ask;
+    <span class="hljs-keyword">double</span> tick_size;
+    <span class="hljs-keyword">double</span> lot_size;
+
+    <span class="hljs-keyword">double</span> inventory;
+    <span class="hljs-keyword">double</span> max_inventory;
+    <span class="hljs-keyword">double</span> sigma_sq;
+    <span class="hljs-keyword">double</span> ret_10s;
+    <span class="hljs-keyword">double</span> tox_bid;
+    <span class="hljs-keyword">double</span> tox_ask;
+
+    ActiveOrder bid_order;
+    ActiveOrder ask_order;
+    DepthView depth;
+&#125;;
+
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">SideDecision</span> &#123;</span>
+    OrderAction action;
+    <span class="hljs-keyword">double</span> price;
+    <span class="hljs-keyword">double</span> quantity;
+    <span class="hljs-keyword">double</span> ttl_ms;
+    std::<span class="hljs-keyword">uint32_t</span> reason_mask;
+&#125;;
+
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">LiveDecision</span> &#123;</span>
+    SideDecision bid;
+    SideDecision ask;
+    <span class="hljs-keyword">double</span> final_spread;
+    <span class="hljs-keyword">bool</span> inventory_blocked;
+&#125;;
+
+<span class="hljs-function">LiveDecision <span class="hljs-title">compute_live_decision</span><span class="hljs-params">(</span></span>
+<span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> LiveDecisionInput&amp; in,</span></span>
+<span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> QuoteCoreConfig&amp; quote_cfg,</span></span>
+<span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> PolicyConfig&amp; policy_cfg)</span> </span>&#123;
+    <span class="hljs-keyword">auto</span> quote = <span class="hljs-built_in">compute_quote_core_compact</span>(in, quote_cfg);
+
+    <span class="hljs-keyword">auto</span> bid_policy = evaluate_side_policy&lt;Side::Buy&gt;(
+        quote.bid, in.inventory, in.tox_bid, policy_cfg);
+    <span class="hljs-keyword">auto</span> ask_policy = evaluate_side_policy&lt;Side::Sell&gt;(
+        quote.ask, in.inventory, in.tox_ask, policy_cfg);
+
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">route_quote_to_orders</span>(
+        quote, bid_policy, ask_policy, in.bid_order, in.ask_order);
+&#125;</code></pre></div>
 <p>这段伪代码里有两个刻意保留的边界：</p>
 <ul>
 <li><code>ActiveOrder</code> 是当前本地状态，不在 C++ 里发 REST；C++ 只说“应该怎么做”，Python 负责实际 cancel/new 和异常处理。</li>
@@ -1239,9 +2058,26 @@ T_{\text{notional}}=\int_0^T |q(t)|\,\operatorname{mid}(t)\,dt</script><p>它表
 </table>
 </div>
 <p>诊断命令本身也应进入性能工程流程，而不是只看 benchmark 平均值：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs bash">BIN=$(.venv/bin/python -c \<br>  <span class="hljs-string">&#x27;import narrowgate_cpp; print(narrowgate_cpp.__file__)&#x27;</span>)<br><br>xcrun llvm-size -A <span class="hljs-string">&quot;<span class="hljs-variable">$BIN</span>&quot;</span><br>xcrun llvm-objdump -d --demangle --no-show-raw-insn <span class="hljs-string">&quot;<span class="hljs-variable">$BIN</span>&quot;</span> \<br>  &gt; /tmp/narrowgate.disasm<br><br><span class="hljs-comment"># 诊断构建额外生成 linker map：-Wl,-map,/tmp/narrowgate.map</span><br><span class="hljs-comment"># Linux 研究机再看 L1I/iTLB/branch miss 与 p99 是否同步恶化。</span><br>perf <span class="hljs-built_in">stat</span> -r 20 \<br>  -e cycles,instructions,branches,branch-misses,\<br>L1-icache-loads,L1-icache-load-misses,\<br>iTLB-loads,iTLB-load-misses \<br>  ./bench_hot_path<br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs bash">BIN=$(.venv/bin/python -c \
+  <span class="hljs-string">&#x27;import narrowgate_cpp; print(narrowgate_cpp.__file__)&#x27;</span>)
+
+xcrun llvm-size -A <span class="hljs-string">&quot;<span class="hljs-variable">$BIN</span>&quot;</span>
+xcrun llvm-objdump -d --demangle --no-show-raw-insn <span class="hljs-string">&quot;<span class="hljs-variable">$BIN</span>&quot;</span> \
+  &gt; /tmp/narrowgate.disasm
+
+<span class="hljs-comment"># 诊断构建额外生成 linker map：-Wl,-map,/tmp/narrowgate.map</span>
+<span class="hljs-comment"># Linux 研究机再看 L1I/iTLB/branch miss 与 p99 是否同步恶化。</span>
+perf <span class="hljs-built_in">stat</span> -r 20 \
+  -e cycles,instructions,branches,branch-misses,\
+L1-icache-loads,L1-icache-load-misses,\
+iTLB-loads,iTLB-load-misses \
+  ./bench_hot_path</code></pre></div>
 <p>源码审计也需要给模板设预算。当前模板维度主要是 <code>Side</code>、<code>QueueAheadMode</code>、固定 rolling window 和容器 view：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span> &lt;Side S, QueueAheadMode Mode&gt;<br><span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">visible_queue_ahead</span><span class="hljs-params">(...)</span></span>;<br><br><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">int</span> WindowSeconds&gt;<br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RollingStats</span>;</span><br></code></pre></td></tr></table></figure>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span> &lt;Side S, QueueAheadMode Mode&gt;
+<span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">visible_queue_ahead</span><span class="hljs-params">(...)</span></span>;
+
+<span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">int</span> WindowSeconds&gt;
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RollingStats</span>;</span></code></pre></div>
 <p><code>Side x QueueAheadMode</code> 只有四种 queue 实例，<code>RollingStats&lt;60&gt;</code> 即使有多个对象也只有同一种类型；quote core 的大主体本身不是模板。这里没有 <code>EnableAdverse x EnableDefense x EnableQuoteEV x ...</code> 这样的布尔笛卡尔积，因此目前不存在明显的模板组合爆炸。side-specific helper 展开后，<code>compute_quote_core()</code> 总体仍只有约 7.4 KiB。</p>
 <p>审计发现的两个缺口随后都做了收敛：</p>
 <ol>
@@ -1258,6 +2094,15 @@ T_{\text{notional}}=\int_0^T |q(t)|\,\operatorname{mid}(t)\,dt</script><p>它表
 <li><strong>GIL 释放</strong>：live 主路径单线程，释放 GIL 无收益；WebSocket 回调在不同 thread 里，releasing GIL 反而引入竞争</li>
 </ul>
 <p>live 路径的结论和 offline 路径相同，但结论的来路完全不同：<strong>offline 关心吞吐，live 关心尾延迟；offline 可以 batch，live 只能 scalar；offline 释放 GIL 有意义，live 中通常没有</strong>。把 offline 的优化模式复制到 live，往往只是更快地得到一个无收益的结果。</p>
+<blockquote>
+<p><strong>本节工程结论</strong></p>
+<ul>
+<li>live hot path 不应该先迁 WebSocket/REST，而应该先收紧 WebSocket 上方的 rolling state、quote/policy/routing 边界。</li>
+<li>单个公式迁到 C++ 很容易被 pybind、dict、dataclass 和日志对象物化反噬；稳定、高频、低基数的决策包才适合 native。</li>
+<li>热路径目标是最小且可预测的指令工作集，而不是让整个 <code>.so</code> 塞进 L1I。</li>
+<li>ARM 本机 microbench、offline sweep 加速、x86 live p99/p99.9 是三种不同证据，不能互相替代。</li>
+</ul>
+</blockquote>
 <h2 id="结论：算法假设、验证流程和-C-边界要同时成立"><a href="#结论：算法假设、验证流程和-C-边界要同时成立" class="headerlink" title="结论：算法假设、验证流程和 C++ 边界要同时成立"></a>结论：算法假设、验证流程和 C++ 边界要同时成立</h2><p>到现在，NarrowGate 给我的最大教训不是“C++ 很快”，而是研究系统要同时守住四条线：</p>
 <ol>
 <li><strong>数据连续性</strong>：坏日期、低 coverage 和跨 gap label 必须在统一质量层阻断；</li>
