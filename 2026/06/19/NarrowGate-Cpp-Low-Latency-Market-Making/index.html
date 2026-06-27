@@ -28,7 +28,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/quote-ladder.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/order-lifecycle.svg">
 <meta property="article:published_time" content="2026-06-19T08:50:48.000Z">
-<meta property="article:modified_time" content="2026-06-27T00:35:00.000Z">
+<meta property="article:modified_time" content="2026-06-27T16:35:00.000Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="C++">
 <meta property="article:tag" content="低延时">
@@ -208,7 +208,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      84k 字
+      86k 字
     </span>
   
 
@@ -217,7 +217,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      704 分钟
+      721 分钟
     </span>
   
 
@@ -360,7 +360,7 @@ tick replay：queue / latency / TTL / maker fill gate
 quote trace + fill markout + cross-market shock attribution
         │
         ▼
-quote EV labels/model + monthly A/B + strict gates</code></pre></div>
+quote EV labels/model + daily rollup A/B + strict gates</code></pre></div>
 <p>这条链路很重要，因为 quote EV 并不是从原始行情直接训练出来的万能模型。它依赖上游报价轨迹、成交路径、未来 markout 和 cross-market context；任何一层的数据边界或执行口径出错，最后得到的 AUC 和 PnL 都可能只是被污染后的精确数字。</p>
 <p>这也是为什么数据源需要先分层，而不是全部丢进一个 dataframe。NarrowGate 里至少有四类数据：</p>
 <p><img src="/images/narrowgate/data-lineage.svg" srcset="/img/loading.gif" lazyload alt="NarrowGate research data lineage"></p>
@@ -379,7 +379,7 @@ quote EV labels/model + monthly A/B + strict gates</code></pre></div>
 <td>execution trades</td>
 <td>Binance Vision <code>daily/aggTrades</code>，perp 与 spot</td>
 <td>构造 1s/10s flow、taker tempo、spot/reference return</td>
-<td>月度容器混入坏日期；日度缺口会污染 rolling 和 future label</td>
+<td>非日度容器混入坏日期；日度缺口会污染 rolling 和 future label</td>
 </tr>
 <tr>
 <td>execution orderbook</td>
@@ -698,13 +698,59 @@ allow_ask =
 <p>例如一个 30 秒 markout label，如果第 30 秒对应的价格来自长时间缺口之后，那么这个 label 在数学上有值，在市场含义上却已经失效。rolling volatility、taker tempo、cross-market return 也可能把两个不连续的市场状态拼在一起。</p>
 <p>因此后来做了三层修正。</p>
 <h4 id="1-3-1-审计结果成为硬边界"><a href="#1-3-1-审计结果成为硬边界" class="headerlink" title="1.3.1 审计结果成为硬边界"></a>1.3.1 审计结果成为硬边界</h4><p>orderbook audit 中不可用或低 coverage 的日期不再只是报告里的警告，而是进入统一的 <code>data_quality.py</code>。训练、回测、quote trace、shock audit 和 quote EV 都必须二次过滤，不能依赖某一个上游脚本“碰巧已经删过”。</p>
-<h4 id="1-3-2-物理数据也同步清理"><a href="#1-3-2-物理数据也同步清理" class="headerlink" title="1.3.2 物理数据也同步清理"></a>1.3.2 物理数据也同步清理</h4><p>坏日期对应的 CryptoHFTData 和 Binance raw 数据被物理删除。由于 Binance 月度压缩包混合了好日期与坏日期，不能只在月度容器里删掉某一天，所以改为：</p>
+<h4 id="1-3-2-物理数据也同步清理"><a href="#1-3-2-物理数据也同步清理" class="headerlink" title="1.3.2 物理数据也同步清理"></a>1.3.2 物理数据也同步清理</h4><p>坏日期对应的 CryptoHFTData 和 Binance raw 数据被物理删除。由于跨日压缩包可能混合好日期与坏日期，不能只在聚合容器里删掉某一天，所以改为：</p>
 <ol>
-<li>删除覆盖坏日期的月度 aggTrades 容器；</li>
+<li>删除覆盖坏日期的非日度 aggTrades 容器；</li>
 <li>从 Binance Vision 按日重新下载 retained good days；</li>
-<li>验证坏日期日度文件命中为 0，月度容器残留为 0。</li>
+<li>验证坏日期日度文件命中为 0，非日度容器残留为 0。</li>
 </ol>
-<p>这样既避免磁盘继续保留不可用数据，也让物理层和逻辑层使用同一份质量边界。2026-06-06 的清理最终保留了 375 个好日期日度文件、删除 23 个月度容器，并验证坏日期命中与月度容器残留都为 0。</p>
+<p>这样既避免磁盘继续保留不可用数据，也让物理层和逻辑层使用同一份质量边界。2026-06-06 的清理最终保留了 375 个好日期日度文件、删除 23 个非日度容器，并验证坏日期命中与非日度容器残留都为 0。</p>
+<p>这里还有一个很容易误解的点：<strong>物理文件粒度也会反过来诱导研究口径</strong>。一开始我以为“只要逻辑层按天切 replay，底层保留少量跨日容器也没关系”，但这会让后续脚本、文档和人脑都不断滑回跨日聚合分析。后来我把本地 market data 重新扫了一遍，并把剩余非日度容器全部清掉：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>数据</th>
+<th>当前物理粒度</th>
+<th>对研究口径的影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Binance raw trades / aggTrades</td>
+<td>retained daily CSV</td>
+<td>可以直接按 UTC day 切 replay 和 flow</td>
+</tr>
+<tr>
+<td>CryptoHFTData 重放后的 BBO/L2</td>
+<td>daily parquet</td>
+<td>tick replay、queue ahead、microprice 的主执行口径</td>
+</tr>
+<tr>
+<td>raw metrics / 5m metrics</td>
+<td>daily CSV + daily parquet</td>
+<td>OI/多空比按 UTC day join，不再依赖非日度 metrics parquet</td>
+</tr>
+<tr>
+<td>engineered features</td>
+<td><code>features_YYYY-MM-DD.parquet</code></td>
+<td>训练 dataset 是日文件拼接结果，不再从月 feature 容器读取</td>
+</tr>
+<tr>
+<td>bookDepth proxy</td>
+<td><code>depth_1s/*-YYYY-MM-DD.parquet</code></td>
+<td>仅作 legacy proxy；主执行层仍用 CryptoHFT BBO/L2</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>2026-06-28 的最终审计结果是：<code>~/MarketData/NarrowGate_BTCUSDC</code> 下 <code>*.parquet</code> 非日度命名扫描结果为 <code>0</code>。这件事看起来像清理磁盘，其实是清理研究边界：<strong>物理容器和策略结论都默认按 UTC day 组织</strong>。新的核心入口也因此改成：</p>
+<div class="code-wrapper"><pre><code class="hljs bash">python3 models/backtest_tick.py --symbol BTCUSDC --day 2026-05-15 --ml --engine cpp
+python3 models/tick_ab.py adaptive_ttl --symbol BTCUSDC --days 2026-05-15 2026-05-16 --engine cpp
+python3 models/quote_ev_ab_tick.py --symbol BTCUSDC --days 2026-05-15 2026-05-16 --arms baseline ask_ev_soft_widen
+python3 models/quote_decomposition_tick.py --symbol BTCUSDC --days 2026-05-15 2026-05-16 --engine cpp
+python3 models/cross_market_shock_audit.py --symbol BTCUSDC --trace-tag daily_trace --days 2026-05-15 2026-05-16</code></pre></div>
+<p>旧的跨日聚合入口已经从代码里移除，不再作为兼容路径保留。长窗口 replay 最危险的地方不是“统计时间更长”，而是 adverse/defense/markout EMA 这类状态会跨坏日和长 gap 延续，把一个早期毒性状态扩散成后面几天的假性停报。</p>
 <h4 id="1-3-3-rolling-与-label-使用同一套连续段定义"><a href="#1-3-3-rolling-与-label-使用同一套连续段定义" class="headerlink" title="1.3.3 rolling 与 label 使用同一套连续段定义"></a>1.3.3 rolling 与 label 使用同一套连续段定义</h4><p>项目增加了统一的：</p>
 <div class="code-wrapper"><pre><code class="hljs python">continuous_segment_ids(index, max_gap_s=<span class="hljs-number">5</span>)
 mask_valid_horizon(index, horizon_s, max_gap_s=<span class="hljs-number">5</span>)</code></pre></div>
@@ -764,7 +810,7 @@ cv_exec_spot_*
 cv_ref_spot_*</code></pre></div>
 <p>从直觉上说，多一个高流动性的 reference、多两个 spot anchor，算法应该更健壮。数据也确实带来了信息：cross-market shock audit 显示，很多 adverse fill 能被 BTCUSDT reference move 解释；补齐 spot 后，相关窗口的 <code>spot_available_rate</code> 达到 1.0。</p>
 <p>但“数据有信息”不等于“把开关打开就能形成正 EV”。</p>
-<p><code>multi_market.enabled=true/false</code> 的 Jan/Feb/Apr/May 月度 A/B 中，早期 minimal 口径下 true 的 raw PnL 四个月全部差于 false，合计约 <code>-14.05</code>。enhanced spot + audit-quality 重跑后，同样的整体开关仍然没有变成稳定收益来源，raw 差值合计约 <code>-18.14</code>。</p>
+<p><code>multi_market.enabled=true/false</code> 的早期 Jan/Feb/Apr/May 汇总 A/B 中，minimal 口径下 true 的 raw PnL 全部差于 false，合计约 <code>-14.05</code>。enhanced spot + audit-quality 重跑后，同样的整体开关仍然没有变成稳定收益来源，raw 差值合计约 <code>-18.14</code>。这段只作为反例背景；新的候选需要看日度 fresh-start rows 和日度 rollup 稳定性。</p>
 <p>这次 enhanced 主模型并不是只拿几天 2026 数据做 smoke test。它的 train/validation split 实际包含 2025-08/09 和 2025-11/12，补齐后的 <code>cv_exec_spot_*</code>、<code>cv_ref_spot_*</code> 在 train/val/test 中非零覆盖率均为 1.0，audit 坏日期残留为 0。换言之，“结果更差”不能简单归因于 spot 列全零或坏日期仍在训练；它更像是 policy 对新增信息的使用方式有问题。</p>
 <p>这不是简单说明 reference 无效，而是说明当前使用方式太粗。cross-market 分组给出了更细的答案：</p>
 <ul>
@@ -1210,7 +1256,7 @@ Sharpe
 trace rows</code></pre></div>
 <p>golden window 覆盖正常、高波动、低成交/稀疏以及不同月份。只有差异能够被解释，C++ engine 才被允许进入 sweep、cap A/B、quote EV A/B 等批量 runner。默认行为仍保留 Python，显式 <code>--engine cpp</code> 才切换，strict 模式下 extension 不可用会直接报错，避免静默 fallback 让人误以为跑了 C++。</p>
 <p>完整 CLI 的 wall time 还包含 parquet、模型和窗口加载，因此不能拿 C++ 内层循环的 microbenchmark 直接宣称整月回测有同样倍数。对回测来说，<strong>路径一致比一个夸张的加速倍数更重要</strong>。</p>
-<h3 id="3-4-quote-EV-fast-screening：快筛不是最终裁决"><a href="#3-4-quote-EV-fast-screening：快筛不是最终裁决" class="headerlink" title="3.4 quote EV fast screening：快筛不是最终裁决"></a>3.4 quote EV fast screening：快筛不是最终裁决</h3><p>quote EV online inference 会对大量 quote 逐行构造 feature 并调用模型，完整月度 A/B 很慢。为此项目增加了一条研究快筛路径：</p>
+<h3 id="3-4-quote-EV-fast-screening：快筛不是最终裁决"><a href="#3-4-quote-EV-fast-screening：快筛不是最终裁决" class="headerlink" title="3.4 quote EV fast screening：快筛不是最终裁决"></a>3.4 quote EV fast screening：快筛不是最终裁决</h3><p>quote EV online inference 会对大量 quote 逐行构造 feature 并调用模型，多日 A/B 很慢。为此项目增加了一条研究快筛路径：</p>
 <ol>
 <li>在 baseline quote context 下预计算 bid/ask EV arrays；</li>
 <li>C++ replay 在每个 tick 直接读取对应分数；</li>
@@ -1226,7 +1272,7 @@ MODEL=models/saved_btcusdc_quote_ev_xmarket_cpp_context_20260618
 <span class="hljs-comment"># 1. baseline context 下只做一次 online inference，写成按时间对齐的 arrays</span>
 .venv/bin/python models/precompute_quote_ev_arrays.py \
   --symbol BTCUSDC \
-  --months 2026-01 2026-02 2026-04 2026-05 \
+  --days 2026-05-15 2026-05-16 \
   --model-dir <span class="hljs-string">&quot;<span class="hljs-variable">$MODEL</span>&quot;</span> \
   --orders <span class="hljs-string">&quot;<span class="hljs-variable">$RESULTS</span>/cross_market_shock_audit.orders_features.parquet&quot;</span> \
   --tag cpp_fast_screen
@@ -1234,7 +1280,7 @@ MODEL=models/saved_btcusdc_quote_ev_xmarket_cpp_context_20260618
 <span class="hljs-comment"># 2. 四个 policy arm 复用同一份窗口 cache 与 EV arrays</span>
 NARROWGATE_CPP_STRICT=1 .venv/bin/python models/quote_ev_ab_tick.py \
   --symbol BTCUSDC \
-  --months 2026-01 2026-02 2026-04 2026-05 \
+  --days 2026-05-15 2026-05-16 \
   --arms baseline bid_ev_soft_widen ask_ev_soft_widen both_ev_soft_widen \
   --engine cpp \
   --cpp-quote-ev-data <span class="hljs-string">&quot;<span class="hljs-variable">$RESULTS</span>/quote_ev_arrays_cpp_fast_screen_btcusdc.parquet&quot;</span> \
@@ -1662,7 +1708,7 @@ max_drawdown = std::<span class="hljs-built_in">max</span>(max_drawdown, peak_pn
 <span class="hljs-keyword">for</span> (std::<span class="hljs-keyword">size_t</span> worker = <span class="hljs-number">0</span>; worker &lt; worker_count; ++worker) &#123;
     threads.<span class="hljs-built_in">emplace_back</span>(run_rows, begin[worker], end[worker]);
 &#125;</code></pre></div>
-<p>100k rows × 10 levels 的 Release benchmark：1 worker 为 35.48ms / 2.82M rows/s，4 workers 为 10.08ms / 9.92M rows/s，快 3.52x。参数已经贯通到 <code>cross_market_shock_audit.py --quote-context-workers N</code>，但不会自动开启：若外层已经按 month/window/arm 多进程并行，再把每个进程开满内部线程只会过度订阅。</p>
+<p>100k rows × 10 levels 的 Release benchmark：1 worker 为 35.48ms / 2.82M rows/s，4 workers 为 10.08ms / 9.92M rows/s，快 3.52x。参数已经贯通到 <code>cross_market_shock_audit.py --quote-context-workers N</code>，但不会自动开启：若外层已经按 day/window/arm 多进程并行，再把每个进程开满内部线程只会过度订阅。</p>
 <p>第二轮验证结果为快速 suite <code>20 passed, 4 skipped</code>，四个真实窗口 golden parity <code>4 passed</code>，核心 C++20 翻译单元仍为零 warning。优化改变了 allocation、cache footprint 和输出策略，没有改变成交路径，也没有修改 live 配置。</p>
 <h4 id="3-6-5-ARM-本机-benchmark-与-x86-live-的边界"><a href="#3-6-5-ARM-本机-benchmark-与-x86-live-的边界" class="headerlink" title="3.6.5 ARM 本机 benchmark 与 x86 live 的边界"></a>3.6.5 ARM 本机 benchmark 与 x86 live 的边界</h4><p>这里还要补一个容易被忽略的限制：我的训练和回测主要在 Apple Silicon/ARM64 本机上完成，而真正的 live 机器往往是 x86 Linux。两边的 CPU 前端、cache 层级、memory ordering、线程调度、LightGBM/OpenMP runtime 都可能不同。更细一点说，x86 的原子读改写通常对应 <code>LOCK</code> 前缀一类硬件原语和更强的内存模型；ARM 上常见实现会通过 load-exclusive / store-exclusive retry loop 或 LSE 指令完成，不同 CPU、编译参数和竞争程度下成本差异很大。</p>
 <p>NarrowGate 当前 C++ hot path 并没有把 <code>std::atomic</code> 当作优化手段；代码里真正显式的 C++ 内部并发，是 <code>compute_quote_core_batch_depth(..., workers=N)</code> 的 <code>std::jthread</code> 分片。因此风险不是“某个 atomic trick 在 ARM 上慢”，而是更朴素：<strong>本机离线吞吐优化不等于 x86 live 尾延迟优化</strong>。</p>
@@ -1728,7 +1774,7 @@ max_drawdown = std::<span class="hljs-built_in">max</span>(max_drawdown, peak_pn
 <ul>
 <li><code>models/ml_model.py</code> 里的 Apple Silicon/ARM64 假设。LightGBM 的 native ARM64、NEON、统一内存和本机核心数，只说明本机训练吞吐；x86 研究机应重新设置 <code>MM_LGB_THREADS</code>、histogram pool 和 OpenMP 亲和性。</li>
 <li>所有 multiprocessing sweep。<code>backtest_tick.py --sweep</code>、<code>tick_ab.py --workers</code>、quote EV A/B workers 缩短的是多月、多臂、多窗口研究 wall time；live 的决策路径仍然是单事件、强顺序、低尾延迟问题。</li>
-<li><code>compute_quote_core_batch_depth(..., workers=N)</code> 的 worker 分片。100k rows × 10 levels 在本机 4 workers 快 3.52x，但如果外层已经按 month/window/arm 多进程并行，再在每个进程内部开满线程，只会过度订阅。x86 上 worker 数要重新扫。</li>
+<li><code>compute_quote_core_batch_depth(..., workers=N)</code> 的 worker 分片。100k rows × 10 levels 在本机 4 workers 快 3.52x，但如果外层已经按 day/window/arm 多进程并行，再在每个进程内部开满线程，只会过度订阅。x86 上 worker 数要重新扫。</li>
 <li>tick replay 的 allocator/cache locality benchmark。<code>DepthView</code>、hot/cold order、summary-only curves 和 PMR trace pool 减少了 replay 的内存运动与 Python 转换，但它们首先服务离线研究吞吐，不自动证明 live quote/routing 更快。</li>
 </ul>
 <p>第二类是在 x86 live 目标机器上必须单独 benchmark 的开关：</p>
@@ -2235,6 +2281,52 @@ Normalized NumPy arrays
     quote.allow_post = <span class="hljs-literal">False</span>
     quote.reason = <span class="hljs-string">&quot;DEFENSE_GUARD&quot;</span></code></pre></div>
 <p>所以，高波动不必然 pause；pause 专门针对“这侧成交之后的 markout/毒性证据已经不能靠 spread 补偿”的状态。否则策略会把 volatility risk 和 information risk 混为一谈。</p>
+<p>最近一次 BTCUSDC live 参数重扫也正好说明了这一点。我没有再用一条连续全月路径评判，而是固定当前 live 模型 <code>models/saved_btcusdc_taker_tempo_20260528</code>，在 Jan/Feb/Apr/May/Jun-to-24 的 101 个 UTC 日段上做 fresh-start adverse threshold grid。结果里，<code>adverse_markout_threshold=2.5</code>、<code>adverse_markout_pause_threshold=6.0</code> 是 raw 与 InvAdj 的折中：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>arm</th>
+<th style="text-align:right">Raw delta</th>
+<th style="text-align:right">InvAdj delta</th>
+<th style="text-align:right">InvAdj group wins</th>
+<th style="text-align:right">fills/day</th>
+<th style="text-align:right">abs inventory time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>baseline</td>
+<td style="text-align:right">0.00</td>
+<td style="text-align:right">0.00</td>
+<td style="text-align:right">-</td>
+<td style="text-align:right">878.5</td>
+<td style="text-align:right">390.8s</td>
+</tr>
+<tr>
+<td><code>2.5 / 6.0</code></td>
+<td style="text-align:right"><strong>+5.75</strong></td>
+<td style="text-align:right"><strong>+1.27</strong></td>
+<td style="text-align:right">5/5</td>
+<td style="text-align:right">864.5</td>
+<td style="text-align:right">383.5s</td>
+</tr>
+<tr>
+<td><code>2.0 / 5.0</code></td>
+<td style="text-align:right">-9.83</td>
+<td style="text-align:right">+2.33</td>
+<td style="text-align:right">5/5</td>
+<td style="text-align:right">844.5</td>
+<td style="text-align:right">373.3s</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code>2.0 / 5.0</code> 更像风险收缩保险，库存时间更低、InvAdj 更好，但 raw 明显变差；<code>2.5 / 6.0</code> 更适合作为 live monitored candidate。对应远端配置已经改成：</p>
+<div class="code-wrapper"><pre><code class="hljs yaml"><span class="hljs-attr">adverse_markout_threshold:</span> <span class="hljs-number">2.5</span>
+<span class="hljs-attr">adverse_markout_pause_threshold:</span> <span class="hljs-number">6.0</span>
+<span class="hljs-attr">adverse_spread_mult:</span> <span class="hljs-number">1.35</span></code></pre></div>
+<p>同一轮也训练了新的 <code>models/saved_btcusdc_daily_retrain_20260627</code>，但它没有晋级：成交数更高，raw/InvAdj 却明显更差。这反过来提醒我，maker 模型不是“越活跃越好”，很多时候更高的 fill count 只是更高频地接到了有毒流。</p>
 <h3 id="4-3-Compact-Context：从嵌套对象到固定字段-ABI"><a href="#4-3-Compact-Context：从嵌套对象到固定字段-ABI" class="headerlink" title="4.3 Compact Context：从嵌套对象到固定字段 ABI"></a>4.3 Compact Context：从嵌套对象到固定字段 ABI</h3><p>live 路径上最反直觉的一点是：把单个报价公式搬到 C++ 可能更慢。原因不是 C++ 慢，而是 Python/C++ 边界太重。</p>
 <p>早期路径接近这样：</p>
 <div class="code-wrapper"><pre><code class="hljs python">ctx = &#123;
@@ -2712,7 +2804,7 @@ E[\text{realized markout}\mid \text{same bucket}]</script><p>实操上我会把 
         <span class="hljs-keyword">and</span> summary.markout_bucket_direction_ok
         <span class="hljs-keyword">and</span> summary.inv_adj_delta &gt;= -small_tolerance
         <span class="hljs-keyword">and</span> summary.abs_inventory_time_delta &lt;= <span class="hljs-number">0</span>
-        <span class="hljs-keyword">and</span> summary.monthly_sign_stability_ok
+        <span class="hljs-keyword">and</span> summary.daily_rollup_stability_ok
     )</code></pre></div>
 <p>这不是说阈值永远不变，而是说必须有硬门槛。没有门槛的 shadow mode，很容易退化成“我又看了一张更漂亮的图”。</p>
 <h3 id="5-4-Python-C-胶水层：不是每-tick-传-JSON，而是一次传连续数组"><a href="#5-4-Python-C-胶水层：不是每-tick-传-JSON，而是一次传连续数组" class="headerlink" title="5.4 Python/C++ 胶水层：不是每 tick 传 JSON，而是一次传连续数组"></a>5.4 Python/C++ 胶水层：不是每 tick 传 JSON，而是一次传连续数组</h3><p>普通工程师最担心跨语言部分：Python 和 C++ 到底怎么一起工作？答案是：<strong>回测/batch 路径里，Python 负责 IO 和编排，C++ 负责一次调用内的状态机；不会每 tick 传 JSON。</strong></p>
@@ -2746,8 +2838,8 @@ summary + optional trace arrays back to Python</code></pre></div>
 <li>trace、diagnostics、DataFrame 构造回到 Python 冷路径。</li>
 </ul>
 <p>伪代码可以理解为：</p>
-<div class="code-wrapper"><pre><code class="hljs python">trades = load_trades_as_numpy(month)
-l2 = load_l2_as_numpy(month)
+<div class="code-wrapper"><pre><code class="hljs python">trades = load_trades_as_numpy(day)
+l2 = load_l2_as_numpy(day)
 params = build_cpp_params(config)
 
 result = narrowgate_cpp.simulate_tick_arrays(
