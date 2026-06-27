@@ -28,7 +28,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/quote-ladder.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/order-lifecycle.svg">
 <meta property="article:published_time" content="2026-06-19T08:50:48.000Z">
-<meta property="article:modified_time" content="2026-06-27T00:10:00.000Z">
+<meta property="article:modified_time" content="2026-06-27T00:35:00.000Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="C++">
 <meta property="article:tag" content="低延时">
@@ -208,7 +208,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      85k 字
+      84k 字
     </span>
   
 
@@ -217,7 +217,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      705 分钟
+      704 分钟
     </span>
   
 
@@ -2183,11 +2183,13 @@ Normalized NumPy arrays
 <p>所以双引擎 parity 的本质不是“我把 Python 翻译成 C++ 了”，而是建立一套制度：<strong>每次 C++ 多迁一个状态机，都必须先在小真实窗口里通过路径级和金额级审讯，然后才允许进入 sweep/A/B</strong>。</p>
 <h3 id="4-2-Side-Policy-的逐侧-pause：高波动先-widening，信息冲击才-pause"><a href="#4-2-Side-Policy-的逐侧-pause：高波动先-widening，信息冲击才-pause" class="headerlink" title="4.2 Side Policy 的逐侧 pause：高波动先 widening，信息冲击才 pause"></a>4.2 Side Policy 的逐侧 pause：高波动先 widening，信息冲击才 pause</h3><p>很多人一听到 “pause” 会理解成：市场波动大，所以不挂单。这个理解不够精确。</p>
 <p>在 NarrowGate 里，高波动首先应该由 AS/GLFT 或 regime spread 处理，也就是把 spread 拉宽：</p>
-<p>[<br>\delta<em>{\text{side}} =<br>\delta</em>{\text{base}}<br>\cdot m<em>{\text{vol}}<br>\cdot m</em>{\text{depth}}<br>\cdot m_{\text{toxicity}}</p>
-<ul>
-<li>\Delta_{\text{inventory}}<br>]</li>
-</ul>
-<p>如果只是 realized vol 高、盘口跳动快，但没有明显的方向性信息冲击，直接 pause 可能会把所有高 spread 补偿机会都关掉。因此 pause 更像“熔断某一侧暴露”的机制，主要看逐侧 adverse context，而不是看总波动。</p>
+<script type="math/tex; mode=display">
+\delta_{\text{side}} =
+\delta_{\text{base}}
+\cdot m_{\text{vol}}
+\cdot m_{\text{depth}}
+\cdot m_{\text{toxicity}}
++ \Delta_{\text{inventory}}</script><p>如果只是 realized vol 高、盘口跳动快，但没有明显的方向性信息冲击，直接 pause 可能会把所有高 spread 补偿机会都关掉。因此 pause 更像“熔断某一侧暴露”的机制，主要看逐侧 adverse context，而不是看总波动。</p>
 <p>核心判断可以写成人话：</p>
 <ul>
 <li><strong>widen</strong>：这一侧可能更危险，但还可以用更差的价格提供流动性；</li>
@@ -2394,10 +2396,15 @@ exchange REST/WebSocket</code></pre></div>
 <p>这样才能区分“成交概率模型太保守”和“策略根本没有挂出足够多订单”。前者是 queue/fill calibration，后者往往是 guard/pause/requote gating 的问题。</p>
 <h3 id="4-5-Shadow-Mode：在线校准比回测-PnL-更诚实"><a href="#4-5-Shadow-Mode：在线校准比回测-PnL-更诚实" class="headerlink" title="4.5 Shadow Mode：在线校准比回测 PnL 更诚实"></a>4.5 Shadow Mode：在线校准比回测 PnL 更诚实</h3><p>NarrowGate 不应该把 quote EV 直接从回测 A/B 推到 live。更合理的中间层是 shadow mode：实盘收行情，在线计算 quote、quote EV、side policy 和 would-place/would-fill，但不把它当成交易建议，也不把它当成真实成交承诺。</p>
 <p>shadow mode 的核心问题不是“预测收益是多少”，而是：</p>
-<p>[<br>P<em>{\text{model}}(\text{fill} \mid \text{quote context})<br>\quad \text{是否接近} \quad<br>P</em>{\text{observed}}(\text{fill} \mid \text{live context})<br>]</p>
-<p>以及：</p>
-<p>[<br>E[\text{markout}_{30s} \mid \text{predicted bucket}]<br>\quad \text{是否和} \quad<br>\text{realized markout bucket}<br>\quad \text{同向、同量级}<br>]</p>
-<p>需要看的不是一个 raw PnL 数字，而是一组校准表：</p>
+<script type="math/tex; mode=display">
+P_{\text{model}}(\text{fill} \mid \text{quote context})
+\quad \text{是否接近} \quad
+P_{\text{observed}}(\text{fill} \mid \text{live context})</script><p>以及：</p>
+<script type="math/tex; mode=display">
+E[\text{markout}_{30s} \mid \text{predicted bucket}]
+\quad \text{是否和} \quad
+\text{realized markout bucket}
+\quad \text{同向、同量级}</script><p>需要看的不是一个 raw PnL 数字，而是一组校准表：</p>
 <div class="table-container">
 <table>
 <thead>
@@ -2492,21 +2499,21 @@ exchange REST/WebSocket</code></pre></div>
 </thead>
 <tbody>
 <tr>
-<td>(\gamma)</td>
+<td><code>gamma</code></td>
 <td><code>strategy.gamma</code>，也会被库存比例和方向信号调整成 <code>g_eff</code></td>
 <td>库存 reservation price 偏移、基础 spread 项</td>
 <td><code>abs_inventory_time_s</code>、InvAdj、max inventory hit</td>
 </tr>
 <tr>
-<td>(\sigma^2)</td>
+<td><code>sigma_sq</code></td>
 <td>tick replay / live rolling variance；可与 LightGBM <code>vol_10s</code> 按 <code>vol_blend</code> 混合</td>
 <td><code>gamma * sigma_sq</code>，以及 regime spread scale</td>
 <td>spread&lt;100、cap hit、波动窗口下 markout</td>
 </tr>
 <tr>
-<td>(\kappa)</td>
+<td><code>kappa</code></td>
 <td><code>strategy.kappa</code> 或 <code>p3_kappa_eff</code>；可用 depth-kappa 根据近端深度调整</td>
-<td>(\log(1+\gamma/\kappa)) spread 项；(\kappa) 越小 spread 越宽</td>
+<td><code>log(1 + gamma / kappa)</code> spread 项；<code>kappa</code> 越小 spread 越宽</td>
 <td>fills/day、fills/order、queue calibration</td>
 </tr>
 <tr>
@@ -2578,7 +2585,7 @@ ask = ceil_tick(reservation + spread / <span class="hljs-number">2</span> * (<sp
 <li><strong>改变 policy gate</strong>：<code>tox_bid/ask</code>、markout EMA、microprice shift 影响 widen/shrink/pause；</li>
 <li><strong>改变风险读法</strong>：quote EV 与 shadow calibration 不直接替代 AS，而是判断某一侧 quote 是否值得继续提供流动性。</li>
 </ol>
-<p>实操调参时，不应该先问“哪个 (\gamma) PnL 最高”，而应该按顺序看：</p>
+<p>实操调参时，不应该先问“哪个 <code>gamma</code> PnL 最高”，而应该按顺序看：</p>
 <div class="code-wrapper"><pre><code class="hljs text">1. spread/cap sanity：spread&lt;100、cap hit、final spread distribution
 2. execution sanity：placed orders/day、fills/day、fills/order
 3. adverse sanity：1s/5s/30s maker-signed markout by side
@@ -2657,10 +2664,12 @@ ask = ceil_tick(reservation + spread / <span class="hljs-number">2</span> * (<sp
 </div>
 <p>如果 fills/day 低一个数量级，但 fills/order 与 live 接近，问题往往不是 queue，而是策略在回测里被 guard/pause 挡掉了太多 quote。这个区别非常关键。</p>
 <h3 id="5-3-Shadow-Mode-的硬-gate：方向对还不够，必须校准过关"><a href="#5-3-Shadow-Mode-的硬-gate：方向对还不够，必须校准过关" class="headerlink" title="5.3 Shadow Mode 的硬 gate：方向对还不够，必须校准过关"></a>5.3 Shadow Mode 的硬 gate：方向对还不够，必须校准过关</h3><p>Shadow mode 不是为了再看一个漂亮 PnL，而是为了回答：</p>
-<p>[<br>P<em>{\text{model}}(\text{fill}) \approx P</em>{\text{observed}}(\text{fill})<br>]</p>
-<p>以及：</p>
-<p>[<br>E[\text{markout}\mid \text{predicted bucket}]<br>\approx<br>E[\text{realized markout}\mid \text{same bucket}]<br>]</p>
-<p>实操上我会把 gate 分成四层：</p>
+<script type="math/tex; mode=display">
+P_{\text{model}}(\text{fill}) \approx P_{\text{observed}}(\text{fill})</script><p>以及：</p>
+<script type="math/tex; mode=display">
+E[\text{markout}\mid \text{predicted bucket}]
+\approx
+E[\text{realized markout}\mid \text{same bucket}]</script><p>实操上我会把 gate 分成四层：</p>
 <div class="table-container">
 <table>
 <thead>
@@ -2673,12 +2682,12 @@ ask = ceil_tick(reservation + spread / <span class="hljs-number">2</span> * (<sp
 <tbody>
 <tr>
 <td>样本量</td>
-<td style="text-align:right">每 side validation valid fills (\ge 100)，更理想是数百</td>
+<td style="text-align:right">每 side validation valid fills <code>&gt;= 100</code>，更理想是数百</td>
 <td>少于这个数，bucket calibration 很容易飘</td>
 </tr>
 <tr>
 <td>fill calibration</td>
-<td style="text-align:right">分桶 MAE (\le 0.05)</td>
+<td style="text-align:right">分桶 MAE <code>&lt;= 0.05</code></td>
 <td>预测 20% fill 的桶，真实 fill rate 不能长期是 5% 或 50%</td>
 </tr>
 <tr>
@@ -2914,9 +2923,9 @@ Python REST adapter</code></pre></div>
 </thead>
 <tbody>
 <tr>
-<td>动态 (\kappa) / (\Lambda(\delta)) 微观校准</td>
+<td>动态 <code>kappa</code> / <code>Lambda(delta)</code> 微观校准</td>
 <td>部分完成</td>
-<td>有 depth-kappa、P3 <code>kappa_eff</code> 和 general intensity hook，但 toxicity 主要进入 widen/pause policy，没有连续回写成 (\kappa_{\text{eff}}(\text{toxicity}))</td>
+<td>有 depth-kappa、P3 <code>kappa_eff</code> 和 general intensity hook，但 toxicity 主要进入 widen/pause policy，没有连续回写成 <code>kappa_eff(toxicity)</code></td>
 </tr>
 <tr>
 <td>极端尾部下的 toxicity 处理</td>
@@ -2951,19 +2960,20 @@ Python REST adapter</code></pre></div>
 </tbody>
 </table>
 </div>
-<h3 id="5-1-金融侧：AS-是坐标系，不是答案"><a href="#5-1-金融侧：AS-是坐标系，不是答案" class="headerlink" title="5.1 金融侧：AS 是坐标系，不是答案"></a>5.1 金融侧：AS 是坐标系，不是答案</h3><p>Avellaneda-Stoikov 给了一个非常有用的坐标系：</p>
-<p>[<br>r_t = S_t - q_t \gamma \sigma_t^2 (T-t)<br>]</p>
-<p>[<br>\delta^\ast \approx \frac{1}{\gamma}\log(1+\gamma/\kappa)<br>]</p>
-<p>但真正困难的是右边这些变量如何变成实时市场状态，而不是公式本身。</p>
-<p>当前 NarrowGate 对 (\kappa) 的处理有三层：</p>
+<h3 id="6-1-金融侧：AS-是坐标系，不是答案"><a href="#6-1-金融侧：AS-是坐标系，不是答案" class="headerlink" title="6.1 金融侧：AS 是坐标系，不是答案"></a>6.1 金融侧：AS 是坐标系，不是答案</h3><p>Avellaneda-Stoikov 给了一个非常有用的坐标系：</p>
+<script type="math/tex; mode=display">
+r_t = S_t - q_t \gamma \sigma_t^2 (T-t)</script><script type="math/tex; mode=display">
+\delta^\ast \approx \frac{1}{\gamma}\log(1+\gamma/\kappa)</script><p>但真正困难的是右边这些变量如何变成实时市场状态，而不是公式本身。</p>
+<p>当前 NarrowGate 对 <code>kappa</code> 的处理有三层：</p>
 <ol>
 <li>静态 <code>strategy.kappa</code> 作为 baseline；</li>
-<li><code>p3_kappa_eff</code> / general intensity 用历史 fill probability 拟合更一般的 (\Lambda(\delta))；</li>
-<li>depth-kappa 用近端盘口深度把 (\kappa) 做有限比例调整。</li>
+<li><code>p3_kappa_eff</code> / general intensity 用历史 fill probability 拟合更一般的 <code>Lambda(delta)</code>；</li>
+<li>depth-kappa 用近端盘口深度把 <code>kappa</code> 做有限比例调整。</li>
 </ol>
 <p>这还不等于“动态到达率已经被完全校准”。真正金融上更尖锐的问题是：</p>
-<p>[<br>\kappa_{\text{eff}}<br>= f(\text{depth}, \text{vol}, \text{toxicity}, \text{reference shock}, \text{latency floor})<br>]</p>
-<p>当市场发生信息冲击时，远端 quote 的成交概率可能不是指数衰减，而是突然变成“深价位也会被扫”。这时 (\kappa) 不是简单变大或变小，而是整条 (\Lambda(\delta)) 曲线形状改变。当前系统里 toxicity 更多是进入逐侧 policy：</p>
+<script type="math/tex; mode=display">
+\kappa_{\text{eff}}
+= f(\text{depth}, \text{vol}, \text{toxicity}, \text{reference shock}, \text{latency floor})</script><p>当市场发生信息冲击时，远端 quote 的成交概率可能不是指数衰减，而是突然变成“深价位也会被扫”。这时 <code>kappa</code> 不是简单变大或变小，而是整条 <code>Lambda(delta)</code> 曲线形状改变。当前系统里 toxicity 更多是进入逐侧 policy：</p>
 <div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-keyword">if</span> toxicity &gt;= toxicity_threshold:
     side_policy.spread_mult = <span class="hljs-built_in">max</span>(side_policy.spread_mult, widen_mult)
     side_policy.size_mult = <span class="hljs-built_in">min</span>(side_policy.size_mult, shrink_mult)
@@ -2972,13 +2982,18 @@ Python REST adapter</code></pre></div>
 <span class="hljs-keyword">if</span> side_adverse_pause:
     side_policy.allow_post = <span class="hljs-literal">False</span></code></pre></div>
 <p>也就是说，当前实现更像：</p>
-<p>[<br>\text{toxicity} \rightarrow<br>{\text{widen}, \text{shrink}, \text{pause}}<br>]</p>
-<p>而不是：</p>
-<p>[<br>\text{toxicity} \rightarrow<br>\kappa_{\text{eff}} \rightarrow \delta^\ast<br>]</p>
-<p>这是一条明确的未完成边界。未来如果要真正“搞定 AS 坐标系”，需要让 toxicity、reference shock 和 live fill calibration 共同形变 (\Lambda(\delta))，并要求变形后的曲线能通过 shadow fill probability calibration，而不只是让某个月 A/B 的 raw PnL 变好。</p>
-<h3 id="5-2-库存终局：被动斜率不是万能退出路径"><a href="#5-2-库存终局：被动斜率不是万能退出路径" class="headerlink" title="5.2 库存终局：被动斜率不是万能退出路径"></a>5.2 库存终局：被动斜率不是万能退出路径</h3><p>库存控制现在已经比早期完整很多。系统会记录：</p>
-<p>[<br>\int |q_t|\,dt,\quad<br>\int q_t\,dt,\quad<br>\int q_t^2\,dt,\quad<br>\int |q_t|S_t\,dt<br>]</p>
-<p>这让 A/B 不只比较 raw PnL，还能比较“赚这点 PnL 占用了多少库存时间”。但这仍然不是库存终局。</p>
+<script type="math/tex; mode=display">
+\text{toxicity} \rightarrow
+\{\text{widen}, \text{shrink}, \text{pause}\}</script><p>而不是：</p>
+<script type="math/tex; mode=display">
+\text{toxicity} \rightarrow
+\kappa_{\text{eff}} \rightarrow \delta^\ast</script><p>这是一条明确的未完成边界。未来如果要真正“搞定 AS 坐标系”，需要让 toxicity、reference shock 和 live fill calibration 共同形变 <code>Lambda(delta)</code>，并要求变形后的曲线能通过 shadow fill probability calibration，而不只是让某个月 A/B 的 raw PnL 变好。</p>
+<h3 id="6-2-库存终局：被动斜率不是万能退出路径"><a href="#6-2-库存终局：被动斜率不是万能退出路径" class="headerlink" title="6.2 库存终局：被动斜率不是万能退出路径"></a>6.2 库存终局：被动斜率不是万能退出路径</h3><p>库存控制现在已经比早期完整很多。系统会记录：</p>
+<script type="math/tex; mode=display">
+\int |q_t|\,dt,\quad
+\int q_t\,dt,\quad
+\int q_t^2\,dt,\quad
+\int |q_t|S_t\,dt</script><p>这让 A/B 不只比较 raw PnL，还能比较“赚这点 PnL 占用了多少库存时间”。但这仍然不是库存终局。</p>
 <p>做市系统真正被打穿时，reservation price 的斜率可能已经不够。举例说，当库存接近 <code>max_inventory</code>，且市场继续沿不利方向重定价时，继续靠“少挂增加库存的一侧、多挂减少库存的一侧”来恢复，可能会遇到两个问题：</p>
 <ul>
 <li>减仓一侧一直排不到队；</li>
@@ -2998,12 +3013,16 @@ BTCUSDT perp / spot taker hedge
         v
 residual basis + inventory budget update</code></pre></div>
 <p>如果站在资金效率和风险终局看，下一阶段应该研究的是：</p>
-<p>[<br>\text{expected hedge cost}<br>&lt;<br>\text{expected inventory tail loss}<br>]</p>
-<p>只有当主动瘦身成本、basis risk、taker fee、延迟和残余库存都进入同一张账，库存控制才从“被动做市参数”变成“风险闭环”。当前项目还没有走到这里。</p>
-<h3 id="5-3-多市场-reference：有信息不等于能赚钱"><a href="#5-3-多市场-reference：有信息不等于能赚钱" class="headerlink" title="5.3 多市场 reference：有信息不等于能赚钱"></a>5.3 多市场 reference：有信息不等于能赚钱</h3><p>BTCUSDT perp、BTCUSDT spot、BTCUSDC spot 确实有信息量。source audit 和 shock attribution 都显示：很多 adverse fills 能被 BTCUSDT reference move 解释，spot adverse return 也有增量信号。</p>
+<script type="math/tex; mode=display">
+\text{expected hedge cost}
+<
+\text{expected inventory tail loss}</script><p>只有当主动瘦身成本、basis risk、taker fee、延迟和残余库存都进入同一张账，库存控制才从“被动做市参数”变成“风险闭环”。当前项目还没有走到这里。</p>
+<h3 id="6-3-多市场-reference：有信息不等于能赚钱"><a href="#6-3-多市场-reference：有信息不等于能赚钱" class="headerlink" title="6.3 多市场 reference：有信息不等于能赚钱"></a>6.3 多市场 reference：有信息不等于能赚钱</h3><p>BTCUSDT perp、BTCUSDT spot、BTCUSDC spot 确实有信息量。source audit 和 shock attribution 都显示：很多 adverse fills 能被 BTCUSDT reference move 解释，spot adverse return 也有增量信号。</p>
 <p>但这不是最终答案。真正的问题是 reference 信号的时效性：</p>
-<p>[<br>\Delta t<em>{\text{lead-lag}}<br>\quad \text{vs} \quad<br>\Delta t</em>{\text{network}} + \Delta t<em>{\text{decision}} + \Delta t</em>{\text{exchange}}<br>]</p>
-<p>如果 reference 的重定价领先本地执行市场 50ms，而你的端到端反应是 5ms，这个信号可能有执行价值；如果 reference 已经在 0.5ms 内传导完，本地 quote 看到它时，只是在看一个滞后指标。此时统一打开 <code>multi_market</code> 可能不是增强模型，而是把“已经被吸收的流动性冲击”和“真正的信息冲击”混在一起，导致该接的流动性不接、该躲的信息冲击又躲不掉。</p>
+<script type="math/tex; mode=display">
+\Delta t_{\text{lead-lag}}
+\quad \text{vs} \quad
+\Delta t_{\text{network}} + \Delta t_{\text{decision}} + \Delta t_{\text{exchange}}</script><p>如果 reference 的重定价领先本地执行市场 50ms，而你的端到端反应是 5ms，这个信号可能有执行价值；如果 reference 已经在 0.5ms 内传导完，本地 quote 看到它时，只是在看一个滞后指标。此时统一打开 <code>multi_market</code> 可能不是增强模型，而是把“已经被吸收的流动性冲击”和“真正的信息冲击”混在一起，导致该接的流动性不接、该躲的信息冲击又躲不掉。</p>
 <p>当前 NarrowGate 对这个问题的回答是 partial：</p>
 <ul>
 <li>已经把 <code>multi_market.enabled</code> 从“收益开关”降级为“需要被审计的 source 条件变量”；</li>
@@ -3012,7 +3031,7 @@ residual basis + inventory budget update</code></pre></div>
 <li>但没有独立 venue 的原始毫秒/微秒级数据，因此不能验证真正的 cross-venue lead-lag 和 latency arbitrage。</li>
 </ul>
 <p>换句话说，现在能说的是：<strong>Binance 内部多源数据有解释力，但不能证明它形成了可执行的多 venue alpha</strong>。</p>
-<h3 id="5-4-系统侧：C-replay-很强，live-架构还不是终局"><a href="#5-4-系统侧：C-replay-很强，live-架构还不是终局" class="headerlink" title="5.4 系统侧：C++ replay 很强，live 架构还不是终局"></a>5.4 系统侧：C++ replay 很强，live 架构还不是终局</h3><p>工程侧完成度更高，但也要分清 offline 和 live。</p>
+<h3 id="6-4-系统侧：C-replay-很强，live-架构还不是终局"><a href="#6-4-系统侧：C-replay-很强，live-架构还不是终局" class="headerlink" title="6.4 系统侧：C++ replay 很强，live 架构还不是终局"></a>6.4 系统侧：C++ replay 很强，live 架构还不是终局</h3><p>工程侧完成度更高，但也要分清 offline 和 live。</p>
 <p>已经比较扎实的是：</p>
 <ul>
 <li>Python/C++ 双引擎 replay parity；</li>
@@ -3059,9 +3078,9 @@ order gateway thread</code></pre></div>
 <li><strong>边界收紧</strong>：让 live hot path 中稳定的小决策包更少依赖 Python 动态对象。</li>
 </ol>
 <p>但它确实说明：不能把当前项目包装成“完整 HFT live stack”。更诚实的定位是：<strong>一个带有 native replay/hot-path 原型的 maker 研究系统</strong>。</p>
-<h3 id="5-5-下一阶段真正值得做的事"><a href="#5-5-下一阶段真正值得做的事" class="headerlink" title="5.5 下一阶段真正值得做的事"></a>5.5 下一阶段真正值得做的事</h3><p>如果继续往“金融大牛和系统大牛都会认可”的方向推进，下一阶段不是再加一个模型，而是补四个闭环：</p>
+<h3 id="6-5-下一阶段真正值得做的事"><a href="#6-5-下一阶段真正值得做的事" class="headerlink" title="6.5 下一阶段真正值得做的事"></a>6.5 下一阶段真正值得做的事</h3><p>如果继续往“金融大牛和系统大牛都会认可”的方向推进，下一阶段不是再加一个模型，而是补四个闭环：</p>
 <ol>
-<li><strong>动态 (\Lambda(\delta)) 闭环</strong>：用 live/shadow fill calibration，把 depth、toxicity、reference shock 映射到整条到达率曲线，而不是只做 widen/pause。</li>
+<li><strong>动态 <code>Lambda(delta)</code> 闭环</strong>：用 live/shadow fill calibration，把 depth、toxicity、reference shock 映射到整条到达率曲线，而不是只做 widen/pause。</li>
 <li><strong>主动瘦身闭环</strong>：设计 BTCUSDT perp/spot hedge simulator，把 hedge cost、basis risk、taker fee 和 inventory tail loss 放进同一张账。</li>
 <li><strong>真实 multi-venue lead-lag 闭环</strong>：接入独立 venue 原始盘口/逐笔数据，验证 reference 信号是否早于本地可执行窗口。</li>
 <li><strong>live threading 闭环</strong>：把 WebSocket decode、rolling state、quote decision 和 order gateway 分层，至少用 SPSC ring + pinned strategy thread 做一次 x86 p99/p99.9 对照。</li>
