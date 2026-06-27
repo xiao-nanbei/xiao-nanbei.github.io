@@ -208,7 +208,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      60k 字
+      70k 字
     </span>
   
 
@@ -217,7 +217,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      503 分钟
+      585 分钟
     </span>
   
 
@@ -2101,6 +2101,377 @@ iTLB-loads,iTLB-load-misses \
 <li>单个公式迁到 C++ 很容易被 pybind、dict、dataclass 和日志对象物化反噬；稳定、高频、低基数的决策包才适合 native。</li>
 <li>热路径目标是最小且可预测的指令工作集，而不是让整个 <code>.so</code> 塞进 L1I。</li>
 <li>ARM 本机 microbench、offline sweep 加速、x86 live p99/p99.9 是三种不同证据，不能互相替代。</li>
+</ul>
+</blockquote>
+<h2 id="4-五个读者一定会追问的实现细节"><a href="#4-五个读者一定会追问的实现细节" class="headerlink" title="4. 五个读者一定会追问的实现细节"></a>4. 五个读者一定会追问的实现细节</h2><p>前面把 NarrowGate 的算法假设、数据问题、C++ 边界和 live hot path 都展开了。但如果我是读者，尤其是做过低延迟回放或交易系统的人，读到这里还会继续追问：你说“双引擎 parity”，到底怎么对齐？你说“逐侧 pause”，到底看什么动态量？你说 compact context，具体从什么对象变成什么 ABI？你说 queue ahead，到底有没有承认自己看不见真实队列？你说 shadow mode，回测里的 fill probability 在实盘行情里有没有崩？</p>
+<p>这一节专门回答这些“抓到深处”的问题。</p>
+<h3 id="4-1-双引擎-parity：不是相信-C-，而是让-C-持续被-Python-审讯"><a href="#4-1-双引擎-parity：不是相信-C-，而是让-C-持续被-Python-审讯" class="headerlink" title="4.1 双引擎 parity：不是相信 C++，而是让 C++ 持续被 Python 审讯"></a>4.1 双引擎 parity：不是相信 C++，而是让 C++ 持续被 Python 审讯</h3><p>Python/C++ 双引擎最容易做成两套系统：Python 负责研究，C++ 负责速度，最后两个结果不一样，却不知道是策略变了、浮点误差、时间戳 as-of 边界，还是 C++ 少实现了一个 guard。</p>
+<p>NarrowGate 里我采用的原则是：<strong>Python 仍然是研究口径的 reference implementation，C++ 必须在同一批 normalized arrays 上被持续审讯</strong>。</p>
+<p>这里的 “parity” 不等于所有浮点数 bitwise 完全一致。tick replay 里有成交价、PnL、markout、inventory time、rounding、latency gate 等连续变量，要求 bitwise 一致反而会把工程带偏。真正重要的是三层断言：</p>
+<ol>
+<li><strong>路径级断言</strong>：fill 数、bid/ask split、最终库存、订单状态迁移、trace 行数必须一致或可解释；</li>
+<li><strong>金额级断言</strong>：PnL、InvAdj、inventory time、spread summary 用很小 tolerance 对齐；</li>
+<li><strong>边界级断言</strong>：NaN、缺盘口、长 gap、pending cancel fill、同 timestamp 多事件排序必须 fail fast 或有显式规则。</li>
+</ol>
+<p>整个流程可以概括成这样：</p>
+<div class="code-wrapper"><pre><code class="hljs text">Parquet/CSV/raw logs
+        |
+        v
+Python loader: timezone, int64 timestamp, tick/lot rounding, bad segment mask
+        |
+        v
+Normalized NumPy arrays
+        |
+        +--------------------+
+        |                    |
+        v                    v
+ Python replay          C++ replay
+ reference              strict engine
+        |                    |
+        +---------+----------+
+                  v
+        summary + trace comparator</code></pre></div>
+<p>伪代码大概是：</p>
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">assert_replay_parity</span>(<span class="hljs-params">window, params</span>):</span>
+    arrays = load_window_as_arrays(
+        window,
+        timestamp_dtype=<span class="hljs-string">&quot;int64_ms&quot;</span>,
+        price_dtype=<span class="hljs-string">&quot;float64&quot;</span>,
+        drop_bad_quality_segments=<span class="hljs-literal">True</span>,
+    )
+
+    py = simulate_tick_python(arrays, params)
+    cpp = simulate_tick_cpp(arrays, params, strict=<span class="hljs-literal">True</span>)
+
+    <span class="hljs-comment"># 路径级：这些不应该靠 tolerance 蒙混过关。</span>
+    <span class="hljs-keyword">for</span> key <span class="hljs-keyword">in</span> [
+        <span class="hljs-string">&quot;fills_total&quot;</span>,
+        <span class="hljs-string">&quot;fills_bid&quot;</span>,
+        <span class="hljs-string">&quot;fills_ask&quot;</span>,
+        <span class="hljs-string">&quot;final_inventory&quot;</span>,
+        <span class="hljs-string">&quot;n_requotes&quot;</span>,
+        <span class="hljs-string">&quot;trace_rows&quot;</span>,
+    ]:
+        <span class="hljs-keyword">assert</span> py[key] == cpp[key], key
+
+    <span class="hljs-comment"># 金额级：允许浮点末位误差，但不允许经济含义变化。</span>
+    <span class="hljs-keyword">for</span> key <span class="hljs-keyword">in</span> [
+        <span class="hljs-string">&quot;raw_pnl&quot;</span>,
+        <span class="hljs-string">&quot;inventory_adjusted_pnl&quot;</span>,
+        <span class="hljs-string">&quot;abs_inventory_time_s&quot;</span>,
+        <span class="hljs-string">&quot;avg_final_spread_bps&quot;</span>,
+    ]:
+        np.testing.assert_allclose(
+            py[key],
+            cpp[key],
+            rtol=<span class="hljs-number">1e-8</span>,
+            atol=<span class="hljs-number">1e-8</span>,
+            err_msg=key,
+        )</code></pre></div>
+<p>这里踩过的坑很多，而且大多不是 C++ 语法问题：</p>
+<ul>
+<li><strong>时间戳必须是整数</strong>：不要在 hot loop 里用 float seconds。Binance、CryptoHFTData、内部日志可能混用毫秒、微秒和 ISO 字符串，先统一到 <code>int64</code>。</li>
+<li><strong>as-of 边界必须一致</strong>：Python <code>searchsorted(..., side=&quot;right&quot;) - 1</code> 和 C++ <code>upper_bound - 1</code> 要写成同一条规则，否则刚好落在 book update timestamp 上的订单会错一格盘口。</li>
+<li><strong>tick rounding 必须单点定义</strong>：<code>floor</code>、<code>ceil</code>、<code>round</code> 在买卖两侧含义不同，不能 Python 一套、C++ 一套。</li>
+<li><strong>NaN 不能“顺手补 0”</strong>：spot/reference/orderbook 缺失时，应该进入 quality mask 或 segment reset，而不是让 C++ 默认值悄悄参与训练和回放。</li>
+<li><strong>pending cancel fill 要显式建模</strong>：订单发出 cancel 后，在 cancel latency 到达前仍可能成交。Python 如果已经把它当撤单、C++ 还把它当 live order，fill path 会马上分叉。</li>
+<li><strong>模块来源要 strict</strong>：两个项目都叫 <code>narrowgate_cpp</code> 时，同一个 venv 可能 import 到另一个 repo 的扩展。strict 模式下必须检查 <code>narrowgate_cpp.__file__</code>、字段 shape 和 ABI version。</li>
+</ul>
+<p>所以双引擎 parity 的本质不是“我把 Python 翻译成 C++ 了”，而是建立一套制度：<strong>每次 C++ 多迁一个状态机，都必须先在小真实窗口里通过路径级和金额级审讯，然后才允许进入 sweep/A/B</strong>。</p>
+<h3 id="4-2-Side-Policy-的逐侧-pause：高波动先-widening，信息冲击才-pause"><a href="#4-2-Side-Policy-的逐侧-pause：高波动先-widening，信息冲击才-pause" class="headerlink" title="4.2 Side Policy 的逐侧 pause：高波动先 widening，信息冲击才 pause"></a>4.2 Side Policy 的逐侧 pause：高波动先 widening，信息冲击才 pause</h3><p>很多人一听到 “pause” 会理解成：市场波动大，所以不挂单。这个理解不够精确。</p>
+<p>在 NarrowGate 里，高波动首先应该由 AS/GLFT 或 regime spread 处理，也就是把 spread 拉宽：</p>
+<p>[<br>\delta<em>{\text{side}} =<br>\delta</em>{\text{base}}<br>\cdot m<em>{\text{vol}}<br>\cdot m</em>{\text{depth}}<br>\cdot m_{\text{toxicity}}</p>
+<ul>
+<li>\Delta_{\text{inventory}}<br>]</li>
+</ul>
+<p>如果只是 realized vol 高、盘口跳动快，但没有明显的方向性信息冲击，直接 pause 可能会把所有高 spread 补偿机会都关掉。因此 pause 更像“熔断某一侧暴露”的机制，主要看逐侧 adverse context，而不是看总波动。</p>
+<p>核心判断可以写成人话：</p>
+<ul>
+<li><strong>widen</strong>：这一侧可能更危险，但还可以用更差的价格提供流动性；</li>
+<li><strong>pause</strong>：这一侧成交后大概率是接信息风险，继续挂单没有意义；</li>
+<li><strong>cooldown</strong>：市场刚打过这一侧，短时间内不急着恢复；</li>
+<li><strong>decay</strong>：如果很久没有新证据，旧的 adverse 不能永久锁死策略。</li>
+</ul>
+<p>一个更接近当前策略口径的简化伪代码是：</p>
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">update_side_pause</span>(<span class="hljs-params">side, now, fill_markout_bps, state</span>):</span>
+    dt = now - state.last_update_ts
+
+    <span class="hljs-comment"># wall-clock decay：坏日、长 gap、静默行情后不能让旧 markout 永久锁死。</span>
+    state.markout_ema *= math.exp(-dt / state.tau_s)
+
+    <span class="hljs-keyword">if</span> fill_markout_bps <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
+        state.markout_ema = (
+            state.alpha * fill_markout_bps
+            + (<span class="hljs-number">1.0</span> - state.alpha) * state.markout_ema
+        )
+
+    <span class="hljs-keyword">if</span> state.markout_ema &lt; -state.pause_threshold_bps:
+        extra = state.base_pause_s * <span class="hljs-built_in">abs</span>(state.markout_ema) / state.pause_threshold_bps
+        state.pause_until = now + clamp(extra, state.min_pause_s, state.max_pause_s)
+
+    <span class="hljs-keyword">return</span> now &lt; state.pause_until</code></pre></div>
+<p>在策略层面还要区分“增加库存风险的一侧”和“降低库存风险的一侧”：</p>
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">is_exposure_increasing</span>(<span class="hljs-params">side, inventory</span>):</span>
+    <span class="hljs-keyword">if</span> side == <span class="hljs-string">&quot;bid&quot;</span>:
+        <span class="hljs-keyword">return</span> inventory &gt;= <span class="hljs-number">0.0</span>      <span class="hljs-comment"># 继续买入会加大 long 暴露</span>
+    <span class="hljs-keyword">if</span> side == <span class="hljs-string">&quot;ask&quot;</span>:
+        <span class="hljs-keyword">return</span> inventory &lt;= <span class="hljs-number">0.0</span>      <span class="hljs-comment"># 继续卖出会加大 short 暴露</span></code></pre></div>
+<p>因此 side policy 不是一个全局开关，而是一个逐侧、逐库存方向、逐市场状态的 gate：</p>
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-keyword">if</span> vol_high:
+    quote.spread *= vol_spread_multiplier
+
+<span class="hljs-keyword">if</span> side_toxic <span class="hljs-keyword">and</span> exposure_increasing:
+    quote.allow_post = <span class="hljs-literal">False</span>
+    quote.reason = <span class="hljs-string">&quot;ADVERSE_SIDE_PAUSE&quot;</span>
+<span class="hljs-keyword">elif</span> side_toxic:
+    quote.spread *= adverse_widen_multiplier
+
+<span class="hljs-keyword">if</span> local_extreme_against_side <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> inventory_reducing:
+    quote.allow_post = <span class="hljs-literal">False</span>
+    quote.reason = <span class="hljs-string">&quot;DEFENSE_GUARD&quot;</span></code></pre></div>
+<p>所以，高波动不必然 pause；pause 专门针对“这侧成交之后的 markout/毒性证据已经不能靠 spread 补偿”的状态。否则策略会把 volatility risk 和 information risk 混为一谈。</p>
+<h3 id="4-3-Compact-Context：从嵌套对象到固定字段-ABI"><a href="#4-3-Compact-Context：从嵌套对象到固定字段-ABI" class="headerlink" title="4.3 Compact Context：从嵌套对象到固定字段 ABI"></a>4.3 Compact Context：从嵌套对象到固定字段 ABI</h3><p>live 路径上最反直觉的一点是：把单个报价公式搬到 C++ 可能更慢。原因不是 C++ 慢，而是 Python/C++ 边界太重。</p>
+<p>早期路径接近这样：</p>
+<div class="code-wrapper"><pre><code class="hljs python">ctx = &#123;
+    <span class="hljs-string">&quot;config&quot;</span>: asdict(config),
+    <span class="hljs-string">&quot;state&quot;</span>: asdict(engine_state),
+    <span class="hljs-string">&quot;inventory&quot;</span>: asdict(inventory_state),
+    <span class="hljs-string">&quot;prediction&quot;</span>: prediction_dict,
+    <span class="hljs-string">&quot;book&quot;</span>: &#123;
+        <span class="hljs-string">&quot;best_bid&quot;</span>: best_bid,
+        <span class="hljs-string">&quot;best_ask&quot;</span>: best_ask,
+        <span class="hljs-string">&quot;depth&quot;</span>: [&#123;<span class="hljs-string">&quot;price&quot;</span>: p, <span class="hljs-string">&quot;qty&quot;</span>: q&#125; <span class="hljs-keyword">for</span> p, q <span class="hljs-keyword">in</span> levels],
+    &#125;,
+&#125;
+
+result = narrowgate_cpp.compute_quote(ctx)</code></pre></div>
+<p>这看起来很灵活，但在 live hot path 里会反复制造这些成本：</p>
+<ul>
+<li><code>asdict()</code> 深拷贝；</li>
+<li>字符串 key 查找；</li>
+<li>Python list/dict/object materialization；</li>
+<li>pybind 再把动态对象解析成 C++ 类型；</li>
+<li>C++ 算完以后再组一个 Python dict 返回。</li>
+</ul>
+<p>Compact Context 的方向不是“把所有东西都迁到 C++”，而是把边界变成固定字段 ABI：</p>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">CompactMarketView</span> &#123;</span>
+    <span class="hljs-keyword">double</span> mid;
+    <span class="hljs-keyword">double</span> best_bid;
+    <span class="hljs-keyword">double</span> best_ask;
+    std::span&lt;<span class="hljs-keyword">const</span> DepthLevel&gt; bids;
+    std::span&lt;<span class="hljs-keyword">const</span> DepthLevel&gt; asks;
+&#125;;
+
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">CompactInventoryView</span> &#123;</span>
+    <span class="hljs-keyword">double</span> position;
+    <span class="hljs-keyword">double</span> abs_inventory_time_s;
+    <span class="hljs-keyword">double</span> signed_inventory_time_s;
+&#125;;
+
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">CompactPredictionView</span> &#123;</span>
+    <span class="hljs-keyword">double</span> ret_1s_bps;
+    <span class="hljs-keyword">double</span> ret_5s_bps;
+    <span class="hljs-keyword">double</span> toxicity;
+    <span class="hljs-keyword">double</span> vol_bps;
+    <span class="hljs-keyword">double</span> ref_move_bps;
+&#125;;
+
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">CompactRoutingResult</span> &#123;</span>
+    <span class="hljs-keyword">double</span> bid_px;
+    <span class="hljs-keyword">double</span> ask_px;
+    <span class="hljs-keyword">double</span> bid_qty;
+    <span class="hljs-keyword">double</span> ask_qty;
+    <span class="hljs-keyword">bool</span> can_bid;
+    <span class="hljs-keyword">bool</span> can_ask;
+    <span class="hljs-keyword">uint32_t</span> bid_reason_mask;
+    <span class="hljs-keyword">uint32_t</span> ask_reason_mask;
+&#125;;</code></pre></div>
+<p>Python 侧则只传固定顺序的 tuple/array 和已经缓存的 native config：</p>
+<div class="code-wrapper"><pre><code class="hljs python">market = (
+    mid,
+    best_bid,
+    best_ask,
+    bid_prices_view,
+    bid_qtys_view,
+    ask_prices_view,
+    ask_qtys_view,
+)
+
+state = (
+    inventory,
+    abs_inventory_time_s,
+    signed_inventory_time_s,
+    bid_markout_ema,
+    ask_markout_ema,
+    bid_pause_until,
+    ask_pause_until,
+)
+
+pred = (
+    ret_1s_bps,
+    ret_5s_bps,
+    toxicity,
+    vol_bps,
+    ref_move_bps,
+)
+
+decision = cpp_live_routing(native_cfg, market, state, pred)</code></pre></div>
+<p>架构上是：</p>
+<div class="code-wrapper"><pre><code class="hljs text">WebSocket / REST / logging
+        |
+        | 仍然留在 Python
+        v
+Python normalized event state
+        |
+        | fixed tuple / array / span-like views
+        v
+C++ quote + side policy + routing bundle
+        |
+        | compact result: price, size, can_post, reason_mask
+        v
+Python order adapter
+        |
+        v
+exchange REST/WebSocket</code></pre></div>
+<p>这样做的收益不是“C++ 数学快了多少”，而是减少边界上的动态对象。前面的 live benchmark 里也能看到这个现象：原始 routing 桥接大约是 <code>6us</code> 级别，compact ABI 后可以压到亚微秒级；但如果只把 scalar quote core 单独搬过去，pybind/dataclass 往返会把收益吃掉，甚至变慢。</p>
+<p>这也是为什么 WebSocket 不急着迁 C++。行情接收、日志、健康检查、REST adapter 都不是最值得先动的地方。真正应该收紧的是 WebSocket 上方、下单 adapter 下方的这一小段：<strong>rolling state -&gt; quote -&gt; policy -&gt; route decision</strong>。</p>
+<h3 id="4-4-Queue-Ahead：保守地承认自己看不见的队列"><a href="#4-4-Queue-Ahead：保守地承认自己看不见的队列" class="headerlink" title="4.4 Queue Ahead：保守地承认自己看不见的队列"></a>4.4 Queue Ahead：保守地承认自己看不见的队列</h3><p>bar 回测最容易自欺欺人的地方是：只要下一根 bar 的 low/high 碰到我的价格，就认为成交。maker 策略里这几乎一定会高估结果，因为真实世界里还有队列。</p>
+<p>NarrowGate 的 tick replay 更保守：价格碰到只是必要条件，不是充分条件。订单进入盘口后，需要估计自己前面的 queue ahead，然后用后续 aggressive trade 去消耗这个 queue。</p>
+<p>简化逻辑如下：</p>
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">activate_order</span>(<span class="hljs-params">side, quote_px, activation_ts, l2_book</span>):</span>
+    level_qty = l2_book.visible_qty_at(quote_px, activation_ts)
+
+    <span class="hljs-keyword">if</span> level_qty <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
+        <span class="hljs-comment"># 保守假设：自己排在当前可见 level 的后面。</span>
+        queue_left = level_qty
+    <span class="hljs-keyword">else</span>:
+        <span class="hljs-comment"># 没有可靠 L2 时，用距离 mid 的衰减模型兜底。</span>
+        distance = <span class="hljs-built_in">abs</span>(quote_px - mid_at(activation_ts))
+        queue_left = queue_base * math.exp(-queue_decay * distance)
+
+    <span class="hljs-keyword">return</span> LiveOrder(side=side, price=quote_px, queue_left=queue_left)
+
+
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">process_trade</span>(<span class="hljs-params">order, trade</span>):</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> trade_crosses_order(trade, order):
+        <span class="hljs-keyword">return</span>
+
+    aggress_qty = trade.qty
+
+    <span class="hljs-comment"># 先消耗排在我前面的可见队列。</span>
+    consumed_ahead = <span class="hljs-built_in">min</span>(order.queue_left, aggress_qty)
+    order.queue_left -= consumed_ahead
+    aggress_qty -= consumed_ahead
+
+    <span class="hljs-comment"># 只有 queue ahead 被打穿后，剩余 aggressive qty 才可能打到我。</span>
+    <span class="hljs-keyword">if</span> order.queue_left &lt;= <span class="hljs-number">0.0</span> <span class="hljs-keyword">and</span> aggress_qty &gt; <span class="hljs-number">0.0</span>:
+        fill_qty = <span class="hljs-built_in">min</span>(order.remaining_qty, aggress_qty)
+        fill(order, fill_qty)</code></pre></div>
+<p>这当然仍然不是“真实交易所撮合队列”。历史 Top-N 深度看不到三件事：</p>
+<ul>
+<li>这个 level 内部每个订单的真实排队顺序；</li>
+<li>其他参与者在你前面的撤单；</li>
+<li>你的订单到达交易所前，level 已经变化了多少。</li>
+</ul>
+<p>所以“不自欺欺人”的做法不是假装知道这些，而是把不可观测部分分成两类：</p>
+<ol>
+<li><strong>保守规则</strong>：默认排在可见 level 后面，不因为看见 level 变小就自动认为前面的人都撤了；</li>
+<li><strong>校准参数</strong>：用 live/order log 反推 queue model、new/cancel latency、fill gate，让回放的 placed orders/day、fills/day、side split 和 live 同数量级。</li>
+</ol>
+<p>如果只用 Top-N L2，queue ahead 永远是估计值，而不是事实。因此 replay 结果要同时报告：</p>
+<ul>
+<li>placed orders/day；</li>
+<li>fills/day；</li>
+<li>fills / placed order；</li>
+<li>cap/guard/pause rate；</li>
+<li>active-trade-day fills；</li>
+<li>quality-day fills；</li>
+<li>full-calendar-day fills。</li>
+</ul>
+<p>这样才能区分“成交概率模型太保守”和“策略根本没有挂出足够多订单”。前者是 queue/fill calibration，后者往往是 guard/pause/requote gating 的问题。</p>
+<h3 id="4-5-Shadow-Mode：在线校准比回测-PnL-更诚实"><a href="#4-5-Shadow-Mode：在线校准比回测-PnL-更诚实" class="headerlink" title="4.5 Shadow Mode：在线校准比回测 PnL 更诚实"></a>4.5 Shadow Mode：在线校准比回测 PnL 更诚实</h3><p>NarrowGate 不应该把 quote EV 直接从回测 A/B 推到 live。更合理的中间层是 shadow mode：实盘收行情，在线计算 quote、quote EV、side policy 和 would-place/would-fill，但不把它当成交易建议，也不把它当成真实成交承诺。</p>
+<p>shadow mode 的核心问题不是“预测收益是多少”，而是：</p>
+<p>[<br>P<em>{\text{model}}(\text{fill} \mid \text{quote context})<br>\quad \text{是否接近} \quad<br>P</em>{\text{observed}}(\text{fill} \mid \text{live context})<br>]</p>
+<p>以及：</p>
+<p>[<br>E[\text{markout}_{30s} \mid \text{predicted bucket}]<br>\quad \text{是否和} \quad<br>\text{realized markout bucket}<br>\quad \text{同向、同量级}<br>]</p>
+<p>需要看的不是一个 raw PnL 数字，而是一组校准表：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Shadow 检查</th>
+<th>说明</th>
+<th>如果失败</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>fill probability calibration</td>
+<td>预测的 <code>P(fill)</code> 分桶后，真实/可回放 fill rate 是否接近</td>
+<td>quote EV 只能做排序，不能做阈值</td>
+</tr>
+<tr>
+<td>realized-vs-pred markout</td>
+<td>高 EV bucket 是否真的有更好 markout</td>
+<td>EV label 或 feature 泄漏/错配</td>
+</tr>
+<tr>
+<td>placed orders/day</td>
+<td>shadow/replay 是否和 live 同数量级</td>
+<td>guard/pause/requote gating 不一致</td>
+</tr>
+<tr>
+<td>fills / placed order</td>
+<td>每个挂单的成交概率是否接近 live</td>
+<td>queue ahead 或 latency floor 不对</td>
+</tr>
+<tr>
+<td>side split</td>
+<td>bid/ask fill 是否失衡</td>
+<td>side policy 或库存压力错误</td>
+</tr>
+<tr>
+<td>inventory time</td>
+<td>正 edge 是否靠堆库存换来</td>
+<td>风险调整后不可用</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>实盘里很常见的情况是：回测看起来排到了，live 却因为 latency floor 根本没进入同一个队列位置。这个问题不能用“C++ 更快”简单解决，因为它通常来自三层延迟：</p>
+<ul>
+<li>行情到达本机的网络/解码延迟；</li>
+<li>策略从行情到下单的决策延迟；</li>
+<li>订单从本机到交易所并 ack 的新单延迟。</li>
+</ul>
+<p>因此 shadow mode 需要把 measured new/cancel latency 注入 replay，再比较 live order log 与 replay would-fill：</p>
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">shadow_fill_check</span>(<span class="hljs-params">event, measured_latency</span>):</span>
+    quote = compute_quote(event)
+    activation_ts = event.ts + measured_latency.new_order_ms
+
+    replay_fill = replay_queue_fill(
+        side=quote.side,
+        price=quote.price,
+        activation_ts=activation_ts,
+        l2=event.future_l2,
+        trades=event.future_trades,
+    )
+
+    <span class="hljs-keyword">return</span> &#123;
+        <span class="hljs-string">&quot;pred_fill_prob&quot;</span>: quote.ev_fill_prob,
+        <span class="hljs-string">&quot;would_fill&quot;</span>: replay_fill <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>,
+        <span class="hljs-string">&quot;latency_ms&quot;</span>: measured_latency.new_order_ms,
+        <span class="hljs-string">&quot;queue_ahead&quot;</span>: replay_fill.queue_ahead <span class="hljs-keyword">if</span> replay_fill <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>,
+    &#125;</code></pre></div>
+<p>这也是为什么 quote EV promotion 要比普通模型上线更保守。当前这种逐侧 quote EV 如果 valid fills 仍然偏少，或者 calibration/Brier/bucket markout 不过 gate，即使某个月 ask-only A/B 看起来 raw 为正，也只能算 shadow/research 候选，不能直接当作 live 结论。</p>
+<blockquote>
+<p><strong>本节工程结论</strong></p>
+<ul>
+<li>双引擎 parity 靠 normalized arrays、strict mode、路径级断言和金额级断言，而不是靠“C++ 理论上等价”。</li>
+<li>side pause 应该区分 volatility risk 和 information risk：高波动先 widening，逐侧 toxic/adverse 证据才 pause。</li>
+<li>compact context 的重点是固定字段 ABI 和减少动态对象物化，不是把所有 Python 都迁掉。</li>
+<li>queue ahead 必须承认不可观测撤单和真实排队顺序，用保守规则加 live 校准，而不是把价格触碰当成交。</li>
+<li>shadow mode 的价值是校准 fill probability、markout bucket、latency floor 和 placed/fill 数量级，比单月回测 PnL 更诚实。</li>
 </ul>
 </blockquote>
 <h2 id="结论：算法假设、验证流程和-C-边界要同时成立"><a href="#结论：算法假设、验证流程和-C-边界要同时成立" class="headerlink" title="结论：算法假设、验证流程和 C++ 边界要同时成立"></a>结论：算法假设、验证流程和 C++ 边界要同时成立</h2><p>到现在，NarrowGate 给我的最大教训不是“C++ 很快”，而是研究系统要同时守住四条线：</p>
