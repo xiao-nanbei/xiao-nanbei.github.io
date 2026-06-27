@@ -16,19 +16,19 @@
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
   
-    <meta name="description" content="TL;DR：读者收益摘要NarrowGate 不是一个“C++ 高频做市系统已经跑通并盈利”的项目，而是一个用于验证 maker quote EV 的研究框架。它的核心不是证明某个做市策略有效，而是建立一套让错误结论更难通过的 maker 研究系统。 读完这篇文章，至少可以得到四个结论：  maker fill 不能简单等价于 spread 收益，必须用 fill 后 markout 和 inve">
+    <meta name="description" content="TL;DR：读者收益摘要NarrowGate 不是一个“C++ 高频做市系统已经跑通并盈利”的项目，而是一个用于验证 maker quote EV 的研究框架。它的核心不是证明某个做市策略有效，而是建立一套让错误结论更难通过的 maker 研究系统。 读完这篇文章，至少可以得到五个结论：  maker fill 不能简单等价于 spread 收益，必须用 fill 后 markout 和 inve">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate：从 Maker Quote EV 到 C++ Tick Replay 的低延迟研究框架">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/06/19/NarrowGate-Cpp-Low-Latency-Market-Making/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="TL;DR：读者收益摘要NarrowGate 不是一个“C++ 高频做市系统已经跑通并盈利”的项目，而是一个用于验证 maker quote EV 的研究框架。它的核心不是证明某个做市策略有效，而是建立一套让错误结论更难通过的 maker 研究系统。 读完这篇文章，至少可以得到四个结论：  maker fill 不能简单等价于 spread 收益，必须用 fill 后 markout 和 inve">
+<meta property="og:description" content="TL;DR：读者收益摘要NarrowGate 不是一个“C++ 高频做市系统已经跑通并盈利”的项目，而是一个用于验证 maker quote EV 的研究框架。它的核心不是证明某个做市策略有效，而是建立一套让错误结论更难通过的 maker 研究系统。 读完这篇文章，至少可以得到五个结论：  maker fill 不能简单等价于 spread 收益，必须用 fill 后 markout 和 inve">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/maker-hot-path.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/data-lineage.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/quote-ladder.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/order-lifecycle.svg">
 <meta property="article:published_time" content="2026-06-19T08:50:48.000Z">
-<meta property="article:modified_time" content="2026-06-26T22:20:00.000Z">
+<meta property="article:modified_time" content="2026-06-27T00:10:00.000Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="C++">
 <meta property="article:tag" content="低延时">
@@ -208,7 +208,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      70k 字
+      85k 字
     </span>
   
 
@@ -217,7 +217,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      585 分钟
+      705 分钟
     </span>
   
 
@@ -250,12 +250,13 @@
             
             <div class="markdown-body">
               <h2 id="TL-DR：读者收益摘要"><a href="#TL-DR：读者收益摘要" class="headerlink" title="TL;DR：读者收益摘要"></a>TL;DR：读者收益摘要</h2><p><strong>NarrowGate</strong> 不是一个“C++ 高频做市系统已经跑通并盈利”的项目，而是一个用于验证 maker quote EV 的研究框架。它的核心不是证明某个做市策略有效，而是建立一套让错误结论更难通过的 maker 研究系统。</p>
-<p>读完这篇文章，至少可以得到四个结论：</p>
+<p>读完这篇文章，至少可以得到五个结论：</p>
 <ol>
 <li>maker fill 不能简单等价于 spread 收益，必须用 fill 后 markout 和 inventory exposure 衡量；</li>
 <li>多市场 reference 有信息量，但不等于统一打开 <code>multi_market</code> 就有正 EV；</li>
 <li>tick replay、queue ahead、latency、TTL 和 maker fill gate 会显著改变 bar 回测结论；</li>
-<li>C++ 的价值不是替代 Python 写策略，而是把 replay、feature state、quote core 和 live hot path 中稳定、高频、低基数的部分收紧边界。</li>
+<li>C++ 的价值不是替代 Python 写策略，而是把 replay、feature state、quote core 和 live hot path 中稳定、高频、低基数的部分收紧边界；</li>
+<li>当前项目没有宣称“搞定做市终局”：动态到达率、主动对冲、多 venue lead-lag 和 HFT 级线程模型仍然是明确的未完成边界。</li>
 </ol>
 <p>换句话说，C++ 没有替项目找到策略答案。它做的是更有用的事：让错误答案更快暴露，让好看的数字更难逃过验证。</p>
 <p><strong>NarrowGate</strong> 是我最近一段时间一直在做的 maker/被动做市研究项目。它不是从“我要写一个 C++ 高频系统”开始的，而是从一个更朴素的问题开始：<strong>当市场有人急于成交时，站在被动一侧提供流动性，究竟是在收取 spread，还是在替更快的信息交易者接风险？</strong></p>
@@ -271,11 +272,13 @@
 <li>为什么 live 路径里“把单个公式搬到 C++”反而会变慢，而把 quote、policy、routing 的数据边界收紧后才开始变快？</li>
 <li>为什么 WebSocket、REST、日志和健康检查不该急着迁到 C++，真正的热路径反而是 WebSocket 上方的 rolling state 和决策包？</li>
 </ul>
-<p>这篇文章想把这些前因后果完整记录下来，但不把算法和工程混在一起讲。后文按三层展开：</p>
+<p>这篇文章想把这些前因后果完整记录下来，但不把算法和工程混在一起讲。后文按五层展开：</p>
 <ol>
 <li><strong>Maker 量化算法与数据假设</strong>：先解释 NarrowGate 在研究什么，AS/GLFT/quote EV 如何组成报价框架，以及为什么数据源和 label 连续性会决定结论可信度；</li>
 <li><strong>从算法验证到工程问题</strong>：再解释为什么更严格的 tick replay、A/B 和 parity 会把问题自然推到系统吞吐量上；</li>
-<li><strong>Python/C++ 技术实现</strong>：最后才进入 C++，讨论哪些状态机、批处理和 live hot path 值得迁移，哪些不该迁。</li>
+<li><strong>Python/C++ 技术实现</strong>：然后进入 C++，讨论哪些状态机、批处理和 live hot path 值得迁移，哪些不该迁；</li>
+<li><strong>从原理到实操的桥</strong>：把参数映射、queue ahead、shadow gate、Python/C++ 胶水层、fixed-array state 和 live 容错讲成可执行规则；</li>
+<li><strong>已完成与未完成边界</strong>：最后把金融 Alpha 终局和低延迟系统终局的问题单独摊开，说明哪些已经完成、哪些只是部分完成、哪些还没有完成。</li>
 </ol>
 <p>这样读下来，C++ 不是突然闯进来的“性能炫技”，而是前面算法验证不断收紧之后产生的工程压力。</p>
 <h2 id="阅读路线：先算法，再工程"><a href="#阅读路线：先算法，再工程" class="headerlink" title="阅读路线：先算法，再工程"></a>阅读路线：先算法，再工程</h2><p>如果只看现在的代码目录，很容易以为 NarrowGate 是一个“AS + LightGBM + C++”的技术拼盘。实际演进顺序恰好相反：每一层都是上一层暴露问题后的修正。</p>
@@ -2472,6 +2475,603 @@ exchange REST/WebSocket</code></pre></div>
 <li>compact context 的重点是固定字段 ABI 和减少动态对象物化，不是把所有 Python 都迁掉。</li>
 <li>queue ahead 必须承认不可观测撤单和真实排队顺序，用保守规则加 live 校准，而不是把价格触碰当成交。</li>
 <li>shadow mode 的价值是校准 fill probability、markout bucket、latency floor 和 placed/fill 数量级，比单月回测 PnL 更诚实。</li>
+</ul>
+</blockquote>
+<h2 id="5-从原理到实操：参数、队列、Shadow-与胶水层"><a href="#5-从原理到实操：参数、队列、Shadow-与胶水层" class="headerlink" title="5. 从原理到实操：参数、队列、Shadow 与胶水层"></a>5. 从原理到实操：参数、队列、Shadow 与胶水层</h2><p>前面讲了很多公式、架构和 benchmark，但普通金融工作者真正会卡在一个问题上：<strong>模型输出怎么变成我这一单要后撤几个 tick？</strong> 普通工程师也会卡在另一个问题上：<strong>Python 的研究矩阵到底怎么安全、低拷贝地跑进 C++ 状态机？</strong></p>
+<p>这一节不再讲宏观动机，而是把几个落地口径写清楚。</p>
+<h3 id="5-1-参数映射：gamma-kappa-sigma-不应该靠玄学拍脑袋"><a href="#5-1-参数映射：gamma-kappa-sigma-不应该靠玄学拍脑袋" class="headerlink" title="5.1 参数映射：gamma/kappa/sigma 不应该靠玄学拍脑袋"></a>5.1 参数映射：gamma/kappa/sigma 不应该靠玄学拍脑袋</h3><p>AS 公式里的几个参数在代码里有非常具体的含义：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>参数 / 信号</th>
+<th>代码里的来源</th>
+<th>对报价的直接影响</th>
+<th>调参时主要看什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(\gamma)</td>
+<td><code>strategy.gamma</code>，也会被库存比例和方向信号调整成 <code>g_eff</code></td>
+<td>库存 reservation price 偏移、基础 spread 项</td>
+<td><code>abs_inventory_time_s</code>、InvAdj、max inventory hit</td>
+</tr>
+<tr>
+<td>(\sigma^2)</td>
+<td>tick replay / live rolling variance；可与 LightGBM <code>vol_10s</code> 按 <code>vol_blend</code> 混合</td>
+<td><code>gamma * sigma_sq</code>，以及 regime spread scale</td>
+<td>spread&lt;100、cap hit、波动窗口下 markout</td>
+</tr>
+<tr>
+<td>(\kappa)</td>
+<td><code>strategy.kappa</code> 或 <code>p3_kappa_eff</code>；可用 depth-kappa 根据近端深度调整</td>
+<td>(\log(1+\gamma/\kappa)) spread 项；(\kappa) 越小 spread 越宽</td>
+<td>fills/day、fills/order、queue calibration</td>
+</tr>
+<tr>
+<td><code>dir_10s</code></td>
+<td>LightGBM 方向概率</td>
+<td>reservation price shift、asymmetry、gamma_dir_bonus</td>
+<td>方向分桶 markout、库存是否被方向信号放大</td>
+</tr>
+<tr>
+<td><code>ret_10s</code></td>
+<td>LightGBM 未来收益预测</td>
+<td><code>ret_skew * mid</code>，再被 <code>ret_shift_max_pct</code> 限幅</td>
+<td>逐侧 1s/5s markout、cap compression</td>
+</tr>
+<tr>
+<td><code>tox_bid/ask</code></td>
+<td>LightGBM 逐侧 toxicity</td>
+<td>side adverse widen / shrink / pause</td>
+<td>toxic bucket realized markout、false pause rate</td>
+</tr>
+<tr>
+<td>markout EMA</td>
+<td>fill 后 maker-signed markout</td>
+<td>markout spread scale、hybrid pause latch</td>
+<td>pause 时长、恢复后 fill markout</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>简化后的 quote mapping 可以这样理解：</p>
+<div class="code-wrapper"><pre><code class="hljs python">sigma_sq = rolling_sigma_sq
+<span class="hljs-keyword">if</span> ml_enabled <span class="hljs-keyword">and</span> vol_blend &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> pred_vol &gt; <span class="hljs-number">0</span>:
+    sigma_sq = (<span class="hljs-number">1</span> - vol_blend) * rolling_sigma_sq + vol_blend * pred_vol
+
+kappa_base = p3_kappa_eff <span class="hljs-keyword">if</span> p3_kappa_eff &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> cfg.kappa
+kappa_used = depth_kappa(kappa_base, depth) <span class="hljs-keyword">if</span> use_depth_kappa <span class="hljs-keyword">else</span> kappa_base
+
+g_eff = gamma
+<span class="hljs-keyword">if</span> <span class="hljs-built_in">abs</span>(inventory) &gt; <span class="hljs-number">0</span>:
+    g_eff *= <span class="hljs-number">1.0</span> + (<span class="hljs-built_in">abs</span>(inventory) / max_inventory) ** <span class="hljs-number">2</span>
+
+reservation = fair_price - inventory * g_eff * sigma_sq
+
+kappa_spread = <span class="hljs-built_in">max</span>(kappa_used * kappa_ratio, <span class="hljs-number">1e-12</span>)
+spread = gamma * sigma_sq + (<span class="hljs-number">2.0</span> / gamma) * log(<span class="hljs-number">1.0</span> + gamma / kappa_spread)
+spread *= regime_spread_scale
+
+<span class="hljs-keyword">if</span> ret_skew &gt; <span class="hljs-number">0</span>:
+    shift = clamp(
+        pred_ret * ret_skew * mid,
+        -ret_shift_max_pct * spread / <span class="hljs-number">2</span>,
+        +ret_shift_max_pct * spread / <span class="hljs-number">2</span>,
+    )
+    reservation += shift
+
+bid = floor_tick(reservation - spread / <span class="hljs-number">2</span> * (<span class="hljs-number">1</span> - asym))
+ask = ceil_tick(reservation + spread / <span class="hljs-number">2</span> * (<span class="hljs-number">1</span> + asym))</code></pre></div>
+<p>再往后才是逐侧 policy：</p>
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-keyword">if</span> tox_bid &gt;= adverse_toxicity_threshold:
+    bid_policy.spread_mult = <span class="hljs-built_in">max</span>(bid_policy.spread_mult, adverse_spread_mult)
+    bid_policy.size_mult = <span class="hljs-built_in">min</span>(bid_policy.size_mult, <span class="hljs-number">0.70</span>)
+    bid_policy.allow_exposure_increase = <span class="hljs-literal">False</span>
+
+<span class="hljs-keyword">if</span> bid_side_adverse_pause:
+    bid_policy.allow_post = <span class="hljs-literal">False</span></code></pre></div>
+<p>所以机器学习不是直接“预测价格然后下单”。它有三类入口：</p>
+<ol>
+<li><strong>改变物理 quote</strong>：<code>vol_10s</code>、<code>ret_10s</code>、<code>dir_10s</code> 影响 reservation、spread、asymmetry；</li>
+<li><strong>改变 policy gate</strong>：<code>tox_bid/ask</code>、markout EMA、microprice shift 影响 widen/shrink/pause；</li>
+<li><strong>改变风险读法</strong>：quote EV 与 shadow calibration 不直接替代 AS，而是判断某一侧 quote 是否值得继续提供流动性。</li>
+</ol>
+<p>实操调参时，不应该先问“哪个 (\gamma) PnL 最高”，而应该按顺序看：</p>
+<div class="code-wrapper"><pre><code class="hljs text">1. spread/cap sanity：spread&lt;100、cap hit、final spread distribution
+2. execution sanity：placed orders/day、fills/day、fills/order
+3. adverse sanity：1s/5s/30s maker-signed markout by side
+4. inventory sanity：abs inventory-time、InvAdj、pnl per inventory-hour
+5. calibration sanity：toxicity / quote EV bucket 是否和 realized markout 对齐</code></pre></div>
+<p>如果一个参数组合 raw PnL 更高，但靠库存时间暴露翻倍换来，或者只在 cap_hit 很高的状态下好看，它就不是更稳的参数。</p>
+<h3 id="5-2-Queue-Ahead：回测撮合状态机的初始化边界"><a href="#5-2-Queue-Ahead：回测撮合状态机的初始化边界" class="headerlink" title="5.2 Queue Ahead：回测撮合状态机的初始化边界"></a>5.2 Queue Ahead：回测撮合状态机的初始化边界</h3><p>普通 trader 最关心的不是“有没有 queue 模型”，而是：我的订单进 bid1 的那一刻，到底被假设排在哪里？</p>
+<p>NarrowGate 的保守口径是：</p>
+<ol>
+<li>如果 activation timestamp 能找到历史 L2，且 quote price 对应某个可见 level，就假设自己排在该 level 可见数量之后；</li>
+<li>如果没有可靠 L2，就用距离 mid 的指数衰减模型兜底；</li>
+<li>后续主动成交先消耗 <code>queue_left</code>，打穿以后才轮到自己的订单；</li>
+<li>不因为历史 level 数量变小就自动把“别人撤单”全部算作自己排位前进；</li>
+<li>cancel latency 生效前，pending cancel order 仍然可能被 fill。</li>
+</ol>
+<p>伪代码如下：</p>
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">init_queue</span>(<span class="hljs-params">order, activation_ts, l2</span>):</span>
+    level_qty = l2.visible_qty_at(order.price, activation_ts)
+    <span class="hljs-keyword">if</span> level_qty <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
+        <span class="hljs-comment"># worst-case within visible top-N: 排在当前可见同价位后面</span>
+        <span class="hljs-keyword">return</span> level_qty
+
+    dist = <span class="hljs-built_in">abs</span>(order.price - mid_at(activation_ts))
+    <span class="hljs-keyword">return</span> queue_base * exp(-queue_decay * dist)
+
+
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">on_aggressive_trade</span>(<span class="hljs-params">order, trade</span>):</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> crosses(order.price, trade.price, order.side):
+        <span class="hljs-keyword">return</span>
+
+    remaining = trade.qty
+    eaten_ahead = <span class="hljs-built_in">min</span>(order.queue_left, remaining)
+    order.queue_left -= eaten_ahead
+    remaining -= eaten_ahead
+
+    <span class="hljs-keyword">if</span> order.queue_left &lt;= <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> remaining &gt; <span class="hljs-number">0</span>:
+        fill_qty = <span class="hljs-built_in">min</span>(order.remaining, remaining)
+        fill(order, fill_qty)</code></pre></div>
+<p>这仍然不是交易所真实 FIFO 队列，因为 Top-N 历史盘口看不到隐藏单、真实 order id 排序、你前方订单撤单和交易所撮合内部细节。它的价值不是“完美复现撮合”，而是避免 bar touch 那种最危险的乐观假设。</p>
+<p>如果要判断 queue 模型是否太保守或太乐观，不能只看 fills/day，要同时看：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>placed orders/day</td>
+<td>策略是否真的挂出了足够多订单</td>
+</tr>
+<tr>
+<td>fills/day</td>
+<td>最终成交频率</td>
+</tr>
+<tr>
+<td>fills / placed order</td>
+<td>queue/fill 概率是否和 live 同数量级</td>
+</tr>
+<tr>
+<td>bid/ask split</td>
+<td>是否一侧被系统性高估</td>
+</tr>
+<tr>
+<td>queue_left at fill</td>
+<td>是否经常“刚好被打穿”</td>
+</tr>
+<tr>
+<td>pending cancel fill count</td>
+<td>cancel latency 下是否仍然能被打</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>如果 fills/day 低一个数量级，但 fills/order 与 live 接近，问题往往不是 queue，而是策略在回测里被 guard/pause 挡掉了太多 quote。这个区别非常关键。</p>
+<h3 id="5-3-Shadow-Mode-的硬-gate：方向对还不够，必须校准过关"><a href="#5-3-Shadow-Mode-的硬-gate：方向对还不够，必须校准过关" class="headerlink" title="5.3 Shadow Mode 的硬 gate：方向对还不够，必须校准过关"></a>5.3 Shadow Mode 的硬 gate：方向对还不够，必须校准过关</h3><p>Shadow mode 不是为了再看一个漂亮 PnL，而是为了回答：</p>
+<p>[<br>P<em>{\text{model}}(\text{fill}) \approx P</em>{\text{observed}}(\text{fill})<br>]</p>
+<p>以及：</p>
+<p>[<br>E[\text{markout}\mid \text{predicted bucket}]<br>\approx<br>E[\text{realized markout}\mid \text{same bucket}]<br>]</p>
+<p>实操上我会把 gate 分成四层：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Gate</th>
+<th style="text-align:right">最低要求</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>样本量</td>
+<td style="text-align:right">每 side validation valid fills (\ge 100)，更理想是数百</td>
+<td>少于这个数，bucket calibration 很容易飘</td>
+</tr>
+<tr>
+<td>fill calibration</td>
+<td style="text-align:right">分桶 MAE (\le 0.05)</td>
+<td>预测 20% fill 的桶，真实 fill rate 不能长期是 5% 或 50%</td>
+</tr>
+<tr>
+<td>markout calibration</td>
+<td style="text-align:right">bucket realized-vs-pred 同向，MAE 不恶化</td>
+<td>高 EV bucket 至少不能有更差 markout</td>
+</tr>
+<tr>
+<td>风险效率</td>
+<td style="text-align:right">InvAdj 不差，abs inventory-time 不恶化，fills/day 不塌</td>
+<td>不能用堆库存换 raw PnL</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>当前 quote EV 的真实状态并没有过这些 gate。比如之前 strict-gated run 中，May valid fills 只有几十个，fill calibration MAE 也超阈值。因此即使 <code>ask_ev_soft_widen</code> 在某个 A/B 里 raw 看起来不错，也只能被标为 shadow/research 候选。</p>
+<p>一个更像上线前检查表的伪代码是：</p>
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">promotion_gate</span>(<span class="hljs-params">summary</span>):</span>
+    <span class="hljs-keyword">return</span> (
+        summary.valid_filled_rows &gt;= <span class="hljs-number">100</span>
+        <span class="hljs-keyword">and</span> summary.fill_calibration_mae &lt;= <span class="hljs-number">0.05</span>
+        <span class="hljs-keyword">and</span> summary.markout_bucket_direction_ok
+        <span class="hljs-keyword">and</span> summary.inv_adj_delta &gt;= -small_tolerance
+        <span class="hljs-keyword">and</span> summary.abs_inventory_time_delta &lt;= <span class="hljs-number">0</span>
+        <span class="hljs-keyword">and</span> summary.monthly_sign_stability_ok
+    )</code></pre></div>
+<p>这不是说阈值永远不变，而是说必须有硬门槛。没有门槛的 shadow mode，很容易退化成“我又看了一张更漂亮的图”。</p>
+<h3 id="5-4-Python-C-胶水层：不是每-tick-传-JSON，而是一次传连续数组"><a href="#5-4-Python-C-胶水层：不是每-tick-传-JSON，而是一次传连续数组" class="headerlink" title="5.4 Python/C++ 胶水层：不是每 tick 传 JSON，而是一次传连续数组"></a>5.4 Python/C++ 胶水层：不是每 tick 传 JSON，而是一次传连续数组</h3><p>普通工程师最担心跨语言部分：Python 和 C++ 到底怎么一起工作？答案是：<strong>回测/batch 路径里，Python 负责 IO 和编排，C++ 负责一次调用内的状态机；不会每 tick 传 JSON。</strong></p>
+<p>离线路径是：</p>
+<div class="code-wrapper"><pre><code class="hljs text">Parquet / CSV / logs
+        |
+        v
+Python pandas/pyarrow loader
+        |
+        v
+NumPy contiguous arrays
+        |
+        v
+pybind11 binding
+        |
+        v
+C++ ArrayView / MatrixView / std::span
+        |
+        v
+simulate full window / compute batch quote context
+        |
+        v
+summary + optional trace arrays back to Python</code></pre></div>
+<p>核心原则是：</p>
+<ul>
+<li>C++ 不在 hot loop 里读 parquet；</li>
+<li>Python 不在每个 tick 调 C++；</li>
+<li>pybind 只在窗口边界检查 dtype、shape、contiguous；</li>
+<li><code>std::span</code> / view 只在函数调用期间借用 Python-owned memory；</li>
+<li>C++ 不把这些指针存到函数返回之后；</li>
+<li>trace、diagnostics、DataFrame 构造回到 Python 冷路径。</li>
+</ul>
+<p>伪代码可以理解为：</p>
+<div class="code-wrapper"><pre><code class="hljs python">trades = load_trades_as_numpy(month)
+l2 = load_l2_as_numpy(month)
+params = build_cpp_params(config)
+
+result = narrowgate_cpp.simulate_tick_arrays(
+    trades.ts_ms,
+    trades.price,
+    trades.qty,
+    trades.is_buyer_maker,
+    params,
+    bbo_ts_ms=bbo.ts_ms,
+    l2_bid_px=l2.bid_px_matrix,
+    l2_bid_qty=l2.bid_qty_matrix,
+    l2_ask_px=l2.ask_px_matrix,
+    l2_ask_qty=l2.ask_qty_matrix,
+)
+
+summary = result.summary
+trace = result.quote_trace <span class="hljs-keyword">if</span> trace_enabled <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span></code></pre></div>
+<p>live 路径则不同。live 不能一次喂一整个月数组，所以只把很小的 compact context 过桥：</p>
+<div class="code-wrapper"><pre><code class="hljs text">Python event state
+        |
+        v
+fixed tuple / small arrays / cached native config
+        |
+        v
+C++ quote + policy + routing decision
+        |
+        v
+compact result: price, size, can_post, reason_mask
+        |
+        v
+Python REST adapter</code></pre></div>
+<p>这也是为什么 scalar quote core 单独迁 C++ 反而可能慢：如果每次都构造 dict、dataclass、字符串 key，跨语言边界比数学本身更贵。真正要优化的是“边界形状”，不是盲目把更多 Python 改成 C++。</p>
+<h3 id="5-5-Fixed-Array-Signal：哪些是-O-1-，哪些还不是"><a href="#5-5-Fixed-Array-Signal：哪些是-O-1-，哪些还不是" class="headerlink" title="5.5 Fixed-Array Signal：哪些是 O(1)，哪些还不是"></a>5.5 Fixed-Array Signal：哪些是 O(1)，哪些还不是</h3><p><code>fixed-array signal</code> 不是一个神秘概念，本质就是把“特征名字符串字典”换成“固定顺序数组”：</p>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-keyword">class</span> <span class="hljs-title">SignalFeatureId</span> &#123;</span>
+    Return1,
+    Volatility60s,
+    TradeIntensity60s,
+    TakerQuoteImbalance10s,
+    <span class="hljs-comment">// ...</span>
+    Count,
+&#125;;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SignalFeatureVector</span> &#123;</span>
+<span class="hljs-keyword">public</span>:
+    <span class="hljs-keyword">double</span>&amp; <span class="hljs-keyword">operator</span>[](SignalFeatureId id);
+    <span class="hljs-function"><span class="hljs-keyword">const</span> std::array&lt;<span class="hljs-keyword">double</span>, kSignalFeatureCount&gt;&amp; <span class="hljs-title">values</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;
+<span class="hljs-keyword">private</span>:
+    std::array&lt;<span class="hljs-keyword">double</span>, kSignalFeatureCount&gt; values_&#123;&#125;;
+&#125;;</code></pre></div>
+<p>行情状态维护则分两层：</p>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TradeBarAggregator</span> &#123;</span>
+    <span class="hljs-function">std::optional&lt;Bar1s&gt; <span class="hljs-title">update</span><span class="hljs-params">(ts_ms, price, qty, is_buyer_maker)</span></span>;
+    Bar1s current_;
+    <span class="hljs-keyword">int</span> last_trade_side_;
+    <span class="hljs-keyword">int</span> last_trade_run_len_;
+&#125;;
+
+<span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">int</span> WindowSeconds&gt;
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RollingStats</span> &#123;</span>
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">push</span><span class="hljs-params">(ts_ms, value)</span> </span>&#123;
+        values.<span class="hljs-built_in">push_back</span>(&#123;ts_ms, value&#125;);
+        sum += value;
+        sum_sq += value * value;
+        <span class="hljs-built_in">expire</span>(ts_ms);
+    &#125;
+    <span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">mean</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;
+    <span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">stddev</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;
+&#125;;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SignalFeatureEngine</span> &#123;</span>
+    CircularBuffer&lt;Bar1s&gt; bars_;
+    CircularBuffer&lt;FeatureHistoryRow&gt; history_;
+    CountRollingMoments return_abs_2160_;
+    CountRollingMoments return_abs_8640_;
+    CountRollingMoments vol_regime_6h_60480_;
+&#125;;</code></pre></div>
+<p>但这里也要诚实：当前并不是所有特征都已经做到完全 O(1) 增量。已经增量化的是一部分长窗口 rolling moments 和 trade/bar state；仍有一些 overlay 特征会扫描短窗口或使用 scratch buffer。原因是这些特征还处在研究变化阶段，过早把所有实验性 feature 都写成复杂 C++ 状态机，会让 parity 和调参变得更难。</p>
+<p>当前工程取舍是：</p>
+<ul>
+<li>高频、稳定、低基数的窗口统计逐步进 C++；</li>
+<li>特征顺序固定，用 array 输出，减少 dict/string 热路径；</li>
+<li>实验性特征先保留 Python 或短窗口扫描；</li>
+<li>只有当某个特征进入稳定模型并被 profile 证明是热点，再改成长期持有的 rolling state。</li>
+</ul>
+<p>这和前面 C++ 的原则一致：C++ 不是为了“看起来硬核”，而是为了把稳定边界收紧。</p>
+<h3 id="5-6-Live-脏数据与异常：离线可以删，live-只能降级"><a href="#5-6-Live-脏数据与异常：离线可以删，live-只能降级" class="headerlink" title="5.6 Live 脏数据与异常：离线可以删，live 只能降级"></a>5.6 Live 脏数据与异常：离线可以删，live 只能降级</h3><p>离线数据坏了可以物理删除，live 不行。live 遇到乱序 tick、WebSocket 静默、盘口过期、bad trade、用户流漏成交时，策略必须降级，而不是继续假装状态健康。</p>
+<p>当前 NarrowGate 的 live 防御层大概是：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>异常</th>
+<th>当前处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>bad trade parse / 非法价格数量</td>
+<td>计数并限频日志，不进入 bar state</td>
+</tr>
+<tr>
+<td>aggTrade 静默</td>
+<td>watchdog 切 raw <code>@trade</code> 或重连</td>
+</tr>
+<tr>
+<td>execution/reference/spot stream 静默</td>
+<td>market stream reconnect</td>
+</tr>
+<tr>
+<td>execution depth 过期</td>
+<td>cancel live quotes，停止 requote，原因 <code>stale_hard</code></td>
+</tr>
+<tr>
+<td>bookTicker / post-only crossing</td>
+<td>GTX reject 当作正常不可挂事件处理</td>
+</tr>
+<tr>
+<td>user stream 漏 fill / REST sync 差异</td>
+<td><code>SYNC_ADJUST</code> hard degrade，暂停增加暴露的一侧并重连 user stream</td>
+</tr>
+<tr>
+<td>stale local order</td>
+<td>周期性清理 <code>PENDING_NEW</code> 卡死订单</td>
+</tr>
+<tr>
+<td>C++ 扩展异常</td>
+<td>strict 模式直接 fail；非 strict live 可 fallback/disable native path</td>
+</tr>
+<tr>
+<td>运行健康</td>
+<td><code>HEALTH</code> 输出 position、PnL、库存时间、订单数、requote 数</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>伪代码是：</p>
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-keyword">if</span> depth_age_s &gt; max_exec_book_age_s:
+    cancel_active_quotes()
+    skip_requote(reason=<span class="hljs-string">&quot;stale_hard&quot;</span>)
+
+<span class="hljs-keyword">if</span> stream_silent(symbol, timeout_s):
+    reconnect_market_streams()
+
+<span class="hljs-keyword">if</span> sync_adjust_count &gt;= threshold:
+    pause_exposure_increasing_quotes(duration_s)
+    reconnect_user_stream()
+
+<span class="hljs-keyword">if</span> bad_trade:
+    bad_trade_counter += <span class="hljs-number">1</span>
+    <span class="hljs-keyword">return</span></code></pre></div>
+<p>这仍然不是完整高可用交易网关。它没有 kernel bypass、没有独立 order gateway 进程、没有完整 SPSC ring 隔离，也没有多机热备。当前目标是：在研究/影子/小规模 live-style 运行里，遇到脏数据时优先撤单、降级、报警、重连，而不是继续用坏状态报价。</p>
+<blockquote>
+<p><strong>本节实操结论</strong></p>
+<ul>
+<li>参数映射要从 <code>gamma/kappa/sigma -&gt; spread/reservation/tick</code> 讲清楚，再谈 ML 是否有用。</li>
+<li>queue ahead 的可信度来自保守初始化、逐笔消耗和 live 校准，而不是声称知道真实 FIFO。</li>
+<li>shadow mode 必须有样本量、fill calibration、markout calibration 和库存风险硬 gate。</li>
+<li>Python/C++ 胶水层的关键是一次传连续数组或固定 tuple，不在每 tick 传动态对象。</li>
+<li>fixed-array signal 当前是渐进式迁移：稳定热点进 C++，实验性特征保留更灵活的路径。</li>
+<li>live 脏数据不能删除，只能通过 stale block、watchdog reconnect、SYNC_ADJUST degrade 和 telemetry 降级。</li>
+</ul>
+</blockquote>
+<h2 id="6-已完成与未完成边界：不要把研究系统误读成-Alpha-终局"><a href="#6-已完成与未完成边界：不要把研究系统误读成-Alpha-终局" class="headerlink" title="6. 已完成与未完成边界：不要把研究系统误读成 Alpha 终局"></a>6. 已完成与未完成边界：不要把研究系统误读成 Alpha 终局</h2><p>如果站在金融 Alpha 的终局视角看，前面的内容还不能被理解为“这个 maker 系统已经解决了做市问题”。更准确的说法是：NarrowGate 已经完成了一个更严格的研究框架，让很多错误结论更难通过；但动态到达率、主动对冲、多 venue lead-lag 和 HFT 级线程模型这些真正决定上限的问题，仍然没有完全解决。</p>
+<p>把完成度摊开，比把每个模块都写得很漂亮更重要。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>追问</th>
+<th>当前完成度</th>
+<th>当前真实状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>动态 (\kappa) / (\Lambda(\delta)) 微观校准</td>
+<td>部分完成</td>
+<td>有 depth-kappa、P3 <code>kappa_eff</code> 和 general intensity hook，但 toxicity 主要进入 widen/pause policy，没有连续回写成 (\kappa_{\text{eff}}(\text{toxicity}))</td>
+</tr>
+<tr>
+<td>极端尾部下的 toxicity 处理</td>
+<td>部分完成</td>
+<td>已有逐侧 adverse guard、markout EMA、hybrid pause 和 wall-clock decay；还不是完整的 arrival-intensity deformation</td>
+</tr>
+<tr>
+<td>库存主动瘦身 / hedging</td>
+<td>部分完成</td>
+<td>有库存时间积分、硬库存限制、可选 timeout/IOC/MARKET 兜底；没有跨市场 BTCUSDT perp 主动对冲器</td>
+</tr>
+<tr>
+<td>多 venue 虚假流动性 / 延迟套利</td>
+<td>部分完成</td>
+<td>有 source audit、freshness gate、shock attribution；但本地缺少独立 venue 原始数据，不能验证真实 multi-venue lead-lag</td>
+</tr>
+<tr>
+<td>Python/C++ replay parity</td>
+<td>基本完成</td>
+<td>synthetic parity + 真实窗口 golden parity 已覆盖 PnL、fills、库存、trace 行数等核心指标</td>
+</tr>
+<tr>
+<td>C++ cache / allocator / hot path</td>
+<td>部分完成</td>
+<td>replay/batch/signal 已做 <code>DepthView</code>、fixed array、ring state、summary-only、hot/cold 拆分；live orderbook 还不是完整 native flat book</td>
+</tr>
+<tr>
+<td>live 线程模型 / 网络 I/O 隔离</td>
+<td>未完成</td>
+<td>当前是 Python WebSocket callback threads + <code>SignalEngine</code> lock + 主循环 tick，不是 pinned reactor + SPSC ring buffer + strategy core</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="5-1-金融侧：AS-是坐标系，不是答案"><a href="#5-1-金融侧：AS-是坐标系，不是答案" class="headerlink" title="5.1 金融侧：AS 是坐标系，不是答案"></a>5.1 金融侧：AS 是坐标系，不是答案</h3><p>Avellaneda-Stoikov 给了一个非常有用的坐标系：</p>
+<p>[<br>r_t = S_t - q_t \gamma \sigma_t^2 (T-t)<br>]</p>
+<p>[<br>\delta^\ast \approx \frac{1}{\gamma}\log(1+\gamma/\kappa)<br>]</p>
+<p>但真正困难的是右边这些变量如何变成实时市场状态，而不是公式本身。</p>
+<p>当前 NarrowGate 对 (\kappa) 的处理有三层：</p>
+<ol>
+<li>静态 <code>strategy.kappa</code> 作为 baseline；</li>
+<li><code>p3_kappa_eff</code> / general intensity 用历史 fill probability 拟合更一般的 (\Lambda(\delta))；</li>
+<li>depth-kappa 用近端盘口深度把 (\kappa) 做有限比例调整。</li>
+</ol>
+<p>这还不等于“动态到达率已经被完全校准”。真正金融上更尖锐的问题是：</p>
+<p>[<br>\kappa_{\text{eff}}<br>= f(\text{depth}, \text{vol}, \text{toxicity}, \text{reference shock}, \text{latency floor})<br>]</p>
+<p>当市场发生信息冲击时，远端 quote 的成交概率可能不是指数衰减，而是突然变成“深价位也会被扫”。这时 (\kappa) 不是简单变大或变小，而是整条 (\Lambda(\delta)) 曲线形状改变。当前系统里 toxicity 更多是进入逐侧 policy：</p>
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-keyword">if</span> toxicity &gt;= toxicity_threshold:
+    side_policy.spread_mult = <span class="hljs-built_in">max</span>(side_policy.spread_mult, widen_mult)
+    side_policy.size_mult = <span class="hljs-built_in">min</span>(side_policy.size_mult, shrink_mult)
+    side_policy.allow_exposure_increase = <span class="hljs-literal">False</span>
+
+<span class="hljs-keyword">if</span> side_adverse_pause:
+    side_policy.allow_post = <span class="hljs-literal">False</span></code></pre></div>
+<p>也就是说，当前实现更像：</p>
+<p>[<br>\text{toxicity} \rightarrow<br>{\text{widen}, \text{shrink}, \text{pause}}<br>]</p>
+<p>而不是：</p>
+<p>[<br>\text{toxicity} \rightarrow<br>\kappa_{\text{eff}} \rightarrow \delta^\ast<br>]</p>
+<p>这是一条明确的未完成边界。未来如果要真正“搞定 AS 坐标系”，需要让 toxicity、reference shock 和 live fill calibration 共同形变 (\Lambda(\delta))，并要求变形后的曲线能通过 shadow fill probability calibration，而不只是让某个月 A/B 的 raw PnL 变好。</p>
+<h3 id="5-2-库存终局：被动斜率不是万能退出路径"><a href="#5-2-库存终局：被动斜率不是万能退出路径" class="headerlink" title="5.2 库存终局：被动斜率不是万能退出路径"></a>5.2 库存终局：被动斜率不是万能退出路径</h3><p>库存控制现在已经比早期完整很多。系统会记录：</p>
+<p>[<br>\int |q_t|\,dt,\quad<br>\int q_t\,dt,\quad<br>\int q_t^2\,dt,\quad<br>\int |q_t|S_t\,dt<br>]</p>
+<p>这让 A/B 不只比较 raw PnL，还能比较“赚这点 PnL 占用了多少库存时间”。但这仍然不是库存终局。</p>
+<p>做市系统真正被打穿时，reservation price 的斜率可能已经不够。举例说，当库存接近 <code>max_inventory</code>，且市场继续沿不利方向重定价时，继续靠“少挂增加库存的一侧、多挂减少库存的一侧”来恢复，可能会遇到两个问题：</p>
+<ul>
+<li>减仓一侧一直排不到队；</li>
+<li>能排到队时，价格已经变差，库存损失扩大。</li>
+</ul>
+<p>当前 NarrowGate 有可选的 timeout close / IOC / emergency MARKET 兜底，但默认主线并不启用主动 taker 对冲。也就是说，它还没有实现这种路径：</p>
+<div class="code-wrapper"><pre><code class="hljs text">BTCUSDC maker inventory
+        |
+        | risk budget breached
+        v
+choose hedge venue / instrument
+        |
+        | estimate hedge cost + basis + latency
+        v
+BTCUSDT perp / spot taker hedge
+        |
+        v
+residual basis + inventory budget update</code></pre></div>
+<p>如果站在资金效率和风险终局看，下一阶段应该研究的是：</p>
+<p>[<br>\text{expected hedge cost}<br>&lt;<br>\text{expected inventory tail loss}<br>]</p>
+<p>只有当主动瘦身成本、basis risk、taker fee、延迟和残余库存都进入同一张账，库存控制才从“被动做市参数”变成“风险闭环”。当前项目还没有走到这里。</p>
+<h3 id="5-3-多市场-reference：有信息不等于能赚钱"><a href="#5-3-多市场-reference：有信息不等于能赚钱" class="headerlink" title="5.3 多市场 reference：有信息不等于能赚钱"></a>5.3 多市场 reference：有信息不等于能赚钱</h3><p>BTCUSDT perp、BTCUSDT spot、BTCUSDC spot 确实有信息量。source audit 和 shock attribution 都显示：很多 adverse fills 能被 BTCUSDT reference move 解释，spot adverse return 也有增量信号。</p>
+<p>但这不是最终答案。真正的问题是 reference 信号的时效性：</p>
+<p>[<br>\Delta t<em>{\text{lead-lag}}<br>\quad \text{vs} \quad<br>\Delta t</em>{\text{network}} + \Delta t<em>{\text{decision}} + \Delta t</em>{\text{exchange}}<br>]</p>
+<p>如果 reference 的重定价领先本地执行市场 50ms，而你的端到端反应是 5ms，这个信号可能有执行价值；如果 reference 已经在 0.5ms 内传导完，本地 quote 看到它时，只是在看一个滞后指标。此时统一打开 <code>multi_market</code> 可能不是增强模型，而是把“已经被吸收的流动性冲击”和“真正的信息冲击”混在一起，导致该接的流动性不接、该躲的信息冲击又躲不掉。</p>
+<p>当前 NarrowGate 对这个问题的回答是 partial：</p>
+<ul>
+<li>已经把 <code>multi_market.enabled</code> 从“收益开关”降级为“需要被审计的 source 条件变量”；</li>
+<li>已经做了 local-only、perp、spot、组合 source profile 的隔离 A/B；</li>
+<li>已经要求 freshness、basis residual、coverage 和 shock label；</li>
+<li>但没有独立 venue 的原始毫秒/微秒级数据，因此不能验证真正的 cross-venue lead-lag 和 latency arbitrage。</li>
+</ul>
+<p>换句话说，现在能说的是：<strong>Binance 内部多源数据有解释力，但不能证明它形成了可执行的多 venue alpha</strong>。</p>
+<h3 id="5-4-系统侧：C-replay-很强，live-架构还不是终局"><a href="#5-4-系统侧：C-replay-很强，live-架构还不是终局" class="headerlink" title="5.4 系统侧：C++ replay 很强，live 架构还不是终局"></a>5.4 系统侧：C++ replay 很强，live 架构还不是终局</h3><p>工程侧完成度更高，但也要分清 offline 和 live。</p>
+<p>已经比较扎实的是：</p>
+<ul>
+<li>Python/C++ 双引擎 replay parity；</li>
+<li>depth-aware quote-core batch；</li>
+<li>C++ tick replay 状态机；</li>
+<li><code>DepthView</code> / <code>std::span</code> 无分配访问；</li>
+<li>fixed-array signal feature vector；</li>
+<li>hot/cold order 拆分；</li>
+<li>summary-only replay 输出；</li>
+<li>x86 live 上的 p99/p99.9 soak benchmark。</li>
+</ul>
+<p>但 live 线程模型还不是 HFT 终局。当前架构更接近：</p>
+<div class="code-wrapper"><pre><code class="hljs text">Binance WebSocket client callback threads
+        |
+        v
+Python WSHandler
+        |
+        v
+SignalEngine with Lock
+        |
+        v
+main loop: engine.tick() every short sleep
+        |
+        v
+REST order adapter</code></pre></div>
+<p>这和更硬核的低延迟架构不同：</p>
+<div class="code-wrapper"><pre><code class="hljs text">NIC / kernel bypass or tuned socket
+        |
+        v
+pinned reactor thread
+        |
+        v
+SPSC ring buffer / sequence barrier
+        |
+        v
+pinned strategy thread: rolling state + quote + routing
+        |
+        v
+order gateway thread</code></pre></div>
+<p>前者适合研究、shadow、审计和可维护性；后者才是面向极端尾延迟的 live 系统。NarrowGate 目前还没有做 kernel bypass、CPU pinning、SPSC ring、NUMA partition、专用 order gateway，也没有把 WebSocket 解码和策略计算完全隔离。</p>
+<p>这不影响当前 C++ 迁移的价值，因为当前 C++ 主要服务两个目标：</p>
+<ol>
+<li><strong>研究吞吐</strong>：让月份级 replay、source A/B、quote context 和 label 生成跑得动；</li>
+<li><strong>边界收紧</strong>：让 live hot path 中稳定的小决策包更少依赖 Python 动态对象。</li>
+</ol>
+<p>但它确实说明：不能把当前项目包装成“完整 HFT live stack”。更诚实的定位是：<strong>一个带有 native replay/hot-path 原型的 maker 研究系统</strong>。</p>
+<h3 id="5-5-下一阶段真正值得做的事"><a href="#5-5-下一阶段真正值得做的事" class="headerlink" title="5.5 下一阶段真正值得做的事"></a>5.5 下一阶段真正值得做的事</h3><p>如果继续往“金融大牛和系统大牛都会认可”的方向推进，下一阶段不是再加一个模型，而是补四个闭环：</p>
+<ol>
+<li><strong>动态 (\Lambda(\delta)) 闭环</strong>：用 live/shadow fill calibration，把 depth、toxicity、reference shock 映射到整条到达率曲线，而不是只做 widen/pause。</li>
+<li><strong>主动瘦身闭环</strong>：设计 BTCUSDT perp/spot hedge simulator，把 hedge cost、basis risk、taker fee 和 inventory tail loss 放进同一张账。</li>
+<li><strong>真实 multi-venue lead-lag 闭环</strong>：接入独立 venue 原始盘口/逐笔数据，验证 reference 信号是否早于本地可执行窗口。</li>
+<li><strong>live threading 闭环</strong>：把 WebSocket decode、rolling state、quote decision 和 order gateway 分层，至少用 SPSC ring + pinned strategy thread 做一次 x86 p99/p99.9 对照。</li>
+</ol>
+<blockquote>
+<p><strong>本节边界结论</strong></p>
+<ul>
+<li>NarrowGate 已经比较好地回答了“如何让 maker 研究少自欺欺人”。</li>
+<li>它还没有完全回答“如何在尾部冲击中存活、如何主动对冲、如何穿透多 venue 延迟、如何构建 HFT 级 live stack”。</li>
+<li>把这些未完成项写清楚，不会削弱项目；反而能防止读者把研究框架误读成已经闭环的交易系统。</li>
 </ul>
 </blockquote>
 <h2 id="结论：算法假设、验证流程和-C-边界要同时成立"><a href="#结论：算法假设、验证流程和-C-边界要同时成立" class="headerlink" title="结论：算法假设、验证流程和 C++ 边界要同时成立"></a>结论：算法假设、验证流程和 C++ 边界要同时成立</h2><p>到现在，NarrowGate 给我的最大教训不是“C++ 很快”，而是研究系统要同时守住四条线：</p>
