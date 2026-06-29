@@ -16,19 +16,19 @@
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
   
-    <meta name="description" content="TL;DR：读者收益摘要NarrowGate 不是一个“C++ 高频做市系统已经跑通并盈利”的项目，而是一个用于验证 maker quote EV 的研究框架。它的核心不是证明某个做市策略有效，而是建立一套让错误结论更难通过的 maker 研究系统。 读完这篇文章，至少可以得到五个结论：  maker fill 不能简单等价于 spread 收益，必须用 fill 后 markout 和 inve">
+    <meta name="description" content="TL;DR：读者收益摘要NarrowGate 不是一个“C++ 高频做市系统已经跑通并盈利”的项目，而是一个用于验证 maker quote EV 的研究框架。它的核心不是证明某个做市策略有效，而是建立一套让错误结论更难通过的 maker 研究系统。 读完这篇文章，至少可以得到七个结论：  maker fill 不能简单等价于 spread 收益，必须用 fill 后 markout 和 inve">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate：从 Maker Quote EV 到 C++ Tick Replay 的低延迟研究框架">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/06/19/NarrowGate-Cpp-Low-Latency-Market-Making/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="TL;DR：读者收益摘要NarrowGate 不是一个“C++ 高频做市系统已经跑通并盈利”的项目，而是一个用于验证 maker quote EV 的研究框架。它的核心不是证明某个做市策略有效，而是建立一套让错误结论更难通过的 maker 研究系统。 读完这篇文章，至少可以得到五个结论：  maker fill 不能简单等价于 spread 收益，必须用 fill 后 markout 和 inve">
+<meta property="og:description" content="TL;DR：读者收益摘要NarrowGate 不是一个“C++ 高频做市系统已经跑通并盈利”的项目，而是一个用于验证 maker quote EV 的研究框架。它的核心不是证明某个做市策略有效，而是建立一套让错误结论更难通过的 maker 研究系统。 读完这篇文章，至少可以得到七个结论：  maker fill 不能简单等价于 spread 收益，必须用 fill 后 markout 和 inve">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/maker-hot-path.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/data-lineage.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/quote-ladder.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/order-lifecycle.svg">
 <meta property="article:published_time" content="2026-06-19T08:50:48.000Z">
-<meta property="article:modified_time" content="2026-06-27T16:35:00.000Z">
+<meta property="article:modified_time" content="2026-06-29T16:20:00.000Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="C++">
 <meta property="article:tag" content="低延时">
@@ -208,7 +208,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      84k 字
+      88k 字
     </span>
   
 
@@ -217,7 +217,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      700 分钟
+      736 分钟
     </span>
   
 
@@ -250,15 +250,18 @@
             
             <div class="markdown-body">
               <h2 id="TL-DR：读者收益摘要"><a href="#TL-DR：读者收益摘要" class="headerlink" title="TL;DR：读者收益摘要"></a>TL;DR：读者收益摘要</h2><p><strong>NarrowGate</strong> 不是一个“C++ 高频做市系统已经跑通并盈利”的项目，而是一个用于验证 maker quote EV 的研究框架。它的核心不是证明某个做市策略有效，而是建立一套让错误结论更难通过的 maker 研究系统。</p>
-<p>读完这篇文章，至少可以得到五个结论：</p>
+<p>读完这篇文章，至少可以得到七个结论：</p>
 <ol>
 <li>maker fill 不能简单等价于 spread 收益，必须用 fill 后 markout 和 inventory exposure 衡量；</li>
 <li>多市场 reference 有信息量，但不等于统一打开 <code>multi_market</code> 就有正 EV；</li>
 <li>tick replay、queue ahead、latency、TTL 和 maker fill gate 会显著改变 bar 回测结论；</li>
 <li>C++ 的价值不是替代 Python 写策略，而是把 replay、feature state、quote core 和 live hot path 中稳定、高频、低基数的部分收紧边界；</li>
-<li>当前项目没有宣称“搞定做市终局”：动态到达率、主动对冲、多 venue lead-lag 和 HFT 级线程模型仍然是明确的未完成边界。</li>
+<li>很多早期结果已经被后续审计推翻：连续跨日/月度 replay、坏日/gap 污染、markout EMA latch、fills/day 分母错误、未 parity 的 C++ sweep，都不能再当作 alpha 证据；</li>
+<li>当前项目没有选出可以称为“最优 live 参数”的策略结论；目前只保留极窄的 SELL resiliency soft-keep 作为 live-style 观测和 denominator logging；</li>
+<li>动态到达率、主动对冲、多 venue lead-lag 和 HFT 级线程模型仍然是明确的未完成边界。</li>
 </ol>
 <p>换句话说，C++ 没有替项目找到策略答案。它做的是更有用的事：让错误答案更快暴露，让好看的数字更难逃过验证。</p>
+<p>这篇文章也不是一份“项目顺利推进报告”。更准确地说，它是一份研究复盘：很多曾经看起来有希望的方向，后来都被更严格的数据质量、日度 fresh-start replay、live/replay 机制量对齐、bucket/OOS 校准和库存时间指标推翻或降级。保留下来的不是某个神奇参数，而是一套更不容易自欺欺人的验证流程。</p>
 <p><strong>NarrowGate</strong> 是我最近一段时间一直在做的 maker/被动做市研究项目。它不是从“我要写一个 C++ 高频系统”开始的，而是从一个更朴素的问题开始：<strong>当市场有人急于成交时，站在被动一侧提供流动性，究竟是在收取 spread，还是在替更快的信息交易者接风险？</strong></p>
 <p>最初的实现只是一个基于 Avellaneda-Stoikov 模型的 Python 研究框架。随后，为了检验这个问题，项目才逐步加入逐笔成交、原生 L2 盘口、LightGBM、BTCUSDT 永续 reference、BTCUSDC/BTCUSDT spot anchor、逐侧 quote EV、库存时间风险，以及 Python/C++ 双引擎回放。也就是说，C++ 是研究越做越深之后出现的工程结果，不是项目的前提。</p>
 <p>先把阅读边界说清楚：本文只从 C++ 低延时工程、市场微观结构、价格行为学、数据质量和回测方法的角度分析 NarrowGate，不讨论也不建议任何真实交易行为。文中的 PnL、fill、markout、A/B 都是研究指标，用来验证模型假设、执行口径和系统性能，而不是收益承诺。</p>
@@ -313,18 +316,24 @@
 <td>enhanced spot</td>
 <td>更多市场能让模型更健壮</td>
 <td>特征有信息不等于 policy 有正 EV，bid/ask 响应还不对称</td>
-<td>重建 spot features、日度 rollup A/B、按 side/regime 验证</td>
+<td>降级为 risk label / moderator，先做 bucket 与 quote EV shadow</td>
 </tr>
 <tr>
 <td>quote EV</td>
 <td>ask 侧 raw PnL 改善即可晋级</td>
-<td>有效 fill 太少，校准和 30s markout gate 不通过</td>
+<td>有效 fill 太少，校准和 30s markout gate 不通过；后来 interaction/local-flow 也未过 daily stability</td>
 <td>strict promotion gates、walk-forward 扩样、shadow/research 定位</td>
+</tr>
+<tr>
+<td>连续跨日/月度 replay</td>
+<td>长窗口汇总更稳定</td>
+<td>坏日/gap、markout latch、状态跨日污染和 fills/day 分母会共同扭曲结论</td>
+<td>全部改为 UTC 日度 fresh-start，并同时报告 full-calendar / quality-day / active-trade-day</td>
 </tr>
 <tr>
 <td>多臂 tick A/B</td>
 <td>更严格的验证只要多跑几次</td>
-<td>Python replay 与逐行 quote context 让多日实验过慢</td>
+<td>Python replay 与逐行 quote context 让多日实验过慢；C++ 未 parity 时不能用于选参</td>
 <td>C++ batch quote core、tick replay 状态机、window cache 与双引擎 parity</td>
 </tr>
 <tr>
@@ -332,6 +341,40 @@
 <td>native 代码一定比 Python 快</td>
 <td>每 tick <code>dict/dataclass/asdict</code> 往返比 quote 数学还贵，WebSocket/REST 不在 CPU 热点</td>
 <td>cached config、fixed tuple、compact context、routing bridge、fixed-array signal</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>为了避免文章后面又把旧实验写成现役结论，先把当前证据账本列出来：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>内容</th>
+<th>当前处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>作废</strong></td>
+<td>连续跨日/月度 replay 结论、坏日/gap 污染下的 quote EV A/B、markout EMA latch 污染下的 adverse 参数、fills/day 用错分母、未 parity 的 C++ sweep</td>
+<td>不再用于选择 live 参数，只作为事故复盘</td>
+</tr>
+<tr>
+<td><strong>保留</strong></td>
+<td>数据质量体系、UTC 日度 fresh-start、continuous segment / horizon guard、hard gate、库存时间积分、live/replay 机制量对齐、C++ parity 制度</td>
+<td>作为后续所有实验的入场条件</td>
+</tr>
+<tr>
+<td><strong>待验证</strong></td>
+<td><code>multi_market</code>、enhanced spot、quote EV、local resiliency bucket、adverse/defense guard 是否真的有 alpha</td>
+<td>只能走 shadow label、OOS bucket、daily stability 和 inventory-time gate</td>
+</tr>
+<tr>
+<td><strong>窄 live-style 观测</strong></td>
+<td>SELL resiliency soft-keep</td>
+<td>只做极窄 SELL 侧 spread cap / shadow counter，不绕过 hard block，不增加 size，不当作已验证 alpha</td>
 </tr>
 </tbody>
 </table>
@@ -842,52 +885,32 @@ ask = ceil_tick(reservation + spread / <span class="hljs-number">2</span> * (<sp
     quote.allow_post = <span class="hljs-literal">False</span>
     quote.reason = <span class="hljs-string">&quot;DEFENSE_GUARD&quot;</span></code></pre></div>
 <p>所以，高波动不必然 pause；pause 专门针对“这侧成交之后的 markout/毒性证据已经不能靠 spread 补偿”的状态。否则策略会把 volatility risk 和 information risk 混为一谈。</p>
-<p>最近一次 BTCUSDC live 参数重扫也正好说明了这一点。我没有再用一条连续长窗路径评判，而是固定当前 live 模型 <code>models/saved_btcusdc_taker_tempo_20260528</code>，在 101 个 UTC 日段上做 fresh-start adverse threshold grid。结果里，<code>adverse_markout_threshold=2.5</code>、<code>adverse_markout_pause_threshold=6.0</code> 是 raw 与 InvAdj 的折中：</p>
-<div class="table-container">
-<table>
-<thead>
-<tr>
-<th>arm</th>
-<th style="text-align:right">Raw delta</th>
-<th style="text-align:right">InvAdj delta</th>
-<th style="text-align:right">InvAdj group wins</th>
-<th style="text-align:right">fills/day</th>
-<th style="text-align:right">abs inventory time</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>baseline</td>
-<td style="text-align:right">0.00</td>
-<td style="text-align:right">0.00</td>
-<td style="text-align:right">-</td>
-<td style="text-align:right">878.5</td>
-<td style="text-align:right">390.8s</td>
-</tr>
-<tr>
-<td><code>2.5 / 6.0</code></td>
-<td style="text-align:right"><strong>+5.75</strong></td>
-<td style="text-align:right"><strong>+1.27</strong></td>
-<td style="text-align:right">5/5</td>
-<td style="text-align:right">864.5</td>
-<td style="text-align:right">383.5s</td>
-</tr>
-<tr>
-<td><code>2.0 / 5.0</code></td>
-<td style="text-align:right">-9.83</td>
-<td style="text-align:right">+2.33</td>
-<td style="text-align:right">5/5</td>
-<td style="text-align:right">844.5</td>
-<td style="text-align:right">373.3s</td>
-</tr>
-</tbody>
-</table>
-</div>
-<p><code>2.0 / 5.0</code> 更像风险收缩保险，库存时间更低、InvAdj 更好，但 raw 明显变差；<code>2.5 / 6.0</code> 更适合作为 live monitored candidate。对应远端配置已经改成：</p>
-<div class="code-wrapper"><pre><code class="hljs yaml"><span class="hljs-attr">adverse_markout_threshold:</span> <span class="hljs-number">2.5</span>
-<span class="hljs-attr">adverse_markout_pause_threshold:</span> <span class="hljs-number">6.0</span>
-<span class="hljs-attr">adverse_spread_mult:</span> <span class="hljs-number">1.35</span></code></pre></div>
-<p>同一轮也训练了新的 <code>models/saved_btcusdc_daily_retrain_20260627</code>，但它没有晋级：成交数更高，raw/InvAdj 却明显更差。这反过来提醒我，maker 模型不是“越活跃越好”，很多时候更高的 fill count 只是更高频地接到了有毒流。</p>
+<p>这里必须把历史结论说清楚：早期我确实做过 adverse threshold 的日段 grid，也一度把 <code>2.5 / 6.0</code> 这样的组合看成 raw 与 InvAdj 的折中。但后续复盘发现，当时的证据链并不够干净。</p>
+<p>主要问题不是某个阈值本身，而是 replay/live 机制还在被修正：</p>
+<ul>
+<li>markout EMA 曾经可能在坏日、长 gap 或行情静默后形成 latch，导致一侧长期 pause；</li>
+<li>fill cooldown 曾经会挡住减库存方向，风险降低订单也被误杀；</li>
+<li><code>thin_depth</code> 阈值一度按过高的 depth baseline 解释 BTCUSDC，导致 defense reason 常驻；</li>
+<li>SYNC_ADJUST 的 hard degrade 曾经过敏，一次 sync discrepancy 就可能触发 120 秒降级；</li>
+<li>fills/day 的分母在不同报告里混用了 full calendar day、quality day 和 active-trade day；</li>
+<li>C++ sweep 在若干 policy 细节未 parity 前不能用于选参。</li>
+</ul>
+<p>因此，旧的 adverse threshold 表格现在只能作为“为什么要修机制”的事故复盘，而不能作为 live 最优参数依据。保留下来的结论是机制层的：</p>
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-comment"># 旧 adverse 证据必须随 wall-clock 衰减，不能跨坏日/长 gap 永久生效。</span>
+markout_ema *= exp(-dt / tau_s)
+
+<span class="hljs-comment"># cooldown / pause 只应该阻止增加库存风险的一侧；</span>
+<span class="hljs-comment"># 减库存方向应该优先保留，除非 stale/sync/inventory hard block 触发。</span>
+<span class="hljs-keyword">if</span> fill_cd_active <span class="hljs-keyword">and</span> exposure_increasing(side, inventory):
+    allow_exposure_increase = <span class="hljs-literal">False</span></code></pre></div>
+<p>这也是后面所有 alpha 搜索重新开始的原因。我们不再问“哪个 adverse 阈值最优”，而是先问：</p>
+<ol>
+<li>replay 挂单数量是否和 live 同数量级；</li>
+<li>fills/hour、bid/ask split、spread、block reason 是否能对齐；</li>
+<li>fill selection 和 maker-signed markout 是否在 OOS 日段保持稳定；</li>
+<li>通过这些机制 gate 后，再谈某个 policy 是否有 alpha。</li>
+</ol>
+<p>同一轮也训练过新的 <code>models/saved_btcusdc_daily_retrain_20260627</code>，但它没有晋级：成交数更高，raw/InvAdj 却明显更差。这反过来提醒我，maker 模型不是“越活跃越好”，很多时候更高的 fill count 只是更高频地接到了有毒流。</p>
 <h3 id="1-5-动态-kappa：AS-是坐标系，不是答案"><a href="#1-5-动态-kappa：AS-是坐标系，不是答案" class="headerlink" title="1.5 动态 kappa：AS 是坐标系，不是答案"></a>1.5 动态 kappa：AS 是坐标系，不是答案</h3><p>Avellaneda-Stoikov 给了一个非常有用的坐标系：</p>
 <script type="math/tex; mode=display">
 r_t = S_t - q_t \gamma \sigma_t^2 (T-t)</script><script type="math/tex; mode=display">
@@ -1052,6 +1075,14 @@ cv_ref_spot_*</code></pre></div>
 <li>bid 与 ask 两侧的响应并不对称。</li>
 </ul>
 <p>如果把 reference 信号直接变成统一 widen/pause 开关，就会把“应该避开的信息冲击”和“可以承接的已吸收流动性冲击”一起过滤掉。新增数据提高的是<strong>可分辨性</strong>，不是自动提供一条单调的收益规则。</p>
+<p>后续 alpha 重建进一步把这个结论收窄了。我们做过 <code>ref_favorable_gt2e-5</code>、<code>spot_unconfirmed</code>、<code>spot_confirmed</code>、<code>ref_confirmed</code>、<code>ref_adverse_gt5e-5</code> 等 bucket 审计，也检查过 sign convention、label leakage、side / distance / near depth / queue rank / guard state / day 的拆分。结果并不是“reference favorable 就能放开”：</p>
+<ul>
+<li><code>spot_confirmed</code>、<code>spot_adverse_gt5e-5</code>、<code>ref_confirmed</code>、<code>ref_adverse_gt5e-5</code> 更稳定地表现为负向 risk label；</li>
+<li><code>ref_favorable_gt2e-5</code> 和 <code>spot_unconfirmed</code> 偶尔有正 markout，但样本稀疏、OOS daily stability 不够；</li>
+<li>xmarket interaction 接进 quote EV 后，没有同时通过 bucket、daily stability、InvAdj/raw、inventory time 和 side markout gate；</li>
+<li>直接把 xmarket 变成 widen/TTL/size policy，容易把“少成交”误读成“更聪明”。</li>
+</ul>
+<p>因此当前 xmarket 的正确位置不是 direct alpha policy，而是 moderator / risk label：在本市场已经呈现可吸收冲击时，它可以帮助判断是否有更广泛的信息重定价；但它不能单独决定“该挂”。</p>
 <p>这也解释了一个常见的机器学习误区：feature 更多、数据源更多，只会扩大模型可以表达的空间；它不会自动保证目标函数、时间对齐、样本覆盖和执行 policy 都正确。</p>
 <h3 id="1-8-多市场-reference：有信息不等于能赚钱"><a href="#1-8-多市场-reference：有信息不等于能赚钱" class="headerlink" title="1.8 多市场 reference：有信息不等于能赚钱"></a>1.8 多市场 reference：有信息不等于能赚钱</h3><p>BTCUSDT perp、BTCUSDT spot、BTCUSDC spot 确实有信息量。source audit 和 shock attribution 都显示：很多 adverse fills 能被 BTCUSDT reference move 解释，spot adverse return 也有增量信号。</p>
 <p>但这不是最终答案。真正的问题是 reference 信号的时效性：</p>
@@ -1064,6 +1095,7 @@ cv_ref_spot_*</code></pre></div>
 <li>已经把 <code>multi_market.enabled</code> 从“收益开关”降级为“需要被审计的 source 条件变量”；</li>
 <li>已经做了 local-only、perp、spot、组合 source profile 的隔离 A/B；</li>
 <li>已经要求 freshness、basis residual、coverage 和 shock label；</li>
+<li>已经把 xmarket direct policy 退回 quote EV / shadow label / bucket evidence 层；</li>
 <li>但没有独立 venue 的原始毫秒/微秒级数据，因此不能验证真正的 cross-venue lead-lag 和 latency arbitrage。</li>
 </ul>
 <p>换句话说，现在能说的是：<strong>Binance 内部多源数据有解释力，但不能证明它形成了可执行的多 venue alpha</strong>。</p>
@@ -1074,7 +1106,7 @@ cv_ref_spot_*</code></pre></div>
 <li>extreme adverse probability；</li>
 <li>reference/spot 对冲击性质的确认。</li>
 </ul>
-<p>在 enhanced spot A/B 中，<code>ask_ev_soft_widen</code> 曾得到相对 baseline 的 raw PnL <code>+14.55</code>、InvAdj <code>+0.0049</code>。只看这两个研究指标，它很像一个值得继续做 shadow 验证的候选。</p>
+<p>在早期 enhanced spot A/B 中，<code>ask_ev_soft_widen</code> 曾得到相对 baseline 的 raw PnL <code>+14.55</code>、InvAdj <code>+0.0049</code>。只看这两个研究指标，它很像一个值得继续做 shadow 验证的候选；但这个结果后来被降级为“引发复盘的历史线索”，不能再被单独用作候选晋级理由。</p>
 <p>但再往下看，证据并不够：</p>
 <ul>
 <li>用于 baseline quote label 的真实 fill 只有 bid/ask 各约 334 条；</li>
@@ -1084,8 +1116,18 @@ cv_ref_spot_*</code></pre></div>
 <li>30s expected-markout calibration MAE 也仍然很大。</li>
 </ul>
 <p>后来把质量合格的 2025-08/09/11/12 加入 walk-forward，训练侧 fill 增加到 bid 414、ask 415，但 validation 可用 feature 覆盖不足，窗口里只剩 bid 26、ask 25 条有效 fill。扩样改善了训练数量，却没有解决验证集覆盖和校准问题。</p>
+<p>随后又做了几轮更严格的重建：</p>
+<ul>
+<li>加入 C++ quote context 小字段，而不是一次性把几十个 <code>cpp_*</code> 全塞进模型；</li>
+<li>加入 <code>ref_favorable + quote EV markout head 非负 + 非 thin depth + side-specific distance/rank</code> 的 quote-time interaction；</li>
+<li>加入 local-flow / resiliency 字段，例如 near depth、refill edge、queue rank、taker flow deceleration；</li>
+<li>加入 calendar / regional session 特征，检查 UTC week-hour、Tokyo、Singapore/HK、London、US、重合时段是否只是成交强度差异；</li>
+<li>对 <code>SELL + queue_high + flow_decay_high</code> 和更窄的 local resiliency bucket 做 daily OOS。</li>
+</ul>
+<p>这些方向有局部线索，但仍没有形成 promotion：有些 bucket 是 sparse favorable，有些只在单日或少数日段成立，有些改善了 fill selection 却没有同时改善 InvAdj、库存时间和 side markout。结论不是“这些特征没用”，而是“还不能直接变成 live 参数”。</p>
 <p>这里的“两万多行 labels”和“三百多条 fill”也不是矛盾。前者是被评估的候选 quote rows，绝大多数报价本来就不会成交；后者才是能够观测 fill 后 markout、用于校准条件结果的有效样本。<code>P(fill)</code> 可以从大量未成交报价中学习，但 <code>E(markout | fill)</code> 的统计强度最终仍受真实 filled rows 限制。这正是 maker quote-level 模型最容易出现“数据行很多、有效监督很少”的地方。</p>
-<p>所以目前最诚实的结论是：ask-only 的方向值得继续研究，但仍是 shadow/research 候选，不能因为一次 raw PnL 改善就跳过样本质量与校准 gate。bid 侧在 enhanced shadow eval 中还出现过明显退化，更不能把 both-side 结果当作自然升级。</p>
+<p>所以目前最诚实的结论是：ask-only 只保留为 quote EV / shadow 训练问题，不能因为一次 raw PnL 改善就跳过样本质量与校准 gate。bid 侧在 enhanced shadow eval 中还出现过明显退化，更不能把 both-side 结果当作自然升级。</p>
+<p>当前唯一进入 live-style 观测的不是 quote EV 模型，而是一个更窄的 SELL resiliency soft-keep：只有在 SELL 侧、local resiliency 强、flow deceleration 明显、queue/rank/depth/refill 条件合格，且 reference/spot 不显示 adverse 的时候，才允许轻微 cap ask spread multiplier。它不增加 size，不绕过 stale/sync/inventory hard block，也不声称已经有 alpha。它的核心价值是写 <code>sell_resiliency_shadow.csv</code>，把 <code>ref_adv</code>、<code>spot_adv</code>、<code>rank</code>、<code>flow_decel</code>、<code>near_depth</code>、<code>refill_edge</code> 和 hit denominator 记下来，让第二天能复盘这个 bucket 到底触发了多少次、失败在哪个条件、fill 后 markout 是否真的更好。</p>
 <h3 id="1-10-Shadow-Mode：在线校准比回测-PnL-更诚实"><a href="#1-10-Shadow-Mode：在线校准比回测-PnL-更诚实" class="headerlink" title="1.10 Shadow Mode：在线校准比回测 PnL 更诚实"></a>1.10 Shadow Mode：在线校准比回测 PnL 更诚实</h3><p>NarrowGate 不应该把 quote EV 直接从回测 A/B 推到 live。更合理的中间层是 shadow mode：实盘收行情，在线计算 quote、quote EV、side policy 和 would-place/would-fill，但不把它当成交易建议，也不把它当成真实成交承诺。</p>
 <p>shadow mode 的核心问题不是“预测收益是多少”，而是：</p>
 <script type="math/tex; mode=display">
@@ -2983,8 +3025,12 @@ iTLB-loads,iTLB-load-misses \
 <td>strict 模式直接 fail；非 strict live 可 fallback/disable native path</td>
 </tr>
 <tr>
+<td>SELL resiliency soft-keep</td>
+<td><code>HEALTH</code> 输出 <code>sellResilEval/sellResilHit/sellResilHitRate</code>，独立写 <code>sell_resiliency_shadow.csv</code></td>
+</tr>
+<tr>
 <td>运行健康</td>
-<td><code>HEALTH</code> 输出 position、PnL、库存时间、订单数、requote 数</td>
+<td><code>HEALTH</code> 输出 position、PnL、库存时间、订单数、requote 数和关键 shadow counter</td>
 </tr>
 </tbody>
 </table>
@@ -3001,9 +3047,21 @@ iTLB-loads,iTLB-load-misses \
     pause_exposure_increasing_quotes(duration_s)
     reconnect_user_stream()
 
+<span class="hljs-keyword">if</span> sell_resiliency_candidate:
+    write_shadow_row(
+        hit=hit,
+        ref_adv=ref_adv,
+        spot_adv=spot_adv,
+        rank=queue_rank,
+        flow_decel=flow_decel,
+        spread_mult_before=old_mult,
+        spread_mult_after=new_mult,
+    )
+
 <span class="hljs-keyword">if</span> bad_trade:
     bad_trade_counter += <span class="hljs-number">1</span>
     <span class="hljs-keyword">return</span></code></pre></div>
+<p>这里的 <code>sell_resiliency_shadow.csv</code> 不是交易结论，而是一个很工程化的 denominator log。只看 <code>quote_decisions.csv</code> 里的 <code>reason_text=sell_resil</code>，你只能知道触发了多少次；但不知道有多少次差一点触发、失败在 reference、spot、rank、flow decay、depth 还是 hard gate。独立 shadow log 把这些 quote-time 字段都记下来，第二天才能回答“这个窄 bucket 是真有选择力，还是只是偶尔撞上”。</p>
 <p>这仍然不是完整高可用交易网关。它没有 kernel bypass、没有独立 order gateway 进程、没有完整 SPSC ring 隔离，也没有多机热备。当前目标是：在研究/影子/小规模 live-style 运行里，遇到脏数据时优先撤单、降级、报警、重连，而不是继续用坏状态报价。</p>
 <blockquote>
 <p><strong>本节实操结论</strong></p>
@@ -3014,13 +3072,14 @@ iTLB-loads,iTLB-load-misses \
 <li>Python/C++ 胶水层的关键是一次传连续数组或固定 tuple，不在每 tick 传动态对象。</li>
 <li>fixed-array signal 当前是渐进式迁移：稳定热点进 C++，实验性特征保留更灵活的路径。</li>
 <li>live 脏数据不能删除，只能通过 stale block、watchdog reconnect、SYNC_ADJUST degrade 和 telemetry 降级。</li>
+<li>live 操作必须走统一脚本，例如 <code>live/run.sh start|stop|restart|status|logs|reload</code>；不要裸 <code>nohup python live/main.py</code>，否则很容易绕过 <code>.env</code>，导致 API key/secret 没进进程环境。</li>
 </ul>
 </blockquote>
 <h4 id="3-7-6-live-路径不该做的事"><a href="#3-7-6-live-路径不该做的事" class="headerlink" title="3.7.6 live 路径不该做的事"></a>3.7.6 live 路径不该做的事</h4><p>这套设计也确定了 live 路径不迁移的边界：</p>
 <ul>
 <li><strong>WebSocket 层</strong>：网络延迟主导，C++ 写 WebSocket client 不缩短决策尾延迟，只增加维护面</li>
 <li><strong>LightGBM 推理</strong>：模型本身已 native（LightGBM C API），Python 只做 feature → array 转换</li>
-<li><strong>大块 Python 编排逻辑</strong>：config reload、日志、HEALTH 上报、REST 重连——这些不在 CPU 热点，放 Python 更容易验证和修改</li>
+<li><strong>大块 Python 编排逻辑</strong>：config reload、日志、HEALTH 上报、REST 重连、<code>sell_resiliency_shadow.csv</code> 这类可观测性输出——这些不在 CPU 热点，放 Python 更容易验证和修改</li>
 <li><strong>GIL 释放</strong>：live 主路径单线程，释放 GIL 无收益；WebSocket 回调在不同 thread 里，releasing GIL 反而引入竞争</li>
 </ul>
 <p>live 路径的结论和 offline 路径相同，但结论的来路完全不同：<strong>offline 关心吞吐，live 关心尾延迟；offline 可以 batch，live 只能 scalar；offline 释放 GIL 有意义，live 中通常没有</strong>。把 offline 的优化模式复制到 live，往往只是更快地得到一个无收益的结果。</p>
@@ -3031,6 +3090,7 @@ iTLB-loads,iTLB-load-misses \
 <li>单个公式迁到 C++ 很容易被 pybind、dict、dataclass 和日志对象物化反噬；稳定、高频、低基数的决策包才适合 native。</li>
 <li>热路径目标是最小且可预测的指令工作集，而不是让整个 <code>.so</code> 塞进 L1I。</li>
 <li>ARM 本机 microbench、offline sweep 加速、x86 live p99/p99.9 是三种不同证据，不能互相替代。</li>
+<li>live shadow counter 和 CSV 打点是“明天能复盘”的安全边界，不是 C++ 热路径优化目标；它们应该清楚、稳定、可 grep，而不是极限快。</li>
 </ul>
 </blockquote>
 <h4 id="3-7-7-系统侧：C-replay-很强，live-架构还不是终局"><a href="#3-7-7-系统侧：C-replay-很强，live-架构还不是终局" class="headerlink" title="3.7.7 系统侧：C++ replay 很强，live 架构还不是终局"></a>3.7.7 系统侧：C++ replay 很强，live 架构还不是终局</h4><p>工程侧完成度更高，但也要分清 offline 和 live。</p>
@@ -3102,10 +3162,17 @@ order gateway thread</code></pre></div>
 <li><strong>风险完整性</strong>：raw PnL 之外，还要看 InvAdj、fill/markout、校准和库存时间；</li>
 <li><strong>引擎一致性</strong>：Python、C++、回放与事件引擎必须共享同一套 policy 语义。</li>
 </ol>
-<p>目前 enhanced spot 已经证明“更多市场能帮助解释 adverse flow”，但没有证明 <code>multi_market.enabled=true</code> 是稳定收益开关。ask quote EV 是最值得继续观察的方向，但 validation fill 和 calibration 仍未过 gate。C++ replay 已经显著缩短快筛时间，但它的价值首先是让更多真实窗口、更多反例和更严格 parity 变得可负担。</p>
-<p>这也回答了文章开头的问题：NarrowGate 当前得到的并不是一条“接入更多数据、换成 C++，收益自然变好”的直线。相反，它得到的是一套逐层收紧的否证流程：数据源先证明连续，feature 再证明非零且时间对齐，模型再证明校准，policy 再证明跨日收益和库存效率，最后 C++ 只负责让这些检验跑得更快、更一致。</p>
+<p>目前 enhanced spot 显示“更多市场能帮助解释 adverse flow”，但没有证明 <code>multi_market.enabled=true</code> 是稳定收益开关。ask quote EV、xmarket interaction、calendar/local-flow、SELL resiliency bucket 都提供过局部线索，但还没有同时通过：</p>
+<div class="code-wrapper"><pre><code class="hljs text">数据质量
+  -&gt; replay/live 机制量
+  -&gt; fill selection
+  -&gt; OOS bucket
+  -&gt; daily stability
+  -&gt; InvAdj/raw/库存时间/side markout</code></pre></div>
+<p>因此当前不能诚实地说已经选出了 live 最优参数。已经推到远端的 SELL resiliency soft-keep，也应该被理解成“带独立 shadow denominator 的极窄观测开关”，而不是最终 alpha policy。C++ replay 已经显著缩短快筛时间，但它的价值首先是让更多真实窗口、更多反例和更严格 parity 变得可负担。</p>
+<p>这也回答了文章开头的问题：NarrowGate 当前得到的并不是一条“接入更多数据、换成 C++，收益自然变好”的直线。相反，它得到的是一套逐层收紧的否证流程：数据源先证明连续，feature 再证明非零且时间对齐，模型再证明校准，policy 再证明日度收益、side markout 和库存效率，最后 C++ 只负责让这些检验跑得更快、更一致。</p>
 <p>换句话说，C++ 没有替项目找到策略答案。它做的是更有用的事：让错误的答案更快暴露，让好看的数字更难逃过验证。</p>
-<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>NarrowGate 从一个 AS 公式实验，走到了数据审计、跨市场冲击归因、逐侧 quote EV、库存时间积分和 C++ 状态机。这个过程不断把最初的问题变窄：不是“能不能预测 BTC”，而是“在这一侧、这个价格、这个盘口和这段库存暴露下，是否值得提供一次短暂的被动流动性”。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>NarrowGate 从一个 AS 公式实验，走到了数据审计、跨市场冲击归因、逐侧 quote EV、库存时间积分和 C++ 状态机。这个过程也不断推翻自己的旧答案：更多 reference 没有自动带来更好 policy；ask EV 的 raw 改善没有通过校准；连续长窗回测被日度 fresh-start 取代；C++ sweep 在 parity 前不能用于选参；局部 SELL bucket 只能先做 shadow denominator。最初的问题因此被越问越窄：不是“能不能预测 BTC”，而是“在这一侧、这个价格、这个盘口和这段库存暴露下，是否值得提供一次短暂的被动流动性”。</p>
 <p>这可能也是“窄门”最贴切的地方。一个研究系统的成熟，不在于它接入了多少模型和数据源，而在于它愿意用多少层约束拒绝一个看起来很诱人的结论。</p>
 <hr>
 <p>本文及 NarrowGate 项目仅用于 C++ 低延时系统、市场微观结构、价格行为学、做市模型和机器学习回测方法的学习交流与技术研究，不构成财务、投资、法律或合规建议。中国大陆关于 crypto 交易及相关业务活动的监管环境具有不确定性；任何人将相关代码用于连接交易平台、交易、商业展业或投资决策，其合规风险、资金损失、技术故障及其他后果均由使用者自行承担，与作者无关。</p>
