@@ -24,7 +24,7 @@
 <meta property="og:description" content="TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV 与被动做市研究框架》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证为什么最后会拆成两种完全不同的低延时问题”。 第一种是 ARM 本机回测低延时：目标是让完整窗口、更多反例、更严格 parity 和更重的 quote context">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-07-01T00:03:00.000Z">
-<meta property="article:modified_time" content="2026-07-01T01:20:00.000Z">
+<meta property="article:modified_time" content="2026-07-01T03:08:00.000Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="C++">
 <meta property="article:tag" content="低延时">
@@ -201,7 +201,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      57k 字
+      60k 字
     </span>
   
 
@@ -210,7 +210,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      475 分钟
+      499 分钟
     </span>
   
 
@@ -1557,7 +1557,7 @@ scripts/x86_live_soak.sh</code></pre></div>
 <li>下一步验证：固定 BLAS/OMP 线程后跑 soak，并确认没有 CPU migration、page fault 或 fallback 尖刺。</li>
 </ul>
 </blockquote>
-<p>短跑只能说明方向，所以我又在同一台最终 live 机型上跑了更长的 soak：baseline 和候选各 <code>--n 100000 --signal-n 10000</code>，routing compact ABI <code>--n 200000</code>。这次输出 p99.9：</p>
+<p>短跑只能说明方向，所以我又在同一台 x86 benchmark 机型上跑了更长的 soak：baseline 和候选各 <code>--n 100000 --signal-n 10000</code>，routing compact ABI <code>--n 200000</code>。这次输出 p99.9：</p>
 <div class="table-container">
 <table>
 <thead>
@@ -1604,6 +1604,147 @@ scripts/x86_live_soak.sh</code></pre></div>
 <li>下一步验证：在真实 live 进程旁路 shadow 打点，比较开启/关闭 native 开关时的 HEALTH、requote、ORDER_UPDATE 和 p99.9。</li>
 </ul>
 </blockquote>
+<p>后来我又在当前真正跑 live 的机器上补了这一步：<code>ec2-user@52.194.209.205</code>，Amazon Linux 2023，Intel Xeon Platinum 8175M，2 vCPU（1 core / 2 SMT threads），当前 venv、当前模型、当前配置。这里要把三类数字分开：synthetic benchmark、真实 live telemetry，以及研究机制的 parity 边界。</p>
+<p>第一类仍是 synthetic benchmark。它只测 Python/C++ 决策路径本身，不包含真实 Binance REST 往返。本轮命令是：</p>
+<div class="code-wrapper"><pre><code class="hljs bash">python bench/bench_live_path.py --n 5000 --signal-n 500 --ml --engine python
+
+NARROWGATE_CPP_QUOTE_CORE=1 \
+NARROWGATE_CPP_SIGNAL_FEATURES=1 \
+NARROWGATE_CPP_STRICT=1 \
+python bench/bench_live_path.py --n 5000 --signal-n 500 --ml --engine cpp --strict-cpp</code></pre></div>
+<p>当前 live 机可以正常 import <code>narrowgate_cpp</code>，但真实 live 进程环境里 <code>NARROWGATE_CPP_*</code> 没有打开；下面只是 native path 的旁路 benchmark，不代表 live 已采用。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>路径</th>
+<th style="text-align:right">Python baseline mean/p99/p99.9</th>
+<th style="text-align:right"><code>QUOTE_CORE + SIGNAL_FEATURES</code> mean/p99/p99.9</th>
+<th>读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ingest 1s ws events</td>
+<td style="text-align:right">92.02 / 190.17 / 410.74 us</td>
+<td style="text-align:right">110.00 / 219.34 / 401.15 us</td>
+<td>ingest 路径不该因 native quote 变化而被当成收益来源</td>
+</tr>
+<tr>
+<td>signal cached</td>
+<td style="text-align:right">21.19 / 37.32 / 303.32 us</td>
+<td style="text-align:right">19.93 / 34.63 / 61.52 us</td>
+<td>cached path 尾部更稳</td>
+</tr>
+<tr>
+<td>signal 10s features</td>
+<td style="text-align:right">10794.80 / 69946.88 / 74770.13 us</td>
+<td style="text-align:right">5648.25 / 9373.07 / 38222.13 us</td>
+<td>C++ fixed-array 仍是最清楚的 CPU 收益</td>
+</tr>
+<tr>
+<td>live <code>_compute_quotes</code></td>
+<td style="text-align:right">218.16 / 406.64 / 1169.29 us</td>
+<td style="text-align:right">200.31 / 410.18 / 804.16 us</td>
+<td>均值略好，p99 接近，p99.9 改善</td>
+</tr>
+<tr>
+<td>side policy pair</td>
+<td style="text-align:right">107.56 / 192.31 / 219.10 us</td>
+<td style="text-align:right">119.71 / 236.15 / 466.99 us</td>
+<td>policy 主体仍在 Python，native quote 不解决这里</td>
+</tr>
+<tr>
+<td><code>quote + policy</code></td>
+<td style="text-align:right">394.55 / 794.30 / 1407.25 us</td>
+<td style="text-align:right">410.39 / 705.13 / 1186.53 us</td>
+<td>均值略慢，但尾部更好；不能单独据此上线</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>这张表和 ARM 本机结论不同：在当前 x86 live 机上，<code>SIGNAL_FEATURES=1</code> 已经不是早期那种负优化；它明显降低 10s feature 的均值和 p99。quote core 则更微妙：<code>_compute_quotes</code> 自身略有改善，但 <code>quote + policy</code> 由于 policy 仍在 Python，均值没有变快，只是尾部好一点。因此 native path 下一步若要进入 live shadow，也应该先从 fixed-array signal 和更完整的 quote/policy/routing bundle 评估，而不是单独宣布 quote core 已经赢。</p>
+<p>第二类是真实 live 进程旁路 telemetry。我在 <code>MakerEngine</code> 里加了 <code>logs/live_perf_telemetry.csv</code>，每次 requote 记录 <code>signal_compute_us</code>、<code>compute_quotes_us</code>、<code>update_orders_us</code>、REST new/cancel 耗时，以及 futures/spot/reference WebSocket age。当前 live 进程没有设置 <code>NARROWGATE_CPP_*</code>，最新 430 次 <code>ok</code> requote 的 <code>cpp_flags</code> 全为 0，结果如下：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th style="text-align:right">p50</th>
+<th style="text-align:right">p99</th>
+<th style="text-align:right">p99.9</th>
+<th>读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>requote_total_us</code></td>
+<td style="text-align:right">52484</td>
+<td style="text-align:right">821777</td>
+<td style="text-align:right">1206542</td>
+<td>真实 live 尾部已经是毫秒到秒级，不是 quote math 微秒级问题</td>
+</tr>
+<tr>
+<td><code>signal_compute_us</code></td>
+<td style="text-align:right">30</td>
+<td style="text-align:right">641</td>
+<td style="text-align:right">17056</td>
+<td>本轮 10s signal 没有成为主尾部，但仍有 17ms 级尖刺</td>
+</tr>
+<tr>
+<td><code>signal_ingest_us</code></td>
+<td style="text-align:right">5</td>
+<td style="text-align:right">187</td>
+<td style="text-align:right">14408</td>
+<td>ingest 也会偶发尖刺，需和 WebSocket age 一起看</td>
+</tr>
+<tr>
+<td><code>compute_quotes_us</code></td>
+<td style="text-align:right">11652</td>
+<td style="text-align:right">261033</td>
+<td style="text-align:right">600779</td>
+<td>live quote path 当前包含更多对象/模型/context 物化，远重于 synthetic quote microbench</td>
+</tr>
+<tr>
+<td><code>policy_us</code></td>
+<td style="text-align:right">13</td>
+<td style="text-align:right">33</td>
+<td style="text-align:right">308</td>
+<td>side policy 本身不是当前主尾部</td>
+</tr>
+<tr>
+<td><code>routing_us</code></td>
+<td style="text-align:right">543</td>
+<td style="text-align:right">8771</td>
+<td style="text-align:right">123939</td>
+<td>Python routing/对象边界仍会有长尾</td>
+</tr>
+<tr>
+<td><code>update_orders_us</code></td>
+<td style="text-align:right">39057</td>
+<td style="text-align:right">572087</td>
+<td style="text-align:right">669749</td>
+<td>routing + REST new/cancel 是当前主要耗时段</td>
+</tr>
+<tr>
+<td><code>rest_new_sum_us</code></td>
+<td style="text-align:right">13355</td>
+<td style="text-align:right">133538</td>
+<td style="text-align:right">216405</td>
+<td>每轮 replace 的 new order 往返是十毫秒到百毫秒级</td>
+</tr>
+<tr>
+<td><code>rest_cancel_sum_us</code></td>
+<td style="text-align:right">13103</td>
+<td style="text-align:right">162255</td>
+<td style="text-align:right">266917</td>
+<td>cancel tail 比 quote core 更重要</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>WebSocket freshness 这轮整体正常但不是零风险：exec trade age p99 <code>3.7s</code>、bookTicker age p99 <code>0.7s</code>、depth age p99 <code>1.7s</code>、BTCUSDT anchor book age p99 <code>0.7s</code>，spot book age p99 约 <code>9.0s</code>。所以当前结论不是“C++ 已经解决 live 延迟”，而是更具体：<strong>C++ fixed-array 可以压计算路径，真实 live 的尾部主要还要拆 REST/order lifecycle、quote context 物化和偶发 routing 尖刺。</strong></p>
+<p>第三类是研究机制边界。当前新机制仍然必须用 Python replay 做最终证据，不能拿 C++ fast path 直接扫出 live 结论：<code>side/regime queue calibration</code>、<code>xmarket_retreat_enabled</code>、<code>fill_cooldown_apply_reducing</code>、<code>fill_cooldown_reducing*</code>、campaign state machine、以及 empirical live REST latency samples 都还没有 C++ replay parity。C++ 现在适合两件事：已 parity 基础路径的 fast screening，以及 quote context / replay 热循环的吞吐优化。下一步更值得做的是 campaign-level label 与 order-level score sanity，而不是急着扫参数或重训 quote EV。</p>
 <p>这说明一件事：<strong>架构边界不是文档措辞，而是真的会改变工程结论。</strong> 在本机 ARM 上，早期 <code>SIGNAL_FEATURES=1</code> 曾经是负优化；经过 fixed-array/ring-state 改造后，在 x86 上它反而变成最明显的 live CPU 收益。相反，<code>SIGNAL_STATE=1</code> 在这台 x86 上没有额外收益。pin 到单个 vCPU 对均值帮助也不大，甚至可能放大 VM 上的尾部抖动。</p>
 <p><code>perf stat</code> 也给了一个现实提醒：这台 KVM 实例不暴露 <code>cycles</code>、<code>instructions</code>、<code>L1-icache-load-misses</code>、<code>iTLB-load-misses</code> 这些硬件事件，最后只能看到 context switches、cpu migrations 和 page faults。因此“x86 benchmark”也要继续细分：普通云主机能做 wall-time/tail-latency 复测，但真正要分析 L1I/iTLB/cache miss，可能需要裸金属、特定实例族或能暴露 PMU 的环境。</p>
 <h3 id="2-2-live-路径的-C-优化：与-replay-完全不同的约束"><a href="#2-2-live-路径的-C-优化：与-replay-完全不同的约束" class="headerlink" title="2.2 live 路径的 C++ 优化：与 replay 完全不同的约束"></a>2.2 live 路径的 C++ 优化：与 replay 完全不同的约束</h3><p>前面几节讲的 quote core batch、tick replay 状态机和 streaming features，都是以”吞吐量”为优化目标：输入是连续数组或完整窗口，可以释放 GIL、多线程并行、用 SoA 布局喂给 SIMD。但 live 路径是另一种世界。</p>
