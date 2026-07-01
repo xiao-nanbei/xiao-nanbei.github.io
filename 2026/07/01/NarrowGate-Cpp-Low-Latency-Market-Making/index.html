@@ -16,15 +16,15 @@
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
   
-    <meta name="description" content="TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV 与被动做市研究框架》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证为什么最后会拆成两种完全不同的低延时问题”。 第一种是 ARM 本机回测低延时：目标是让完整窗口、更多反例、更严格 parity 和更重的 quote context">
+    <meta name="description" content="TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV 与被动做市研究框架》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。 离线侧的低延时，本质是把严格 replay 从“只能抽样验证”推进">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate：回测吞吐与 Live 尾延迟工程">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV 与被动做市研究框架》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证为什么最后会拆成两种完全不同的低延时问题”。 第一种是 ARM 本机回测低延时：目标是让完整窗口、更多反例、更严格 parity 和更重的 quote context">
+<meta property="og:description" content="TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV 与被动做市研究框架》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。 离线侧的低延时，本质是把严格 replay 从“只能抽样验证”推进">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-07-01T00:03:00.000Z">
-<meta property="article:modified_time" content="2026-07-01T03:08:00.000Z">
+<meta property="article:modified_time" content="2026-07-01T05:50:00.000Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="C++">
 <meta property="article:tag" content="低延时">
@@ -201,7 +201,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      60k 字
+      61k 字
     </span>
   
 
@@ -210,7 +210,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      499 分钟
+      510 分钟
     </span>
   
 
@@ -242,10 +242,10 @@
             <h1 style="display: none">NarrowGate：回测吞吐与 Live 尾延迟工程</h1>
             
             <div class="markdown-body">
-              <h2 id="TL-DR：读者收益摘要"><a href="#TL-DR：读者收益摘要" class="headerlink" title="TL;DR：读者收益摘要"></a>TL;DR：读者收益摘要</h2><p>这篇文章是 NarrowGate 的工程篇，接在算法篇 <a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/">《NarrowGate：Maker Quote EV 与被动做市研究框架》</a> 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证为什么最后会拆成两种完全不同的低延时问题”。</p>
-<p>第一种是 ARM 本机回测低延时：目标是让完整窗口、更多反例、更严格 parity 和更重的 quote context 变得可负担。它关心 wall time、rows/s、windows/hour、内存峰值、路径一致性和结果可重复性，不应该把单次函数调用的 p99/p99.9 当作 promotion 主指标。</p>
-<p>第二种是 x86 live 低延时：目标是在真实事件循环里减少 stale quote、late cancel、跨语言 fallback 和偶发尖刺。这里才必须看 mean、p99、p99.9、CPU migration、page fault、context switch、fallback 计数和长样本 soak。</p>
-<p>因此，回测需要考虑毛刺吗？需要，但只把它当作定位分配、fallback、swap、过度订阅和非确定性的信号；live 才把毛刺当成可能直接改变报价时序和订单状态的风险。</p>
+              <h2 id="TL-DR：读者收益摘要"><a href="#TL-DR：读者收益摘要" class="headerlink" title="TL;DR：读者收益摘要"></a>TL;DR：读者收益摘要</h2><p>这篇文章是 NarrowGate 的工程篇，接在算法篇 <a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/">《NarrowGate：Maker Quote EV 与被动做市研究框架》</a> 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。</p>
+<p>离线侧的低延时，本质是把严格 replay 从“只能抽样验证”推进到“可以按日、按窗口、按参数臂系统验证”。它关注 wall time、rows/s、windows/hour、内存峰值、路径一致性和结果可重复性；单个函数调用的尾部延迟只有在暴露 fallback、分配、swap 或过度订阅时才有解释价值。</p>
+<p>在线侧的低延时，是让报价、撤单和库存控制在真实事件循环里尽量少出现 stale quote、late cancel、跨语言 fallback 和偶发尖刺。这里必须看 mean、p99、p99.9、CPU migration、page fault、context switch、fallback 计数和长样本 soak。</p>
+<p>这两个目标最终都服务同一件事：让 maker 策略的 spread、skew、TTL、cooldown 和库存风险控制，可以在足够多反例里被验证，也可以在 live 中按预期执行。低延时不是独立于 alpha 的炫技，它是策略工程化后必须面对的执行条件。</p>
 <p>本文只讨论工程实现，不讨论也不建议任何真实交易行为。所有 PnL、fill、markout、A/B 和 benchmark 都是研究指标或系统指标，不是收益承诺。</p>
 <div class="table-container">
 <table>
@@ -254,7 +254,7 @@
 <th>场景</th>
 <th>目标</th>
 <th>主指标</th>
-<th>p99/毛刺的地位</th>
+<th>p99/毛刺的用途</th>
 </tr>
 </thead>
 <tbody>
@@ -262,7 +262,7 @@
 <td>ARM 本机回测</td>
 <td>多日、多臂、多窗口跑得动且可复现</td>
 <td>wall time、rows/s、windows/hour、parity、内存峰值</td>
-<td>辅助 debug，不是回测 promotion 主指标</td>
+<td>排查 fallback、分配、swap、过度订阅</td>
 </tr>
 <tr>
 <td>x86 live</td>
@@ -291,7 +291,7 @@
 <p>这些机制大多是高频、顺序相关、状态明确的循环。Python 写起来灵活，但每一个策略臂都重复读取数据、更新 queue、计算 quote、写 summary。做多日多臂 A/B 时，真正耗时的并不是 LightGBM 训练，而是一次次 replay 和 quote context 生成。</p>
 <p>还有一个比速度更重要的问题：如果某个 guard 只存在于回测，或回测拥有事件引擎没有的 queue/TTL 信息，那么回测会比实际策略“更聪明”。此时加速一套不一致的模拟，只会更快地产生错误信心。</p>
 <p>前面的数据审计、日度 A/B、strict calibration gate 都指向同一个现实：这类策略不能靠一两个漂亮窗口下结论，必须反复跑多个真实日段、多个 side policy 和多个风险口径。也正是在这里，Python 循环从“足够灵活”变成了研究吞吐量的瓶颈。</p>
-<p>所以 C++ 迁移的第一目标不是炫耀速度，而是让更严格的验证在时间上可负担；第二目标才是建立同一批真实数据下的 Python/C++ parity，并借此把 policy 边界显式化。若两套引擎不能解释同一条成交路径，跑得再快也没有研究价值。</p>
+<p>所以 C++ 迁移的第一目标不是孤立的微基准数字，而是让更严格的验证在时间上可负担；第二目标是建立同一批真实数据下的 Python/C++ parity，并借此把 policy 边界显式化。若两套引擎不能解释同一条成交路径，跑得再快也没有研究价值。</p>
 <h3 id="1-2-双引擎-parity：不是相信-C-，而是让-C-持续被-Python-审讯"><a href="#1-2-双引擎-parity：不是相信-C-，而是让-C-持续被-Python-审讯" class="headerlink" title="1.2 双引擎 parity：不是相信 C++，而是让 C++ 持续被 Python 审讯"></a>1.2 双引擎 parity：不是相信 C++，而是让 C++ 持续被 Python 审讯</h3><p>Python/C++ 双引擎最容易做成两套系统：Python 负责研究，C++ 负责速度，最后两个结果不一样，却不知道是策略变了、浮点误差、时间戳 as-of 边界，还是 C++ 少实现了一个 guard。</p>
 <p>NarrowGate 里我采用的原则是：<strong>Python 仍然是研究口径的 reference implementation，C++ 必须在同一批 normalized arrays 上被持续审讯</strong>。</p>
 <p>这里的 “parity” 不等于所有浮点数 bitwise 完全一致。tick replay 里有成交价、PnL、markout、inventory time、rounding、latency gate 等连续变量，要求 bitwise 一致反而会把工程带偏。真正重要的是三层断言：</p>
@@ -1410,8 +1410,8 @@ max_drawdown = std::<span class="hljs-built_in">max</span>(max_drawdown, peak_pn
 &#125;</code></pre></div>
 <p>100k rows × 10 levels 的 Release benchmark：1 worker 为 35.48ms / 2.82M rows/s，4 workers 为 10.08ms / 9.92M rows/s，快 3.52x。参数已经贯通到 <code>cross_market_shock_audit.py --quote-context-workers N</code>，但不会自动开启：若外层已经按 day/window/arm 多进程并行，再把每个进程开满内部线程只会过度订阅。</p>
 <p>第二轮验证结果为快速 suite <code>20 passed, 4 skipped</code>，四个真实窗口 golden parity <code>4 passed</code>，核心 C++20 翻译单元仍为零 warning。优化改变了 allocation、cache footprint 和输出策略，没有改变成交路径，也没有修改 live 配置。</p>
-<h3 id="1-5-ARM-本机-benchmark：回测看吞吐，不拿-p99-做主指标"><a href="#1-5-ARM-本机-benchmark：回测看吞吐，不拿-p99-做主指标" class="headerlink" title="1.5 ARM 本机 benchmark：回测看吞吐，不拿 p99 做主指标"></a>1.5 ARM 本机 benchmark：回测看吞吐，不拿 p99 做主指标</h3><p>这里要把“低延时”这个词拆开：ARM 本机回测里的低延时，本质上是吞吐、确定性和可重复性。offline replay 没有真实交易所队列在等待你，本机某个 tick 算慢几毫秒，不会让历史里的订单“错过队列”；它只会让整批实验变慢，或者暴露出实现里有分配、fallback、swap、过度订阅之类的问题。</p>
-<p>所以回测当然要关注毛刺，但它关注的是另一种含义：如果慢点来自非确定性 I/O、隐式 Python fallback、异常对象分配、内存暴涨或多进程过度订阅，那是工程问题；如果只是单个函数调用 p99 不漂亮，却不影响总 wall time、rows/s、窗口吞吐、golden parity 和资源稳定性，就不应该把它当成回测 promotion 的核心门槛。回测的主指标应该是：完整窗口耗时、每秒处理行数、每天/每臂 sweep 产能、路径级 parity、金额级 parity、内存峰值和失败可解释性。</p>
+<h3 id="1-5-ARM-本机-benchmark：离线低延时服务反例产能"><a href="#1-5-ARM-本机-benchmark：离线低延时服务反例产能" class="headerlink" title="1.5 ARM 本机 benchmark：离线低延时服务反例产能"></a>1.5 ARM 本机 benchmark：离线低延时服务反例产能</h3><p>ARM 本机回测里的“低延时”，真正要解决的是反例产能：更多质量合格日、更多窗口、更多策略臂、更重的 quote context，以及更严格的 Python/C++ parity。它的价值不是把某个函数调用压到多漂亮，而是把原本只能抽样看的 replay，推进到可以系统性跑日度 panel、blocked OOS 和 stress diagnostics。</p>
+<p>离线 benchmark 里的尾部数字仍然有用，但它主要用来定位非确定性来源：隐式 Python fallback、异常对象分配、I/O 抖动、内存暴涨、swap、多进程过度订阅或路径分叉。只要这些风险被排除，离线侧更核心的指标就是完整窗口耗时、每秒处理行数、每天/每臂 sweep 产能、路径级 parity、金额级 parity、内存峰值和失败可解释性。</p>
 <p>NarrowGate 当前 C++ hot path 并没有把 <code>std::atomic</code> 当作优化手段；代码里真正显式的 C++ 内部并发，是 <code>compute_quote_core_batch_depth(..., workers=N)</code> 的 <code>std::jthread</code> 分片。因此风险不是“某个 atomic trick 在 ARM 上慢”，而是更朴素：<strong>本机离线吞吐优化不等于 x86 live 尾延迟优化</strong>。</p>
 <p>更专业一点说，我后来把优化项按 CPU/OS 层拆成下面这张表，而不是笼统地说“C++ 更快”：</p>
 <div class="table-container">
@@ -1612,7 +1612,7 @@ NARROWGATE_CPP_QUOTE_CORE=1 \
 NARROWGATE_CPP_SIGNAL_FEATURES=1 \
 NARROWGATE_CPP_STRICT=1 \
 python bench/bench_live_path.py --n 5000 --signal-n 500 --ml --engine cpp --strict-cpp</code></pre></div>
-<p>当前 live 机可以正常 import <code>narrowgate_cpp</code>，但真实 live 进程环境里 <code>NARROWGATE_CPP_*</code> 没有打开；下面只是 native path 的旁路 benchmark，不代表 live 已采用。</p>
+<p>当前 live 机可以正常 import <code>narrowgate_cpp</code>。下面这张表先看 native path 的旁路 benchmark，它用来回答“这台 x86 上 C++ fixed-array / quote core 本身是否值得继续进 live shadow”，不包含真实 REST、交易所 ACK 和订单生命周期。</p>
 <div class="table-container">
 <table>
 <thead>
@@ -1664,7 +1664,8 @@ python bench/bench_live_path.py --n 5000 --signal-n 500 --ml --engine cpp --stri
 </table>
 </div>
 <p>这张表和 ARM 本机结论不同：在当前 x86 live 机上，<code>SIGNAL_FEATURES=1</code> 已经不是早期那种负优化；它明显降低 10s feature 的均值和 p99。quote core 则更微妙：<code>_compute_quotes</code> 自身略有改善，但 <code>quote + policy</code> 由于 policy 仍在 Python，均值没有变快，只是尾部好一点。因此 native path 下一步若要进入 live shadow，也应该先从 fixed-array signal 和更完整的 quote/policy/routing bundle 评估，而不是单独宣布 quote core 已经赢。</p>
-<p>第二类是真实 live 进程旁路 telemetry。我在 <code>MakerEngine</code> 里加了 <code>logs/live_perf_telemetry.csv</code>，每次 requote 记录 <code>signal_compute_us</code>、<code>compute_quotes_us</code>、<code>update_orders_us</code>、REST new/cancel 耗时，以及 futures/spot/reference WebSocket age。当前 live 进程没有设置 <code>NARROWGATE_CPP_*</code>，最新 430 次 <code>ok</code> requote 的 <code>cpp_flags</code> 全为 0，结果如下：</p>
+<p>第二类是真实 live 进程旁路 telemetry。我在 <code>MakerEngine</code> 里加了 <code>logs/live_perf_telemetry.csv</code>，每次 requote 记录 <code>signal_compute_us</code>、<code>compute_quotes_us</code>、<code>update_orders_us</code>、REST new/cancel 耗时，以及 futures/spot/reference WebSocket age。</p>
+<p>旧基线里，真实 live 进程还没有打开 <code>NARROWGATE_CPP_*</code>，<code>cpp_routing_used=0</code>。最新一段 1,802 条 requote 显示，尾部主要不在 quote math，而在 REST cancel/new 与同步 replace：</p>
 <div class="table-container">
 <table>
 <thead>
@@ -1679,71 +1680,125 @@ python bench/bench_live_path.py --n 5000 --signal-n 500 --ml --engine cpp --stri
 <tbody>
 <tr>
 <td><code>requote_total_us</code></td>
-<td style="text-align:right">52484</td>
-<td style="text-align:right">821777</td>
-<td style="text-align:right">1206542</td>
-<td>真实 live 尾部已经是毫秒到秒级，不是 quote math 微秒级问题</td>
+<td style="text-align:right">58573</td>
+<td style="text-align:right">949633</td>
+<td style="text-align:right">1378031</td>
+<td>真实 live 尾部已到接近秒级，不能再只看 quote core 微基准</td>
 </tr>
 <tr>
 <td><code>signal_compute_us</code></td>
-<td style="text-align:right">30</td>
-<td style="text-align:right">641</td>
-<td style="text-align:right">17056</td>
-<td>本轮 10s signal 没有成为主尾部，但仍有 17ms 级尖刺</td>
-</tr>
-<tr>
-<td><code>signal_ingest_us</code></td>
-<td style="text-align:right">5</td>
-<td style="text-align:right">187</td>
-<td style="text-align:right">14408</td>
-<td>ingest 也会偶发尖刺，需和 WebSocket age 一起看</td>
+<td style="text-align:right">16352</td>
+<td style="text-align:right">265978</td>
+<td style="text-align:right">635208</td>
+<td>signal path 有长尾，适合 fixed-array / stateful C++</td>
 </tr>
 <tr>
 <td><code>compute_quotes_us</code></td>
-<td style="text-align:right">11652</td>
-<td style="text-align:right">261033</td>
-<td style="text-align:right">600779</td>
-<td>live quote path 当前包含更多对象/模型/context 物化，远重于 synthetic quote microbench</td>
-</tr>
-<tr>
-<td><code>policy_us</code></td>
-<td style="text-align:right">13</td>
-<td style="text-align:right">33</td>
-<td style="text-align:right">308</td>
-<td>side policy 本身不是当前主尾部</td>
-</tr>
-<tr>
-<td><code>routing_us</code></td>
 <td style="text-align:right">543</td>
-<td style="text-align:right">8771</td>
-<td style="text-align:right">123939</td>
-<td>Python routing/对象边界仍会有长尾</td>
+<td style="text-align:right">13165</td>
+<td style="text-align:right">133847</td>
+<td>quote math 本身不是最大尾部</td>
 </tr>
 <tr>
 <td><code>update_orders_us</code></td>
-<td style="text-align:right">39057</td>
-<td style="text-align:right">572087</td>
-<td style="text-align:right">669749</td>
-<td>routing + REST new/cancel 是当前主要耗时段</td>
+<td style="text-align:right">39616</td>
+<td style="text-align:right">623740</td>
+<td style="text-align:right">1222660</td>
+<td>订单更新段才是 p99 主因</td>
 </tr>
 <tr>
 <td><code>rest_new_sum_us</code></td>
-<td style="text-align:right">13355</td>
-<td style="text-align:right">133538</td>
-<td style="text-align:right">216405</td>
-<td>每轮 replace 的 new order 往返是十毫秒到百毫秒级</td>
+<td style="text-align:right">13572</td>
+<td style="text-align:right">172629</td>
+<td style="text-align:right">362772</td>
+<td>new order REST 往返可到百毫秒级</td>
 </tr>
 <tr>
 <td><code>rest_cancel_sum_us</code></td>
-<td style="text-align:right">13103</td>
-<td style="text-align:right">162255</td>
-<td style="text-align:right">266917</td>
-<td>cancel tail 比 quote core 更重要</td>
+<td style="text-align:right">13324</td>
+<td style="text-align:right">219712</td>
+<td style="text-align:right">349000</td>
+<td>cancel REST tail 同样明显</td>
+</tr>
+<tr>
+<td><code>cpp_routing_used</code></td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+<td>native routing 未进入 live</td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>WebSocket freshness 这轮整体正常但不是零风险：exec trade age p99 <code>3.7s</code>、bookTicker age p99 <code>0.7s</code>、depth age p99 <code>1.7s</code>、BTCUSDT anchor book age p99 <code>0.7s</code>，spot book age p99 约 <code>9.0s</code>。所以当前结论不是“C++ 已经解决 live 延迟”，而是更具体：<strong>C++ fixed-array 可以压计算路径，真实 live 的尾部主要还要拆 REST/order lifecycle、quote context 物化和偶发 routing 尖刺。</strong></p>
+<p>这之后我把 live 进程环境切到：</p>
+<div class="code-wrapper"><pre><code class="hljs bash">NARROWGATE_CPP_QUOTE_CORE=1
+NARROWGATE_CPP_SIGNAL_FEATURES=1
+NARROWGATE_CPP_LIVE_ROUTING=1
+OMP_NUM_THREADS=1
+OPENBLAS_NUM_THREADS=1
+MKL_NUM_THREADS=1
+NUMEXPR_NUM_THREADS=1
+MALLOC_ARENA_MAX=1</code></pre></div>
+<p>第一版只把 <code>replace_min_price_change_ticks</code> 设成 1-2 tick，结果几乎没有减少 REST：BTCUSDC 报价每轮自然跳动经常是几十 tick，2 tick 门槛基本等于没设。后来改成加仓侧 20 tick、减仓侧 10 tick，并保留减仓方向更敏捷的 <code>250ms</code> interval。这个改动不是 alpha 参数，而是 order lifecycle coalescing：价格没有变到足够多时，不做 cancel+new；TTL、stale-data、pause 和库存安全撤单不被阻断。</p>
+<p>重启后短窗口 smoke 里，<code>cpp_routing_used=1</code> 覆盖全部行，并开始出现 <code>REPLACE_THROTTLE</code>。跳过前 120s warmup / <code>SYNC_ADJUST</code> 降级后的小样本如下：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th style="text-align:right">旧基线 p99</th>
+<th style="text-align:right">C++ + replace coalescing smoke p99</th>
+<th>读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>requote_total_us</code></td>
+<td style="text-align:right">949633</td>
+<td style="text-align:right">113343</td>
+<td>p99 从近 1s 压到约 113ms，但样本仍短</td>
+</tr>
+<tr>
+<td><code>signal_compute_us</code></td>
+<td style="text-align:right">265978</td>
+<td style="text-align:right">16076</td>
+<td><code>SIGNAL_FEATURES=1</code> 在当前 x86 live 上有效</td>
+</tr>
+<tr>
+<td><code>compute_quotes_us</code></td>
+<td style="text-align:right">13165</td>
+<td style="text-align:right">2518</td>
+<td>native quote/routing 已进入 live</td>
+</tr>
+<tr>
+<td><code>update_orders_us</code></td>
+<td style="text-align:right">623740</td>
+<td style="text-align:right">98710</td>
+<td>REST replace 降频后订单段尾部明显下降</td>
+</tr>
+<tr>
+<td><code>rest_new_sum_us</code></td>
+<td style="text-align:right">172629</td>
+<td style="text-align:right">50638</td>
+<td>仍是主要尾部之一</td>
+</tr>
+<tr>
+<td><code>rest_cancel_sum_us</code></td>
+<td style="text-align:right">219712</td>
+<td style="text-align:right">22751</td>
+<td>cancel tail 被压下，但需要更长 soak</td>
+</tr>
+<tr>
+<td><code>cpp_routing_used</code></td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">1</td>
+<td>C++ routing 真实命中</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>这张表不能被解读成“live 延迟已经解决”。它只是说明两件事：第一，当前 x86 机上 C++ fixed-array / compact routing 不是理论收益，已经能进入真实 live；第二，p99 最大头寸仍在 order lifecycle 和 REST tail，而不是 AS quote 公式。下一阶段更有效的方向是 pending replace coalescing、异步 order manager、quote decision 与 REST submit 分离，以及在 1-2 小时 live soak 中重新看 p99/p99.9。</p>
+<p>WebSocket freshness 旧基线整体正常但不是零风险：exec trade age p99 <code>5.4s</code>、bookTicker age p99 <code>1.0s</code>、depth age p99 <code>2.6s</code>。所以当前结论不是“C++ 已经解决 live 延迟”，而是更具体：<strong>C++ fixed-array 可以压计算路径，replace coalescing 可以减少 REST 尾部，但真正的 live 工程化还要继续拆 order lifecycle、quote context 物化、pending state 和偶发 routing 尖刺。</strong></p>
 <p>第三类是研究机制边界。当前新机制仍然必须用 Python replay 做最终证据，不能拿 C++ fast path 直接扫出 live 结论：<code>side/regime queue calibration</code>、<code>xmarket_retreat_enabled</code>、<code>fill_cooldown_apply_reducing</code>、<code>fill_cooldown_reducing*</code>、campaign state machine、以及 empirical live REST latency samples 都还没有 C++ replay parity。C++ 现在适合两件事：已 parity 基础路径的 fast screening，以及 quote context / replay 热循环的吞吐优化。下一步更值得做的是 campaign-level label 与 order-level score sanity，而不是急着扫参数或重训 quote EV。</p>
 <p>这说明一件事：<strong>架构边界不是文档措辞，而是真的会改变工程结论。</strong> 在本机 ARM 上，早期 <code>SIGNAL_FEATURES=1</code> 曾经是负优化；经过 fixed-array/ring-state 改造后，在 x86 上它反而变成最明显的 live CPU 收益。相反，<code>SIGNAL_STATE=1</code> 在这台 x86 上没有额外收益。pin 到单个 vCPU 对均值帮助也不大，甚至可能放大 VM 上的尾部抖动。</p>
 <p><code>perf stat</code> 也给了一个现实提醒：这台 KVM 实例不暴露 <code>cycles</code>、<code>instructions</code>、<code>L1-icache-load-misses</code>、<code>iTLB-load-misses</code> 这些硬件事件，最后只能看到 context switches、cpu migrations 和 page faults。因此“x86 benchmark”也要继续细分：普通云主机能做 wall-time/tail-latency 复测，但真正要分析 L1I/iTLB/cache miss，可能需要裸金属、特定实例族或能暴露 PMU 的环境。</p>
@@ -2236,14 +2291,14 @@ pinned strategy thread: rolling state + quote + routing
         |
         v
 order gateway thread</code></pre></div>
-<p>前者适合研究、shadow、审计和可维护性；后者才是面向极端尾延迟的 live 系统。NarrowGate 目前还没有做 kernel bypass、CPU pinning、SPSC ring、NUMA partition、专用 order gateway，也没有把 WebSocket 解码和策略计算完全隔离。</p>
+<p>前者适合研究、shadow、审计和可维护性；后者才是面向极端尾延迟的 live 系统。NarrowGate 当前选择的是前者，并且已经把最热的 replay、signal、quote/routing 边界逐步 native 化；kernel bypass、SPSC ring、NUMA partition、专用 order gateway 和多机热备则属于下一层系统工程。</p>
 <p>这不影响当前 C++ 迁移的价值，因为当前 C++ 主要服务两个目标：</p>
 <ol>
 <li><strong>研究吞吐</strong>：让多日 replay、source A/B、quote context 和 label 生成跑得动；</li>
 <li><strong>边界收紧</strong>：让 live hot path 中稳定的小决策包更少依赖 Python 动态对象。</li>
 </ol>
-<p>但它确实说明：不能把当前项目包装成“完整 HFT live stack”。更诚实的定位是：<strong>一个带有 native replay/hot-path 原型的 maker 研究系统</strong>。</p>
-<h3 id="2-3-下一阶段真正值得做的事"><a href="#2-3-下一阶段真正值得做的事" class="headerlink" title="2.3 下一阶段真正值得做的事"></a>2.3 下一阶段真正值得做的事</h3><p>如果继续往“金融大牛和系统大牛都会认可”的方向推进，下一阶段不是再加一个模型，而是补四个闭环：</p>
+<p>这个边界很重要：当前项目不是专用交易网关，也不是把所有网络和订单路径都 native 化的极限 HFT stack；它是一个把 maker 研究、tick replay、order-level evidence 和 live hot path 逐步接起来的低延时工程框架。</p>
+<h3 id="2-3-下一阶段真正值得做的事"><a href="#2-3-下一阶段真正值得做的事" class="headerlink" title="2.3 下一阶段真正值得做的事"></a>2.3 下一阶段真正值得做的事</h3><p>继续推进时，下一阶段的重点不是再堆一个模型，而是补四个闭环：</p>
 <ol>
 <li><strong>动态 <code>Lambda(delta)</code> 闭环</strong>：用 live/shadow fill calibration，把 depth、toxicity、reference shock 映射到整条到达率曲线，而不是只做 widen/pause。</li>
 <li><strong>主动瘦身闭环</strong>：设计 BTCUSDT perp/spot hedge simulator，把 hedge cost、basis risk、taker fee 和 inventory tail loss 放进同一张账。</li>
@@ -2253,23 +2308,23 @@ order gateway thread</code></pre></div>
 <blockquote>
 <p><strong>本节边界结论</strong></p>
 <ul>
-<li>NarrowGate 已经比较好地回答了“如何让 maker 研究少自欺欺人”。</li>
-<li>它还没有完全回答“如何在尾部冲击中存活、如何主动对冲、如何穿透多 venue 延迟、如何构建 HFT 级 live stack”。</li>
-<li>把这些未完成项写清楚，不会削弱项目；反而能防止读者把研究框架误读成已经闭环的交易系统。</li>
+<li>NarrowGate 已经把 maker 研究从 bar-level 假设推进到 order-level evidence、campaign risk 和 live telemetry。</li>
+<li>下一层挑战是尾部冲击中的主动瘦身、跨市场 lead-lag、真实 REST/order gateway 尾部，以及线程隔离。</li>
+<li>这些边界不是自我降格，而是策略工程化路线图：每补一个闭环，策略结论才多一层可执行性。</li>
 </ul>
 </blockquote>
-<h2 id="结论：两种低延时，不要互相冒充"><a href="#结论：两种低延时，不要互相冒充" class="headerlink" title="结论：两种低延时，不要互相冒充"></a>结论：两种低延时，不要互相冒充</h2><p>NarrowGate 的工程迁移不是从“我要写一个高速交易系统”开始的，而是从 maker 研究本身的压力长出来的：一旦需要真实 L2、queue ahead、latency、TTL、guard、inventory-time、quote EV labels 和多日多臂 A/B，Python orchestration 仍然合适，但 hot loop 和状态机必须收紧边界。</p>
-<p>这篇工程复盘里，最重要的结论不是某个 benchmark 数字，而是几条边界：</p>
+<h2 id="结论：低延时最终服务报价决策"><a href="#结论：低延时最终服务报价决策" class="headerlink" title="结论：低延时最终服务报价决策"></a>结论：低延时最终服务报价决策</h2><p>NarrowGate 的工程迁移不是从“我要写一个高速交易系统”开始的，而是从 maker 研究本身的压力长出来的：一旦需要真实 L2、queue ahead、latency、TTL、guard、inventory-time、quote EV labels 和多日多臂 A/B，Python orchestration 仍然合适，但 hot loop 和状态机必须收紧边界。</p>
+<p>这篇工程复盘里，最重要的结论不是某个 benchmark 数字，而是几条工程判断：</p>
 <ol>
-<li>ARM 本机回测低延时主要是吞吐问题，主指标是完整窗口耗时、rows/s、windows/hour、parity、内存峰值和可重复性；</li>
-<li>x86 live 低延时主要是尾部问题，主指标是 p99/p99.9、fallback、CPU migration、page fault、context switch 和长样本 soak；</li>
+<li>ARM 本机低延时的工程收益主要体现在反例吞吐和 parity 成本，主指标是完整窗口耗时、rows/s、windows/hour、内存峰值和可重复性；</li>
+<li>x86 live 低延时的工程收益主要体现在报价时序和订单生命周期，主指标是 p99/p99.9、fallback、CPU migration、page fault、context switch 和长样本 soak；</li>
 <li>Python 仍然适合数据清洗、训练编排、报告和实验组织；</li>
 <li>C++ 适合长期驻留的状态、高频低基数分支、完整窗口 replay 和稳定的 live hot path 小决策包；</li>
 <li>pybind 边界必须按数组、固定 tuple 或 compact context 设计，不能每 tick 传大 dict/dataclass；</li>
 <li>parity 比速度更重要，没有路径级和金额级一致性，sweep 越快越危险；</li>
-<li>当前架构仍不是完整 HFT live stack，没有 kernel bypass、专用 order gateway、多机热备或完整 SPSC ring 隔离。</li>
+<li>当前 live 架构已经能做 native hot-path 原型、shadow telemetry 和 order lifecycle coalescing；下一层是专用 order gateway、线程隔离和更长时间的 p99/p99.9 soak。</li>
 </ol>
-<p>所以 C++ 在 NarrowGate 里的定位很窄，也很清楚：它让回测反例更便宜，让错误答案更快暴露，让 live hot path 的动态对象更少。它没有替项目找到 alpha，也不应该被包装成策略答案。</p>
+<p>所以 C++ 在 NarrowGate 里的定位不是外置加速器，而是 maker 策略工程化的一部分：离线侧让严格 replay、反例搜索和 order-level evidence 变得可负担；live 侧把稳定、高频、低基数的状态和决策边界收紧到更少动态对象、更少无意义 replace、更可控的尾延迟。它不替代 alpha 研究，但会决定一个 maker alpha 能否被真实验证、稳定执行，并在风险变坏时及时撤退。</p>
 <hr>
 <p>本文及 NarrowGate 项目仅用于 C++ 低延时系统、市场微观结构、价格行为学、做市模型和机器学习回测方法的学习交流与技术研究，不构成财务、投资、法律或合规建议。中国大陆关于 crypto 交易及相关业务活动的监管环境具有不确定性；任何人将相关代码用于连接交易平台、交易、商业展业或投资决策，其合规风险、资金损失、技术故障及其他后果均由使用者自行承担，与作者无关。</p>
 
