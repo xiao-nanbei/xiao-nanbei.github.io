@@ -24,7 +24,7 @@
 <meta property="og:description" content="TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV 与被动做市研究框架》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。 离线侧的低延时，本质是把严格 replay 从“只能抽样验证”推进">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-07-01T00:03:00.000Z">
-<meta property="article:modified_time" content="2026-07-01T05:50:00.000Z">
+<meta property="article:modified_time" content="2026-07-02T02:05:00.000Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="C++">
 <meta property="article:tag" content="低延时">
@@ -201,7 +201,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      61k 字
+      64k 字
     </span>
   
 
@@ -210,7 +210,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      510 分钟
+      531 分钟
     </span>
   
 
@@ -1797,8 +1797,172 @@ MALLOC_ARENA_MAX=1</code></pre></div>
 </tbody>
 </table>
 </div>
-<p>这张表不能被解读成“live 延迟已经解决”。它只是说明两件事：第一，当前 x86 机上 C++ fixed-array / compact routing 不是理论收益，已经能进入真实 live；第二，p99 最大头寸仍在 order lifecycle 和 REST tail，而不是 AS quote 公式。下一阶段更有效的方向是 pending replace coalescing、异步 order manager、quote decision 与 REST submit 分离，以及在 1-2 小时 live soak 中重新看 p99/p99.9。</p>
-<p>WebSocket freshness 旧基线整体正常但不是零风险：exec trade age p99 <code>5.4s</code>、bookTicker age p99 <code>1.0s</code>、depth age p99 <code>2.6s</code>。所以当前结论不是“C++ 已经解决 live 延迟”，而是更具体：<strong>C++ fixed-array 可以压计算路径，replace coalescing 可以减少 REST 尾部，但真正的 live 工程化还要继续拆 order lifecycle、quote context 物化、pending state 和偶发 routing 尖刺。</strong></p>
+<p>短窗口 smoke 不能说明 live 延迟已经解决，只能说明当前 x86 机上 C++ fixed-array / compact routing 不是理论收益，已经能进入真实 live。随后我又做了一段 60 分钟真实 live soak，只看系统执行工程，不把它当 alpha 证据。</p>
+<p>这段 marker 是：</p>
+<div class="code-wrapper"><pre><code class="hljs json">&#123;
+  <span class="hljs-attr">&quot;kind&quot;</span>: <span class="hljs-string">&quot;replace_pending_coalesce_baseline_soak&quot;</span>,
+  <span class="hljs-attr">&quot;start_time_iso_utc&quot;</span>: <span class="hljs-string">&quot;2026-07-01T21:29:35Z&quot;</span>,
+  <span class="hljs-attr">&quot;replace_pending_coalesce&quot;</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">&quot;replace_cancel_first_exposure_increasing&quot;</span>: <span class="hljs-literal">false</span>
+&#125;</code></pre></div>
+<p>统计时剔除了 marker 后 60 秒 warmup，主窗口为 <code>2026-07-01 21:30:35Z -&gt; 22:29:35Z</code>。action mix 按 bid/ask 两侧合计：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>action</th>
+<th style="text-align:right">side-action count</th>
+<th style="text-align:right">share</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>replace</code></td>
+<td style="text-align:right">640</td>
+<td style="text-align:right">59.3%</td>
+</tr>
+<tr>
+<td><code>keep</code></td>
+<td style="text-align:right">272</td>
+<td style="text-align:right">25.2%</td>
+</tr>
+<tr>
+<td><code>pause</code></td>
+<td style="text-align:right">111</td>
+<td style="text-align:right">10.3%</td>
+</tr>
+<tr>
+<td><code>place</code></td>
+<td style="text-align:right">23</td>
+<td style="text-align:right">2.1%</td>
+</tr>
+<tr>
+<td><code>none</code></td>
+<td style="text-align:right">34</td>
+<td style="text-align:right">3.1%</td>
+</tr>
+<tr>
+<td><code>pending_coalesce</code></td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0.0%</td>
+</tr>
+<tr>
+<td><code>cancel_first</code></td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0.0%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>这张表比短窗口 smoke 更有解释力：<code>keep</code> 已经到 25% 左右，说明 replace throttle 确实减少了一部分无意义撤挂；但 <code>pending_coalesce</code> 没有显式触发，说明这段窗口里 pending overlap 不多，或者当前 telemetry 对 coalesce 事件还不够直接。后续需要补单独 counter，而不是只从 action mix 里猜。</p>
+<p>REST 只统计有真实 REST 调用的行，结果如下：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th style="text-align:right">p50</th>
+<th style="text-align:right">p95</th>
+<th style="text-align:right">p99</th>
+<th style="text-align:right">p99.9</th>
+<th style="text-align:right">max</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rest_new_sum_us</code></td>
+<td style="text-align:right">12685</td>
+<td style="text-align:right">36476</td>
+<td style="text-align:right">124788</td>
+<td style="text-align:right">244055</td>
+<td style="text-align:right">269486</td>
+</tr>
+<tr>
+<td><code>rest_new_max_us</code></td>
+<td style="text-align:right">7119</td>
+<td style="text-align:right">34155</td>
+<td style="text-align:right">91687</td>
+<td style="text-align:right">219230</td>
+<td style="text-align:right">226905</td>
+</tr>
+<tr>
+<td><code>rest_cancel_sum_us</code></td>
+<td style="text-align:right">12342</td>
+<td style="text-align:right">42787</td>
+<td style="text-align:right">147140</td>
+<td style="text-align:right">201018</td>
+<td style="text-align:right">204007</td>
+</tr>
+<tr>
+<td><code>rest_cancel_max_us</code></td>
+<td style="text-align:right">6814</td>
+<td style="text-align:right">37355</td>
+<td style="text-align:right">110546</td>
+<td style="text-align:right">177375</td>
+<td style="text-align:right">195574</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>真实 live hot path 的 60 分钟分位数：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th style="text-align:right">p50</th>
+<th style="text-align:right">p95</th>
+<th style="text-align:right">p99</th>
+<th style="text-align:right">p99.9</th>
+<th style="text-align:right">max</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>requote_total_us</code></td>
+<td style="text-align:right">38836</td>
+<td style="text-align:right">164335</td>
+<td style="text-align:right">673619</td>
+<td style="text-align:right">1142924</td>
+<td style="text-align:right">1309362</td>
+</tr>
+<tr>
+<td><code>update_orders_us</code></td>
+<td style="text-align:right">32900</td>
+<td style="text-align:right">116092</td>
+<td style="text-align:right">462960</td>
+<td style="text-align:right">692326</td>
+<td style="text-align:right">807615</td>
+</tr>
+<tr>
+<td><code>signal_compute_us</code></td>
+<td style="text-align:right">9490</td>
+<td style="text-align:right">34688</td>
+<td style="text-align:right">274769</td>
+<td style="text-align:right">443948</td>
+<td style="text-align:right">518617</td>
+</tr>
+<tr>
+<td><code>compute_quotes_us</code></td>
+<td style="text-align:right">385</td>
+<td style="text-align:right">1393</td>
+<td style="text-align:right">9236</td>
+<td style="text-align:right">128807</td>
+<td style="text-align:right">144524</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>这一段里 <code>cpp_routing_used=523/540=96.9%</code>，REST new/cancel 分别约 <code>663/640</code> 次，真实 fill 约 <code>17.3/hour</code>，BUY/SELL split 为 <code>11/6</code>。所以当前 live 尾部的主因仍然不是 quote math，而是：</p>
+<ol>
+<li>REST cancel/new 的百毫秒级尾部；</li>
+<li><code>update_orders()</code> 同步等待导致的路径拉长；</li>
+<li><code>signal_compute_us</code> 偶发长尾；</li>
+<li>WebSocket 短时 silence/reconnect 对 freshness 的扰动。</li>
+</ol>
+<p>安全路径在这段 soak 里也有信号：<code>QUOTE_STALE_DATA_BLOCK</code> 出现 9 次，<code>stale_book</code> telemetry row 17 条；market stream silence 触发 2 次并完成 reconnect；<code>SYNC_ADJUST_OBSERVED</code> 出现 1 次但没有升级成 hard degrade；没有 emergency safety，也没有 TTL release。换句话说，stale block 和 watchdog 仍在工作，但网络/交易所路径偶发抖动会直接进入 live p99。</p>
+<p>这段 60 分钟 soak 给出的工程决策是：<strong>先保持当前 replace thresholds，不马上打开 <code>replace_cancel_first_exposure_increasing=true</code>，也不继续提高加仓侧 replace 门槛。</strong> 原因很直接：<code>keep</code> 已经不低，进一步提高门槛会让报价更 stale；而 cancel-first 在发生 stream silence/reconnect 的窗口里可能增加无挂单空窗。下一步更值得做的是补 <code>pending_coalesce</code> 显式 counter、继续 1-2 小时 soak，然后再决定是否做 pending replace coalescing 的完整化或 async order manager。</p>
+<p>因此当前结论不是“C++ 已经解决 live 延迟”，而是更具体：<strong>C++ fixed-array 可以压计算路径，replace coalescing 可以减少一部分 REST 调用，但真实 live p99 仍由 order lifecycle、REST tail、pending state 和 WebSocket freshness 共同决定。</strong></p>
 <p>第三类是研究机制边界。当前新机制仍然必须用 Python replay 做最终证据，不能拿 C++ fast path 直接扫出 live 结论：<code>side/regime queue calibration</code>、<code>xmarket_retreat_enabled</code>、<code>fill_cooldown_apply_reducing</code>、<code>fill_cooldown_reducing*</code>、campaign state machine、以及 empirical live REST latency samples 都还没有 C++ replay parity。C++ 现在适合两件事：已 parity 基础路径的 fast screening，以及 quote context / replay 热循环的吞吐优化。下一步更值得做的是 campaign-level label 与 order-level score sanity，而不是急着扫参数或重训 quote EV。</p>
 <p>这说明一件事：<strong>架构边界不是文档措辞，而是真的会改变工程结论。</strong> 在本机 ARM 上，早期 <code>SIGNAL_FEATURES=1</code> 曾经是负优化；经过 fixed-array/ring-state 改造后，在 x86 上它反而变成最明显的 live CPU 收益。相反，<code>SIGNAL_STATE=1</code> 在这台 x86 上没有额外收益。pin 到单个 vCPU 对均值帮助也不大，甚至可能放大 VM 上的尾部抖动。</p>
 <p><code>perf stat</code> 也给了一个现实提醒：这台 KVM 实例不暴露 <code>cycles</code>、<code>instructions</code>、<code>L1-icache-load-misses</code>、<code>iTLB-load-misses</code> 这些硬件事件，最后只能看到 context switches、cpu migrations 和 page faults。因此“x86 benchmark”也要继续细分：普通云主机能做 wall-time/tail-latency 复测，但真正要分析 L1I/iTLB/cache miss，可能需要裸金属、特定实例族或能暴露 PMU 的环境。</p>
@@ -2298,33 +2462,41 @@ order gateway thread</code></pre></div>
 <li><strong>边界收紧</strong>：让 live hot path 中稳定的小决策包更少依赖 Python 动态对象。</li>
 </ol>
 <p>这个边界很重要：当前项目不是专用交易网关，也不是把所有网络和订单路径都 native 化的极限 HFT stack；它是一个把 maker 研究、tick replay、order-level evidence 和 live hot path 逐步接起来的低延时工程框架。</p>
-<h3 id="2-3-下一阶段真正值得做的事"><a href="#2-3-下一阶段真正值得做的事" class="headerlink" title="2.3 下一阶段真正值得做的事"></a>2.3 下一阶段真正值得做的事</h3><p>继续推进时，下一阶段的重点不是再堆一个模型，而是补四个闭环：</p>
+<h3 id="2-3-下一阶段：策略证据和系统执行分开推进"><a href="#2-3-下一阶段：策略证据和系统执行分开推进" class="headerlink" title="2.3 下一阶段：策略证据和系统执行分开推进"></a>2.3 下一阶段：策略证据和系统执行分开推进</h3><p>NarrowGate 后续工作需要分成两条轨道。它们会互相约束，但不能互相替代：策略侧回答“什么状态值得接单”，系统侧回答“这套状态机能否稳定、及时、可审计地执行”。</p>
+<p><strong>策略性质工作</strong>继续从 order-level / campaign-level evidence 出发，而不是从旧优化机制反推 alpha：</p>
 <ol>
 <li><strong>动态 <code>Lambda(delta)</code> 闭环</strong>：用 live/shadow fill calibration，把 depth、toxicity、reference shock 映射到整条到达率曲线，而不是只做 widen/pause。</li>
-<li><strong>主动瘦身闭环</strong>：设计 BTCUSDT perp/spot hedge simulator，把 hedge cost、basis risk、taker fee 和 inventory tail loss 放进同一张账。</li>
-<li><strong>真实 multi-venue lead-lag 闭环</strong>：接入独立 venue 原始盘口/逐笔数据，验证 reference 信号是否早于本地可执行窗口。</li>
-<li><strong>live threading 闭环</strong>：把 WebSocket decode、rolling state、quote decision 和 order gateway 分层，至少用 SPSC ring + pinned strategy thread 做一次 x86 p99/p99.9 对照。</li>
+<li><strong>campaign-level label</strong>：把 flat -&gt; nonzero -&gt; flat 的 terminal PnL、repair rate、early drawdown、max inventory、duration 和 exposure-increasing fills 做成监督目标，避免只看单笔 20s/30s markout。</li>
+<li><strong>local liquidity reversion / absorptive capacity</strong>：统一 response kernel、OU half-life、depth refill/cancel 的 bucket taxonomy，验证 aggressive flow 是可吸收扰动还是信息冲击。</li>
+<li><strong>multi-venue moderator</strong>：BTCUSDT reference / spot 暂时只作为 adverse moderator 或 risk label，不作为直接正向 alpha 开关；只有在 already-good local bucket 内提供稳定增益，才允许进入 policy。</li>
+</ol>
+<p><strong>系统性质工作</strong>则围绕真实 x86 live soak 和 order lifecycle：</p>
+<ol>
+<li><strong>继续 1-2 小时 live soak</strong>：跟踪 <code>live_perf_telemetry.csv</code> 里的 <code>requote_total_us</code>、<code>update_orders_us</code>、<code>rest_new/cancel</code> p99/p99.9、<code>cpp_routing_used</code>、WebSocket age、replace throttle 命中率和 stale block。</li>
+<li><strong>补 pending replace telemetry</strong>：<code>pending_coalesce</code>、pending cancel/new overlap、fills while pending cancel 要有独立 counter，不能只靠 action mix 推断。</li>
+<li><strong>谨慎测试 cancel-first</strong>：<code>replace_cancel_first_exposure_increasing=true</code> 只能单独短窗口测试，不和 alpha arm 混在一起；如果 stream silence/reconnect 多，优先保持关闭。</li>
+<li><strong>评估 async order manager</strong>：如果 REST p99 仍是主因，再把 quote decision 和 REST submit 分离，设计 pending replace coalescing 或异步 order manager，而不是继续调 quote 公式。</li>
 </ol>
 <blockquote>
 <p><strong>本节边界结论</strong></p>
 <ul>
-<li>NarrowGate 已经把 maker 研究从 bar-level 假设推进到 order-level evidence、campaign risk 和 live telemetry。</li>
-<li>下一层挑战是尾部冲击中的主动瘦身、跨市场 lead-lag、真实 REST/order gateway 尾部，以及线程隔离。</li>
-<li>这些边界不是自我降格，而是策略工程化路线图：每补一个闭环，策略结论才多一层可执行性。</li>
+<li>策略侧的进展必须过 data quality -&gt; mechanism -&gt; fill selection -&gt; OOS bucket -&gt; daily stability -&gt; campaign outcome risk。</li>
+<li>系统侧的进展必须过 x86 live soak -&gt; action mix -&gt; REST tail -&gt; stream freshness -&gt; safety path。</li>
+<li>两条线最终会在 spread、skew、TTL、cooldown 和 order lifecycle 上汇合，但验证顺序必须分开。</li>
 </ul>
 </blockquote>
 <h2 id="结论：低延时最终服务报价决策"><a href="#结论：低延时最终服务报价决策" class="headerlink" title="结论：低延时最终服务报价决策"></a>结论：低延时最终服务报价决策</h2><p>NarrowGate 的工程迁移不是从“我要写一个高速交易系统”开始的，而是从 maker 研究本身的压力长出来的：一旦需要真实 L2、queue ahead、latency、TTL、guard、inventory-time、quote EV labels 和多日多臂 A/B，Python orchestration 仍然合适，但 hot loop 和状态机必须收紧边界。</p>
 <p>这篇工程复盘里，最重要的结论不是某个 benchmark 数字，而是几条工程判断：</p>
 <ol>
-<li>ARM 本机低延时的工程收益主要体现在反例吞吐和 parity 成本，主指标是完整窗口耗时、rows/s、windows/hour、内存峰值和可重复性；</li>
-<li>x86 live 低延时的工程收益主要体现在报价时序和订单生命周期，主指标是 p99/p99.9、fallback、CPU migration、page fault、context switch 和长样本 soak；</li>
+<li>离线引擎优化的价值，是把严格 replay、quote context、order-level evidence 和多日反例验证变成日常流程，而不是偶尔抽样；</li>
+<li>x86 live 优化的价值，是让同一套 spread、skew、TTL、cooldown 和库存控制在真实 REST/WebSocket 尾部下仍能按预期执行；</li>
 <li>Python 仍然适合数据清洗、训练编排、报告和实验组织；</li>
 <li>C++ 适合长期驻留的状态、高频低基数分支、完整窗口 replay 和稳定的 live hot path 小决策包；</li>
 <li>pybind 边界必须按数组、固定 tuple 或 compact context 设计，不能每 tick 传大 dict/dataclass；</li>
 <li>parity 比速度更重要，没有路径级和金额级一致性，sweep 越快越危险；</li>
 <li>当前 live 架构已经能做 native hot-path 原型、shadow telemetry 和 order lifecycle coalescing；下一层是专用 order gateway、线程隔离和更长时间的 p99/p99.9 soak。</li>
 </ol>
-<p>所以 C++ 在 NarrowGate 里的定位不是外置加速器，而是 maker 策略工程化的一部分：离线侧让严格 replay、反例搜索和 order-level evidence 变得可负担；live 侧把稳定、高频、低基数的状态和决策边界收紧到更少动态对象、更少无意义 replace、更可控的尾延迟。它不替代 alpha 研究，但会决定一个 maker alpha 能否被真实验证、稳定执行，并在风险变坏时及时撤退。</p>
+<p>所以 C++ 在 NarrowGate 里的定位不是外置加速器，而是 maker 策略工程化的一部分：离线侧让严格 replay、反例搜索和 order-level evidence 变得可负担；live 侧把稳定、高频、低基数的状态和决策边界收紧到更少动态对象、更少无意义 replace、更可控的尾延迟。低延时本身不是 alpha 结论，但它会决定一个 maker alpha 能否被真实验证、稳定执行，并在风险变坏时及时撤退。</p>
 <hr>
 <p>本文及 NarrowGate 项目仅用于 C++ 低延时系统、市场微观结构、价格行为学、做市模型和机器学习回测方法的学习交流与技术研究，不构成财务、投资、法律或合规建议。中国大陆关于 crypto 交易及相关业务活动的监管环境具有不确定性；任何人将相关代码用于连接交易平台、交易、商业展业或投资决策，其合规风险、资金损失、技术故障及其他后果均由使用者自行承担，与作者无关。</p>
 
