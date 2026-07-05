@@ -24,7 +24,7 @@
 <meta property="og:description" content="TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV 与被动做市研究框架》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。 离线侧的低延时，本质是把严格 replay 从“只能抽样验证”推进">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-07-01T00:03:00.000Z">
-<meta property="article:modified_time" content="2026-07-02T02:05:00.000Z">
+<meta property="article:modified_time" content="2026-07-05T00:10:00.000Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="C++">
 <meta property="article:tag" content="低延时">
@@ -201,7 +201,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      64k 字
+      67k 字
     </span>
   
 
@@ -210,7 +210,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      531 分钟
+      555 分钟
     </span>
   
 
@@ -246,6 +246,7 @@
 <p>离线侧的低延时，本质是把严格 replay 从“只能抽样验证”推进到“可以按日、按窗口、按参数臂系统验证”。它关注 wall time、rows/s、windows/hour、内存峰值、路径一致性和结果可重复性；单个函数调用的尾部延迟只有在暴露 fallback、分配、swap 或过度订阅时才有解释价值。</p>
 <p>在线侧的低延时，是让报价、撤单和库存控制在真实事件循环里尽量少出现 stale quote、late cancel、跨语言 fallback 和偶发尖刺。这里必须看 mean、p99、p99.9、CPU migration、page fault、context switch、fallback 计数和长样本 soak。</p>
 <p>这两个目标最终都服务同一件事：让 maker 策略的 spread、skew、TTL、cooldown 和库存风险控制，可以在足够多反例里被验证，也可以在 live 中按预期执行。低延时不是独立于 alpha 的炫技，它是策略工程化后必须面对的执行条件。</p>
+<p>到 2026-07-04，项目里一个很典型的例子是 campaign lifecycle-risk：我们验证了“short campaign age 30-45min、abs inventory 0.004-0.006 BTC、趋势不利、local repair/refill 弱”的更早风险条件。它确实在方向上更差，但日度 OOS 不够稳定，refill/cancel 字段也没有提供增量筛选力。因此它只能进入 <code>campaign_outcome_risk_score</code> 作为证据轴，不能变成 live arm。这个例子说明：系统可以把验证跑得更快、更细，但不能替策略证据补票。</p>
 <p>本文只讨论工程实现，不讨论也不建议任何真实交易行为。所有 PnL、fill、markout、A/B 和 benchmark 都是研究指标或系统指标，不是收益承诺。</p>
 <div class="table-container">
 <table>
@@ -552,7 +553,8 @@ pybind11_add_module(narrowgate_cpp
 .venv/bin/pip install -e cpp
 .venv/bin/python -c \
   <span class="hljs-string">&#x27;import narrowgate_cpp; print(narrowgate_cpp.__file__)&#x27;</span></code></pre></div>
-<p>最后一行很重要。BTCUSDC 和 BTCUSDT 两个仓库都暴露名为 <code>narrowgate_cpp</code> 的模块，共用一个环境时可能导入另一份 build。loader 因此检查模块路径和 editable-install 的 <code>direct_url.json</code> 是否指向当前 repo，也允许用 <code>NARROWGATE_CPP_EXPECT_MODULE_TOKEN</code> 显式约束；<code>NARROWGATE_CPP_STRICT=1</code> 下来源不符会直接失败，不允许悄悄 fallback 到 Python。</p>
+<p>最后一行很重要。项目早期同时维护过 BTCUSDC 和 BTCUSDT 两个执行仓库，它们都暴露名为 <code>narrowgate_cpp</code> 的模块，共用一个环境时可能导入另一份 build。loader 因此检查模块路径和 editable-install 的 <code>direct_url.json</code> 是否指向当前 repo，也允许用 <code>NARROWGATE_CPP_EXPECT_MODULE_TOKEN</code> 显式约束；<code>NARROWGATE_CPP_STRICT=1</code> 下来源不符会直接失败，不允许悄悄 fallback 到 Python。</p>
+<p>2026-07-05 之后，仓库边界被进一步收束：维护分支只保留 BTCUSDC 执行项目，BTCUSDT 退回为 reference/source 数据，并且 raw trades 也要与 BTCUSDC minimal complete good-day universe 对齐。这个变化不只是文档整理，它能减少 C++ extension、模型目录、live config 和 replay manifest 之间的符号碰撞，让低延时优化只围绕一个执行标的做 parity。</p>
 <blockquote>
 <p><strong>本节工程结论</strong></p>
 <ul>
@@ -1412,6 +1414,66 @@ max_drawdown = std::<span class="hljs-built_in">max</span>(max_drawdown, peak_pn
 <p>第二轮验证结果为快速 suite <code>20 passed, 4 skipped</code>，四个真实窗口 golden parity <code>4 passed</code>，核心 C++20 翻译单元仍为零 warning。优化改变了 allocation、cache footprint 和输出策略，没有改变成交路径，也没有修改 live 配置。</p>
 <h3 id="1-5-ARM-本机-benchmark：离线低延时服务反例产能"><a href="#1-5-ARM-本机-benchmark：离线低延时服务反例产能" class="headerlink" title="1.5 ARM 本机 benchmark：离线低延时服务反例产能"></a>1.5 ARM 本机 benchmark：离线低延时服务反例产能</h3><p>ARM 本机回测里的“低延时”，真正要解决的是反例产能：更多质量合格日、更多窗口、更多策略臂、更重的 quote context，以及更严格的 Python/C++ parity。它的价值不是把某个函数调用压到多漂亮，而是把原本只能抽样看的 replay，推进到可以系统性跑日度 panel、blocked OOS 和 stress diagnostics。</p>
 <p>离线 benchmark 里的尾部数字仍然有用，但它主要用来定位非确定性来源：隐式 Python fallback、异常对象分配、I/O 抖动、内存暴涨、swap、多进程过度订阅或路径分叉。只要这些风险被排除，离线侧更核心的指标就是完整窗口耗时、每秒处理行数、每天/每臂 sweep 产能、路径级 parity、金额级 parity、内存峰值和失败可解释性。</p>
+<p>这也改变了参数搜索的工程形态。NarrowGate 现在不再把 <code>live/config.yaml</code> 看成一个可以暴力全组合扫描的超大网格，而是先把参数分成五类：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>例子</th>
+<th>验证方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>active</td>
+<td><code>gamma</code>、<code>kappa_ratio</code>、<code>adverse_*</code>、<code>fill_cooldown</code>、replace throttle</td>
+<td>Python replay + daily/campaign gate</td>
+</tr>
+<tr>
+<td>live-only</td>
+<td>API、WebSocket watchdog、<code>sync_adjust_*</code>、日志</td>
+<td>live soak / fault audit</td>
+</tr>
+<tr>
+<td>shadow</td>
+<td>adaptive cooldown、local extreme、depth execution probes</td>
+<td>shadow report / replay diagnostic</td>
+</tr>
+<tr>
+<td>archived</td>
+<td>direct quote EV live、SELL resiliency live、RL</td>
+<td>只作历史复盘，默认不进 sweep</td>
+</tr>
+<tr>
+<td>live-static</td>
+<td>symbol、tick/lot、fees</td>
+<td>合约事实，不优化</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>对应代码是 <code>models/parameter_selection.py</code> 和 <code>models/parameter_racing_sweep.py</code>。前者生成 coverage report 和 one-factor / Sobol arm spec；后者是 racing coordinator，默认只 dry-run，必须显式 <code>--execute</code> 才会调用 Python replay：</p>
+<div class="code-wrapper"><pre><code class="hljs bash">python3 models/parameter_racing_sweep.py \
+  --symbol BTCUSDC \
+  --tag parameter_quick_20260705 \
+  --stage quick-smoke \
+  --groups spread guard cooldown execution \
+  --single-factor \
+  --workers 4 \
+  --window-cache-dir ~/MarketData/NarrowGate_BTCUSDC/window_cache \
+  --execute</code></pre></div>
+<p><code>quick-smoke</code> 默认只跑一个上限约 30 个 arms 的 group-balanced 小面板；完整<br>60+ arm 主效应面必须显式使用 <code>--stage quick-full-main-effect</code>。Campaign<br>replay 在每个 UTC day 完成后写 partial daily / rollup / campaign labels，<br>长任务中断时不会把 90 分钟计算全部丢掉。</p>
+<p>它不是“自动炼金器”。它只是把过去散落在多个 <code>*_sweep.py</code>、<code>stage_t_*</code> 和 bucket 脚本里的调参动作，收束成一个约束优先的实验设计：</p>
+<div class="code-wrapper"><pre><code class="hljs text">parameter coverage
+  -&gt; one-factor / Sobol candidates
+  -&gt; quick-smoke retained days
+  -&gt; quick-full-main-effect only when explicit
+  -&gt; reject mechanism-drift arms early
+  -&gt; 40-day retained OOS
+  -&gt; full retained + blocked OOS
+  -&gt; live shadow / soak</code></pre></div>
+<p>排序也不再直接看 raw PnL。新的 <code>constraint_first_score</code> 先看 arm 是否仍像 baseline 一样运行：fills retention、pause/action mix、BUY/SELL split、tail campaign、bad campaign rate 和 inventory time 都不能明显漂移。只有这些硬约束过线，terminal campaign PnL、raw、InvAdj 才进入排序。这个设计比“多开几个 worker”更重要，因为它减少的是错误实验本身，而不只是把错误实验跑得更快。</p>
 <p>NarrowGate 当前 C++ hot path 并没有把 <code>std::atomic</code> 当作优化手段；代码里真正显式的 C++ 内部并发，是 <code>compute_quote_core_batch_depth(..., workers=N)</code> 的 <code>std::jthread</code> 分片。因此风险不是“某个 atomic trick 在 ARM 上慢”，而是更朴素：<strong>本机离线吞吐优化不等于 x86 live 尾延迟优化</strong>。</p>
 <p>更专业一点说，我后来把优化项按 CPU/OS 层拆成下面这张表，而不是笼统地说“C++ 更快”：</p>
 <div class="table-container">
@@ -2468,8 +2530,17 @@ order gateway thread</code></pre></div>
 <li><strong>动态 <code>Lambda(delta)</code> 闭环</strong>：用 live/shadow fill calibration，把 depth、toxicity、reference shock 映射到整条到达率曲线，而不是只做 widen/pause。</li>
 <li><strong>campaign-level label</strong>：把 flat -&gt; nonzero -&gt; flat 的 terminal PnL、repair rate、early drawdown、max inventory、duration 和 exposure-increasing fills 做成监督目标，避免只看单笔 20s/30s markout。</li>
 <li><strong>local liquidity reversion / absorptive capacity</strong>：统一 response kernel、OU half-life、depth refill/cancel 的 bucket taxonomy，验证 aggressive flow 是可吸收扰动还是信息冲击。</li>
-<li><strong>multi-venue moderator</strong>：BTCUSDT reference / spot 暂时只作为 adverse moderator 或 risk label，不作为直接正向 alpha 开关；只有在 already-good local bucket 内提供稳定增益，才允许进入 policy。</li>
+<li><strong>multi-venue moderator</strong>：BTCUSDT reference / spot 暂时只作为 adverse moderator 或 risk label，不作为直接正向 alpha 开关；reference 数据的日期集合也不能宽于 BTCUSDC execution good-day universe。只有在 already-good local bucket 内提供稳定增益，才允许进入 policy。</li>
 </ol>
+<p>最近的 lifecycle-risk 复盘也放在这条策略轨道内，而不是系统轨道内。严格候选：</p>
+<div class="code-wrapper"><pre><code class="hljs text">SHORT campaign
++ SELL exposure-increasing
++ campaign age 30-45m
++ abs inventory 0.004-0.006 BTC
++ trend_inventory_risk_high
++ local repair/refill weak</code></pre></div>
+<p>在 retained trace 上有 <code>5,495</code> 个 placed orders、<code>130</code> 个 fills，30s markout 为 <code>-12.30 bps</code>，terminal PnL 均值为 <code>-0.028</code>，MAE 为 <code>-3.159</code>。父桶 <code>short age30-45 inv0.004-0.006</code> 则是 <code>15,321</code> 个 placed orders、<code>335</code> 个 fills，30s markout <code>-11.22 bps</code>，terminal PnL <code>+0.044</code>，MAE <code>-3.077</code>。候选方向更差，但 daily 对比只有 terminal PnL <code>42</code> 天更差、<code>30</code> 天更好；MAE <code>39</code> 天更差、<code>32</code> 天更好。它说明“这个阶段有风险味道”，但不说明“现在应该改报价”。</p>
+<p>更重要的是，<code>refill&lt;=0</code> 和 <code>refill&lt;=0.02</code> 两个版本完全重合，<code>repair_weak_le002</code> 也等于父桶。工程含义很直接：当前 quote-time refill/cancel 观测还不够锋利。系统下一步不是强行上线一个 lifecycle arm，而是先把 exact-L2/order trace 中的 pre-fill refill/cancel、depth recovery、queue depletion 观测做得更可靠。</p>
 <p><strong>系统性质工作</strong>则围绕真实 x86 live soak 和 order lifecycle：</p>
 <ol>
 <li><strong>继续 1-2 小时 live soak</strong>：跟踪 <code>live_perf_telemetry.csv</code> 里的 <code>requote_total_us</code>、<code>update_orders_us</code>、<code>rest_new/cancel</code> p99/p99.9、<code>cpp_routing_used</code>、WebSocket age、replace throttle 命中率和 stale block。</li>
@@ -2483,6 +2554,7 @@ order gateway thread</code></pre></div>
 <li>策略侧的进展必须过 data quality -&gt; mechanism -&gt; fill selection -&gt; OOS bucket -&gt; daily stability -&gt; campaign outcome risk。</li>
 <li>系统侧的进展必须过 x86 live soak -&gt; action mix -&gt; REST tail -&gt; stream freshness -&gt; safety path。</li>
 <li>两条线最终会在 spread、skew、TTL、cooldown 和 order lifecycle 上汇合，但验证顺序必须分开。</li>
+<li>如果某个策略证据没过 daily/campaign gate，C++ 不能把它“加速成可用”；如果某个系统优化降低 p99，也不能自动说明 alpha 更好。</li>
 </ul>
 </blockquote>
 <h2 id="结论：低延时最终服务报价决策"><a href="#结论：低延时最终服务报价决策" class="headerlink" title="结论：低延时最终服务报价决策"></a>结论：低延时最终服务报价决策</h2><p>NarrowGate 的工程迁移不是从“我要写一个高速交易系统”开始的，而是从 maker 研究本身的压力长出来的：一旦需要真实 L2、queue ahead、latency、TTL、guard、inventory-time、quote EV labels 和多日多臂 A/B，Python orchestration 仍然合适，但 hot loop 和状态机必须收紧边界。</p>
