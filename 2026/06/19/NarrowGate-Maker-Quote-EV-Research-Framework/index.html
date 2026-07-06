@@ -28,7 +28,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/quote-ladder.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/order-lifecycle.svg">
 <meta property="article:published_time" content="2026-06-19T08:50:48.000Z">
-<meta property="article:modified_time" content="2026-07-05T00:10:00.000Z">
+<meta property="article:modified_time" content="2026-07-06T04:30:00.000Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
@@ -206,7 +206,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      45k 字
+      47k 字
     </span>
   
 
@@ -215,7 +215,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      373 分钟
+      389 分钟
     </span>
   
 
@@ -255,9 +255,9 @@
 <li>多市场 reference 有信息量，但不等于统一打开 <code>multi_market</code> 就有正 EV；</li>
 <li>tick replay、queue ahead、latency、TTL 和 maker fill gate 会显著改变 bar 回测结论；</li>
 <li>很多早期结果已经被后续审计推翻：连续跨日/月度 replay、坏日/gap 污染、markout EMA latch、fills/day 分母错误，都不能再当作 alpha 证据；</li>
-<li>当前项目没有选出可以称为“最优 live 参数”的策略结论；quote EV、SELL resiliency、toxic-risk、campaign stop-add、early lifecycle-risk 等都只能留在 shadow/evidence 或 replay shadow 层；</li>
+<li>当前项目没有选出可以称为“最终最优 live 参数”的策略结论；direct quote EV、SELL resiliency、toxic-risk、campaign stop-add、early lifecycle-risk 等都只能留在 shadow/evidence 或 replay shadow 层；</li>
 <li>当前 live 配置就是滚动 baseline；新机制只能作为 arm 相对当前 baseline 做 daily/campaign gate，不能拿旧 baseline 或旧回测结论直接比较；</li>
-<li>动态到达率、主动对冲、多 venue lead-lag、campaign-level label 和库存终局仍然是明确的未完成边界。</li>
+<li>最新方向不是继续扩大参数网格，而是用 null baseline、side-specific fill-selection score 和 campaign-level label，重新回答“哪些被动成交不像 toxic fill”。</li>
 </ol>
 <p>这篇文章也不是一份“项目顺利推进报告”。更准确地说，它是一份研究复盘：很多曾经看起来有希望的方向，后来都被更严格的数据质量、日度 fresh-start replay、live/replay 机制量对齐、bucket/OOS 校准和库存时间指标推翻或降级。保留下来的不是某个神奇参数，而是一套更不容易自欺欺人的验证流程。</p>
 <p><strong>NarrowGate</strong> 是我最近一段时间一直在做的 maker/被动做市研究项目。它不是从“我要写一个低延迟系统”开始的，而是从一个更朴素的问题开始：<strong>当市场有人急于成交时，站在被动一侧提供流动性，究竟是在收取 spread，还是在替更快的信息交易者接风险？</strong></p>
@@ -354,6 +354,11 @@
 <td><strong>滚动 baseline</strong></td>
 <td>当前 live 参数与代码就是下一轮研究 baseline；任何新增机制都是 arm</td>
 <td>先做 baseline/live 机制量对齐，再比较 arm；live 一旦更新，baseline 也随之滚动</td>
+</tr>
+<tr>
+<td><strong>最新 live probe</strong></td>
+<td>BUY side-specific fill-selection soft-keep</td>
+<td>作为极小滚动 baseline probe，不加 size、不代表盈利结论；后续必须继续看 live/replay 机制量、campaign outcome 和 daily stability</td>
 </tr>
 </tbody>
 </table>
@@ -889,7 +894,7 @@ markout_ema *= exp(-dt / tau_s)
 <li>fill selection 和 maker-signed markout 是否在 OOS 日段保持稳定；</li>
 <li>通过这些机制 gate 后，再谈某个 policy 是否有 alpha。</li>
 </ol>
-<p>同一轮也训练过新的 <code>models/saved_btcusdc_daily_retrain_20260627</code>，但它没有晋级：成交数更高，raw/InvAdj 却明显更差。这反过来提醒我，maker 模型不是“越活跃越好”，很多时候更高的 fill count 只是更高频地接到了有毒流。</p>
+<p>同一轮也训练过新的 <code>$&#123;NARROWGATE_MODEL_DIR&#125;</code>，但它没有晋级：成交数更高，raw/InvAdj 却明显更差。这反过来提醒我，maker 模型不是“越活跃越好”，很多时候更高的 fill count 只是更高频地接到了有毒流。</p>
 <h3 id="1-5-动态-kappa：AS-是坐标系，不是答案"><a href="#1-5-动态-kappa：AS-是坐标系，不是答案" class="headerlink" title="1.5 动态 kappa：AS 是坐标系，不是答案"></a>1.5 动态 kappa：AS 是坐标系，不是答案</h3><p>Avellaneda-Stoikov 给了一个非常有用的坐标系：</p>
 <script type="math/tex; mode=display">
 r_t = S_t - q_t \gamma \sigma_t^2 (T-t)</script><script type="math/tex; mode=display">
@@ -978,9 +983,9 @@ r_t = S_t - q_t \gamma \sigma_t^2 (T-t)</script><script type="math/tex; mode=dis
 </tbody>
 </table>
 </div>
-<p>后来我又犯过一次很典型的错误：以为“目录里只要大体都是日文件就够了”。实际重新扫 <code>~/MarketData/NarrowGate_BTCUSDC</code> 后，仍能在 <code>raw</code>、<code>bars_1s</code>、<code>bbo/l2</code>、<code>raw_trades/trade_features</code> 和 metrics 层看到坏日残留。这个问题在 2026-07-01 又做了一次 cross-source hard-exclude 清理：以 <code>data_quality.COMPLETE_DATA_POLICY.excluded_orderbook_days(&quot;BTCUSDC&quot;)</code> 的 152 个 UTC day 为准，删除命中坏日期的 raw / BBO / L2 / bars / depth / metrics / trade feature 文件 664 个，约 1.738GB，二次扫描坏日期残留为 0。</p>
+<p>后来我又犯过一次很典型的错误：以为“目录里只要大体都是日文件就够了”。实际重新扫 <code>$&#123;NARROWGATE_DATA_ROOT&#125;</code> 后，仍能在 <code>raw</code>、<code>bars_1s</code>、<code>bbo/l2</code>、<code>raw_trades/trade_features</code> 和 metrics 层看到坏日残留。这个问题在 2026-07-01 又做了一次 cross-source hard-exclude 清理：以 <code>data_quality.COMPLETE_DATA_POLICY.excluded_orderbook_days(&quot;BTCUSDC&quot;)</code> 的 152 个 UTC day 为准，删除命中坏日期的 raw / BBO / L2 / bars / depth / metrics / trade feature 文件 664 个，约 1.738GB，二次扫描坏日期残留为 0。</p>
 <p>这个结果也修正了“最小有限子集”的说法：物理层不应该保留坏日，也不应该保留跨坏日的非日度容器；但质量合格的日度好日仍然可以作为 OOS/research pool 保留，不需要裁成一个过小、固定、容易过拟合的子集。某一天是否进入训练、replay 或 promotion evidence，由 retained daily universe 和 <code>data_quality.py</code> 的逻辑过滤决定。</p>
-<p>2026-06-28 与 2026-07-01 的最终口径是：<code>~/MarketData/NarrowGate_BTCUSDC</code> 下策略相关行情容器按 UTC day 组织，坏日期物理残留为 0。2026-07-05 又做了一次更硬的边界收束：本地 2025 市场数据全部从当前研究面板删除，BTCUSDT raw trades 只保留与 BTCUSDC core layers 同时完备的 111 个 2026 good days，其余 reference-only 日期被删除。它看起来像清理磁盘，其实是清理研究边界：<strong>物理容器和策略结论都默认按 UTC day 组织，并且 reference 数据不能比 execution universe 更宽</strong>。</p>
+<p>2026-06-28 与 2026-07-01 的最终口径是：<code>$&#123;NARROWGATE_DATA_ROOT&#125;</code> 下策略相关行情容器按 UTC day 组织，坏日期物理残留为 0。2026-07-05 又做了一次更硬的边界收束：本地 2025 市场数据全部从当前研究面板删除，BTCUSDT raw trades 只保留与 BTCUSDC core layers 同时完备的 111 个 2026 good days，其余 reference-only 日期被删除。它看起来像清理磁盘，其实是清理研究边界：<strong>物理容器和策略结论都默认按 UTC day 组织，并且 reference 数据不能比 execution universe 更宽</strong>。</p>
 <p>这个清理还同步到了代码仓库边界：旧远端 <code>main</code> 曾经是 BTCUSDT 执行项目，当前维护分支只保留 BTCUSDC 执行研究；BTCUSDT 退回为 reference/source 数据，不再作为同仓库内的第二个执行交易对。这样做不是否定 BTCUSDT 的信息价值，而是避免“执行标的”和“参考标的”在代码、模型、数据 manifest 和文档里互相污染。</p>
 <p>这里还要区分“某一层数据已经到达”和“完整训练/回测链路已经可用”。2026-07-02 早上检查时，CryptoHFTData 的 2026-07-01 exact L2 已经可下载，BTCUSDC / BTCUSDT 各 24 小时齐全，并重建为 daily <code>bbo/l2</code> parquet；但 Binance Vision 的 2026-07-01 futures <code>aggTrades/trades/bookDepth/metrics</code> 与 spot <code>aggTrades/trades</code> 仍返回 404。因此 2026-07-01 当时只能说 <strong>exact L2 层可用</strong>，不能把完整 feature / replay / quote EV pipeline 当成已经覆盖到这一天。后续每次补数都必须重新跑同一套 good-day manifest：BTCUSDC execution 层、BTCUSDT reference trades、spot/reference anchors 和 features 要么一起进入 retained day，要么一起排除。</p>
 <p>新的核心入口也因此改成：</p>
@@ -1573,8 +1578,27 @@ campaign_outcome_risk      # 解释 terminal campaign loss / MAE / duration
 micro_reversion_score      # 局部扰动是否有短半衰期
 trend_inventory_risk       # 大级别趋势是否正在放大库存风险</code></pre></div>
 <p>这些 score 如果不能按日稳定排序 fill rate、markout、tail 和 campaign terminal outcome，就不应该进入 quote EV 重训，更不应该映射成 live spread / TTL / size。</p>
-<h2 id="结论：窄门不是参数，而是证据门槛"><a href="#结论：窄门不是参数，而是证据门槛" class="headerlink" title="结论：窄门不是参数，而是证据门槛"></a>结论：窄门不是参数，而是证据门槛</h2><p>NarrowGate 从一个 AS 公式实验，走到了数据审计、跨市场冲击归因、逐侧 quote EV、库存时间积分和 order-level denominator。这个过程也不断推翻自己的旧答案：更多 reference 没有自动带来更好 policy；ask EV 的 raw 改善没有通过校准；连续长窗回测被日度 fresh-start 取代；局部 SELL bucket、toxic-risk 和 campaign 控制只能先做 shadow/replay evidence。</p>
-<p>最初的问题因此被越问越窄：不是“能不能预测 BTC”，而是“在这一侧、这个价格、这个盘口和这段库存暴露下，是否值得提供一次短暂的被动流动性”。</p>
+<h3 id="2-4-最新更新：null-baseline、side-specific-score-与-reference-的新位置"><a href="#2-4-最新更新：null-baseline、side-specific-score-与-reference-的新位置" class="headerlink" title="2.4 最新更新：null baseline、side-specific score 与 reference 的新位置"></a>2.4 最新更新：null baseline、side-specific score 与 reference 的新位置</h3><p>2026-07-06 之后，我对“baseline 是不是已经接近局部最优”这件事重新做了一个更直接的检验：建立 random passive null baseline。它保持同样日、同样 side、近似相同 spread 和订单机会，但不使用当前策略的信号去选择成交。这个对照的意义很朴素：如果当前 actual fills 比随机被动机会还差，那就说明策略信号正在把订单送进更 toxic 的 fill selection，而不是只是“参数不够好”。</p>
+<p>retained good days 的结论很刺眼：当前 actual fills 相对 random/null 仍有明显 toxic selection gap，而事后 oracle positive-fill 子集又说明可用空间并不薄。换句话说，baseline 肯定不是“最好的方案”；问题也不是再扫几个 <code>gamma/kappa/cooldown</code> 就能解决，而是必须先找出哪些 quote-time 状态能把实际成交从 toxic selection 拉回 neutral，甚至靠近 oracle 的正子集。</p>
+<p>这也是为什么最新工作把桶分析升级成 order-level denominator table。每一行不再只是一笔 fill，而是一笔 placed order：</p>
+<div class="code-wrapper"><pre><code class="hljs text">placed order
+  + quote-time state
+  + side / distance / queue / depth / flow
+  + ref / spot / local liquidity moderator
+  + fill outcome
+  + 1s / 5s / 20s / 30s markout
+  + campaign terminal outcome / MAE / repair
+  + null baseline bucket / oracle label</code></pre></div>
+<p>在这个表上，BUY 和 SELL 不能再共用同一个“好成交”定义。BUY side-specific fill-selection score 已经显示出更清楚的 alpha 线索：高分区能把 BUY fill 的负 markout 明显拉向接近 neutral。它目前被看作一个极小的 BUY-only soft-keep live probe，也就是“不额外放大 size、不直接宣称盈利，只把这个 side-specific 选择函数放进真实订单簿继续观察”。SELL 侧没有获得同样结论，必须重新定义 score，不能借用 BUY 的规则。</p>
+<p>BTCUSDT reference 的位置也要重新定义。旧的 <code>multi_market=true/false</code> 测的是“把 10s reference 特征直接喂给报价/模型”的粗用法，已经证明不适合；纯 event-cancel 防守也很容易因为 false cancel 误杀大量正向 fill。更合理的角色有三种：</p>
+<ol>
+<li><strong>re-center / reservation shift</strong>：只使用尚未被 BTCUSDC 本地盘口吸收的短窗残差 <code>pending_ref = ref_move - local_move</code>，用 1-3 tick 的有界平移改变 fair value，而不是统一 widen/pause；</li>
+<li><strong>post-fill campaign moderator</strong>：如果 fill 发生时 reference 仍显示 adverse-leading，就提高 campaign outcome risk，而不是提前取消所有订单；</li>
+<li><strong>local signal confirmation</strong>：reference 只作为已有本地 adverse / repair 信号的乘数或 veto，不单独成为 alpha 开关。</li>
+</ol>
+<p>这条线还没有进入 re-center arm。submit-time pending + 30s markout 的排序力不够；下一步要补 1s/5s horizon 和 fill-time pending 重采样。如果短 horizon 或 fill-time 也没有排序力，xref 就应降级为已证伪的 shadow feature；如果有排序力，再测 1/2/3 tick 的 reservation shift，而不是复活旧的 direct xmarket policy。</p>
+<h2 id="结论：窄门不是参数，而是证据门槛"><a href="#结论：窄门不是参数，而是证据门槛" class="headerlink" title="结论：窄门不是参数，而是证据门槛"></a>结论：窄门不是参数，而是证据门槛</h2><p>NarrowGate 从一个 AS 公式实验，走到了数据审计、跨市场冲击归因、逐侧 quote EV、库存时间积分、null baseline 和 order-level denominator。这个过程也不断推翻自己的旧答案：更多 reference 没有自动带来更好 policy；ask EV 的 raw 改善没有通过校准；连续长窗回测被日度 fresh-start 取代；局部 SELL bucket、toxic-risk 和 campaign 控制只能先做 shadow/replay evidence。</p>
+<p>最初的问题因此被越问越窄：不是“能不能预测 BTC”，而是“在这一侧、这个价格、这个盘口和这段库存暴露下，是否值得提供一次短暂的被动流动性”。最新的 null baseline 让这句话更尖锐：如果策略选择出来的 fills 比随机被动机会更 toxic，那真正的 alpha 就不是多加一个防守开关，而是重新学习 fill selection。</p>
 <p>这可能也是“窄门”最贴切的地方。一个研究系统的成熟，不在于它接入了多少模型和数据源，而在于它愿意用多少层约束拒绝一个看起来很诱人的结论。</p>
 <hr>
 <p>本文及 NarrowGate 项目仅用于市场微观结构、价格行为学、做市模型、机器学习回测方法和系统工程的学习交流与技术研究，不构成财务、投资、法律或合规建议。中国大陆关于 crypto 交易及相关业务活动的监管环境具有不确定性；任何人将相关代码用于连接交易平台、交易、商业展业或投资决策，其合规风险、资金损失、技术故障及其他后果均由使用者自行承担，与作者无关。</p>

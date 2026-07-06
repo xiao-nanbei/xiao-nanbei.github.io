@@ -24,7 +24,7 @@
 <meta property="og:description" content="TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV 与被动做市研究框架》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。 离线侧的低延时，本质是把严格 replay 从“只能抽样验证”推进">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-07-01T00:03:00.000Z">
-<meta property="article:modified_time" content="2026-07-05T00:10:00.000Z">
+<meta property="article:modified_time" content="2026-07-06T04:30:00.000Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="C++">
@@ -210,7 +210,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      540 分钟
+      544 分钟
     </span>
   
 
@@ -246,7 +246,8 @@
 <p>离线侧的低延时，本质是把严格 replay 从“只能抽样验证”推进到“可以按日、按窗口、按参数臂系统验证”。它关注 wall time、rows/s、windows/hour、内存峰值、路径一致性和结果可重复性；单个函数调用的尾部延迟只有在暴露 fallback、分配、swap 或过度订阅时才有解释价值。</p>
 <p>在线侧的低延时，是让报价、撤单和库存控制在真实事件循环里尽量少出现 stale quote、late cancel、跨语言 fallback 和偶发尖刺。这里必须看 mean、p99、p99.9、CPU migration、page fault、context switch、fallback 计数和长样本 soak。</p>
 <p>这两个目标最终都服务同一件事：让 maker 策略的 spread、skew、TTL、cooldown 和库存风险控制，可以在足够多反例里被验证，也可以在 live 中按预期执行。低延时不是独立于 alpha 的炫技，它是策略工程化后必须面对的执行条件。</p>
-<p>到 2026-07-04，项目里一个很典型的例子是 campaign lifecycle-risk：我们验证了“short campaign age 30-45min、abs inventory 0.004-0.006 BTC、趋势不利、local repair/refill 弱”的更早风险条件。它确实在方向上更差，但日度 OOS 不够稳定，refill/cancel 字段也没有提供增量筛选力。因此它只能进入 <code>campaign_outcome_risk_score</code> 作为证据轴，不能变成 live arm。这个例子说明：系统可以把验证跑得更快、更细，但不能替策略证据补票。</p>
+<p>到 2026-07-06，项目里的工程边界又收紧了一层：tracked <code>live/config.yaml</code> 只保留公开模板，私有 live 参数通过 <code>NARROWGATE_LIVE_CONFIG</code> 注入；仓库补了根级 <code>pyproject.toml</code>、<code>narrowgate</code> CLI、CI、Docker/devcontainer 和 5 分钟 quickstart。这个变化不是“文档好看一点”，而是把低延时研究从个人实验推进到可复现边界：别人应该能跑通 quote demo、smoke test 和 public replay skeleton，但不应该拿到私有基础设施、模型快照和实盘参数。</p>
+<p>策略侧也在同一天继续收缩。lifecycle-risk、campaign soft control 和 reducing cooldown 都没有被直接推成新 live arm；新的重点变成 null baseline 与 order-level fill-selection：先问当前实际 fills 是否比随机被动机会更差，再找哪些 quote-time 状态能把 fill selection 拉回 neutral，最后才映射到 spread、skew、TTL 或 cooldown。这说明系统可以把验证跑得更快、更细，但不能替策略证据补票。</p>
 <p>本文只讨论工程实现，不讨论也不建议任何真实交易行为。所有 PnL、fill、markout、A/B 和 benchmark 都是研究指标或系统指标，不是收益承诺。</p>
 <div class="table-container">
 <table>
@@ -915,8 +916,8 @@ trace rows</code></pre></div>
 </ol>
 <p>本机接电后的 wall-time 记录是：多日 arrays 预计算约 <code>57.84s</code>，C++ replay 跑四臂约 <code>7.84s</code>。</p>
 <p>研究链路不是一句“打开 C++”就结束，而是把昂贵步骤和快速步骤拆开。下面是实际命令形态（路径缩短为变量）：</p>
-<div class="code-wrapper"><pre><code class="hljs bash">RESULTS=~/MarketData/NarrowGate_BTCUSDC/backtest_results_btcusdc
-MODEL=models/saved_btcusdc_quote_ev_xmarket_cpp_context_20260618
+<div class="code-wrapper"><pre><code class="hljs bash">RESULTS=<span class="hljs-variable">$&#123;NARROWGATE_RESULTS_DIR&#125;</span>
+MODEL=<span class="hljs-variable">$&#123;NARROWGATE_MODEL_DIR&#125;</span>
 
 <span class="hljs-comment"># 1. baseline context 下只做一次 online inference，写成按时间对齐的 arrays</span>
 .venv/bin/python models/precompute_quote_ev_arrays.py \
@@ -932,7 +933,7 @@ NARROWGATE_CPP_STRICT=1 .venv/bin/python models/quote_ev_ab_tick.py \
   --days 2026-05-15 2026-05-16 \
   --arms baseline bid_ev_soft_widen ask_ev_soft_widen both_ev_soft_widen \
   --engine cpp \
-  --cpp-quote-ev-data <span class="hljs-string">&quot;<span class="hljs-variable">$RESULTS</span>/quote_ev_arrays_cpp_fast_screen_btcusdc.parquet&quot;</span> \
+  --cpp-quote-ev-data <span class="hljs-string">&quot;<span class="hljs-variable">$RESULTS</span>/&lt;result_tag&gt;_btcusdc.parquet&quot;</span> \
   --window-cache-dir /tmp/narrowgate_tick_window_cache \
   --workers 1</code></pre></div>
 <p>数组必须按 <code>quote_ev_ts_ms</code> 与 replay 时钟做 backward/as-of 对齐，并在 C++ 入口验证所有 bid/ask EV 列长度一致。<code>NARROWGATE_CPP_STRICT=1</code> 则保证模块不可用、字段缺失或 shape 错误时直接终止，而不是改走 Python 后仍输出一个看似成功的 A/B 文件。</p>
@@ -1461,7 +1462,7 @@ max_drawdown = std::<span class="hljs-built_in">max</span>(max_drawdown, peak_pn
   --groups spread guard cooldown execution \
   --single-factor \
   --workers 4 \
-  --window-cache-dir ~/MarketData/NarrowGate_BTCUSDC/window_cache \
+  --window-cache-dir <span class="hljs-variable">$&#123;NARROWGATE_DATA_ROOT&#125;</span>/window_cache \
   --execute</code></pre></div>
 <p><code>quick-smoke</code> 默认只跑一个上限约 30 个 arms 的 group-balanced 小面板；完整<br>60+ arm 主效应面必须显式使用 <code>--stage quick-full-main-effect</code>。Campaign<br>replay 在每个 UTC day 完成后写 partial daily / rollup / campaign labels，<br>长任务中断时不会把 90 分钟计算全部丢掉。</p>
 <p>它不是“自动炼金器”。它只是把过去散落在多个 <code>*_sweep.py</code>、<code>stage_t_*</code> 和 bucket 脚本里的调参动作，收束成一个约束优先的实验设计：</p>
@@ -2256,21 +2257,22 @@ order gateway thread</code></pre></div>
 <li><strong>local liquidity reversion / absorptive capacity</strong>：统一 response kernel、OU half-life、depth refill/cancel 的 bucket taxonomy，验证 aggressive flow 是可吸收扰动还是信息冲击。</li>
 <li><strong>multi-venue moderator</strong>：BTCUSDT reference / spot 暂时只作为 adverse moderator 或 risk label，不作为直接正向 alpha 开关；reference 数据的日期集合也不能宽于 BTCUSDC execution good-day universe。只有在 already-good local bucket 内提供稳定增益，才允许进入 policy。</li>
 </ol>
-<p>最近的 lifecycle-risk 复盘也放在这条策略轨道内，而不是系统轨道内。严格候选：</p>
+<p>最近的 lifecycle-risk 复盘也放在这条策略轨道内，而不是系统轨道内。曾经的严格候选：</p>
 <div class="code-wrapper"><pre><code class="hljs text">SHORT campaign
 + SELL exposure-increasing
 + campaign age 30-45m
 + abs inventory 0.004-0.006 BTC
 + trend_inventory_risk_high
 + local repair/refill weak</code></pre></div>
-<p>在 retained trace 上有 <code>5,495</code> 个 placed orders、<code>130</code> 个 fills，30s markout 为 <code>-12.30 bps</code>，terminal PnL 均值为 <code>-0.028</code>，MAE 为 <code>-3.159</code>。父桶 <code>short age30-45 inv0.004-0.006</code> 则是 <code>15,321</code> 个 placed orders、<code>335</code> 个 fills，30s markout <code>-11.22 bps</code>，terminal PnL <code>+0.044</code>，MAE <code>-3.077</code>。候选方向更差，但 daily 对比只有 terminal PnL <code>42</code> 天更差、<code>30</code> 天更好；MAE <code>39</code> 天更差、<code>32</code> 天更好。它说明“这个阶段有风险味道”，但不说明“现在应该改报价”。</p>
-<p>更重要的是，<code>refill&lt;=0</code> 和 <code>refill&lt;=0.02</code> 两个版本完全重合，<code>repair_weak_le002</code> 也等于父桶。工程含义很直接：当前 quote-time refill/cancel 观测还不够锋利。系统下一步不是强行上线一个 lifecycle arm，而是先把 exact-L2/order trace 中的 pre-fill refill/cancel、depth recovery、queue depletion 观测做得更可靠。</p>
+<p>这条候选在方向上有风险味道，但 daily 对比不够稳定，quote-time refill/cancel 也没有提供足够增量分层。更重要的是，后续 null baseline 复盘改变了问题的重心：如果当前 actual fills 本身比随机被动机会更 toxic，那么继续在旧 bucket 上微调 lifecycle，可能只是在修补一个错误的 fill-selection 函数。</p>
+<p>因此策略侧下一步不再是“把某个风险桶变成 arm”，而是先建立统一的 order-level training table：每一行 placed order 都带 quote-time 状态、是否成交、1s/5s/20s/30s markout、campaign terminal outcome、campaign MAE、random/null 对照和 oracle 上界。只有当一个 side-specific score 能稳定把 actual fills 从 toxic selection 拉回接近 null，才允许设计极小 policy knob。最近的 BUY-only fill-selection soft-keep 就属于这种 rolling-baseline probe：它不是 size-up，也不是盈利证明，而是把一个 side-specific denominator 信号放进真实订单簿继续验证。</p>
 <p><strong>系统性质工作</strong>则围绕真实 x86 live soak 和 order lifecycle：</p>
 <ol>
 <li><strong>继续 1-2 小时 live soak</strong>：跟踪 <code>live_perf_telemetry.csv</code> 里的 <code>requote_total_us</code>、<code>update_orders_us</code>、<code>rest_new/cancel</code> p99/p99.9、<code>cpp_routing_used</code>、WebSocket age、replace throttle 命中率和 stale block。</li>
 <li><strong>补 pending replace telemetry</strong>：<code>pending_coalesce</code>、pending cancel/new overlap、fills while pending cancel 要有独立 counter，不能只靠 action mix 推断。</li>
 <li><strong>谨慎测试 cancel-first</strong>：<code>replace_cancel_first_exposure_increasing=true</code> 只能单独短窗口测试，不和 alpha arm 混在一起；如果 stream silence/reconnect 多，优先保持关闭。</li>
 <li><strong>评估 async order manager</strong>：如果 REST p99 仍是主因，再把 quote decision 和 REST submit 分离，设计 pending replace coalescing 或异步 order manager，而不是继续调 quote 公式。</li>
+<li><strong>保持 public/private 边界</strong>：公开仓库只暴露模板配置、sample workflow、CI 和 no-data examples；私有 live 参数、基础设施地址、实盘结果和 paid data manifest 不进入 public docs。</li>
 </ol>
 <blockquote>
 <p><strong>本节边界结论</strong></p>
@@ -2292,7 +2294,8 @@ order gateway thread</code></pre></div>
 <li>parity 比速度更重要，没有路径级和金额级一致性，sweep 越快越危险；</li>
 <li>当前 live 架构已经能做 native hot-path 原型、shadow telemetry 和 order lifecycle coalescing；下一层是专用 order gateway、线程隔离和更长时间的 p99/p99.9 soak。</li>
 </ol>
-<p>所以 C++ 在 NarrowGate 里的定位不是外置加速器，而是 maker 策略工程化的一部分：离线侧让严格 replay、反例搜索和 order-level evidence 变得可负担；live 侧把稳定、高频、低基数的状态和决策边界收紧到更少动态对象、更少无意义 replace、更可控的尾延迟。低延时本身不是 alpha 结论，但它会决定一个 maker alpha 能否被真实验证、稳定执行，并在风险变坏时及时撤退。</p>
+<p>所以 C++ 在 NarrowGate 里的定位不是外置加速器，而是 maker 策略工程化的一部分：离线侧让严格 replay、反例搜索、null baseline、order-level evidence 和参数 racing 变得可负担；live 侧把稳定、高频、低基数的状态和决策边界收紧到更少动态对象、更少无意义 replace、更可控的尾延迟。低延时本身不是 alpha 结论，但它决定了一个 maker alpha 能否被真实验证、稳定执行，并在风险变坏时及时撤退。</p>
+<p>面向开源版本，C++ 还有另一层价值：它迫使项目把边界说清楚。哪些路径有 Python/C++ parity，哪些只能 fast screening，哪些仍必须由 Python replay 做正式证据，都应该在 public README、CI 和 examples 里体现出来。否则一个看起来很快的 extension 只会让陌生人更快踩进旧结论。</p>
 <hr>
 <p>本文及 NarrowGate 项目仅用于 C++ 低延时系统、市场微观结构、价格行为学、做市模型和机器学习回测方法的学习交流与技术研究，不构成财务、投资、法律或合规建议。中国大陆关于 crypto 交易及相关业务活动的监管环境具有不确定性；任何人将相关代码用于连接交易平台、交易、商业展业或投资决策，其合规风险、资金损失、技术故障及其他后果均由使用者自行承担，与作者无关。</p>
 
