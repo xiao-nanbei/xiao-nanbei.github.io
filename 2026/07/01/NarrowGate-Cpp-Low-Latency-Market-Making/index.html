@@ -26,10 +26,10 @@
 <meta property="article:published_time" content="2026-07-01T00:03:00.000Z">
 <meta property="article:modified_time" content="2026-07-06T04:30:00.000Z">
 <meta property="article:author" content="John Doe">
-<meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="C++">
 <meta property="article:tag" content="低延时">
 <meta property="article:tag" content="pybind11">
+<meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="系统工程">
 <meta name="twitter:card" content="summary_large_image">
   
@@ -201,7 +201,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      65k 字
+      66k 字
     </span>
   
 
@@ -210,7 +210,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      544 分钟
+      553 分钟
     </span>
   
 
@@ -906,38 +906,21 @@ Sharpe
 trace rows</code></pre></div>
 <p>golden window 覆盖正常、高波动、低成交/稀疏以及不同日期状态。只有差异能够被解释，C++ engine 才被允许进入 sweep、cap A/B、quote EV A/B 等批量 runner。默认行为仍保留 Python，显式 <code>--engine cpp</code> 才切换，strict 模式下 extension 不可用会直接报错，避免静默 fallback 让人误以为跑了 C++。</p>
 <p>完整 CLI 的 wall time 还包含 parquet、模型和窗口加载，因此不能拿 C++ 内层循环的 microbenchmark 直接宣称整月回测有同样倍数。对回测来说，<strong>路径一致比一个夸张的加速倍数更重要</strong>。</p>
-<h4 id="1-4-4-quote-EV-fast-screening：快筛不是最终裁决"><a href="#1-4-4-quote-EV-fast-screening：快筛不是最终裁决" class="headerlink" title="1.4.4 quote EV fast screening：快筛不是最终裁决"></a>1.4.4 quote EV fast screening：快筛不是最终裁决</h4><p>quote EV online inference 会对大量 quote 逐行构造 feature 并调用模型，多日 A/B 很慢。为此项目增加了一条研究快筛路径：</p>
+<p>2026-07-08 之后，C++ replay 的角色又往前推了一步：它不再只是“基础路径 fast screening”，而是可以在 <strong>active live baseline 的 parity gate 通过后</strong> 承接 48-arm 参数 smoke。这里修掉的关键偏差并不是浮点精度，而是离散状态口径：Python 的 queue 初始化使用成交时钟上的 causal local-rank，而 C++ 曾经复用了 local-extreme rank，在 guard 关闭时会退化成 <code>0.5</code>；同时同一 tick 内多个候选订单的成交优先级也必须按 BUY 高价优先、SELL 低价优先稳定排序。修复后，queue-enabled live-like 窗口可以做到 BUY/SELL fill split 和 campaign 数量对齐，剩下的小额 PnL 差异才进入可解释范围。</p>
+<p>因此新的规则是：C++ 可以用于 active baseline 的参数快筛，但每次 sweep 前要先跑 baseline parity gate；如果 gate 不过，自动退回 Python reference，而不是带着偏移去筛参数。这个边界比“C++ 快不快”更重要，因为参数搜索最怕的不是慢，而是用另一套成交口径选出一个看起来很强的假 arm。</p>
+<p>修复后的第一轮实测是 48 个 active Sobol arms、4 个代表日的 C++ quick-smoke。任务在 4 workers 下约 340 秒完成，baseline parity gate 先通过，然后才进入 arm 筛选。结果也很克制：只有 baseline 和一个非 baseline arm 通过 hard mechanism gate；大多数 arm 不是因为 raw PnL 立刻失败，而是因为 tail campaign、fills retention、spread drift、pause/action mix 漂移被拦下。这正是 C++ 加速在研究里的价值：更快地暴露“不该继续跑 retained”的组合，而不是更快地制造一个漂亮结论。</p>
+<p>随后只把这个 survivor 和 baseline 放进 retained40。两者都过 hard gate，但 survivor 没有赢：39 个 retained day 里 terminal campaign PnL 只有 18 天改善、21 天变差，总和比 baseline 低约 20 USDC；raw replay PnL 也低约 20 USDC，库存时间反而高约 14%。它确实少了一些 tail campaigns，但 bad campaign rate 更高，收益和库存暴露的组合不值得替换当前 baseline。这个例子很适合说明 C++ fast screening 的正确姿势：先让它帮忙快速淘汰和缩小候选，再用 daily/campaign gate 读权衡，而不是把“跑得动 retained”误解为“可以推 live”。</p>
+<h4 id="1-4-4-quote-EV-fast-screening：快筛不是最终裁决"><a href="#1-4-4-quote-EV-fast-screening：快筛不是最终裁决" class="headerlink" title="1.4.4 quote EV fast screening：快筛不是最终裁决"></a>1.4.4 quote EV fast screening：快筛不是最终裁决</h4><p>quote EV online inference 会对大量 quote 逐行构造 feature 并调用模型，多日 A/B 很慢。早期项目因此增加过一条研究快筛路径：</p>
 <ol>
 <li>在 baseline quote context 下预计算 bid/ask EV arrays；</li>
 <li>C++ replay 在每个 tick 直接读取对应分数；</li>
-<li>快速跑 baseline、bid、ask、both 四个 key arms；</li>
-<li>淘汰明显差的 arm；</li>
-<li>最终候选仍回到 Python online inference 全量确认。</li>
+<li>快速筛掉明显不值得继续的 direct-policy probe；</li>
+<li>最终候选仍必须回到 Python online inference、daily OOS 和 campaign gate。</li>
 </ol>
-<p>本机接电后的 wall-time 记录是：多日 arrays 预计算约 <code>57.84s</code>，C++ replay 跑四臂约 <code>7.84s</code>。</p>
-<p>研究链路不是一句“打开 C++”就结束，而是把昂贵步骤和快速步骤拆开。下面是实际命令形态（路径缩短为变量）：</p>
-<div class="code-wrapper"><pre><code class="hljs bash">RESULTS=<span class="hljs-variable">$&#123;NARROWGATE_RESULTS_DIR&#125;</span>
-MODEL=<span class="hljs-variable">$&#123;NARROWGATE_MODEL_DIR&#125;</span>
-
-<span class="hljs-comment"># 1. baseline context 下只做一次 online inference，写成按时间对齐的 arrays</span>
-.venv/bin/python models/precompute_quote_ev_arrays.py \
-  --symbol BTCUSDC \
-  --days 2026-05-15 2026-05-16 \
-  --model-dir <span class="hljs-string">&quot;<span class="hljs-variable">$MODEL</span>&quot;</span> \
-  --orders <span class="hljs-string">&quot;<span class="hljs-variable">$RESULTS</span>/cross_market_shock_audit.orders_features.parquet&quot;</span> \
-  --tag cpp_fast_screen
-
-<span class="hljs-comment"># 2. 四个 policy arm 复用同一份窗口 cache 与 EV arrays</span>
-NARROWGATE_CPP_STRICT=1 .venv/bin/python models/quote_ev_ab_tick.py \
-  --symbol BTCUSDC \
-  --days 2026-05-15 2026-05-16 \
-  --arms baseline bid_ev_soft_widen ask_ev_soft_widen both_ev_soft_widen \
-  --engine cpp \
-  --cpp-quote-ev-data <span class="hljs-string">&quot;<span class="hljs-variable">$RESULTS</span>/&lt;result_tag&gt;_btcusdc.parquet&quot;</span> \
-  --window-cache-dir /tmp/narrowgate_tick_window_cache \
-  --workers 1</code></pre></div>
-<p>数组必须按 <code>quote_ev_ts_ms</code> 与 replay 时钟做 backward/as-of 对齐，并在 C++ 入口验证所有 bid/ask EV 列长度一致。<code>NARROWGATE_CPP_STRICT=1</code> 则保证模块不可用、字段缺失或 shape 错误时直接终止，而不是改走 Python 后仍输出一个看似成功的 A/B 文件。</p>
-<p>这个数字不能被误读成“完整研究只需八秒”。EV score 被冻结在 baseline context；某个 arm 改变报价后，成交路径、库存和后续 context 都会漂移，而预计算数组不会重算。它适合 screening，不适合 promotion。</p>
+<p>这条路径的价值是工程上的：证明预计算数组 + C++ replay 可以显著降低筛选成本。它不再代表当前策略方向，因为 direct quote-EV policy 已经归档。</p>
+<p>研究链路不是一句“打开 C++”就结束，而是把昂贵步骤和快速步骤拆开。早期我曾用 C++ replay + 预计算 quote EV arrays 去快速筛 direct quote-EV policy arms；这条 direct-policy 路线后来已经归档，因为样本质量、calibration、daily OOS 和 campaign gate 都没有过。</p>
+<p>这段经历仍然留下一个系统结论：C++ 最适合承接<strong>已经固定语义的批处理边界</strong>，例如 quote context batch、order-level denominator、shock/label 前的重复 quote-core 计算、以及已 parity 的 replay fast screening；它不应该替一个还没过 evidence gate 的策略机制背书。</p>
+<p>当前更稳妥的用法是：Python 先负责 retained-day universe、window cache、feature/model loading 和 evidence schema；C++ 只处理可独立验证的 tight loop，并在 <code>NARROWGATE_CPP_STRICT=1</code> 下 fail fast。模块不可用、字段缺失或 shape 错误时直接终止，而不是悄悄 fallback 后输出一个看似成功的 A/B 文件。</p>
 <p>同样，C++ loop 变快以后，CLI wall time 可能仍受 parquet、模型和数据加载支配。后续优化重点因此转向 window cache、数组复用和批量 quote decomposition，而不是继续微调一个已经很快的循环。</p>
 <h4 id="1-4-5-streaming-feature：迁状态，而不是反复搬列表"><a href="#1-4-5-streaming-feature：迁状态，而不是反复搬列表" class="headerlink" title="1.4.5 streaming feature：迁状态，而不是反复搬列表"></a>1.4.5 streaming feature：迁状态，而不是反复搬列表</h4><p>逐笔成交进入系统后，需要更新 1s bar、10s feature、taker tempo、rolling volume、L2 execution 和 cross-market state。</p>
 <p>第一版 <code>SIGNAL_FEATURES=1</code> 恰好犯了 quote scalar 相同的错误：每十秒把最多 320 根 Python <code>Bar1s</code> 和全部 feature history 逐字段复制成 pybind 对象，C++ 算完 overlay 后再返回 dict。旧基准从 Python 约 1.40ms 变成 C++ 约 2.65ms，明显负优化。</p>
@@ -1466,6 +1449,7 @@ max_drawdown = std::<span class="hljs-built_in">max</span>(max_drawdown, peak_pn
   --execute</code></pre></div>
 <p><code>quick-smoke</code> 默认只跑一个上限约 30 个 arms 的 group-balanced 小面板；完整<br>60+ arm 主效应面必须显式使用 <code>--stage quick-full-main-effect</code>。Campaign<br>replay 在每个 UTC day 完成后写 partial daily / rollup / campaign labels，<br>长任务中断时不会把 90 分钟计算全部丢掉。</p>
 <p>它不是“自动炼金器”。它只是把过去散落在多个 <code>*_sweep.py</code>、<code>stage_t_*</code> 和 bucket 脚本里的调参动作，收束成一个约束优先的实验设计：</p>
+<p>这也意味着早期 sweep 里出现过的 winner 不能被重新包装成当前候选。只要它来自连续跨日/月度 replay、pre-cleanup feature、未 parity 的 C++ sweep、回测专属 guard、或只按 raw/InvAdj 排序的旧表格，就只能作为 archived lesson。当前参数研究必须从 rolling live baseline 重新出发，先过 mechanism gate，再看 campaign outcome 和 order-level fill selection。</p>
 <div class="code-wrapper"><pre><code class="hljs text">parameter coverage
   -&gt; one-factor / Sobol candidates
   -&gt; quick-smoke retained days
@@ -1750,7 +1734,8 @@ MALLOC_ARENA_MAX=1</code></pre></div>
 <p>安全路径在这段 soak 里也有信号：stale block、market stream silence watchdog 和 sync-adjust 观测仍在工作。公开版本不记录 exact count；关键读法是，网络/交易所路径偶发抖动会直接进入 live p99。</p>
 <p>这段 60 分钟 soak 给出的工程决策是：<strong>先保持当前 replace thresholds，不马上打开 <code>replace_cancel_first_exposure_increasing=true</code>，也不继续提高加仓侧 replace 门槛。</strong> 原因很直接：<code>keep</code> 已经不低，进一步提高门槛会让报价更 stale；而 cancel-first 在发生 stream silence/reconnect 的窗口里可能增加无挂单空窗。下一步更值得做的是补 <code>pending_coalesce</code> 显式 counter、继续 1-2 小时 soak，然后再决定是否做 pending replace coalescing 的完整化或 async order manager。</p>
 <p>因此当前结论不是“C++ 已经解决 live 延迟”，而是更具体：<strong>C++ fixed-array 可以压计算路径，replace coalescing 可以减少一部分 REST 调用，但真实 live p99 仍由 order lifecycle、REST tail、pending state 和 WebSocket freshness 共同决定。</strong></p>
-<p>第三类是研究机制边界。当前新机制仍然必须用 Python replay 做最终证据，不能拿 C++ fast path 直接扫出 live 结论：<code>side/regime queue calibration</code>、<code>xmarket_retreat_enabled</code>、<code>fill_cooldown_apply_reducing</code>、<code>fill_cooldown_reducing*</code>、campaign state machine、以及 empirical live REST latency samples 都还没有 C++ replay parity。C++ 现在适合两件事：已 parity 基础路径的 fast screening，以及 quote context / replay 热循环的吞吐优化。下一步更值得做的是 campaign-level label 与 order-level score sanity，而不是急着扫参数或重训 quote EV。</p>
+<p>第三类是研究机制边界。当前 active baseline 的 queue-enabled fill selection 已经能进入 C++ fast screening，但这不等于所有研究机制都能交给 C++ 裁决。<code>xmarket_retreat_enabled</code>、reducing-side cooldown、adaptive add-side cooldown、campaign soft/hard controls、empirical live REST latency samples、user-stream sync-adjust degrade 这些路径仍然要先以 Python replay / live shadow 为准，等 parity 补齐后才能进 C++ retained sweep。</p>
+<p>这条边界很关键：C++ 现在适合两件事。第一，active baseline 以及已 parity 参数面的 48-arm / retained fast screening；第二，quote context、order-level denominator、shock/label 前处理这类批处理 tight loop。它不适合替还没过 evidence gate 的新机制背书。换句话说，C++ 可以让反例更便宜，但不能把一个未验证机制变成 alpha。</p>
 <p>这说明一件事：<strong>架构边界不是文档措辞，而是真的会改变工程结论。</strong> 在本机 ARM 上，早期 <code>SIGNAL_FEATURES=1</code> 曾经是负优化；经过 fixed-array/ring-state 改造后，在 x86 上它反而变成最明显的 live CPU 收益。相反，<code>SIGNAL_STATE=1</code> 在这台 x86 上没有额外收益。pin 到单个 vCPU 对均值帮助也不大，甚至可能放大 VM 上的尾部抖动。</p>
 <p><code>perf stat</code> 也给了一个现实提醒：这台 KVM 实例不暴露 <code>cycles</code>、<code>instructions</code>、<code>L1-icache-load-misses</code>、<code>iTLB-load-misses</code> 这些硬件事件，最后只能看到 context switches、cpu migrations 和 page faults。因此“x86 benchmark”也要继续细分：普通云主机能做 wall-time/tail-latency 复测，但真正要分析 L1I/iTLB/cache miss，可能需要裸金属、特定实例族或能暴露 PMU 的环境。</p>
 <h3 id="2-2-live-路径的-C-优化：与-replay-完全不同的约束"><a href="#2-2-live-路径的-C-优化：与-replay-完全不同的约束" class="headerlink" title="2.2 live 路径的 C++ 优化：与 replay 完全不同的约束"></a>2.2 live 路径的 C++ 优化：与 replay 完全不同的约束</h3><p>前面几节讲的 quote core batch、tick replay 状态机和 streaming features，都是以”吞吐量”为优化目标：输入是连续数组或完整窗口，可以释放 GIL、多线程并行、用 SoA 布局喂给 SIMD。但 live 路径是另一种世界。</p>
@@ -2315,13 +2300,13 @@ order gateway thread</code></pre></div>
                   <div class="post-meta">
                     <i class="iconfont icon-tags"></i>
                     
-                      <a class="hover-with-bg" href="/tags/Market-Making/">Market Making</a>
-                    
                       <a class="hover-with-bg" href="/tags/C/">C++</a>
                     
                       <a class="hover-with-bg" href="/tags/%E4%BD%8E%E5%BB%B6%E6%97%B6/">低延时</a>
                     
                       <a class="hover-with-bg" href="/tags/pybind11/">pybind11</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Market-Making/">Market Making</a>
                     
                       <a class="hover-with-bg" href="/tags/%E7%B3%BB%E7%BB%9F%E5%B7%A5%E7%A8%8B/">系统工程</a>
                     
