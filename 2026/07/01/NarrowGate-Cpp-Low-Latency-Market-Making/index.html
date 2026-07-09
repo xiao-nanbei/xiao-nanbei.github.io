@@ -201,7 +201,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      69k 字
+      70k 字
     </span>
   
 
@@ -210,7 +210,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      571 分钟
+      582 分钟
     </span>
   
 
@@ -1620,7 +1620,7 @@ scripts/x86_live_soak.sh</code></pre></div>
 <li>下一步验证：固定 BLAS/OMP 线程后跑 soak，并确认没有 CPU migration、page fault 或 fallback 尖刺。</li>
 </ul>
 </blockquote>
-<p>短跑只能说明方向，所以我又在同一台 x86 benchmark 机型上跑了更长的 soak：baseline 和候选各 <code>--n 100000 --signal-n 10000</code>，routing compact ABI <code>--n 200000</code>。这次输出 p99.9：</p>
+<p>短跑只能说明方向，所以我又在同一台 x86 benchmark 机型上跑了更长的 soak：baseline 和候选各 <code>--n 100000 --signal-n 10000</code>，routing compact ABI <code>--n 200000</code>。下面采用 EC2 上实际保留的 benchmark artifact，而不是后来手抄过的一组中间数字：</p>
 <div class="table-container">
 <table>
 <thead>
@@ -1634,27 +1634,27 @@ scripts/x86_live_soak.sh</code></pre></div>
 <tbody>
 <tr>
 <td>signal 10s features</td>
-<td style="text-align:right">9610 / 17558 / 40658 us</td>
-<td style="text-align:right">2167 / 4534 / 16115 us</td>
-<td>C++ fixed-array 显著压低长历史尾延迟</td>
+<td style="text-align:right">15970 / 50395 / 159093 us</td>
+<td style="text-align:right">3630 / 14858 / 42108 us</td>
+<td>C++ fixed-array 把 mean、p99、p99.9 都压低约 70%-77%</td>
 </tr>
 <tr>
 <td>live <code>_compute_quotes</code></td>
-<td style="text-align:right">172 / 236 / 4380 us</td>
-<td style="text-align:right">123 / 166 / 225 us</td>
-<td>C++ quote core 降低均值，也避开本轮 quote-only 尖刺</td>
+<td style="text-align:right">267 / 566 / 1329 us</td>
+<td style="text-align:right">229 / 665 / 1909 us</td>
+<td>均值改善，但这轮 p99/p99.9 反而更差，不能把 quote core 单独称为稳定胜出</td>
 </tr>
 <tr>
 <td><code>quote + policy</code></td>
-<td style="text-align:right">249 / 308 / 364 us</td>
-<td style="text-align:right">219 / 281 / 358 us</td>
-<td>组合路径稳定小幅改善，policy 仍是 Python 主体</td>
+<td style="text-align:right">486 / 1412 / 6592 us</td>
+<td style="text-align:right">438 / 1175 / 5128 us</td>
+<td>完整组合 mean 与尾部都有小幅改善，policy 仍是 Python 主体</td>
 </tr>
 <tr>
 <td>compact routing ABI</td>
 <td style="text-align:right">n/a</td>
-<td style="text-align:right">1.17 / 1.24 / 2.03 us</td>
-<td>pybind tuple 固定税很低</td>
+<td style="text-align:right">1.94 / 3.10 / 18.91 us</td>
+<td>固定 tuple ABI 的 p99 很低，p99.9 仍可见解释器/调度毛刺</td>
 </tr>
 </tbody>
 </table>
@@ -1662,8 +1662,8 @@ scripts/x86_live_soak.sh</code></pre></div>
 <blockquote>
 <p><strong>这张表怎么读</strong></p>
 <ul>
-<li>说明什么：x86 上最明显的 live CPU 收益来自 fixed-array signal features；quote core 更像稳定降低小路径尾部。</li>
-<li>不能说明什么：它不包含 Binance 网络延迟、REST new/cancel、交易所撮合和真实异常恢复。</li>
+<li>说明什么：x86 上最明确、可重复的 CPU 收益来自 fixed-array signal features；compact routing ABI 本身也足够轻。</li>
+<li>不能说明什么：quote core 的均值改善没有在每轮 p99/p99.9 上稳定复现；而且这组数不包含 Binance 网络、REST new/cancel、交易所撮合和真实异常恢复。</li>
 <li>下一步验证：在真实 live 进程旁路 shadow 打点，比较开启/关闭 native 开关时的 HEALTH、requote、ORDER_UPDATE 和 p99.9。</li>
 </ul>
 </blockquote>
@@ -1689,47 +1689,46 @@ python bench/bench_live_path.py --n 5000 --signal-n 500 --ml --engine cpp --stri
 <tbody>
 <tr>
 <td>ingest 1s ws events</td>
-<td style="text-align:right">92.02 / 190.17 / 410.74 us</td>
-<td style="text-align:right">110.00 / 219.34 / 401.15 us</td>
-<td>ingest 路径不该因 native quote 变化而被当成收益来源</td>
+<td style="text-align:right">91.01 / 178.84 / 441.45 us</td>
+<td style="text-align:right">108.37 / 206.71 / 640.06 us</td>
+<td>ingest 仍是 Python 事件路径，native 组合没有带来收益</td>
 </tr>
 <tr>
 <td>signal cached</td>
-<td style="text-align:right">21.19 / 37.32 / 303.32 us</td>
-<td style="text-align:right">19.93 / 34.63 / 61.52 us</td>
-<td>cached path 尾部更稳</td>
+<td style="text-align:right">21.14 / 47.81 / 389.72 us</td>
+<td style="text-align:right">19.00 / 34.12 / 58.40 us</td>
+<td>cached path 的尾部更稳</td>
 </tr>
 <tr>
 <td>signal 10s features</td>
-<td style="text-align:right">10794.80 / 69946.88 / 74770.13 us</td>
-<td style="text-align:right">5648.25 / 9373.07 / 38222.13 us</td>
-<td>C++ fixed-array 仍是最清楚的 CPU 收益</td>
+<td style="text-align:right">12395.55 / 95617.29 / 139250.92 us</td>
+<td style="text-align:right">3497.96 / 8772.66 / 19431.87 us</td>
+<td>fixed-array state 是最清楚的 CPU 收益</td>
 </tr>
 <tr>
 <td>live <code>_compute_quotes</code></td>
-<td style="text-align:right">218.16 / 406.64 / 1169.29 us</td>
-<td style="text-align:right">200.31 / 410.18 / 804.16 us</td>
-<td>均值略好，p99 接近，p99.9 改善</td>
+<td style="text-align:right">357.99 / 558.48 / 1170.40 us</td>
+<td style="text-align:right">267.88 / 1183.41 / 3128.01 us</td>
+<td>均值更低，但 p99/p99.9 在这轮变差</td>
 </tr>
 <tr>
 <td>side policy pair</td>
-<td style="text-align:right">107.56 / 192.31 / 219.10 us</td>
-<td style="text-align:right">119.71 / 236.15 / 466.99 us</td>
+<td style="text-align:right">125.20 / 223.37 / 287.34 us</td>
+<td style="text-align:right">136.84 / 376.36 / 1204.02 us</td>
 <td>policy 主体仍在 Python，native quote 不解决这里</td>
 </tr>
 <tr>
 <td><code>quote + policy</code></td>
-<td style="text-align:right">394.55 / 794.30 / 1407.25 us</td>
-<td style="text-align:right">410.39 / 705.13 / 1186.53 us</td>
-<td>均值略慢，但尾部更好；不能单独据此上线</td>
+<td style="text-align:right">536.57 / 895.01 / 1698.98 us</td>
+<td style="text-align:right">696.11 / 4829.99 / 14519.30 us</td>
+<td>这次短跑出现明显尖刺，与 100k 长跑方向不一致</td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>这张表和 ARM 本机结论不同：在当前 x86 live 机上，<code>SIGNAL_FEATURES=1</code> 已经不是早期那种负优化；它明显降低 10s feature 的均值和 p99。quote core 则更微妙：<code>_compute_quotes</code> 自身略有改善，但 <code>quote + policy</code> 由于 policy 仍在 Python，均值没有变快，只是尾部好一点。因此 native path 下一步若要进入 live shadow，也应该先从 fixed-array signal 和更完整的 quote/policy/routing bundle 评估，而不是单独宣布 quote core 已经赢。</p>
+<p>这张表和 ARM 本机结论不同：在当前 x86 live 机上，<code>SIGNAL_FEATURES=1</code> 已经不是早期那种负优化；它在短跑和 100k 长跑里都明显降低 10s feature 的均值和尾部。quote core 则更微妙：短跑里 <code>_compute_quotes</code> 均值更低，尾部却更差；100k 长跑里完整 <code>quote + policy</code> 又恢复为小幅改善。这种 run-to-run 波动说明共享 VM 上不能凭一次 microbenchmark 宣布 quote core 胜出，真正稳定的结论仍只有 fixed-array signal 与低成本 compact routing ABI。</p>
 <p>第二类是真实 live 进程旁路 telemetry。我在 <code>MakerEngine</code> 里加了 <code>logs/live_perf_telemetry.csv</code>，每次 requote 记录 <code>signal_compute_us</code>、<code>compute_quotes_us</code>、<code>update_orders_us</code>、REST new/cancel 耗时，以及 futures/spot/reference WebSocket age。</p>
-<p>公开文章里不展示私有 live 窗口的精确分位数、订单数和账户路径，只保留工程读法：旧基线里，真实 live 进程还没有打开 <code>NARROWGATE_CPP_*</code>，尾部主要不在 quote math，而在 REST cancel/new、同步 replace 和 signal feature 计算长尾。也就是说，单独把公式搬到 C++ 不会解决 live p99；必须同时处理 order lifecycle。</p>
-<p>这之后我把 live 进程环境切到：</p>
+<p>2026-07-01 的受控 live soak 曾经把进程环境切到：</p>
 <div class="code-wrapper"><pre><code class="hljs bash">NARROWGATE_CPP_QUOTE_CORE=1
 NARROWGATE_CPP_SIGNAL_FEATURES=1
 NARROWGATE_CPP_LIVE_ROUTING=1
@@ -1738,18 +1737,61 @@ OPENBLAS_NUM_THREADS=1
 MKL_NUM_THREADS=1
 NUMEXPR_NUM_THREADS=1
 MALLOC_ARENA_MAX=1</code></pre></div>
-<p>第一版只把 <code>replace_min_price_change_ticks</code> 设成 1-2 tick，结果几乎没有减少 REST：BTCUSDC 报价每轮自然跳动经常是几十 tick，2 tick 门槛基本等于没设。后来改成加仓侧 20 tick、减仓侧 10 tick，并保留减仓方向更敏捷的 <code>250ms</code> interval。这个改动不是 alpha 参数，而是 order lifecycle coalescing：价格没有变到足够多时，不做 cancel+new；TTL、stale-data、pause 和库存安全撤单不被阻断。</p>
-<p>重启后短窗口 smoke 里，<code>cpp_routing_used</code> 开始覆盖真实路径，并出现 <code>REPLACE_THROTTLE</code>。公开版只记录方向：C++ fixed-array signal / compact routing 能压计算路径，replace coalescing 能减少一部分 REST 撤挂压力；但短窗口 smoke 不能说明 live 延迟已经解决。随后我又做了一段 60 分钟真实 live soak，只看系统执行工程，不把它当 alpha 证据。</p>
-<p>60 分钟 soak 的读法也不公布精确窗口和订单计数，只保留结论：<code>keep</code> 已经明显出现，说明 replace throttle 确实减少了一部分无意义撤挂；<code>pending_coalesce</code> 需要单独 counter，不能只从 action mix 里猜。REST 只统计有真实 REST 调用的行时，new/cancel 的 p99 仍然可以进入百毫秒量级；完整 requote 的 p99/p99.9 仍由 order lifecycle 拉长。所以当前 live 尾部的主因仍然不是 quote math，而是：</p>
+<p>第一版只把 <code>replace_min_price_change_ticks</code> 设成 1-2 tick，结果几乎没有减少 REST：BTCUSDC 报价每轮自然跳动经常是几十 tick，2 tick 门槛基本等于没设。后来改成非零的 adding/reducing 门槛，并保留减仓方向更敏捷的 interval。这个改动不是 alpha 参数，而是 order lifecycle coalescing：价格没有变到足够多时，不做 cancel+new；TTL、stale-data、pause 和库存安全撤单不被阻断。</p>
+<p>受控 soak 里，<code>cpp_routing_used</code> 覆盖率达到约 97%-99.6%，并出现 <code>REPLACE_THROTTLE</code>。但 2026-07-10 回查当前进程时发现了一个更值得记录的部署问题：进程通过 <code>live/run.sh</code> 重启时只从 <code>live/.env</code> 加载了 API 凭据，<code>NARROWGATE_CPP_QUOTE_CORE</code>、<code>NARROWGATE_CPP_SIGNAL_FEATURES</code>、<code>NARROWGATE_CPP_LIVE_ROUTING</code> 和 <code>NARROWGATE_CPP_STRICT</code> 都没有持久化。结果是当前约 24 小时 telemetry 中 <code>cpp_routing_used=0%</code>，signal/quote/routing 也都回到了 Python 路径。</p>
+<p>这不是 C++ 运行时退化，而是 <strong>opt-in feature flag 没有成为部署 profile</strong>。它暴露了一个低延时系统很实际的问题：benchmark 命令里的环境变量如果没有进入 <code>run.sh</code> 可审计的 profile，下一次策略参数重启就会静默丢失。以后 live soak 必须同时记录进程启动环境、extension 路径、strict flag 和 telemetry native-hit rate；只看“机器上可以 import <code>narrowgate_cpp</code>”远远不够。</p>
+<p>下面把两段历史 native soak 与当前 Python 进程放在一起。它们不是同一市场时段的 A/B，不能据此计算“C++ 让端到端快了多少”；这张表只用于检查数量级和部署状态。REST 分位数使用每个 requote 内真实调用的 max sample，不把零调用行混进统计：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>live 窗口</th>
+<th style="text-align:right">native routing hit</th>
+<th style="text-align:right">keep / pause</th>
+<th style="text-align:right">signal p50 / p99</th>
+<th style="text-align:right">requote p50 / p99</th>
+<th style="text-align:right">REST new / cancel p99</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-07-01 controlled native 90m</td>
+<td style="text-align:right">99.56%</td>
+<td style="text-align:right">16.34% / 4.62%</td>
+<td style="text-align:right">15.17 / 341.27 ms</td>
+<td style="text-align:right">50.78 / 912.87 ms</td>
+<td style="text-align:right">92.85 / 122.18 ms</td>
+</tr>
+<tr>
+<td>2026-07-01 controlled native 60m</td>
+<td style="text-align:right">96.91%</td>
+<td style="text-align:right">24.86% / 10.44%</td>
+<td style="text-align:right">9.38 / 266.86 ms</td>
+<td style="text-align:right">38.81 / 673.31 ms</td>
+<td style="text-align:right">91.29 / 109.60 ms</td>
+</tr>
+<tr>
+<td>2026-07-09 current Python 24h</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">13.23% / 12.86%</td>
+<td style="text-align:right">27.85 / 302.81 ms</td>
+<td style="text-align:right">63.85 / 781.87 ms</td>
+<td style="text-align:right">87.44 / 94.83 ms</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>当前 Python 24 小时窗口的 <code>requote_total_us</code> p99.9 仍约 1.41 秒；<code>update_orders_us</code> p99 约 440ms，而 <code>_compute_quotes</code> p99 约 12.7ms。也就是说，即使重新打开 C++ quote/routing，端到端 p99 的上限仍然主要由 order lifecycle 决定。历史 native soak 的 signal p50 明显更低，但 p99 仍可达数百毫秒，也说明解释器调度、模型/日志、虚拟机抢占和行情状态会盖过单个 C++ tight loop 的收益。</p>
+<p>真实 live telemetry 因此保留了最初的工程判断：<code>keep</code> 已经明显出现，说明 replace throttle 确实减少了一部分无意义撤挂；<code>pending_coalesce</code> 需要单独 counter，不能只从 action mix 里猜。REST 只统计有真实 REST 调用的行时，new/cancel 的 p99 仍然可以进入百毫秒量级；完整 requote 的 p99/p99.9 仍由 order lifecycle 拉长。所以当前 live 尾部的主因仍然不是 quote math，而是：</p>
 <ol>
 <li>REST cancel/new 的百毫秒级尾部；</li>
 <li><code>update_orders()</code> 同步等待导致的路径拉长；</li>
 <li><code>signal_compute_us</code> 偶发长尾；</li>
 <li>WebSocket 短时 silence/reconnect 对 freshness 的扰动。</li>
 </ol>
-<p>安全路径在这段 soak 里也有信号：stale block、market stream silence watchdog 和 sync-adjust 观测仍在工作。公开版本不记录 exact count；关键读法是，网络/交易所路径偶发抖动会直接进入 live p99。</p>
-<p>这段 60 分钟 soak 给出的工程决策是：<strong>先保持当前 replace thresholds，不马上打开 <code>replace_cancel_first_exposure_increasing=true</code>，也不继续提高加仓侧 replace 门槛。</strong> 原因很直接：<code>keep</code> 已经不低，进一步提高门槛会让报价更 stale；而 cancel-first 在发生 stream silence/reconnect 的窗口里可能增加无挂单空窗。下一步更值得做的是补 <code>pending_coalesce</code> 显式 counter、继续 1-2 小时 soak，然后再决定是否做 pending replace coalescing 的完整化或 async order manager。</p>
-<p>因此当前结论不是“C++ 已经解决 live 延迟”，而是更具体：<strong>C++ fixed-array 可以压计算路径，replace coalescing 可以减少一部分 REST 调用，但真实 live p99 仍由 order lifecycle、REST tail、pending state 和 WebSocket freshness 共同决定。</strong></p>
+<p>安全路径在当前窗口仍然工作：telemetry 有少量 <code>stale_book</code> / <code>risk_block</code>，日志没有进程级 traceback，也没有持续 stream silence；偶发 post-only reject 和 cancel unknown-order 仍会进入订单状态机。关键读法是，网络/交易所路径的毛刺会直接进入 live p99，不能被 synthetic benchmark 消去。</p>
+<p>当前不应该根据上表直接继续调 replace threshold，也不能宣称 native live 已经 promotion。更严谨的下一步是先把 C++ 开关做成显式、可审计、重启不丢失的 deployment profile，并让启动 HEALTH 打印 extension 来源和四个 native flags；然后在同一代码、同一参数面上各跑 1-2 小时 Python/native controlled soak。只有 native-hit rate 接近 100%、strict 模式无 fallback、action mix/fills 没有被误伤，才比较 p99/p99.9，并决定是否继续 pending coalesce 或 async order manager。</p>
+<p>因此当前结论不是“C++ 已经解决 live 延迟”，而是更具体：<strong>C++ fixed-array 已证明可以压 signal 计算，compact routing ABI 成本很低；但当前 live 实际没有启用 native profile，真实 p99 仍由 order lifecycle、REST tail、pending state 和 WebSocket freshness 共同决定。</strong></p>
 <p>第三类是研究机制边界。当前 active baseline 的 queue-enabled fill selection 已经能进入 C++ fast screening；side/regime queue lookup、replace throttle、pending coalesce、reducing/adaptive cooldown、campaign soft control 和 BUY fill-selection 也已经补进 native replay。这里需要修正一个旧说法：这些机制不再是“Python-only 缺口”。</p>
 <p>仍不能交给 C++ 历史 replay 裁决的，是三类本质不同的问题：<code>xmarket_retreat_enabled</code> 已归档且会 fail fast；empirical REST latency 目前还是分布/样本近似，而不是逐请求真实 ACK tape；user-stream mismatch、sync-adjust degrade、断线重连和交易所 reject 属于 live-only 故障闭环。它们需要 Python diagnostic 或真实 live soak，不能靠给 C++ 多加几个字段就假装已经回放。</p>
 <p>这条边界很关键：C++ 现在适合两件事。第一，active baseline 以及已 parity 参数面的宽 arm / retained fast screening；第二，quote context、order-level denominator、shock/label 前处理这类批处理 tight loop。它不适合替还没过 evidence gate 的新机制背书。换句话说，C++ 可以让反例更便宜，但不能把一个未验证机制变成 alpha。</p>
@@ -1915,7 +1957,7 @@ Python order adapter
         |
         v
 exchange REST/WebSocket</code></pre></div>
-<p>这样做的收益不是“C++ 数学快了多少”，而是减少边界上的动态对象。前面的 live benchmark 里也能看到这个现象：原始 routing 桥接大约是 <code>6us</code> 级别，compact ABI 后可以压到亚微秒级；但如果只把 scalar quote core 单独搬过去，pybind/dataclass 往返会把收益吃掉，甚至变慢。</p>
+<p>这样做的收益不是“C++ 数学快了多少”，而是减少边界上的动态对象。前面的 live benchmark 里也能看到这个现象：原始 routing 桥接大约是 <code>6us</code> 级别，当前 x86 artifact 中 compact ABI 约为 <code>1.94us</code> mean、<code>3.10us</code> p99；但如果只把 scalar quote core 单独搬过去，pybind/dataclass 往返会把收益吃掉，甚至变慢。</p>
 <p>这也是为什么 WebSocket 不急着迁 C++。行情接收、日志、健康检查、REST adapter 都不是最值得先动的地方。真正应该收紧的是 WebSocket 上方、下单 adapter 下方的这一小段：<strong>rolling state -&gt; quote -&gt; policy -&gt; route decision</strong>。</p>
 <h4 id="2-2-3-routing-bridge：当前还不是完整-native-决策包"><a href="#2-2-3-routing-bridge：当前还不是完整-native-决策包" class="headerlink" title="2.2.3 routing bridge：当前还不是完整 native 决策包"></a>2.2.3 routing bridge：当前还不是完整 native 决策包</h4><p><code>_build_side_policy()</code> 是 live 路径的另一个计算热点。它接收 quote_context、L2 metrics 和 pred，输出 <code>spread_mult</code>、<code>size_mult</code>、<code>allow_post</code>、<code>reason_mask</code>，大量工作是评估 10+ 个 policy guard 的条件。</p>
 <p>这些条件判断本身不重，但每次需要访问 Python dict（<code>quote_ctx.get(&quot;side_adverse&quot;, False)</code> 等），在单 tick 热路径上积少成多。</p>
@@ -2271,7 +2313,8 @@ order gateway thread</code></pre></div>
 <p>因此策略侧下一步不再是“把某个风险桶变成 arm”，而是先建立统一的 order-level training table：每一行 placed order 都带 quote-time 状态、是否成交、1s/5s/20s/30s markout、campaign terminal outcome、campaign MAE、random/null 对照和 oracle 上界。只有当一个 side-specific score 能稳定把 actual fills 从 toxic selection 拉回接近 null，才允许设计极小 policy knob。最近的 BUY-only fill-selection soft-keep 就属于这种 rolling-baseline probe：它不是 size-up，也不是盈利证明，而是把一个 side-specific denominator 信号放进真实订单簿继续验证。后续任何参数搜索都以实际运行配置作为滚动 baseline；公开 <code>live/config.yaml</code> 只是安全示例，不能代替私有运行配置做 parity。</p>
 <p><strong>系统性质工作</strong>则围绕真实 x86 live soak 和 order lifecycle：</p>
 <ol>
-<li><strong>继续 1-2 小时 live soak</strong>：跟踪 <code>live_perf_telemetry.csv</code> 里的 <code>requote_total_us</code>、<code>update_orders_us</code>、<code>rest_new/cancel</code> p99/p99.9、<code>cpp_routing_used</code>、WebSocket age、replace throttle 命中率和 stale block。</li>
+<li><strong>固化 native deployment profile</strong>：<code>run.sh</code> 不能只依赖一次性 shell export；启动时要显式加载并打印 quote core、signal features、live routing、strict mode、extension path，重启后以 telemetry hit rate 校验。</li>
+<li><strong>重跑同口径 1-2 小时 A/B soak</strong>：同一代码和策略参数分别跑 Python/native，跟踪 <code>requote_total_us</code>、<code>update_orders_us</code>、<code>rest_new/cancel</code> p99/p99.9、<code>cpp_routing_used</code>、WebSocket age、replace throttle 命中率和 stale block。</li>
 <li><strong>补 pending replace telemetry</strong>：<code>pending_coalesce</code>、pending cancel/new overlap、fills while pending cancel 要有独立 counter，不能只靠 action mix 推断。</li>
 <li><strong>谨慎测试 cancel-first</strong>：<code>replace_cancel_first_exposure_increasing=true</code> 只能单独短窗口测试，不和 alpha arm 混在一起；如果 stream silence/reconnect 多，优先保持关闭。</li>
 <li><strong>评估 async order manager</strong>：如果 REST p99 仍是主因，再把 quote decision 和 REST submit 分离，设计 pending replace coalescing 或异步 order manager，而不是继续调 quote 公式。</li>
@@ -2295,7 +2338,7 @@ order gateway thread</code></pre></div>
 <li>C++ 适合长期驻留的状态、高频低基数分支、完整窗口 replay 和稳定的 live hot path 小决策包；</li>
 <li>pybind 边界必须按数组、固定 tuple 或 compact context 设计，不能每 tick 传大 dict/dataclass；</li>
 <li>parity 比速度更重要，没有路径级和金额级一致性，sweep 越快越危险；</li>
-<li>当前 live 架构已经能做 native hot-path 原型、shadow telemetry 和 order lifecycle coalescing；下一层是专用 order gateway、线程隔离和更长时间的 p99/p99.9 soak。</li>
+<li>当前 live 架构已经实现 native hot-path 原型、shadow telemetry 和 order lifecycle coalescing，但 native 开关尚未固化成重启不丢失的 deployment profile；先补这一层，再谈专用 order gateway、线程隔离和更长时间的 p99/p99.9 soak。</li>
 </ol>
 <p>所以 C++ 在 NarrowGate 里的定位不是外置加速器，而是 maker 策略工程化的一部分：离线侧让严格 replay、反例搜索、null baseline、order-level evidence 和参数 racing 变得可负担；live 侧把稳定、高频、低基数的状态和决策边界收紧到更少动态对象、更少无意义 replace、更可控的尾延迟。低延时本身不是 alpha 结论，但它决定了一个 maker alpha 能否被真实验证、稳定执行，并在风险变坏时及时撤退。</p>
 <p>面向开源版本，C++ 还有另一层价值：它迫使项目把边界说清楚。哪些路径有 Python/C++ parity，哪些只能 fast screening，哪些仍必须由 Python replay 做正式证据，都应该在 public README、CI 和 examples 里体现出来。否则一个看起来很快的 extension 只会让陌生人更快踩进旧结论。</p>
