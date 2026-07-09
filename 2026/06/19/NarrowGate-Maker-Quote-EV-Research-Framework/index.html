@@ -28,7 +28,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/quote-ladder.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/order-lifecycle.svg">
 <meta property="article:published_time" content="2026-06-19T08:50:48.000Z">
-<meta property="article:modified_time" content="2026-07-06T04:30:00.000Z">
+<meta property="article:modified_time" content="2026-07-10T04:00:00.000Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
@@ -206,7 +206,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      47k 字
+      49k 字
     </span>
   
 
@@ -215,7 +215,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      392 分钟
+      409 分钟
     </span>
   
 
@@ -257,7 +257,7 @@
 <li>很多早期结果已经被后续审计推翻：连续跨日/月度 replay、坏日/gap 污染、markout EMA latch、fills/day 分母错误，都不能再当作 alpha 证据；</li>
 <li>当前项目没有选出可以称为“最终最优 live 参数”的策略结论；direct quote EV、SELL resiliency、toxic-risk、campaign stop-add、early lifecycle-risk 等都只能留在 shadow/evidence 或 replay shadow 层；</li>
 <li>当前 live 配置就是滚动 baseline；新机制只能作为 arm 相对当前 baseline 做 daily/campaign gate，不能拿旧 baseline 或旧回测结论直接比较；</li>
-<li>最新方向不是继续扩大参数网格，而是用 null baseline、side-specific fill-selection score 和 campaign-level label，重新回答“哪些被动成交不像 toxic fill”。</li>
+<li>参数搜索已经可以用 C++ 扩到数百至上千个 active arms，但宽搜索只负责发现候选；null baseline、side-specific fill-selection、daily OOS 和 campaign-level label 才负责判断改善是不是来自更好的成交选择，而不是少挂单、少成交或更久持仓。</li>
 </ol>
 <p>这篇文章也不是一份“项目顺利推进报告”。更准确地说，它是一份研究复盘：很多曾经看起来有希望的方向，后来都被更严格的数据质量、日度 fresh-start replay、live/replay 机制量对齐、bucket/OOS 校准和库存时间指标推翻或降级。保留下来的不是某个神奇参数，而是一套更不容易自欺欺人的验证流程。</p>
 <p><strong>NarrowGate</strong> 是我最近一段时间一直在做的 maker/被动做市研究项目。它不是从“我要写一个低延迟系统”开始的，而是从一个更朴素的问题开始：<strong>当市场有人急于成交时，站在被动一侧提供流动性，究竟是在收取 spread，还是在替更快的信息交易者接风险？</strong></p>
@@ -359,6 +359,11 @@
 <td><strong>最新 live probe</strong></td>
 <td>BUY side-specific fill-selection soft-keep</td>
 <td>作为极小滚动 baseline probe，不加 size、不代表盈利结论；后续必须继续看 live/replay 机制量、campaign outcome 和 daily stability</td>
+</tr>
+<tr>
+<td><strong>参数快筛</strong></td>
+<td>baseline-gated C++ replay、summary-only Sobol/random search</td>
+<td>可以扩大候选覆盖，但 survivor 必须回到 daily/campaign audit；公开 <code>live/config.yaml</code> 只是示例，不是实际 rolling baseline</td>
 </tr>
 </tbody>
 </table>
@@ -772,7 +777,7 @@ allow_ask =
 </tr>
 <tr>
 <td>effective kappa</td>
-<td>运行时优先使用 <code>p3_kappa_eff</code>；再由 depth-kappa 根据近端深度调整；YAML 不再暴露固定 <code>strategy.kappa</code> 调参项</td>
+<td>运行时优先使用 <code>p3_kappa_eff_override</code> 或模型的 <code>p3_kappa_eff</code>，再由 depth-kappa 根据近端深度调整；<code>strategy.kappa</code> 只作缺模型时的内部 fallback</td>
 <td><code>log(1 + gamma / kappa_eff)</code> spread 项；<code>kappa_eff</code> 越小 spread 越宽</td>
 <td>fills/day、fills/order、queue calibration</td>
 </tr>
@@ -931,7 +936,8 @@ markout_ema *= exp(-dt / tau_s)
 <li>fill selection 和 maker-signed markout 是否在 OOS 日段保持稳定；</li>
 <li>通过这些机制 gate 后，再谈某个 policy 是否有 alpha。</li>
 </ol>
-<p>这件事后来被一个更细的 <code>gamma</code> 网格重测验证过。<code>gamma</code> 和 raw <code>strategy.kappa</code> 不同，它仍然是 live/tick quote path 里的有效参数；但 <code>gamma=0.05</code> 也不是不可动的神谕。2026-07-07 我按 <code>0.040..0.070</code>、步长 <code>0.003</code> 做了一轮网格，并保留 <code>0.050</code> no-op 对照。4 个最近校准日里只有 <code>0.070</code> 的 constraint score 高于当前 baseline；<code>0.067</code> 虽然过 hard gate，但得分仍低。放进 retained40 后，<code>0.067</code> 和 <code>0.070</code> 都因为 tail campaign 变差被挡下：<code>0.067</code> raw/InvAdj 都没赢，tail campaign 多 16 个；<code>0.070</code> raw 总和多了 <code>18.35</code>，但 InvAdj 少 <code>1.73</code>、median daily raw 仍差 <code>0.23</code>、tail campaign 多 21 个。所以当前结论不是“0.05 永远最优”，而是“在修复后的 retained40 gate 下，这个 <code>0.040-0.070</code> 网格还没有找到能替换当前 baseline 的 gamma”。这正是 constraint-first 参数选择存在的意义：先保护机制和尾部，再读收益。</p>
+<p>这件事后来被一个更细的 <code>gamma</code> 网格重测验证过。<code>gamma</code> 和 raw <code>strategy.kappa</code> 不同，它仍然是 live/tick quote path 里的有效参数；但 <code>gamma=0.05</code> 也不是不可动的神谕。2026-07-07 我按 <code>0.040..0.070</code>、步长 <code>0.003</code> 做了一轮网格，并保留 <code>0.050</code> no-op 对照。4 个最近校准日里只有 <code>0.070</code> 的 constraint score 高于当时 baseline；<code>0.067</code> 虽然过 hard gate，但得分仍低。放进 retained39 后，<code>0.067</code> 和 <code>0.070</code> 都因为 tail campaign 变差被挡下：<code>0.067</code> raw/InvAdj 都没赢，tail campaign 多 16 个；<code>0.070</code> raw 总和多了 <code>18.35</code>，但 InvAdj 少 <code>1.73</code>、median daily raw 仍差 <code>0.23</code>、tail campaign 多 21 个。</p>
+<p>后来的 PnL-first Sobol 搜索又把 rolling baseline 移到了另一个 gamma 区域，所以这张单因子表只能说明“在当时 baseline 上，孤立提高 gamma 没通过风险 gate”，不能说明 <code>0.05</code> 是永久最优值。参数值必须和 effective-kappa、cap、guard、cooldown 与模型 bundle 一起按当前 baseline 重测；文章不再把某个历史 gamma 写成策略常数。</p>
 <p>同一轮也训练过新的 <code>$&#123;NARROWGATE_MODEL_DIR&#125;</code>，但它没有晋级：成交数更高，raw/InvAdj 却明显更差。这反过来提醒我，maker 模型不是“越活跃越好”，很多时候更高的 fill count 只是更高频地接到了有毒流。</p>
 <h3 id="1-5-动态-kappa：AS-是坐标系，不是答案"><a href="#1-5-动态-kappa：AS-是坐标系，不是答案" class="headerlink" title="1.5 动态 kappa：AS 是坐标系，不是答案"></a>1.5 动态 kappa：AS 是坐标系，不是答案</h3><p>Avellaneda-Stoikov 给了一个非常有用的坐标系：</p>
 <script type="math/tex; mode=display">
@@ -941,7 +947,7 @@ r_t = S_t - q_t \gamma \sigma_t^2 (T-t)</script><script type="math/tex; mode=dis
 <ol>
 <li>live/tick 路径优先使用 <code>p3_kappa_eff</code>，也就是从历史 fill probability / intensity 里得到的有效到达率；</li>
 <li>depth-kappa 用 quote-time 近端盘口深度把 <code>kappa_eff</code> 做有限比例调整；</li>
-<li>代码内部只保留一个 fallback kappa，防止没有 fill-prob 模型或旧诊断路径时崩掉；它不是 YAML 里应该暴露的 live 参数。</li>
+<li><code>StrategyConfig.kappa</code> 仍保留为缺少 fill-prob 模型时的内部 fallback；公开 YAML 不把它列成 active 调参项，旧私有快照里即使残留该字段，也不代表它覆盖了有效 <code>p3_kappa_eff</code>。</li>
 </ol>
 <p>这还不等于“动态到达率已经被完全校准”。真正金融上更尖锐的问题是：</p>
 <script type="math/tex; mode=display">
@@ -1025,14 +1031,14 @@ r_t = S_t - q_t \gamma \sigma_t^2 (T-t)</script><script type="math/tex; mode=dis
 <p>这个结果也修正了“最小有限子集”的说法：物理层不应该保留坏日，也不应该保留跨坏日的非日度容器；但质量合格的日度好日仍然可以作为 OOS/research pool 保留，不需要裁成一个过小、固定、容易过拟合的子集。某一天是否进入训练、replay 或 promotion evidence，由 retained daily universe 和 <code>data_quality.py</code> 的逻辑过滤决定。</p>
 <p>2026-06-28 与 2026-07-01 的最终口径是：<code>$&#123;NARROWGATE_DATA_ROOT&#125;</code> 下策略相关行情容器按 UTC day 组织，坏日期物理残留为 0。2026-07-05 又做了一次更硬的边界收束：本地 2025 市场数据全部从当前研究面板删除，BTCUSDT raw trades 只保留与 BTCUSDC core layers 同时完备的 111 个 2026 good days，其余 reference-only 日期被删除。它看起来像清理磁盘，其实是清理研究边界：<strong>物理容器和策略结论都默认按 UTC day 组织，并且 reference 数据不能比 execution universe 更宽</strong>。</p>
 <p>这个清理还同步到了代码仓库边界：旧远端 <code>main</code> 曾经是 BTCUSDT 执行项目，当前维护分支只保留 BTCUSDC 执行研究；BTCUSDT 退回为 reference/source 数据，不再作为同仓库内的第二个执行交易对。这样做不是否定 BTCUSDT 的信息价值，而是避免“执行标的”和“参考标的”在代码、模型、数据 manifest 和文档里互相污染。</p>
-<p>这里还要区分“某一层数据已经到达”和“完整训练/回测链路已经可用”。2026-07-02 早上检查时，CryptoHFTData 的 2026-07-01 exact L2 已经可下载，BTCUSDC / BTCUSDT 各 24 小时齐全，并重建为 daily <code>bbo/l2</code> parquet；但 Binance Vision 的 2026-07-01 futures <code>aggTrades/trades/bookDepth/metrics</code> 与 spot <code>aggTrades/trades</code> 仍返回 404。因此 2026-07-01 当时只能说 <strong>exact L2 层可用</strong>，不能把完整 feature / replay / quote EV pipeline 当成已经覆盖到这一天。后续每次补数都必须重新跑同一套 good-day manifest：BTCUSDC execution 层、BTCUSDT reference trades、spot/reference anchors 和 features 要么一起进入 retained day，要么一起排除。</p>
+<p>这里还要区分“某一层数据已经到达”和“完整训练/回测链路已经可用”。2026-07-02 早上检查时，CryptoHFTData 的 2026-07-01 exact L2 已经可下载，但 Binance Vision 的 execution/reference 层还没有同时到达，因此当时只能说 <strong>exact L2 层可用</strong>。到 2026-07-10，<code>2026-07-04</code> 已按同一口径补齐 futures/spot trades、metrics、exact L2/BBO、1s bars、depth/metrics 与 enhanced features，并重新进入 parity/smoke 窗口。这个例子说明补数不能按“某个 URL 返回 200”判断完成：BTCUSDC execution、BTCUSDT reference、spot anchors、BBO/L2 和 features 必须一起通过 good-day manifest，否则整天排除。</p>
 <p>新的核心入口也因此改成：</p>
 <div class="code-wrapper"><pre><code class="hljs bash">python3 models/backtest_tick.py --symbol BTCUSDC --day 2026-05-15 --ml --engine python
 python3 models/tick_ab.py adaptive_ttl --symbol BTCUSDC --days 2026-05-15 2026-05-16 --engine python
 python3 models/quote_decomposition_tick.py --symbol BTCUSDC --days 2026-05-15 2026-05-16 --engine cpp
 python3 models/cross_market_shock_audit.py --symbol BTCUSDC --trace-tag daily_trace --days 2026-05-15 2026-05-16
 python3 -m models.audit.runner --symbol BTCUSDC --reports order_level,campaign_labels,order_level_score_audit</code></pre></div>
-<p>旧的跨日聚合入口不再作为研究主口径或 promotion 证据；连续模式只适合显式诊断。当前涉及 replace throttle、<code>action=keep</code>、reducing cooldown、campaign controls 或 empirical live latency 的正式机制研究仍以 Python replay 为准；C++ 只用于已 parity 的基础路径、quote context batch 和 fast screening。长窗口 replay 最危险的地方不是“统计时间更长”，而是 adverse/defense/markout EMA 这类状态会跨坏日和长 gap 延续，把一个早期毒性状态扩散成后面几天的假性停报。</p>
+<p>旧的跨日聚合入口不再作为研究主口径或 promotion 证据；连续模式只适合显式诊断。当前 C++ replay 已覆盖 active baseline 所需的 queue calibration、replace throttle/<code>action=keep</code>、pending coalesce、reducing/adaptive cooldown、campaign soft control 与 BUY fill-selection，因此可以在 baseline parity gate 通过后做宽参数 fast screening。Python 仍是 reference implementation，并继续负责逐样本 empirical REST latency、archived xmarket diagnostic、live-only sync/user-stream 故障语义，以及 survivor 的完整 campaign evidence。长窗口 replay 最危险的地方不是“统计时间更长”，而是 adverse/defense/markout EMA 这类状态会跨坏日和长 gap 延续，把一个早期毒性状态扩散成后面几天的假性停报。</p>
 <p>但这里有一个 live 风险边界不能被日度 fresh-start 掩盖：正式 retained-day replay 默认每天冷启动；如果真实 live 在好日/坏日边界还有持仓，研究口径会在 segment 末尾 mark-to-market 后从下一个 retained day 重新开始，不会模拟带仓穿过坏日的路径。这个设计能避免坏数据污染 label，却不能回答“实盘持仓穿越数据坏日怎么办”。因此 session/live policy 仍需要单独的 boundary inventory audit 或 continuous replay 诊断。</p>
 <h4 id="1-6-3-rolling-与-label-使用同一套连续段定义"><a href="#1-6-3-rolling-与-label-使用同一套连续段定义" class="headerlink" title="1.6.3 rolling 与 label 使用同一套连续段定义"></a>1.6.3 rolling 与 label 使用同一套连续段定义</h4><p>项目增加了统一的：</p>
 <div class="code-wrapper"><pre><code class="hljs python">continuous_segment_ids(index, max_gap_s=<span class="hljs-number">5</span>)
@@ -1291,6 +1297,7 @@ E[\text{realized markout}\mid \text{same bucket}]</script><p>实操上我会把 
 <p><strong>Shadow Simulation</strong> 则更宽泛：它可以是 paper path、what-if counterfactual、或者对某个标签的离线 proxy 估算。它适合快速问“这个想法有没有方向”，但如果没有接入真实 placed-order denominator、queue/fill 逻辑、daily stability 和 false-block/tail accounting，就不能直接叫候选 policy。</p>
 <p>这也是为什么 <code>toxic-risk</code> 当前只能作为 shadow ranking / quote EV calibration 输入，而不能变成 hard veto。它能把 SELL 尾部风险分层，例如 high/extreme risk bucket 的 tail rate 明显更高；但同一区域也可能存在非常干净的吸收桶。只按一个 toxic label 砍单，会同时误杀 positive fills。所以它必须先通过 order-level shadow avoidance、tail capture、positive false-block、inventory-time、side markout 和 raw/InvAdj proxy，再谈极小 live arm。</p>
 <h4 id="1-10-3-Rolling-baseline：当前-live-配置就是-baseline"><a href="#1-10-3-Rolling-baseline：当前-live-配置就是-baseline" class="headerlink" title="1.10.3 Rolling baseline：当前 live 配置就是 baseline"></a>1.10.3 Rolling baseline：当前 live 配置就是 baseline</h4><p>后期复盘里另一个容易混淆的问题是“baseline 到底是哪一版”。NarrowGate 的 baseline 不是某个永久固定的历史 bundle，而是<strong>当前 live 代码、当前 live 参数、当前数据口径下的策略行为</strong>。</p>
+<p>开源仓库里的 <code>live/config.yaml</code> 现在是可运行的安全示例，不包含当前实盘参数。正式 replay 通过 <code>NARROWGATE_LIVE_CONFIG</code> 或私有配置快照加载 rolling baseline；如果误用公开示例做参数搜索，得到的只是 demo baseline，不是 live parity。这个边界在 1024-arm 搜索中尤其重要，因为 arm 的 delta 只有相对正确 baseline 才有意义。</p>
 <p>因此每一轮实验都按下面这个定义推进：</p>
 <div class="code-wrapper"><pre><code class="hljs text">current live config/code = baseline
 new mechanism or parameter = arm
@@ -1330,7 +1337,7 @@ quick-full-main-effect
   只有显式开启才跑完整 60+ arm 主效应面
         |
         v
-40-day retained OOS
+retained39 OOS
   campaign terminal PnL、tail、MAE、inventory-time、side markout
         |
         v
@@ -1340,9 +1347,10 @@ full retained + blocked OOS
         v
 live shadow / soak
   只验证触发频率和执行稳定性，不直接当 alpha 证明</code></pre></div>
-<p>代码上，这条线被收进 <code>models/parameter_selection.py</code> 与 <code>models/parameter_racing_sweep.py</code>。前者生成参数覆盖报告和 arm spec；后者默认 dry-run，只有显式 <code>--execute</code> 才会调用 replay。<code>quick-smoke</code> 默认最多约 30 个 group-balanced arms；完整主效应面必须显式使用 <code>--stage quick-full-main-effect</code>，或者像 48-arm Sobol 面这样显式传入 arm spec 与 <code>--max-arms</code>。</p>
+<p>这里叫 <code>retained39</code>，是因为原 retained40 中的 <code>2026-05-23</code> 被 exact-L2 audit 确认为 bad day，BBO/L2 有效行为空，已经从 manifest 与物理数据层移除。旧结果文件名里偶尔还会出现 <code>retained40</code>，那只是历史 artifact 名称，不代表当前 OOS panel 仍有 40 天。</p>
+<p>代码上，这条线被收进 <code>models/parameter_selection.py</code>、<code>models/parameter_racing_sweep.py</code> 与 <code>models/fast_cpp_arm_smoke.py</code>。前者生成参数覆盖报告和 arm spec；第二个负责 staged racing、partial state 与 retained39；最后一个是 summary-only native 快筛。<code>quick-smoke</code> 默认最多约 30 个 group-balanced arms；完整主效应面必须显式使用 <code>--stage quick-full-main-effect</code>，宽 Sobol/random 面则显式传入 arm spec，并先用 C++ smoke 缩小 survivor 集合。</p>
 <p>当前 replay 有两层口径。Python 仍是 reference implementation，适合新机制、campaign shadow 和 live-only 近似；C++ 在 active baseline 的 queue-enabled fill selection 通过 baseline parity gate 后，才允许承接 fast screening。也就是说，<code>--engine cpp</code> 不是“相信 C++”，而是“先用当前 baseline 审讯 C++，通过后再用它节省参数筛选时间”。如果 parity gate 不过，参数 racing 必须回到 Python，而不是继续用偏移的成交路径选 arm。</p>
-<p><code>campaign_outcome_replay_audit.py</code> 新增 <code>--arm-spec-json</code>，让生成出来的候选仍然走同一个 campaign label、日度 partial 输出和 rollup schema。无论 Python 还是 C++，每个 UTC day 完成后都要写出 partial daily / rollup / campaign labels；这样 48-arm 这类长任务不会跑很久才第一次落盘，也方便中途发现机制漂移。</p>
+<p><code>campaign_outcome_replay_audit.py</code> 接受 <code>--arm-spec-json</code>，让快筛 survivor 仍然走同一个 campaign label、日度 partial 输出和 rollup schema。这里刻意分成两层：<code>fast_cpp_arm_smoke.py</code> 不收完整 curve/campaign labels，只做廉价 PnL 与机制量筛选；survivor 进入 campaign runner 后，每个 UTC day 才落 partial daily / rollup / campaign labels。这样既避免宽搜索被 trace 拖慢，也不会拿 summary-only 输出冒充 promotion evidence。</p>
 <p>候选排序也不再等价于“raw PnL 最大”。新的分数是 baseline-relative 的约束优先 score：</p>
 <div class="code-wrapper"><pre><code class="hljs text">pass_hard_gates first
 
@@ -1353,9 +1361,11 @@ then score =
   - tail_campaign_penalty
   - campaign_MAE / inventory_time_penalty
   - live_mechanism_distance_penalty</code></pre></div>
-<p>这里的 <code>live_mechanism_distance_penalty</code> 包括 fills retention、pause/action mix、BUY/SELL split、bad campaign rate、keep/replace 行为等。如果一个 arm 通过少挂单、少成交、少暴露让 PnL 看起来好，它应该先被标为 mechanism drift，而不是被叫作 alpha。比如此前 <code>kr1p10/kr1p25</code> 在某些 40 日面板上 raw/terminal 变好，但成交数砍掉二三成、库存时间还变长，这就不是可以直接推 live 的“更优参数”。</p>
-<p>2026-07-08 的 48-arm C++ quick-smoke 正好说明了这套 gate 的作用。修复 queue-enabled C++ parity 后，48 个 active Sobol arms 在 4 个代表日上先过 baseline parity gate，再跑 constraint-first screening。最后只有 baseline 和一个非 baseline arm 通过 hard gate；其余大多不是“算出来亏钱”这么简单，而是被 tail campaign、fills retention、spread drift 或 pause/action mix 先挡住。也就是说，当前 baseline 不应该被神化成全局最优，但随机扰动一批 live 参数，大多数会先破坏做市机制量，再谈不上 alpha。</p>
-<p>这个 survivor 继续进入 retained40 后，也没有获得 promotion：hard gate 仍然通过，说明机制量没有明显失真；但 39 个 retained day 里，terminal campaign PnL 18 天改善、21 天变差，总和比 baseline 低约 20 USDC，raw replay PnL 也低约 20 USDC，库存时间高约 14%。它减少了一些 tail campaign，却提高了 bad campaign rate。这样的结果不能叫“更优参数”，只能叫一个被保留下来的研究线索：它说明某些 guard/cooldown/cap 组合能改变 tail 形状，但没有把 actual fill selection 拉到比当前 baseline 更好的平台区。</p>
+<p>这里的 <code>live_mechanism_distance_penalty</code> 包括 fills retention、pause/action mix、BUY/SELL split、bad campaign rate、keep/replace 行为等。如果一个 arm 通过少挂单、少成交、少暴露让 PnL 看起来好，它应该先被标为 mechanism drift，而不是被叫作 alpha。比如此前 <code>kr1p10/kr1p25</code> 在某些 retained39 面板上 raw/terminal 变好，但成交数砍掉二三成、库存时间还变长，这就不是可以直接推 live 的“更优参数”。</p>
+<p>2026-07-08 的 48-arm C++ quick-smoke 正好说明了这套 gate 的作用。修复 queue-enabled C++ parity 后，48 个 active Sobol arms 在 4 个代表日上先过 baseline parity gate，再跑 constraint-first screening。最后只有 baseline 和一个非 baseline arm 通过 hard gate；这个 survivor 进入 retained39 后，raw 与 terminal campaign PnL 都比 baseline 低约 20 USDC，库存时间高约 14%。</p>
+<p>随后搜索面扩到 1024 个 active arms。工程上没有把 1024 组直接塞进 retained39，而是按“单代表日 -&gt; 68 survivors -&gt; 4 日 -&gt; top 16 -&gt; retained39”逐层缩小。4 日窗口里出现过相对 baseline 高两位数 PnL 的 arm，但 top 16 到 retained39 全部落后。这一结果有两个读法：第一，当前 baseline 不是理论全局最优；第二，宽搜索一定会在短面板里制造 sample winner，不能把 4-day 排名当成策略发现。</p>
+<p>对 retained39 最接近 baseline 的组合做 ablation 后，出现了一个更微妙的候选：只保留 quote/cap 与 ML 组件，39-day raw loss 比 baseline 少约 26 USDC；加入两个最近完整日后，41-day delta 仍约为正 24 USDC。但它把 fills 降到约 78.5%，扩大平均 spread，并把库存时间提高约 8%。这说明“PnL 改善”可能来自更少参与和风险重新分配，而不是更好的 fill selection。它应进入 terminal campaign PnL、MAE、tail 与 recent-day audit，不能直接叫 live arm。</p>
+<p>因此参数搜索现在有两种不同的 score，不能混用：<code>constraint-first</code> 用于 promotion，先限制机制漂移；<code>pnl-survival</code> / summary-only C++ smoke 用于宽搜索，允许较宽的累计亏损和回撤预算，目的是避免过早淘汰潜在结构。后者只负责产生 survivor，不负责给出最终答案。</p>
 <p>这个变化的核心不是换了一个更复杂的优化器，而是承认 maker 参数搜索的目标不是找到一个样本内最高点，而是找到一个稳定平台区：它在 retained daily OOS 上不破坏机制量，不把 tail 风险转移到少数 campaign，不靠旧回测污染，也能在 live shadow 中按预期触发。</p>
 <h3 id="1-11-只看-PnL-还不够：把库存风险写成积分"><a href="#1-11-只看-PnL-还不够：把库存风险写成积分" class="headerlink" title="1.11 只看 PnL 还不够：把库存风险写成积分"></a>1.11 只看 PnL 还不够：把库存风险写成积分</h3><p>maker 策略可能用更长时间、更大库存换取同样的 PnL。如果 A/B 报告只列 raw PnL 和最终库存，这种风险会被隐藏。</p>
 <p>项目因此加入库存时间暴露：</p>
@@ -1599,7 +1609,7 @@ campaign repair flag</code></pre></div>
 <p>这里的 <code>rolling current-live baseline</code> 是硬前置。如果当前 replay baseline 还没有接入 live 的 replace throttle、<code>action=keep</code>、empirical latency、campaign shadow fields 或最新 pause reason 结构，就不能拿它去评估新 arm。baseline/live 对不齐时，优先修 replay 机制；baseline 对齐后，才比较 arm 是否真的改善了 fill selection、campaign loss 和库存风险。</p>
 <h3 id="2-3-当前最诚实的结论"><a href="#2-3-当前最诚实的结论" class="headerlink" title="2.3 当前最诚实的结论"></a>2.3 当前最诚实的结论</h3><p>目前 enhanced spot 显示“更多市场能帮助解释 adverse flow”，但没有证明 <code>multi_market.enabled=true</code> 是稳定收益开关。ask quote EV、xmarket interaction、calendar/local-flow、SELL resiliency、toxic-risk、campaign stop-add、early lifecycle-risk、micro/macro range ratio 和 campaign outcome risk 都提供过局部线索，但还没有同时通过 daily stability、tail/false-block、InvAdj/raw、库存时间、campaign terminal outcome 和 side markout。</p>
 <p>因此当前不能诚实地说已经选出了 live 最优参数。更准确地说，当前直接 quote EV live policy 和 SELL resiliency direct live arm 都已经归档；如果误打开，应由配置层 fail-fast，除非明确设置研究 dry-run override。SELL resiliency 现在只应被理解成“带独立 shadow denominator 的极窄证据标签”，而不是最终 alpha policy。</p>
-<p>下一步不是扩大参数网格，而是重建更稳的 order-level / campaign-level score sanity：</p>
+<p>宽参数网格现在已经能跑，但它不能替代 order-level / campaign-level score sanity。下一步是用这些 score 解释为什么某些 arm 少亏，而不是继续把 arm 数量本身当进展：</p>
 <div class="code-wrapper"><pre><code class="hljs text">fill_probability_score     # 只解释会不会成交
 fill_quality_score         # 解释成交后 markout 是否不坏
 toxic_risk_score           # side-specific quantile，不用固定稀疏 high bucket
@@ -1625,9 +1635,11 @@ trend_inventory_risk       # 大级别趋势是否正在放大库存风险</code
 <li><strong>post-fill campaign moderator</strong>：如果 fill 发生时 reference 仍显示 adverse-leading，就提高 campaign outcome risk，而不是提前取消所有订单；</li>
 <li><strong>local signal confirmation</strong>：reference 只作为已有本地 adverse / repair 信号的乘数或 veto，不单独成为 alpha 开关。</li>
 </ol>
-<p>这条线还没有进入 re-center arm。submit-time pending + 30s markout 的排序力不够；下一步要补 1s/5s horizon 和 fill-time pending 重采样。如果短 horizon 或 fill-time 也没有排序力，xref 就应降级为已证伪的 shadow feature；如果有排序力，再测 1/2/3 tick 的 reservation shift，而不是复活旧的 direct xmarket policy。</p>
-<h2 id="结论：窄门不是参数，而是证据门槛"><a href="#结论：窄门不是参数，而是证据门槛" class="headerlink" title="结论：窄门不是参数，而是证据门槛"></a>结论：窄门不是参数，而是证据门槛</h2><p>NarrowGate 从一个 AS 公式实验，走到了数据审计、跨市场冲击归因、逐侧 quote EV、库存时间积分、null baseline 和 order-level denominator。这个过程也不断推翻自己的旧答案：更多 reference 没有自动带来更好 policy；ask EV 的 raw 改善没有通过校准；连续长窗回测被日度 fresh-start 取代；局部 SELL bucket、toxic-risk 和 campaign 控制只能先做 shadow/replay evidence。</p>
-<p>最初的问题因此被越问越窄：不是“能不能预测 BTC”，而是“在这一侧、这个价格、这个盘口和这段库存暴露下，是否值得提供一次短暂的被动流动性”。最新的 null baseline 让这句话更尖锐：如果策略选择出来的 fills 比随机被动机会更 toxic，那真正的 alpha 就不是多加一个防守开关，而是重新学习 fill selection。</p>
+<p>这条线已经完成了短 horizon 与 fill-time 复核。BTCUSDT futures 的 submit-time <code>pending_ref</code> 在 1s/5s 上排序很弱，fill-time 重采样也没有改善：BUY 多数更差，SELL 只剩弱 30s 噪声。因此 direct re-center 与 post-fill futures moderator 都暂时关闭，<code>pending_ref_*</code> 降级为 diagnostic / interaction feature，不进入 1/2/3 tick reservation-shift arm。</p>
+<p>spot 的结论稍有不同。<code>fill_exec_spot_pending_*</code> 与 <code>fill_ref_spot_pending_*</code> 已接入 <code>post_fill_spot_pending_risk_score</code> 和 <code>post_fill_campaign_outcome_risk_score</code>；retained111 上，高分桶能较稳定标记更差短窗 markout、更差 aggregate terminal campaign PnL 与更高 tail rate。但这些字段只有 fill 后才可见，所以它们只能服务 post-fill campaign calibration / shadow management，不能被偷渡成 quote-time re-center、pre-fill veto 或正向 alpha 开关。</p>
+<p>换句话说，reference/spot 当前都没有通过“直接改变报价”的证据门。它们仍有价值，但价值落在解释和校准层：futures residual 作为 interaction diagnostic，spot residual 作为 post-fill risk label。这个边界比简单写一句“multi-market 有用/没用”更准确。</p>
+<h2 id="结论：窄门不是参数，而是证据门槛"><a href="#结论：窄门不是参数，而是证据门槛" class="headerlink" title="结论：窄门不是参数，而是证据门槛"></a>结论：窄门不是参数，而是证据门槛</h2><p>NarrowGate 从一个 AS 公式实验，走到了数据审计、跨市场冲击归因、逐侧 quote EV、库存时间积分、null baseline、order-level denominator 和 baseline-gated C++ 参数 racing。这个过程也不断推翻自己的旧答案：更多 reference 没有自动带来更好 policy；ask EV 的 raw 改善没有通过校准；连续长窗回测被日度 fresh-start 取代；局部 SELL bucket、toxic-risk 和 campaign 控制只能先做 shadow/replay evidence；1024 个参数组合也没有绕过 retained39 的 OOS 约束。</p>
+<p>最初的问题因此被越问越窄：不是“能不能预测 BTC”，而是“在这一侧、这个价格、这个盘口和这段库存暴露下，是否值得提供一次短暂的被动流动性”。null baseline 让这句话更尖锐：如果策略选择出来的 fills 比随机被动机会更 toxic，那真正的 alpha 就不是多加一个防守开关，而是重新学习 fill selection。宽参数搜索则补上另一半警告：短窗口找到的 PnL winner，可能只是少成交、spread 更宽或 inventory-time 转移，必须解释完代价交换才算证据。</p>
 <p>这可能也是“窄门”最贴切的地方。一个研究系统的成熟，不在于它接入了多少模型和数据源，而在于它愿意用多少层约束拒绝一个看起来很诱人的结论。</p>
 <hr>
 <p>本文及 NarrowGate 项目仅用于市场微观结构、价格行为学、做市模型、机器学习回测方法和系统工程的学习交流与技术研究，不构成财务、投资、法律或合规建议。中国大陆关于 crypto 交易及相关业务活动的监管环境具有不确定性；任何人将相关代码用于连接交易平台、交易、商业展业或投资决策，其合规风险、资金损失、技术故障及其他后果均由使用者自行承担，与作者无关。</p>

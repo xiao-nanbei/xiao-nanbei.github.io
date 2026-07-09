@@ -24,12 +24,12 @@
 <meta property="og:description" content="TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV 与被动做市研究框架》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。 离线侧的低延时，本质是把严格 replay 从“只能抽样验证”推进">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-07-01T00:03:00.000Z">
-<meta property="article:modified_time" content="2026-07-06T04:30:00.000Z">
+<meta property="article:modified_time" content="2026-07-10T04:00:00.000Z">
 <meta property="article:author" content="John Doe">
+<meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="C++">
 <meta property="article:tag" content="低延时">
 <meta property="article:tag" content="pybind11">
-<meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="系统工程">
 <meta name="twitter:card" content="summary_large_image">
   
@@ -201,7 +201,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      66k 字
+      69k 字
     </span>
   
 
@@ -210,7 +210,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      553 分钟
+      571 分钟
     </span>
   
 
@@ -246,7 +246,8 @@
 <p>离线侧的低延时，本质是把严格 replay 从“只能抽样验证”推进到“可以按日、按窗口、按参数臂系统验证”。它关注 wall time、rows/s、windows/hour、内存峰值、路径一致性和结果可重复性；单个函数调用的尾部延迟只有在暴露 fallback、分配、swap 或过度订阅时才有解释价值。</p>
 <p>在线侧的低延时，是让报价、撤单和库存控制在真实事件循环里尽量少出现 stale quote、late cancel、跨语言 fallback 和偶发尖刺。这里必须看 mean、p99、p99.9、CPU migration、page fault、context switch、fallback 计数和长样本 soak。</p>
 <p>这两个目标最终都服务同一件事：让 maker 策略的 spread、skew、TTL、cooldown 和库存风险控制，可以在足够多反例里被验证，也可以在 live 中按预期执行。低延时不是独立于 alpha 的炫技，它是策略工程化后必须面对的执行条件。</p>
-<p>到 2026-07-06，项目里的工程边界又收紧了一层：tracked <code>live/config.yaml</code> 只保留公开模板，私有 live 参数通过 <code>NARROWGATE_LIVE_CONFIG</code> 注入；仓库补了根级 <code>pyproject.toml</code>、<code>narrowgate</code> CLI、CI、Docker/devcontainer 和 5 分钟 quickstart。这个变化不是“文档好看一点”，而是把低延时研究从个人实验推进到可复现边界：别人应该能跑通 quote demo、smoke test 和 public replay skeleton，但不应该拿到私有基础设施、模型快照和实盘参数。</p>
+<p>到 2026-07-10，项目里的工程边界又收紧了一层：tracked <code>live/config.yaml</code> 只保留公开模板，私有 live 参数通过 <code>NARROWGATE_LIVE_CONFIG</code> 注入；仓库补了根级 <code>pyproject.toml</code>、<code>narrowgate</code> CLI、CI、Docker/devcontainer 和 5 分钟 quickstart。这个变化不是“文档好看一点”，而是把低延时研究从个人实验推进到可复现边界：别人应该能跑通 quote demo、smoke test 和 public replay skeleton，但不应该拿到私有基础设施、模型快照和实盘参数。</p>
+<p>同一时期，C++ replay 也从“小窗口 parity 工具”推进成 active-parameter fast screening engine。queue side/regime calibration、replace throttle/pending coalesce、reducing-side cooldown、adaptive add cooldown、campaign soft control 和 BUY fill-selection score 已经进入 native 参数结构与状态机；每次宽搜索仍必须先用当前 rolling baseline 过 Python/C++ parity gate。仍留在 Python/live-only 边界的，主要是 archived <code>xmarket_retreat</code>、逐样本 empirical REST latency 回放，以及 user-stream mismatch / sync-adjust 这类只有实盘才存在的故障闭环。</p>
 <p>策略侧也在同一天继续收缩。lifecycle-risk、campaign soft control 和 reducing cooldown 都没有被直接推成新 live arm；新的重点变成 null baseline 与 order-level fill-selection：先问当前实际 fills 是否比随机被动机会更差，再找哪些 quote-time 状态能把 fill selection 拉回 neutral，最后才映射到 spread、skew、TTL 或 cooldown。这说明系统可以把验证跑得更快、更细，但不能替策略证据补票。</p>
 <p>本文只讨论工程实现，不讨论也不建议任何真实交易行为。所有 PnL、fill、markout、A/B 和 benchmark 都是研究指标或系统指标，不是收益承诺。</p>
 <div class="table-container">
@@ -786,7 +787,7 @@ result = cpp.compute_quote_core_live(
 <p>这不是数量级加速，但它完成了更重要的翻转：scalar native path 终于不再因为 Python 对象往返而负优化。它仍保持显式 opt-in，quote EV 开启后的完整 context 路径也不能套用这组数字。</p>
 <p>离线 quote decomposition、shock audit 和 quote EV label 仍使用 depth-aware batch binding。batch 场景一次传连续数组，跨语言成本被大量样本摊薄，依然比 scalar 更适合 C++。<code>book_imb</code>、<code>near_depth_total</code>、kappa/depth、adverse/defense 等字段继续纳入 parity 审计；性能优化不能把 C++ 悄悄变成另一套策略。</p>
 <h4 id="1-4-3-tick-replay：先迁完整状态机，再谈加速倍数"><a href="#1-4-3-tick-replay：先迁完整状态机，再谈加速倍数" class="headerlink" title="1.4.3 tick replay：先迁完整状态机，再谈加速倍数"></a>1.4.3 tick replay：先迁完整状态机，再谈加速倍数</h4><p>tick replay 是整个迁移中最适合 C++ 的部分，因为 queue、latency、TTL、inventory 和 fill path 都是顺序相关状态。若只把某个公式做成 scalar binding，Python 仍要在每个 tick 调度所有状态；把完整 replay loop 放进一次 C++ 调用，跨语言边界才只出现于窗口输入和 summary/trace 输出。</p>
-<p>C++ 版本逐项迁入所有机制：</p>
+<p>C++ 版本逐项迁入当前 active replay 所需的机制：</p>
 <ul>
 <li>historical BBO/L2；</li>
 <li>exact-level queue ahead；</li>
@@ -794,11 +795,14 @@ result = cpp.compute_quote_core_live(
 <li>maker fill gate；</li>
 <li>inventory 与 inventory-time summary；</li>
 <li>spread cap、adverse/defense guard；</li>
-<li>quote EV policy；</li>
+<li>预计算 quote EV arrays 的 policy fast screening；在线 LightGBM inference 仍留在 Python；</li>
 <li>local extreme、fragile/adaptive TTL/cooldown；</li>
+<li>side/regime queue calibration、reducing cooldown、adaptive add cooldown；</li>
+<li>replace throttle、pending coalesce、campaign soft control 与 BUY fill-selection score；</li>
 <li>position timeout/emergency path；</li>
 <li>完整 trace 和 summary 字段。</li>
 </ul>
+<p>这里的“完整”指 active baseline 和已显式迁移的参数面，不代表 live-only 故障状态也被历史 replay 凭空重建。user-stream mismatch、REST sync-adjust degrade、真实 ACK 乱序与逐请求 REST latency sample 仍需要 live telemetry 或 Python diagnostic；archived <code>xmarket_retreat</code> 也继续 fail fast，避免旧 policy 借 C++ 快筛重新混进当前候选面。</p>
 <h5 id="1-4-3-1-输入是只读-view，窗口数据不再逐-tick-穿过-Python"><a href="#1-4-3-1-输入是只读-view，窗口数据不再逐-tick-穿过-Python" class="headerlink" title="1.4.3.1 输入是只读 view，窗口数据不再逐 tick 穿过 Python"></a>1.4.3.1 输入是只读 view，窗口数据不再逐 tick 穿过 Python</h5><p>replay 的入口不是 <code>on_trade(dict)</code>，而是一组生命周期覆盖整个调用的连续数组 view。Python 完成 parquet/Arrow 加载和 dtype 归一化后，只跨一次 pybind 边界：</p>
 <div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">TickReplayInput</span> &#123;</span>
     ArrayView&lt;std::<span class="hljs-keyword">int64_t</span>&gt; trade_ts_ms;
@@ -906,10 +910,12 @@ Sharpe
 trace rows</code></pre></div>
 <p>golden window 覆盖正常、高波动、低成交/稀疏以及不同日期状态。只有差异能够被解释，C++ engine 才被允许进入 sweep、cap A/B、quote EV A/B 等批量 runner。默认行为仍保留 Python，显式 <code>--engine cpp</code> 才切换，strict 模式下 extension 不可用会直接报错，避免静默 fallback 让人误以为跑了 C++。</p>
 <p>完整 CLI 的 wall time 还包含 parquet、模型和窗口加载，因此不能拿 C++ 内层循环的 microbenchmark 直接宣称整月回测有同样倍数。对回测来说，<strong>路径一致比一个夸张的加速倍数更重要</strong>。</p>
-<p>2026-07-08 之后，C++ replay 的角色又往前推了一步：它不再只是“基础路径 fast screening”，而是可以在 <strong>active live baseline 的 parity gate 通过后</strong> 承接 48-arm 参数 smoke。这里修掉的关键偏差并不是浮点精度，而是离散状态口径：Python 的 queue 初始化使用成交时钟上的 causal local-rank，而 C++ 曾经复用了 local-extreme rank，在 guard 关闭时会退化成 <code>0.5</code>；同时同一 tick 内多个候选订单的成交优先级也必须按 BUY 高价优先、SELL 低价优先稳定排序。修复后，queue-enabled live-like 窗口可以做到 BUY/SELL fill split 和 campaign 数量对齐，剩下的小额 PnL 差异才进入可解释范围。</p>
+<p>2026-07-08 之后，C++ replay 的角色又往前推了一步：它不再只是“基础路径 fast screening”，而是可以在 <strong>active live baseline 的 parity gate 通过后</strong> 承接宽参数 smoke。这里修掉的关键偏差并不是浮点精度，而是离散状态口径：Python 的 queue 初始化使用成交时钟上的 causal local-rank，而 C++ 曾经复用了 local-extreme rank，在 guard 关闭时会退化成 <code>0.5</code>；同时同一 tick 内多个候选订单的成交优先级也必须按 BUY 高价优先、SELL 低价优先稳定排序。修复后，<code>2026-06-26</code> 与新补齐的 <code>2026-07-04</code> live-like baseline 窗口都做到了 Python/C++ fill 数与 PnL 对齐，retained-day runner 才允许切到 native engine。</p>
 <p>因此新的规则是：C++ 可以用于 active baseline 的参数快筛，但每次 sweep 前要先跑 baseline parity gate；如果 gate 不过，自动退回 Python reference，而不是带着偏移去筛参数。这个边界比“C++ 快不快”更重要，因为参数搜索最怕的不是慢，而是用另一套成交口径选出一个看起来很强的假 arm。</p>
-<p>修复后的第一轮实测是 48 个 active Sobol arms、4 个代表日的 C++ quick-smoke。任务在 4 workers 下约 340 秒完成，baseline parity gate 先通过，然后才进入 arm 筛选。结果也很克制：只有 baseline 和一个非 baseline arm 通过 hard mechanism gate；大多数 arm 不是因为 raw PnL 立刻失败，而是因为 tail campaign、fills retention、spread drift、pause/action mix 漂移被拦下。这正是 C++ 加速在研究里的价值：更快地暴露“不该继续跑 retained”的组合，而不是更快地制造一个漂亮结论。</p>
-<p>随后只把这个 survivor 和 baseline 放进 retained40。两者都过 hard gate，但 survivor 没有赢：39 个 retained day 里 terminal campaign PnL 只有 18 天改善、21 天变差，总和比 baseline 低约 20 USDC；raw replay PnL 也低约 20 USDC，库存时间反而高约 14%。它确实少了一些 tail campaigns，但 bad campaign rate 更高，收益和库存暴露的组合不值得替换当前 baseline。这个例子很适合说明 C++ fast screening 的正确姿势：先让它帮忙快速淘汰和缩小候选，再用 daily/campaign gate 读权衡，而不是把“跑得动 retained”误解为“可以推 live”。</p>
+<p>修复后的第一轮实测是 48 个 active Sobol arms、4 个代表日的 C++ quick-smoke。任务在 4 workers 下约 340 秒完成，baseline parity gate 先通过，然后才进入 arm 筛选。结果也很克制：只有 baseline 和一个非 baseline arm 通过 hard mechanism gate；这个 survivor 进入 retained39 后，raw 与 terminal campaign PnL 都比 baseline 低约 20 USDC，库存时间反而高约 14%。</p>
+<p>随后把搜索面扩大到 1024 个 active arms，但没有直接把 1024 组全部跑 retained39。第一层先用单个代表日和 summary-only C++ replay 筛出 68 个 survivor；第二层在 4 个代表日上筛出 16 个；第三层才进入 retained39。4-day 排名最靠前的 arm 曾比 baseline 高出两位数 PnL，但 top 16 在 retained39 上全部输给 rolling baseline。这不是“baseline 已经全局最优”的证明，而是一个很典型的 multiple-testing 结果：搜索越宽，越容易在四天样本里找到偶然 winner，daily OOS 才负责把它们打回去。</p>
+<p>这轮搜索还有一个有价值的 ablation。把 retained39 中最接近 baseline 的组合拆开后，<code>quote/cap + ML bundle</code> 能把 39-day raw loss 缩小约 26 USDC；加上两个最近完整日后，41-day delta 仍约为正 24 USDC。但它同时把 fills 压到 baseline 的约 78.5%，扩大平均 spread，并把库存时间提高约 8%。因此它被记作“少亏但机制发生代价交换”的候选，不是 live promotion。下一步必须回到 campaign outcome audit，检查 terminal campaign PnL、MAE、tail campaign 与 recent-day 稳定性，不能只看 summary-only PnL。</p>
+<p>这个过程说明 C++ fast screening 的正确姿势：先让它快速扩大反例和候选覆盖，再用 daily/campaign gate 识别幸存者偏差与风险转移。<code>fast_cpp_arm_smoke.py</code> 明确只收 summary；它可以回答“哪些组合值得继续算”，不能回答“哪个组合应该上线”。</p>
 <h4 id="1-4-4-quote-EV-fast-screening：快筛不是最终裁决"><a href="#1-4-4-quote-EV-fast-screening：快筛不是最终裁决" class="headerlink" title="1.4.4 quote EV fast screening：快筛不是最终裁决"></a>1.4.4 quote EV fast screening：快筛不是最终裁决</h4><p>quote EV online inference 会对大量 quote 逐行构造 feature 并调用模型，多日 A/B 很慢。早期项目因此增加过一条研究快筛路径：</p>
 <ol>
 <li>在 baseline quote context 下预计算 bid/ask EV arrays；</li>
@@ -1411,8 +1417,8 @@ max_drawdown = std::<span class="hljs-built_in">max</span>(max_drawdown, peak_pn
 <tbody>
 <tr>
 <td>active</td>
-<td><code>gamma</code>、<code>kappa_ratio</code>、<code>adverse_*</code>、<code>fill_cooldown</code>、replace throttle</td>
-<td>Python replay + daily/campaign gate</td>
+<td><code>gamma</code>、effective-kappa、<code>kappa_ratio</code>、<code>adverse_*</code>、<code>fill_cooldown</code>、replace throttle</td>
+<td>Python reference + baseline-gated C++ fast screening + daily/campaign gate</td>
 </tr>
 <tr>
 <td>live-only</td>
@@ -1437,7 +1443,7 @@ max_drawdown = std::<span class="hljs-built_in">max</span>(max_drawdown, peak_pn
 </tbody>
 </table>
 </div>
-<p>对应代码是 <code>models/parameter_selection.py</code> 和 <code>models/parameter_racing_sweep.py</code>。前者生成 coverage report 和 one-factor / Sobol arm spec；后者是 racing coordinator，默认只 dry-run，必须显式 <code>--execute</code> 才会调用 Python replay：</p>
+<p>对应代码是 <code>models/parameter_selection.py</code>、<code>models/parameter_racing_sweep.py</code> 和 <code>models/fast_cpp_arm_smoke.py</code>。前者生成 coverage report 和 one-factor / Sobol arm spec；第二个负责 staged racing、partial state 与 retained39 计划；最后一个只负责 summary-only 的宽参数 native 快筛：</p>
 <div class="code-wrapper"><pre><code class="hljs bash">python3 models/parameter_racing_sweep.py \
   --symbol BTCUSDC \
   --tag parameter_quick_20260705 \
@@ -1446,8 +1452,17 @@ max_drawdown = std::<span class="hljs-built_in">max</span>(max_drawdown, peak_pn
   --single-factor \
   --workers 4 \
   --window-cache-dir <span class="hljs-variable">$&#123;NARROWGATE_DATA_ROOT&#125;</span>/window_cache \
-  --execute</code></pre></div>
-<p><code>quick-smoke</code> 默认只跑一个上限约 30 个 arms 的 group-balanced 小面板；完整<br>60+ arm 主效应面必须显式使用 <code>--stage quick-full-main-effect</code>。Campaign<br>replay 在每个 UTC day 完成后写 partial daily / rollup / campaign labels，<br>长任务中断时不会把 90 分钟计算全部丢掉。</p>
+  --execute
+
+python3 models/fast_cpp_arm_smoke.py \
+  --symbol BTCUSDC \
+  --config <span class="hljs-variable">$&#123;NARROWGATE_LIVE_CONFIG&#125;</span> \
+  --arm-spec-json <span class="hljs-variable">$&#123;NARROWGATE_ARM_SPEC&#125;</span> \
+  --days 2026-06-26 2026-07-01 2026-07-04 2026-07-06 \
+  --engine cpp \
+  --workers 4 \
+  --window-cache-dir <span class="hljs-variable">$&#123;NARROWGATE_DATA_ROOT&#125;</span>/window_cache</code></pre></div>
+<p><code>quick-smoke</code> 默认只跑一个上限约 30 个 arms 的 group-balanced 小面板；完整<br>60+ arm 主效应面必须显式使用 <code>--stage quick-full-main-effect</code>。宽 Sobol/search<br>先走 summary-only C++ smoke，只有 survivor 才进入 campaign replay。后者在每个<br>UTC day 完成后写 partial daily / rollup / campaign labels，长任务中断时不会把<br>整段计算全部丢掉。</p>
 <p>它不是“自动炼金器”。它只是把过去散落在多个 <code>*_sweep.py</code>、<code>stage_t_*</code> 和 bucket 脚本里的调参动作，收束成一个约束优先的实验设计：</p>
 <p>这也意味着早期 sweep 里出现过的 winner 不能被重新包装成当前候选。只要它来自连续跨日/月度 replay、pre-cleanup feature、未 parity 的 C++ sweep、回测专属 guard、或只按 raw/InvAdj 排序的旧表格，就只能作为 archived lesson。当前参数研究必须从 rolling live baseline 重新出发，先过 mechanism gate，再看 campaign outcome 和 order-level fill selection。</p>
 <div class="code-wrapper"><pre><code class="hljs text">parameter coverage
@@ -1455,9 +1470,10 @@ max_drawdown = std::<span class="hljs-built_in">max</span>(max_drawdown, peak_pn
   -&gt; quick-smoke retained days
   -&gt; quick-full-main-effect only when explicit
   -&gt; reject mechanism-drift arms early
-  -&gt; 40-day retained OOS
+  -&gt; retained39 OOS
   -&gt; full retained + blocked OOS
   -&gt; live shadow / soak</code></pre></div>
+<p><code>retained39</code> 不是随意改名。原 retained40 中的 <code>2026-05-23</code> 被 exact-L2 audit 确认为 <code>normalized_gap_with_snapshots</code> bad day，BBO/L2 有效行为空，因此从 manifest 和本地数据层移除。旧文件名里残留的 <code>retained40</code> 只代表历史 artifact，不能重新把该日带回搜索面。</p>
 <p>排序也不再直接看 raw PnL。新的 <code>constraint_first_score</code> 先看 arm 是否仍像 baseline 一样运行：fills retention、pause/action mix、BUY/SELL split、tail campaign、bad campaign rate 和 inventory time 都不能明显漂移。只有这些硬约束过线，terminal campaign PnL、raw、InvAdj 才进入排序。这个设计比“多开几个 worker”更重要，因为它减少的是错误实验本身，而不只是把错误实验跑得更快。</p>
 <p>NarrowGate 当前 C++ hot path 并没有把 <code>std::atomic</code> 当作优化手段；代码里真正显式的 C++ 内部并发，是 <code>compute_quote_core_batch_depth(..., workers=N)</code> 的 <code>std::jthread</code> 分片。因此风险不是“某个 atomic trick 在 ARM 上慢”，而是更朴素：<strong>本机离线吞吐优化不等于 x86 live 尾延迟优化</strong>。</p>
 <p>更专业一点说，我后来把优化项按 CPU/OS 层拆成下面这张表，而不是笼统地说“C++ 更快”：</p>
@@ -1734,8 +1750,9 @@ MALLOC_ARENA_MAX=1</code></pre></div>
 <p>安全路径在这段 soak 里也有信号：stale block、market stream silence watchdog 和 sync-adjust 观测仍在工作。公开版本不记录 exact count；关键读法是，网络/交易所路径偶发抖动会直接进入 live p99。</p>
 <p>这段 60 分钟 soak 给出的工程决策是：<strong>先保持当前 replace thresholds，不马上打开 <code>replace_cancel_first_exposure_increasing=true</code>，也不继续提高加仓侧 replace 门槛。</strong> 原因很直接：<code>keep</code> 已经不低，进一步提高门槛会让报价更 stale；而 cancel-first 在发生 stream silence/reconnect 的窗口里可能增加无挂单空窗。下一步更值得做的是补 <code>pending_coalesce</code> 显式 counter、继续 1-2 小时 soak，然后再决定是否做 pending replace coalescing 的完整化或 async order manager。</p>
 <p>因此当前结论不是“C++ 已经解决 live 延迟”，而是更具体：<strong>C++ fixed-array 可以压计算路径，replace coalescing 可以减少一部分 REST 调用，但真实 live p99 仍由 order lifecycle、REST tail、pending state 和 WebSocket freshness 共同决定。</strong></p>
-<p>第三类是研究机制边界。当前 active baseline 的 queue-enabled fill selection 已经能进入 C++ fast screening，但这不等于所有研究机制都能交给 C++ 裁决。<code>xmarket_retreat_enabled</code>、reducing-side cooldown、adaptive add-side cooldown、campaign soft/hard controls、empirical live REST latency samples、user-stream sync-adjust degrade 这些路径仍然要先以 Python replay / live shadow 为准，等 parity 补齐后才能进 C++ retained sweep。</p>
-<p>这条边界很关键：C++ 现在适合两件事。第一，active baseline 以及已 parity 参数面的 48-arm / retained fast screening；第二，quote context、order-level denominator、shock/label 前处理这类批处理 tight loop。它不适合替还没过 evidence gate 的新机制背书。换句话说，C++ 可以让反例更便宜，但不能把一个未验证机制变成 alpha。</p>
+<p>第三类是研究机制边界。当前 active baseline 的 queue-enabled fill selection 已经能进入 C++ fast screening；side/regime queue lookup、replace throttle、pending coalesce、reducing/adaptive cooldown、campaign soft control 和 BUY fill-selection 也已经补进 native replay。这里需要修正一个旧说法：这些机制不再是“Python-only 缺口”。</p>
+<p>仍不能交给 C++ 历史 replay 裁决的，是三类本质不同的问题：<code>xmarket_retreat_enabled</code> 已归档且会 fail fast；empirical REST latency 目前还是分布/样本近似，而不是逐请求真实 ACK tape；user-stream mismatch、sync-adjust degrade、断线重连和交易所 reject 属于 live-only 故障闭环。它们需要 Python diagnostic 或真实 live soak，不能靠给 C++ 多加几个字段就假装已经回放。</p>
+<p>这条边界很关键：C++ 现在适合两件事。第一，active baseline 以及已 parity 参数面的宽 arm / retained fast screening；第二，quote context、order-level denominator、shock/label 前处理这类批处理 tight loop。它不适合替还没过 evidence gate 的新机制背书。换句话说，C++ 可以让反例更便宜，但不能把一个未验证机制变成 alpha。</p>
 <p>这说明一件事：<strong>架构边界不是文档措辞，而是真的会改变工程结论。</strong> 在本机 ARM 上，早期 <code>SIGNAL_FEATURES=1</code> 曾经是负优化；经过 fixed-array/ring-state 改造后，在 x86 上它反而变成最明显的 live CPU 收益。相反，<code>SIGNAL_STATE=1</code> 在这台 x86 上没有额外收益。pin 到单个 vCPU 对均值帮助也不大，甚至可能放大 VM 上的尾部抖动。</p>
 <p><code>perf stat</code> 也给了一个现实提醒：这台 KVM 实例不暴露 <code>cycles</code>、<code>instructions</code>、<code>L1-icache-load-misses</code>、<code>iTLB-load-misses</code> 这些硬件事件，最后只能看到 context switches、cpu migrations 和 page faults。因此“x86 benchmark”也要继续细分：普通云主机能做 wall-time/tail-latency 复测，但真正要分析 L1I/iTLB/cache miss，可能需要裸金属、特定实例族或能暴露 PMU 的环境。</p>
 <h3 id="2-2-live-路径的-C-优化：与-replay-完全不同的约束"><a href="#2-2-live-路径的-C-优化：与-replay-完全不同的约束" class="headerlink" title="2.2 live 路径的 C++ 优化：与 replay 完全不同的约束"></a>2.2 live 路径的 C++ 优化：与 replay 完全不同的约束</h3><p>前面几节讲的 quote core batch、tick replay 状态机和 streaming features，都是以”吞吐量”为优化目标：输入是连续数组或完整窗口，可以释放 GIL、多线程并行、用 SoA 布局喂给 SIMD。但 live 路径是另一种世界。</p>
@@ -2240,7 +2257,8 @@ order gateway thread</code></pre></div>
 <li><strong>动态 <code>Lambda(delta)</code> 闭环</strong>：用 live/shadow fill calibration，把 depth、toxicity、reference shock 映射到整条到达率曲线，而不是只做 widen/pause。</li>
 <li><strong>campaign-level label</strong>：把 flat -&gt; nonzero -&gt; flat 的 terminal PnL、repair rate、early drawdown、max inventory、duration 和 exposure-increasing fills 做成监督目标，避免只看单笔 20s/30s markout。</li>
 <li><strong>local liquidity reversion / absorptive capacity</strong>：统一 response kernel、OU half-life、depth refill/cancel 的 bucket taxonomy，验证 aggressive flow 是可吸收扰动还是信息冲击。</li>
-<li><strong>multi-venue moderator</strong>：BTCUSDT reference / spot 暂时只作为 adverse moderator 或 risk label，不作为直接正向 alpha 开关；reference 数据的日期集合也不能宽于 BTCUSDC execution good-day universe。只有在 already-good local bucket 内提供稳定增益，才允许进入 policy。</li>
+<li><strong>multi-venue moderator</strong>：BTCUSDT futures 的 submit/fill-time pending residual 已完成 1s/5s/20s/30s retained111 复核，排序不足以支持 direct re-center；spot fill-time residual 只支持 post-fill campaign-risk calibration。reference 数据的日期集合也不能宽于 BTCUSDC execution good-day universe。</li>
+<li><strong>宽搜索后的因果复盘</strong>：1024-arm fast screening 没有找到 retained39 上直接战胜 baseline 的完整组合；下一步不是继续增加随机 arm 数，而是拆解少亏候选为什么通过降低 fills、扩大 spread 或增加 inventory-time 换来 PnL 改善。</li>
 </ol>
 <p>最近的 lifecycle-risk 复盘也放在这条策略轨道内，而不是系统轨道内。曾经的严格候选：</p>
 <div class="code-wrapper"><pre><code class="hljs text">SHORT campaign
@@ -2250,7 +2268,7 @@ order gateway thread</code></pre></div>
 + trend_inventory_risk_high
 + local repair/refill weak</code></pre></div>
 <p>这条候选在方向上有风险味道，但 daily 对比不够稳定，quote-time refill/cancel 也没有提供足够增量分层。更重要的是，后续 null baseline 复盘改变了问题的重心：如果当前 actual fills 本身比随机被动机会更 toxic，那么继续在旧 bucket 上微调 lifecycle，可能只是在修补一个错误的 fill-selection 函数。</p>
-<p>因此策略侧下一步不再是“把某个风险桶变成 arm”，而是先建立统一的 order-level training table：每一行 placed order 都带 quote-time 状态、是否成交、1s/5s/20s/30s markout、campaign terminal outcome、campaign MAE、random/null 对照和 oracle 上界。只有当一个 side-specific score 能稳定把 actual fills 从 toxic selection 拉回接近 null，才允许设计极小 policy knob。最近的 BUY-only fill-selection soft-keep 就属于这种 rolling-baseline probe：它不是 size-up，也不是盈利证明，而是把一个 side-specific denominator 信号放进真实订单簿继续验证。</p>
+<p>因此策略侧下一步不再是“把某个风险桶变成 arm”，而是先建立统一的 order-level training table：每一行 placed order 都带 quote-time 状态、是否成交、1s/5s/20s/30s markout、campaign terminal outcome、campaign MAE、random/null 对照和 oracle 上界。只有当一个 side-specific score 能稳定把 actual fills 从 toxic selection 拉回接近 null，才允许设计极小 policy knob。最近的 BUY-only fill-selection soft-keep 就属于这种 rolling-baseline probe：它不是 size-up，也不是盈利证明，而是把一个 side-specific denominator 信号放进真实订单簿继续验证。后续任何参数搜索都以实际运行配置作为滚动 baseline；公开 <code>live/config.yaml</code> 只是安全示例，不能代替私有运行配置做 parity。</p>
 <p><strong>系统性质工作</strong>则围绕真实 x86 live soak 和 order lifecycle：</p>
 <ol>
 <li><strong>继续 1-2 小时 live soak</strong>：跟踪 <code>live_perf_telemetry.csv</code> 里的 <code>requote_total_us</code>、<code>update_orders_us</code>、<code>rest_new/cancel</code> p99/p99.9、<code>cpp_routing_used</code>、WebSocket age、replace throttle 命中率和 stale block。</li>
@@ -2300,13 +2318,13 @@ order gateway thread</code></pre></div>
                   <div class="post-meta">
                     <i class="iconfont icon-tags"></i>
                     
+                      <a class="hover-with-bg" href="/tags/Market-Making/">Market Making</a>
+                    
                       <a class="hover-with-bg" href="/tags/C/">C++</a>
                     
                       <a class="hover-with-bg" href="/tags/%E4%BD%8E%E5%BB%B6%E6%97%B6/">低延时</a>
                     
                       <a class="hover-with-bg" href="/tags/pybind11/">pybind11</a>
-                    
-                      <a class="hover-with-bg" href="/tags/Market-Making/">Market Making</a>
                     
                       <a class="hover-with-bg" href="/tags/%E7%B3%BB%E7%BB%9F%E5%B7%A5%E7%A8%8B/">系统工程</a>
                     
