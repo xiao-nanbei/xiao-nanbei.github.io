@@ -348,7 +348,7 @@
         
         
           <!-- compatible with older versions-->
-          409 分钟
+          411 分钟
         
       </span>
     
@@ -1464,6 +1464,7 @@ arm 再相对 current baseline 评估
 <p>这条规则有两个实际后果。</p>
 <p>第一，如果 baseline 和 live 在机制量上已经不对齐，比如 replay 的 <code>pause_rate</code> 明显低于 live，或者 action mix 没有接入 live 的 replace throttle / <code>action=keep</code>，那下一步应该修 baseline/live parity，而不是开始调新 arm。否则新 arm 的“改善”可能只是 simulator error。</p>
 <p>第二，一旦 live 更新，下一轮回测的 baseline 也随之滚动更新。比如 replace throttle、pending replace coalescing、campaign risk HEALTH 输出、shadow counter 这些执行口径进入 live 后，后续研究就不能再拿旧 replay baseline 直接比较。旧结果可以保留为事故复盘或方向线索，但不能继续叫当前 baseline。</p>
+<p>第三，rolling baseline 是“当前实际运行事实”，不等于“严格 promotion gate 已通过”。最近一次单位成交质量搜索中，有候选在 retained 与 blocked panel 同时改善 raw、campaign outcome、tail 和库存路径，但 late holdout 仍多出一个 tail campaign。它没有通过研究 gate；如果因为小资金 live-exposure 决策而进入真实运行，文档必须同时记录 late failure、回滚条件和部署时刻。下一轮 arm 仍以新的 live 配置为 baseline，但不能把这次运维决定倒写成已证明的 alpha。</p>
 <h4 id="1-10-4-参数选择：从“找最优点”改成-racing-约束优化"><a href="#1-10-4-参数选择：从“找最优点”改成-racing-约束优化" class="headerlink" title="1.10.4 参数选择：从“找最优点”改成 racing + 约束优化"></a>1.10.4 参数选择：从“找最优点”改成 racing + 约束优化</h4><p>到这一步，另一个旧习惯也要被修正：不能说“把 <code>config.yaml</code> 所有参数全量重测，找出最优参数”。这在数学上不可做，也在金融研究上很危险。一个 live 配置有上百个 leaf 参数，其中有些是 API、日志、WebSocket watchdog、sync-adjust safety，有些是 shadow/archived 路径；把它们混进同一个 PnL 网格，只会制造 data snooping。</p>
 <p>现在更合理的流程是：</p>
 <div class="code-wrapper"><pre><code class="hljs text">参数分类

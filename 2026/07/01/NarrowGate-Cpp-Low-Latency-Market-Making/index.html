@@ -343,7 +343,7 @@
         
         
           <!-- compatible with older versions-->
-          609 分钟
+          612 分钟
         
       </span>
     
@@ -1969,7 +1969,46 @@ new intent while REST is in flight:
 </ul>
 <p><code>async_order_gateway_enabled</code> 是 startup-only 开关，SIGHUP 试图切换时只告警，不在有活跃订单时改线程模型。逐操作的 <code>place/cancel/coalesce/pending_timeout/error</code> 写入独立的 <code>order_gateway_telemetry.csv</code>；原来的 <code>live_perf_telemetry.csv</code> 继续描述决策线程，因此 async 打开后 <code>update_orders_us</code> 不再混入 REST 等待时间。<code>HEALTH</code> 同时输出 pending/inflight/submit/coalesce/timeout/error 累计值。</p>
 <p>第一段 native-async 安全 preflight 约 10.1 分钟。窗口内记录到 <code>178</code> 次 submit、<code>164</code> 次 cancel、<code>165</code> 次 place，<code>coalesce/timeout/error=0/0/0</code>；gateway new/cancel p99 约为 <code>172/184ms</code>。<code>update_orders_us</code> p50 从同步 native 的约 <code>36.8ms</code> 降到 <code>15.5ms</code>，说明正常 REST 已经离开决策线程；但 p99 从约 <code>249ms</code> 升到 <code>833ms</code>，不能据此宣布尾部改善。逐行复盘发现，最慢的两次 requote 同时伴随 signal、quote 和 update-orders 的整体停顿，而 gateway 没有 pending timeout 或 error，更像 VM 调度、GIL/日志竞争或同一时刻的进程级 stall。每段只有约百个 requote，p99 实际只由一两个样本决定。</p>
-<p>这个结果也解释了为什么不能在实现 async 后立刻提高 replace threshold：当前 5 秒 requote 下 coalesce 为零，说明大多数 REST 在下一轮前已经收敛，尚不存在需要靠更高门槛消除的任务堆积。现阶段保留 adding/reducing threshold 不变，让 async 继续积累 1-2 小时同口径样本；只有 operation rate、placed/fill、双边 action mix 和安全路径保持稳定，而且长窗仍显示 replace 压力，才单独调加仓侧门槛。减仓侧和 safety cancel 不跟着变慢。</p>
+<p>后续 native-async 长 soak 累积了约 194.4 分钟。native routing hit 为 <code>99.64%</code>，双边 fills 为 <code>24/27</code>，WebSocket 没有持续 silence，TTL、stale-data block 和 safety cancel 仍然工作。gateway 共记录约 <code>3513</code> 次 submit、<code>2799</code> 次 cancel、<code>2850</code> 次 place，但 coalesce 只有 <code>1</code> 次，window timeout/error 为 <code>0/1</code>。这说明在当前 requote cadence 下，无界 pending replace 并不是常驻瓶颈。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>路径</th>
+<th style="text-align:right">native-sync p50 / p99 / p99.9</th>
+<th style="text-align:right">native-async p50 / p99 / p99.9</th>
+<th>读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>requote total</td>
+<td style="text-align:right">40.5 / 318.3 / 381.1 ms</td>
+<td style="text-align:right">31.3 / 720.2 / 1074.8 ms</td>
+<td>median 下降，tail 明显变差</td>
+</tr>
+<tr>
+<td>update orders</td>
+<td style="text-align:right">36.8 / 248.7 / 249.2 ms</td>
+<td style="text-align:right">15.9 / 444.1 / 855.1 ms</td>
+<td>REST 离开常规路径，但进程级 tail 未消失</td>
+</tr>
+<tr>
+<td>signal compute</td>
+<td style="text-align:right">7.1 / 95.4 / 132.5 ms</td>
+<td style="text-align:right">13.2 / 227.5 / 400.1 ms</td>
+<td>同时恶化，不能归因于 REST worker 本身</td>
+</tr>
+<tr>
+<td>quote compute</td>
+<td style="text-align:right">0.38 / 3.86 / 8.87 ms</td>
+<td style="text-align:right">0.39 / 11.9 / 94.3 ms</td>
+<td>scalar quote 不是端到端 tail 的决定因素</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>这仍是相邻、非重叠市场窗口，所以不能把 ratio 当成严格因果 A/B；但工程决策不需要假装有优势：async 没有形成足够 coalesce，p99/p99.9 也没有改善，复杂度和故障面却更高。因此生产 baseline 已回滚到 synchronous order gateway，native C++ profile 保留，replace threshold 不因这次 system soak 额外提高。异步实现继续留在代码中作为可观测的研究路径，而不是默认 live 路径。</p>
 <p>为避免 A/B 又变成手工摘日志，<code>scripts/analyze_live_soak.py</code> 用各 CSV 和 maker log 的起始行号创建 marker，再统一输出 action mix、native hit、WS age、placed/fills，以及 signal/quote/update/requote 和 REST/gateway 的 p50/p95/p99/p99.9/max。<code>scripts/x86_live_profile_ab_soak.sh</code> 只能通过 <code>run.sh</code> 管理进程，并要求显式 <code>ACK_LIVE_SOAK=YES</code>，避免误把 benchmark helper 变成无人值守的实盘重启器。</p>
 <p>第三类是研究机制边界。当前 active baseline 的 queue-enabled fill selection 已经能进入 C++ fast screening；side/regime queue lookup、replace throttle、pending coalesce、reducing/adaptive cooldown、campaign soft control 和 BUY fill-selection 也已经补进 native replay。这里需要修正一个旧说法：这些机制不再是“Python-only 缺口”。</p>
 <p>仍不能交给 C++ 历史 replay 裁决的，是三类本质不同的问题：<code>xmarket_retreat_enabled</code> 已归档且会 fail fast；empirical REST latency 目前还是分布/样本近似，而不是逐请求真实 ACK tape；user-stream mismatch、sync-adjust degrade、断线重连和交易所 reject 属于 live-only 故障闭环。它们需要 Python diagnostic 或真实 live soak，不能靠给 C++ 多加几个字段就假装已经回放。</p>
@@ -2493,10 +2532,10 @@ order gateway thread</code></pre></div>
 <p><strong>系统性质工作</strong>则围绕真实 x86 live soak 和 order lifecycle：</p>
 <ol>
 <li><strong>已完成：固化 native deployment profile</strong>。<code>run.sh</code> 显式加载并打印 quote core、signal features、live routing、strict mode 与 extension path，重启后由 telemetry hit rate 再校验。</li>
-<li><strong>短窗 preflight 已完成，长窗进行中：同口径 1-2 小时 A/B soak</strong>。同一代码和策略参数分别跟踪 <code>requote_total_us</code>、<code>update_orders_us</code>、REST p99/p99.9、<code>cpp_routing_used</code>、WebSocket age、action mix 和 stale block；restart warmup 行不进入统计。短窗证明 native profile 和 gateway 安全链路可用，但 p99 样本不足。</li>
+<li><strong>已完成：同口径长窗 async soak</strong>。约 194 分钟样本确认 native routing 与安全链路健康，但 async 只改善 median、没有改善 p99/p99.9，且几乎没有 coalesce；生产路径已回滚同步 gateway。</li>
 <li><strong>已完成实现：per-side pending telemetry</strong>。submit/coalesce、pending timeout、实际 place/cancel 与错误不再只靠 action mix 推断。</li>
 <li><strong>谨慎测试 cancel-first</strong>：<code>replace_cancel_first_exposure_increasing=true</code> 继续保持关闭；async gateway 自己保证同侧 cancel 收敛后只提交最新目标，不把这个旧 soak arm 与新线程模型叠加。</li>
-<li><strong>已完成实现、待长 soak：async order gateway</strong>。quote decision 与 REST submit 已可分离，短窗内无 timeout/error 且 order-update p50 下降；p99 被少数全进程 stall 主导，replace threshold 因此保持不变。</li>
+<li><strong>已完成实现并回滚默认开关：async order gateway</strong>。实现保留用于后续独立研究，但当前 live baseline 关闭；replace threshold 不根据这段非因果窗口继续调高。</li>
 <li><strong>保持 public/private 边界</strong>：公开仓库只暴露模板配置、sample workflow、CI 和 no-data examples；私有 live 参数、基础设施地址、实盘结果和 paid data manifest 不进入 public docs。</li>
 </ol>
 <blockquote>
