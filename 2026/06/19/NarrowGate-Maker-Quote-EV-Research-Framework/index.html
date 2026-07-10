@@ -336,7 +336,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          49k 字
+          53k 字
         
       </span>
     
@@ -348,7 +348,7 @@
         
         
           <!-- compatible with older versions-->
-          411 分钟
+          442 分钟
         
       </span>
     
@@ -394,13 +394,14 @@
                 
                 <h2 id="TL-DR：读者收益摘要"><a href="#TL-DR：读者收益摘要" class="headerlink" title="TL;DR：读者收益摘要"></a>TL;DR：读者收益摘要</h2><p><strong>NarrowGate</strong> 不是一个“做市策略已经跑通并盈利”的项目，而是一个用于验证 maker quote EV 的研究框架。它研究的核心问题是：一笔被动限价单被成交之后，到底是在收取 spread，还是在替更快的信息交易者接风险。</p>
 <p>这篇文章只讲算法与证据框架；C++、pybind、x86 benchmark 和 live hot path 细节拆到另一篇：<a href="/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/">NarrowGate：C++ Tick Replay 与低延时工程边界</a>。</p>
+<p>项目源码与可复现实验入口：<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker">GitHub - xiao-nanbei/NarrowGateMaker</a>。公开仓库提供研究框架、示例配置和测试，不包含私有 live 参数、凭据或基础设施地址。</p>
 <p>读完这篇文章，至少可以得到七个结论：</p>
 <ol>
 <li>maker fill 不能简单等价于 spread 收益，必须用 fill 后 markout 和 inventory exposure 衡量；</li>
 <li>多市场 reference 有信息量，但不等于统一打开 <code>multi_market</code> 就有正 EV；</li>
 <li>tick replay、queue ahead、latency、TTL 和 maker fill gate 会显著改变 bar 回测结论；</li>
 <li>很多早期结果已经被后续审计推翻：连续跨日/月度 replay、坏日/gap 污染、markout EMA latch、fills/day 分母错误，都不能再当作 alpha 证据；</li>
-<li>当前项目没有选出可以称为“最终最优 live 参数”的策略结论；direct quote EV、SELL resiliency、toxic-risk、campaign stop-add、early lifecycle-risk 等都只能留在 shadow/evidence 或 replay shadow 层；</li>
+<li>当前策略并非缺少所有有效机制：side-specific fill selection、execution lifecycle 和 <code>execution + fill85</code> 都显示过局部增量；但这些改善还没有稳定转化为跨 holdout、跨 campaign 的正净期望，主要未通过项集中在库存 campaign 终局和尾部风险；</li>
 <li>当前 live 配置就是滚动 baseline；新机制只能作为 arm 相对当前 baseline 做 daily/campaign gate，不能拿旧 baseline 或旧回测结论直接比较；</li>
 <li>参数搜索已经可以用 C++ 扩到数百至上千个 active arms，但宽搜索只负责发现候选；null baseline、side-specific fill-selection、daily OOS 和 campaign-level label 才负责判断改善是不是来自更好的成交选择，而不是少挂单、少成交或更久持仓。</li>
 </ol>
@@ -1464,7 +1465,8 @@ arm 再相对 current baseline 评估
 <p>这条规则有两个实际后果。</p>
 <p>第一，如果 baseline 和 live 在机制量上已经不对齐，比如 replay 的 <code>pause_rate</code> 明显低于 live，或者 action mix 没有接入 live 的 replace throttle / <code>action=keep</code>，那下一步应该修 baseline/live parity，而不是开始调新 arm。否则新 arm 的“改善”可能只是 simulator error。</p>
 <p>第二，一旦 live 更新，下一轮回测的 baseline 也随之滚动更新。比如 replace throttle、pending replace coalescing、campaign risk HEALTH 输出、shadow counter 这些执行口径进入 live 后，后续研究就不能再拿旧 replay baseline 直接比较。旧结果可以保留为事故复盘或方向线索，但不能继续叫当前 baseline。</p>
-<p>第三，rolling baseline 是“当前实际运行事实”，不等于“严格 promotion gate 已通过”。最近一次单位成交质量搜索中，有候选在 retained 与 blocked panel 同时改善 raw、campaign outcome、tail 和库存路径，但 late holdout 仍多出一个 tail campaign。它没有通过研究 gate；如果因为小资金 live-exposure 决策而进入真实运行，文档必须同时记录 late failure、回滚条件和部署时刻。下一轮 arm 仍以新的 live 配置为 baseline，但不能把这次运维决定倒写成已证明的 alpha。</p>
+<p>第三，rolling baseline 是“当前实际运行事实”，不等于“严格 promotion gate 已通过”。最近的 <code>execution + fill85</code> 组合在 retained39 与 blocked71 同时改善 aggregate raw、activity-adjusted raw、campaign-adjusted terminal、tail 和库存路径，说明 execution lifecycle 与较长 add-side fill cooldown 不是无效机制；但 late holdout 的 campaign-adjusted terminal 为负，并多出一个 tail campaign。它没有通过严格研究 gate；如果因为小资金 live-exposure 决策而进入真实运行，文档必须同时记录 late failure、回滚条件和部署时刻。下一轮 arm 仍以新的 live 配置为 baseline，但不能把这次运维决定倒写成已证明的 alpha。</p>
+<p>因此当前最准确的总结不是“裸 AS 没有 alpha”，也不是“所有参数都无效”，而是：<strong>当前策略已有局部成交选择与执行改进，但这些改进还没有稳定地转化为跨 holdout、跨 campaign 的正净期望；主要未通过项集中在库存 campaign 终局和尾部风险。</strong> 单笔成交或普通日的改善，仍可能被少数长库存、未自然 repair 或 exposure-increasing fill 密集的 campaign 覆盖。</p>
 <h4 id="1-10-4-参数选择：从“找最优点”改成-racing-约束优化"><a href="#1-10-4-参数选择：从“找最优点”改成-racing-约束优化" class="headerlink" title="1.10.4 参数选择：从“找最优点”改成 racing + 约束优化"></a>1.10.4 参数选择：从“找最优点”改成 racing + 约束优化</h4><p>到这一步，另一个旧习惯也要被修正：不能说“把 <code>config.yaml</code> 所有参数全量重测，找出最优参数”。这在数学上不可做，也在金融研究上很危险。一个 live 配置有上百个 leaf 参数，其中有些是 API、日志、WebSocket watchdog、sync-adjust safety，有些是 shadow/archived 路径；把它们混进同一个 PnL 网格，只会制造 data snooping。</p>
 <p>现在更合理的流程是：</p>
 <div class="code-wrapper"><pre><code class="hljs text">参数分类
@@ -1763,8 +1765,14 @@ campaign_outcome_risk      # 解释 terminal campaign loss / MAE / duration
 micro_reversion_score      # 局部扰动是否有短半衰期
 trend_inventory_risk       # 大级别趋势是否正在放大库存风险</code></pre></div>
 <p>这些 score 如果不能按日稳定排序 fill rate、markout、tail 和 campaign terminal outcome，就不应该进入 quote EV 重训，更不应该映射成 live spread / TTL / size。</p>
-<h3 id="2-4-最新更新：null-baseline、side-specific-score-与-reference-的新位置"><a href="#2-4-最新更新：null-baseline、side-specific-score-与-reference-的新位置" class="headerlink" title="2.4 最新更新：null baseline、side-specific score 与 reference 的新位置"></a>2.4 最新更新：null baseline、side-specific score 与 reference 的新位置</h3><p>2026-07-06 之后，我对“baseline 是不是已经接近局部最优”这件事重新做了一个更直接的检验：建立 random passive null baseline。它保持同样日、同样 side、近似相同 spread 和订单机会，但不使用当前策略的信号去选择成交。这个对照的意义很朴素：如果当前 actual fills 比随机被动机会还差，那就说明策略信号正在把订单送进更 toxic 的 fill selection，而不是只是“参数不够好”。</p>
-<p>retained good days 的结论很刺眼：当前 actual fills 相对 random/null 仍有明显 toxic selection gap，而事后 oracle positive-fill 子集又说明可用空间并不薄。换句话说，baseline 肯定不是“最好的方案”；问题也不是再扫几个 <code>gamma/effective-kappa/cooldown</code> 就能解决，而是必须先找出哪些 quote-time 状态能把实际成交从 toxic selection 拉回 neutral，甚至靠近 oracle 的正子集。</p>
+<h3 id="2-4-最新更新：两层-null-baseline、side-specific-score-与-reference-的新位置"><a href="#2-4-最新更新：两层-null-baseline、side-specific-score-与-reference-的新位置" class="headerlink" title="2.4 最新更新：两层 null baseline、side-specific score 与 reference 的新位置"></a>2.4 最新更新：两层 null baseline、side-specific score 与 reference 的新位置</h3><p>2026-07-06 之后，我对“baseline 是不是已经接近局部最优”这件事重新做了一个更直接的检验。第一层是 <strong>submit-time opportunity null</strong>：在同一 UTC day、同一 side 的 placed-order denominator 中随机抽取相同数量的机会，用报价时刻的 opportunity markout 与 actual fills 比较：</p>
+<script type="math/tex; mode=display">
+\operatorname{Markout}(\text{actual fills})
+\quad\text{vs}\quad
+\operatorname{Markout}(\text{same-day/side random placed opportunities})</script><p>它能支持的判断很具体：在当前 placed-order 分母中，实际被成交的订单后续 markout 明显差于无条件随机抽取的 submit-time opportunity，说明 fill selection 存在 toxic-selection gap。它不能推出“随机 maker 策略能赚 opportunity markout”。静态 opportunity null 没有重放随机订单能否成交、queue ahead、真实 fill time/price、cancel/replace、latency、多订单库存依赖、campaign repair、资金占用或任何期末处理。源码也明确把它定义为 submit-time opportunity reference，而不是完整 fill counterfactual；实现见 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/models/audit/metrics.py">GitHub <code>models/audit/metrics.py</code></a>。因此早期看到的 <code>+5 bps</code> 只能称为<strong>随机 placed opportunity 的 submit-time markout 参照线</strong>，不能称为随机策略收益。</p>
+<p>这层 retained-good-day 结果很刺眼：当前 actual fills 相对 random opportunity 仍有明显 toxic-selection gap，而事后 oracle positive-fill 子集又说明可用空间并不薄。换句话说，baseline 肯定不是“最好的方案”；问题也不是再扫几个 <code>gamma/effective-kappa/cooldown</code> 就能解决，而是必须先找出哪些 quote-time 状态能把实际成交从 toxic selection 拉回 neutral，甚至靠近 oracle 的正子集。</p>
+<p>第二层是在 2026-07-10 补上的 <strong>executable passive null</strong>。它不再从结果表抽样，而是在完整 tick replay 中随机化 requote cadence 与 flat-state bid/ask geometry；随机订单仍然经过 exact-level queue、new/cancel latency、replace/coalescing、fill cooldown、库存上限、campaign 状态和期末记账。因为一次随机成交会改变后续库存和 cooldown，随机臂不可能与 baseline 保持完全相同的 fills，所以报告必须同时看 activity、spread、action mix、side split、inventory time 和 tail，而不能只看 raw PnL。</p>
+<p>在 retained39、8 个 deterministic seeds 上，按修正后的期末 MTM 口径，当前 rolling baseline 的 raw 为 <code>-98.77</code>，random passive mean 为 <code>-86.34</code>，baseline 反而差 <code>12.43</code>；baseline fills 是 random mean 的 <code>93.3%</code>，库存时间是 <code>1.108x</code>，tail campaigns 多约 <code>7.6</code> 个，raw PnL per fill 也更差。random seed raw 的标准差约 <code>14.28</code>，所以 8 个 seeds 还不够把它写成强统计结论；但 paired daily 的形状更值得看：baseline-minus-random 的中位数仍为 <code>+0.34</code>，baseline 在 <code>21/39</code> 天胜出，少数 tail days 把 ordinary-day 的小优势全部抹掉。这个结果不表示 random passive 可以 live；它表示“当前报价函数已经证明具有稳定 fill-selection alpha”这句话还站不住。</p>
 <p>这也是为什么最新工作把桶分析升级成 order-level denominator table。每一行不再只是一笔 fill，而是一笔 placed order：</p>
 <div class="code-wrapper"><pre><code class="hljs text">placed order
   + quote-time state
@@ -1784,8 +1792,34 @@ trend_inventory_risk       # 大级别趋势是否正在放大库存风险</code
 <p>这条线已经完成了短 horizon 与 fill-time 复核。BTCUSDT futures 的 submit-time <code>pending_ref</code> 在 1s/5s 上排序很弱，fill-time 重采样也没有改善：BUY 多数更差，SELL 只剩弱 30s 噪声。因此 direct re-center 与 post-fill futures moderator 都暂时关闭，<code>pending_ref_*</code> 降级为 diagnostic / interaction feature，不进入 1/2/3 tick reservation-shift arm。</p>
 <p>spot 的结论稍有不同。<code>fill_exec_spot_pending_*</code> 与 <code>fill_ref_spot_pending_*</code> 已接入 <code>post_fill_spot_pending_risk_score</code> 和 <code>post_fill_campaign_outcome_risk_score</code>；retained111 上，高分桶能较稳定标记更差短窗 markout、更差 aggregate terminal campaign PnL 与更高 tail rate。但这些字段只有 fill 后才可见，所以它们只能服务 post-fill campaign calibration / shadow management，不能被偷渡成 quote-time re-center、pre-fill veto 或正向 alpha 开关。</p>
 <p>换句话说，reference/spot 当前都没有通过“直接改变报价”的证据门。它们仍有价值，但价值落在解释和校准层：futures residual 作为 interaction diagnostic，spot residual 作为 post-fill risk label。这个边界比简单写一句“multi-market 有用/没用”更准确。</p>
-<h2 id="结论：窄门不是参数，而是证据门槛"><a href="#结论：窄门不是参数，而是证据门槛" class="headerlink" title="结论：窄门不是参数，而是证据门槛"></a>结论：窄门不是参数，而是证据门槛</h2><p>NarrowGate 从一个 AS 公式实验，走到了数据审计、跨市场冲击归因、逐侧 quote EV、库存时间积分、null baseline、order-level denominator 和 baseline-gated C++ 参数 racing。这个过程也不断推翻自己的旧答案：更多 reference 没有自动带来更好 policy；ask EV 的 raw 改善没有通过校准；连续长窗回测被日度 fresh-start 取代；局部 SELL bucket、toxic-risk 和 campaign 控制只能先做 shadow/replay evidence；1024 个参数组合也没有绕过 retained39 的 OOS 约束。</p>
-<p>最初的问题因此被越问越窄：不是“能不能预测 BTC”，而是“在这一侧、这个价格、这个盘口和这段库存暴露下，是否值得提供一次短暂的被动流动性”。null baseline 让这句话更尖锐：如果策略选择出来的 fills 比随机被动机会更 toxic，那真正的 alpha 就不是多加一个防守开关，而是重新学习 fill selection。宽参数搜索则补上另一半警告：短窗口找到的 PnL winner，可能只是少成交、spread 更宽或 inventory-time 转移，必须解释完代价交换才算证据。</p>
+<h3 id="2-5-先排除实现归因，再继续找-alpha"><a href="#2-5-先排除实现归因，再继续找-alpha" class="headerlink" title="2.5 先排除实现归因，再继续找 alpha"></a>2.5 先排除实现归因，再继续找 alpha</h3><p>当几乎所有参数 arm 都是负数时，不能只用“市场太 toxic”解释，也不能看到一段可疑公式就宣布找到 bug。最新 formal replay 增加了三组可复核输出：</p>
+<ol>
+<li><code>historical / off / sign-corrected</code> 的 side markout feedback 三臂；</li>
+<li><code>compress / pause exposure / observe only</code> 的 final spread-cap 三臂；</li>
+<li><code>terminal MTM / hypothetical liquidation fee estimate / final PnL</code> 的账本分解，并把 cap-compressed fills 与其余 fills 分开统计。</li>
+</ol>
+<p>retained39 的结果没有支持三个简单答案。把 markout feedback 关掉，raw 从 <code>-98.77</code> 变为 <code>-105.65</code>；把看似可疑的符号改正，raw 进一步变为 <code>-112.07</code>，tail campaigns 也增加。因此这个公式的语义虽然值得质疑，却不能据此改 live。spread-cap compression 在 baseline 里只涉及 <code>18 / 18,455</code> 个 fills，聚合 markout 反而为正；把超过 cap 的加仓侧改成 pause，raw 与 terminal campaign outcome 都更差。这两个方向因此从“高概率根因”降级为代码审查假设：仍可做单因子 A/B，但不能排在 fill selection 与 campaign tail 前面。</p>
+<p>期末账本则确实发现并修正了一个语义问题，但它不是 alpha 解释。回放窗口结束并没有真实 taker 平仓，所以现在使用：</p>
+<script type="math/tex; mode=display">
+\mathrm{PnL}_{\mathrm{terminal}}
+= \mathrm{cash} + q\,P_{\mathrm{mark}}</script><p>不再扣 taker fee。此前约 <code>3.12</code> 的数值现在叫 <code>terminal_liquidation_fee_estimate</code>，只表示“若此刻主动平仓”的成本，不进入 final PnL；<code>terminal_fee_drag=0</code>。真实 timeout/emergency taker exit 仍扣 taker fee。BTCUSDC 当前研究/live 配置的 maker fee 为 <code>0</code>，所以普通 maker fills 也不应产生交易手续费。这个修正把 baseline raw 从旧口径 <code>-101.89</code> 改为 MTM 口径 <code>-98.77</code>，却没有改变任何报价、queue、fill 或 campaign 路径，因此不能把它包装成策略改善。</p>
+<p>这些结果没有证明 baseline 正确，更没有证明它最优。它们只是把问题定位得更窄：当前主要矛盾仍在 fill selection 与 inventory campaign path，而不是一个简单反号或一个常驻 cap compression。更准确的问题已经从“为什么所有参数都负”变成：<strong>execution + fill85 改善的普通成交和日度 PnL，为什么仍会被 late-holdout 的少数 campaign terminal/tail 损失覆盖？</strong></p>
+<p>下一步归因必须沿同一条损益链展开：</p>
+<div class="code-wrapper"><pre><code class="hljs text">placed opportunities
+  -&gt; fills
+  -&gt; fill markout
+  -&gt; inventory campaign
+  -&gt; terminal / tail PnL</code></pre></div>
+<ul>
+<li><strong>成交选择层</strong>：BUY 的 5s/20s/30s markout 改善覆盖了多少 fills，SELL 是否被间接改变；</li>
+<li><strong>参与度与执行层</strong>：fills/day、fill/placed、keep/replace、queue age、cancel churn 与 spread 是否发生机制漂移；</li>
+<li><strong>风险控制层</strong>：adverse/defense 挡住多少负向成交，又误杀多少正向机会；风险控制质量不能只用 raw PnL 命名为 alpha；</li>
+<li><strong>campaign 层</strong>：改善是否只存在于短 campaign，而长 campaign、未自然 repair 或 exposure-increasing fills 较多的路径继续恶化；</li>
+<li><strong>late holdout 尾部层</strong>：新增的是 tail 次数还是单次损失，来自 BUY long、SELL short，还是 restart/继承库存等特殊路径。</li>
+</ul>
+<p>下一步应该针对 baseline 明显落后 executable null 的 tail days 建 side-specific quote-time label，再用 campaign terminal outcome 检查它是否真的改善了成交选择。</p>
+<h2 id="结论：窄门不是参数，而是证据门槛"><a href="#结论：窄门不是参数，而是证据门槛" class="headerlink" title="结论：窄门不是参数，而是证据门槛"></a>结论：窄门不是参数，而是证据门槛</h2><p>NarrowGate 从一个 AS 公式实验，走到了数据审计、跨市场冲击归因、逐侧 quote EV、库存时间积分、opportunity/executable 两层 null baseline、order-level denominator 和 baseline-gated C++ 参数 racing。这个过程也不断推翻自己的旧答案：更多 reference 没有自动带来更好 policy；ask EV 的 raw 改善没有通过校准；连续长窗回测被日度 fresh-start 取代；局部 SELL bucket、toxic-risk 和 campaign 控制只能先做 shadow/replay evidence；1024 个参数组合也没有绕过 retained39 的 OOS 约束。</p>
+<p>最初的问题因此被越问越窄：不是“能不能预测 BTC”，而是“在这一侧、这个价格、这个盘口和这段库存暴露下，是否值得提供一次短暂的被动流动性”。两层 null baseline 让这句话更尖锐：opportunity null 检查 actual fills 是否被 adverse selection 选中，executable null 检查这种差距在完整订单生命周期里是否仍然存在。如果策略选择出来的 fills 和 campaign path 没有稳定优于随机被动路径，真正的 alpha 就不是多加一个防守开关，而是重新学习 fill selection。宽参数搜索则补上另一半警告：短窗口找到的 PnL winner，可能只是少成交、spread 更宽或 inventory-time 转移，必须解释完代价交换才算证据。</p>
 <p>这可能也是“窄门”最贴切的地方。一个研究系统的成熟，不在于它接入了多少模型和数据源，而在于它愿意用多少层约束拒绝一个看起来很诱人的结论。</p>
 <hr>
 <p>本文及 NarrowGate 项目仅用于市场微观结构、价格行为学、做市模型、机器学习回测方法和系统工程的学习交流与技术研究，不构成财务、投资、法律或合规建议。中国大陆关于 crypto 交易及相关业务活动的监管环境具有不确定性；任何人将相关代码用于连接交易平台、交易、商业展业或投资决策，其合规风险、资金损失、技术故障及其他后果均由使用者自行承担，与作者无关。</p>

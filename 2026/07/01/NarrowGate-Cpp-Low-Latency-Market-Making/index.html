@@ -19,12 +19,12 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV 与被动做市研究框架》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。 离线侧的低延时，本质是把严格 replay 从“只能抽样验证”推进">
+    <meta name="description" content="TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV 与被动做市研究框架》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。 项目源码与构建入口：GitHub - xiao-nanbei&#x2F;Na">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate：回测吞吐与 Live 尾延迟工程">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV 与被动做市研究框架》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。 离线侧的低延时，本质是把严格 replay 从“只能抽样验证”推进">
+<meta property="og:description" content="TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV 与被动做市研究框架》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。 项目源码与构建入口：GitHub - xiao-nanbei&#x2F;Na">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-07-01T00:03:00.000Z">
 <meta property="article:modified_time" content="2026-07-10T04:00:00.000Z">
@@ -331,7 +331,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          73k 字
+          75k 字
         
       </span>
     
@@ -343,7 +343,7 @@
         
         
           <!-- compatible with older versions-->
-          612 分钟
+          626 分钟
         
       </span>
     
@@ -388,12 +388,13 @@
               <div class="markdown-body">
                 
                 <h2 id="TL-DR：读者收益摘要"><a href="#TL-DR：读者收益摘要" class="headerlink" title="TL;DR：读者收益摘要"></a>TL;DR：读者收益摘要</h2><p>这篇文章是 NarrowGate 的工程篇，接在算法篇 <a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/">《NarrowGate：Maker Quote EV 与被动做市研究框架》</a> 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。</p>
+<p>项目源码与构建入口：<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker">GitHub - xiao-nanbei/NarrowGateMaker</a>。公开配置是安全研究模板，不是当前私有 live 参数快照。</p>
 <p>离线侧的低延时，本质是把严格 replay 从“只能抽样验证”推进到“可以按日、按窗口、按参数臂系统验证”。它关注 wall time、rows/s、windows/hour、内存峰值、路径一致性和结果可重复性；单个函数调用的尾部延迟只有在暴露 fallback、分配、swap 或过度订阅时才有解释价值。</p>
 <p>在线侧的低延时，是让报价、撤单和库存控制在真实事件循环里尽量少出现 stale quote、late cancel、跨语言 fallback 和偶发尖刺。这里必须看 mean、p99、p99.9、CPU migration、page fault、context switch、fallback 计数和长样本 soak。</p>
 <p>这两个目标最终都服务同一件事：让 maker 策略的 spread、skew、TTL、cooldown 和库存风险控制，可以在足够多反例里被验证，也可以在 live 中按预期执行。低延时不是独立于 alpha 的炫技，它是策略工程化后必须面对的执行条件。</p>
 <p>到 2026-07-10，项目里的工程边界又收紧了一层：tracked <code>live/config.yaml</code> 只保留公开模板，私有 live 参数通过 <code>NARROWGATE_LIVE_CONFIG</code> 注入；仓库补了根级 <code>pyproject.toml</code>、<code>narrowgate</code> CLI、CI、Docker/devcontainer 和 5 分钟 quickstart。这个变化不是“文档好看一点”，而是把低延时研究从个人实验推进到可复现边界：别人应该能跑通 quote demo、smoke test 和 public replay skeleton，但不应该拿到私有基础设施、模型快照和实盘参数。</p>
 <p>同一时期，C++ replay 也从“小窗口 parity 工具”推进成 active-parameter fast screening engine。queue side/regime calibration、replace throttle/pending coalesce、reducing-side cooldown、adaptive add cooldown、campaign soft control 和 BUY fill-selection score 已经进入 native 参数结构与状态机；每次宽搜索仍必须先用当前 rolling baseline 过 Python/C++ parity gate。仍留在 Python/live-only 边界的，主要是 archived <code>xmarket_retreat</code>、逐样本 empirical REST latency 回放，以及 user-stream mismatch / sync-adjust 这类只有实盘才存在的故障闭环。</p>
-<p>策略侧也在同一天继续收缩。lifecycle-risk、campaign soft control 和 reducing cooldown 都没有被直接推成新 live arm；新的重点变成 null baseline 与 order-level fill-selection：先问当前实际 fills 是否比随机被动机会更差，再找哪些 quote-time 状态能把 fill selection 拉回 neutral，最后才映射到 spread、skew、TTL 或 cooldown。这说明系统可以把验证跑得更快、更细，但不能替策略证据补票。</p>
+<p>策略侧也在同一天继续收缩。lifecycle-risk、campaign soft control 和 reducing cooldown 都没有被直接推成新 live arm；新的重点变成两层 null baseline 与 order-level fill-selection：先用 submit-time opportunity null 检查 actual fills 是否被 adverse selection 选中，再用完整状态机里的 executable passive null 检查 baseline 是否真的优于随机化报价路径，最后才把稳定 quote-time 条件映射到 spread、skew、TTL 或 cooldown。这说明系统可以把验证跑得更快、更细，但不能替策略证据补票。</p>
 <p>本文只讨论工程实现，不讨论也不建议任何真实交易行为。所有 PnL、fill、markout、A/B 和 benchmark 都是研究指标或系统指标，不是收益承诺。</p>
 <div class="table-container">
 <table>
@@ -1060,6 +1061,10 @@ trace rows</code></pre></div>
 <p>修复后的第一轮实测是 48 个 active Sobol arms、4 个代表日的 C++ quick-smoke。任务在 4 workers 下约 340 秒完成，baseline parity gate 先通过，然后才进入 arm 筛选。结果也很克制：只有 baseline 和一个非 baseline arm 通过 hard mechanism gate；这个 survivor 进入 retained39 后，raw 与 terminal campaign PnL 都比 baseline 低约 20 USDC，库存时间反而高约 14%。</p>
 <p>随后把搜索面扩大到 1024 个 active arms，但没有直接把 1024 组全部跑 retained39。第一层先用单个代表日和 summary-only C++ replay 筛出 68 个 survivor；第二层在 4 个代表日上筛出 16 个；第三层才进入 retained39。4-day 排名最靠前的 arm 曾比 baseline 高出两位数 PnL，但 top 16 在 retained39 上全部输给 rolling baseline。这不是“baseline 已经全局最优”的证明，而是一个很典型的 multiple-testing 结果：搜索越宽，越容易在四天样本里找到偶然 winner，daily OOS 才负责把它们打回去。</p>
 <p>这轮搜索还有一个有价值的 ablation。把 retained39 中最接近 baseline 的组合拆开后，<code>quote/cap + ML bundle</code> 能把 39-day raw loss 缩小约 26 USDC；加上两个最近完整日后，41-day delta 仍约为正 24 USDC。但它同时把 fills 压到 baseline 的约 78.5%，扩大平均 spread，并把库存时间提高约 8%。因此它被记作“少亏但机制发生代价交换”的候选，不是 live promotion。下一步必须回到 campaign outcome audit，检查 terminal campaign PnL、MAE、tail campaign 与 recent-day 稳定性，不能只看 summary-only PnL。</p>
+<p>2026-07-10 又补了一轮更基础的 replay integrity diagnosis。它不是继续扩大参数面，而是固定做两组三臂：<code>historical/off/sign-corrected</code> markout feedback，以及 <code>compress/pause-exposure/observe-only</code> spread-cap action；同时拆出 terminal MTM、hypothetical liquidation fee estimate、final PnL 和 cap-compressed fill markout。所有 retained39 运行都要求 <code>--strict-calibration</code>：显式 private baseline config、P3/effective-kappa、daily queue calibration、historical BBO/L2 与 empirical/non-zero REST latency 缺一项就 fail fast。</p>
+<p>这组 native replay 排除了几个容易让人过早兴奋的解释。sign-corrected markout feedback 与关闭 feedback 都比 historical baseline 更差；baseline 只有 <code>18 / 18,455</code> 个 cap-compressed fills，不能把整体负 PnL 归因给 cap 向内压缩。实现层面可疑不等于数据已经证明它是 bug，C++ 加速的价值之一正是让这种反证可以在完整 retained panel 上低成本完成。</p>
+<p>期末账本本身则做了语义修复。窗口结束只是 valuation boundary，并没有发出 taker order，所以 Python/C++ 现在都令 <code>final_pnl = cash + inventory * terminal_mark</code>，<code>terminal_fee_drag=0</code>。此前约 <code>3.12</code> 的扣减保留为 <code>terminal_liquidation_fee_estimate</code>，只用于估算“若此刻强制主动平仓”的成本，不进入 PnL。真实 timeout/emergency taker exit 仍扣 taker fee；当前 BTCUSDC maker fills 按配置的 <code>maker_fee=0</code> 记账。这个改动只修账本边界，不改变报价、queue、fill 或 campaign，不能被解释成 alpha。</p>
+<p>同一个 C++ state machine 现在还支持 executable passive null。它随机化 requote cadence 和 flat-state side geometry，但保留 queue、latency、replace/coalesce、cooldown、inventory、campaign 与 terminal accounting。静态审计还抓到过一个细小但真实的调度语义问题：jitter 分布虽对称，但 next-interval offset 的正负号写反；Python/C++ 同步修复并按 MTM 口径重算 retained39 后，8 个 seeds 的 random raw mean 为 <code>-86.34</code>，baseline 为 <code>-98.77</code>，baseline 差约 <code>12.43</code>；fills 只有 random 的 <code>93.3%</code>，库存时间高 <code>10.8%</code>，tail campaigns 多约 <code>7.6</code>。random seed raw 标准差约 <code>14.28</code>，而 paired daily median gap 仍约 <code>+0.34</code>，因此这不是随机策略 promotion，也不是仅凭 8 seeds 就能下的强统计结论；更准确的系统结论是：少数 tail days 正在抹掉 baseline 普通日的小优势，后续 C++ 参数 racing 不能再把“比某个短窗口 baseline 好”自动解释成 alpha。</p>
 <p>这个过程说明 C++ fast screening 的正确姿势：先让它快速扩大反例和候选覆盖，再用 daily/campaign gate 识别幸存者偏差与风险转移。<code>fast_cpp_arm_smoke.py</code> 明确只收 summary；它可以回答“哪些组合值得继续算”，不能回答“哪个组合应该上线”。</p>
 <h4 id="1-4-4-quote-EV-fast-screening：快筛不是最终裁决"><a href="#1-4-4-quote-EV-fast-screening：快筛不是最终裁决" class="headerlink" title="1.4.4 quote EV fast screening：快筛不是最终裁决"></a>1.4.4 quote EV fast screening：快筛不是最终裁决</h4><p>quote EV online inference 会对大量 quote 逐行构造 feature 并调用模型，多日 A/B 很慢。早期项目因此增加过一条研究快筛路径：</p>
 <ol>
