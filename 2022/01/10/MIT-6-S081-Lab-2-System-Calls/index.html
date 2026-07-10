@@ -7,8 +7,11 @@
 
 <head>
   <meta charset="UTF-8">
+
   <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
   <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
@@ -30,30 +33,25 @@
 <meta name="twitter:card" content="summary_large_image">
   
   
+  
   <title>MIT 6.S081 Lab 2: System calls - databrains</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
 
 
+
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
 
-  
-    
-    
-      
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
-    
-  
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
 
-  
-    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
-  
 
 
 <!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
 
 
 
@@ -62,21 +60,42 @@
 
 <link  rel="stylesheet" href="/css/main.css" />
 
-<!-- 自定义样式保持在最底部 -->
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
 
 
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
   </script>
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 6.0.0"></head>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
 
 
 <body>
-  <header style="height: 70vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand" href="/">
       <strong>databrains</strong>
@@ -88,7 +107,7 @@
       <div class="animated-icon"><span></span><span></span><span></span></div>
     </button>
 
-    <!-- Collapsible content -->
+    <!-- Collapsible content (desktop) -->
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav ml-auto text-center">
         
@@ -97,9 +116,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/">
+              <a class="nav-link" href="/" target="_self">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                <span>首页</span>
               </a>
             </li>
           
@@ -109,9 +128,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/archives/">
+              <a class="nav-link" href="/archives/" target="_self">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                <span>归档</span>
               </a>
             </li>
           
@@ -121,9 +140,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/categories/">
+              <a class="nav-link" href="/categories/" target="_self">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                <span>分类</span>
               </a>
             </li>
           
@@ -133,9 +152,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/tags/">
+              <a class="nav-link" href="/tags/" target="_self">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                <span>标签</span>
               </a>
             </li>
           
@@ -145,9 +164,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/about/">
+              <a class="nav-link" href="/about/" target="_self">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                <span>关于</span>
               </a>
             </li>
           
@@ -155,14 +174,16 @@
         
           <li class="nav-item" id="search-btn">
             <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
-              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+              <i class="iconfont icon-search"></i>
             </a>
           </li>
+          
         
         
           <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
           </li>
         
       </ul>
@@ -170,57 +191,176 @@
   </div>
 </nav>
 
-    <div class="banner" id="banner" parallax=true
-         style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="MIT 6.S081 Lab 2: System calls">
-              
-            </span>
-
-            
-              <div class="mt-3">
-  
-  
-    <span class="post-meta">
-      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2022-01-10 21:07" pubdate>
-        2022年1月10日 晚上
-      </time>
-    </span>
-  
-</div>
-
-<div class="mt-1">
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-chart"></i>
-      11k 字
-    </span>
-  
-
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-clock-fill"></i>
-      
-      
-      90 分钟
-    </span>
-  
-
-  
-  
-</div>
-
-            
-          </div>
-
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
           
-        </div>
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
       </div>
     </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="MIT 6.S081 Lab 2: System calls"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2022-01-10 21:07" pubdate>
+          2022年1月10日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          11k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          90 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
   </header>
 
   <main>
@@ -229,16 +369,21 @@
 
 <div class="container-fluid nopadding-x">
   <div class="row nomargin-x">
-    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
     <div class="col-lg-8 nopadding-x-md">
       <div class="container nopadding-x-md" id="board-ctn">
-        <div class="py-5" id="board">
+        <div id="board">
           <article class="post-content mx-auto">
-            <!-- SEO header -->
-            <h1 style="display: none">MIT 6.S081 Lab 2: System calls</h1>
+            <h1 id="seo-header">MIT 6.S081 Lab 2: System calls</h1>
             
-            <div class="markdown-body">
-              <p>在上一个实验中我们使用系统调用编写了一些utilities，在这个实验中我们需要为xv6增加一些系统调用，以便我们理解系统调用是如何工作的，并向我们展示xv6内核的一些内部结构。</p>
+            
+              <div class="markdown-body">
+                
+                <p>在上一个实验中我们使用系统调用编写了一些utilities，在这个实验中我们需要为xv6增加一些系统调用，以便我们理解系统调用是如何工作的，并向我们展示xv6内核的一些内部结构。</p>
 <p>我们先来说说什么是系统调用，操作系统作为用户和计算机硬件之间的接口，需要向上提供一些简单易用的服务，主要包括命令接口和程序接口。其中，程序接口由一组系统调用组成。应用程序通过系统调用请求操作系统的服务。系统中的各种共享资源都由操作系统统一掌握，因此在用户程序中，凡是与资源有关的操作(如存储分配、I/O操作、文件管理等)，都必须通过系统调用的方式向操作系统提出服务请求，由操作系统代为完成。</p>
 <p>从某种角度来看，系统调用和普通的函数调用非常相似。区别仅仅在于，系统调用由操作系统核心提供，运行于核心态，而普通的函数调用由函数库或用户自己提供，运行于用户态。</p>
 <p>用户程序执行到系统调用命令时，会发生中断，处理器由用户态变为内核态，操作系统的中断处理程序得到控制权，它根据系统调用的功能号，通过例行子程序入口地址表跳转到相应的例程中去执行，在完成了用户所需要的服务功能后，退出中断，返回到用户子程序的断点继续执行。</p>
@@ -272,10 +417,10 @@
 <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a5;
 &#125;</code></pre></div>
 <h5 id="syscall函数"><a href="#syscall函数" class="headerlink" title="syscall函数"></a>syscall函数</h5><p>syscall函数代码如下：</p>
-<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">void</span></span>
-<span class="hljs-function"><span class="hljs-title">syscall</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>
-<span class="hljs-function"></span>&#123;
-  <span class="hljs-keyword">int</span> num;
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-type">void</span>
+<span class="hljs-title function_">syscall</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>
+&#123;
+  <span class="hljs-type">int</span> num;
   <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">p</span> =</span> myproc();
 
   num = p-&gt;trapframe-&gt;a7;
@@ -295,7 +440,7 @@
 .global <span class="hljs-keyword">exit</span></code></pre></div>
 <p>也就是说，当一个程序需要作系统调用的时候，它将相关参数放进系统调用相关的寄存器。</p>
 <p>然后判断调用号是否正确，如果正确的话就将<code>syscalls[num]()</code>赋值给a0，syscalls中调用号对应sys_xxx函数，也就是将要调用的函数的返回值赋值给a0。代码如下所示：</p>
-<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-title">uint64</span> <span class="hljs-params">(*syscalls[])</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span> </span>= &#123;
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-title function_">uint64</span> <span class="hljs-params">(*syscalls[])</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> = &#123;
 [SYS_fork]    sys_fork,
 [SYS_exit]    sys_exit,
 [SYS_wait]    sys_wait,
@@ -320,28 +465,28 @@
 [SYS_trace]   sys_trace,
 &#125;;</code></pre></div>
 <p>同样，我们在syscalls.c中定义了如下的外部函数，部分外部函数的实现在sysproc.c中，代码如下所示：</p>
-<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_chdir</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
-<span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_close</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
-<span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_dup</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
-<span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_exec</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
-<span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_exit</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
-<span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_fork</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
-<span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_fstat</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
-<span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_getpid</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
-<span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_kill</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
-<span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_link</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
-<span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_mkdir</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
-<span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_mknod</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
-<span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_open</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
-<span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_pipe</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
-<span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_read</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
-<span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_sbrk</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
-<span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_sleep</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
-<span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_unlink</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
-<span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_wait</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
-<span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_write</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
-<span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_uptime</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
-<span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_trace</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;</code></pre></div>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_chdir</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_close</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_dup</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_exec</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_exit</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_fork</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_fstat</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_getpid</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_kill</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_link</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_mkdir</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_mknod</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_open</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_pipe</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_read</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_sbrk</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_sleep</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_unlink</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_wait</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_write</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_uptime</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_trace</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;</code></pre></div>
 <h4 id="sysproc-c"><a href="#sysproc-c" class="headerlink" title="sysproc.c"></a>sysproc.c</h4><p>sysproc.c是系统进程，正如我们在xv6文档看到的那样，起到由用户转到内核的作用，通过syscall，可以进入sysproc执行相应的函数。</p>
 <h5 id="proc数据结构"><a href="#proc数据结构" class="headerlink" title="proc数据结构"></a>proc数据结构</h5><p>proc数据结构表示进程状态，其数据结构如下所示：</p>
 <div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-comment">// Per-process state</span>
@@ -350,10 +495,10 @@
 
   <span class="hljs-comment">// p-&gt;lock must be held when using these:</span>
   <span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-title">procstate</span> <span class="hljs-title">state</span>;</span>        <span class="hljs-comment">// Process state</span>
-  <span class="hljs-keyword">void</span> *chan;                  <span class="hljs-comment">// If non-zero, sleeping on chan</span>
-  <span class="hljs-keyword">int</span> killed;                  <span class="hljs-comment">// If non-zero, have been killed</span>
-  <span class="hljs-keyword">int</span> xstate;                  <span class="hljs-comment">// Exit status to be returned to parent&#x27;s wait</span>
-  <span class="hljs-keyword">int</span> pid;                     <span class="hljs-comment">// Process ID</span>
+  <span class="hljs-type">void</span> *chan;                  <span class="hljs-comment">// If non-zero, sleeping on chan</span>
+  <span class="hljs-type">int</span> killed;                  <span class="hljs-comment">// If non-zero, have been killed</span>
+  <span class="hljs-type">int</span> xstate;                  <span class="hljs-comment">// Exit status to be returned to parent&#x27;s wait</span>
+  <span class="hljs-type">int</span> pid;                     <span class="hljs-comment">// Process ID</span>
 
   <span class="hljs-comment">// wait_lock must be held when using this:</span>
   <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">parent</span>;</span>         <span class="hljs-comment">// Parent process</span>
@@ -361,25 +506,25 @@
   <span class="hljs-comment">// these are private to the process, so p-&gt;lock need not be held.</span>
   uint64 kstack;               <span class="hljs-comment">// Virtual address of kernel stack</span>
   uint64 sz;                   <span class="hljs-comment">// Size of process memory (bytes)</span>
-  <span class="hljs-keyword">pagetable_t</span> pagetable;       <span class="hljs-comment">// User page table</span>
+  <span class="hljs-type">pagetable_t</span> pagetable;       <span class="hljs-comment">// User page table</span>
   <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">trapframe</span> *<span class="hljs-title">trapframe</span>;</span> <span class="hljs-comment">// data page for trampoline.S</span>
   <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">context</span> <span class="hljs-title">context</span>;</span>      <span class="hljs-comment">// swtch() here to run process</span>
   <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">file</span> *<span class="hljs-title">ofile</span>[<span class="hljs-title">NOFILE</span>];</span>  <span class="hljs-comment">// Open files</span>
   <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">inode</span> *<span class="hljs-title">cwd</span>;</span>           <span class="hljs-comment">// Current directory</span>
-  <span class="hljs-keyword">char</span> name[<span class="hljs-number">16</span>];               <span class="hljs-comment">// Process name (debugging)</span>
+  <span class="hljs-type">char</span> name[<span class="hljs-number">16</span>];               <span class="hljs-comment">// Process name (debugging)</span>
   uint64 mask;
 &#125;;</code></pre></div>
 <h4 id="System-call-tracing"><a href="#System-call-tracing" class="headerlink" title="System call tracing"></a>System call tracing</h4><p>这个模块要实现系统调用跟踪，添加一个新的系统调用跟踪功能，即创建一个新的跟踪系统调用来控制跟踪。我们首先分析trace程序，在user/trace.c中可以看到第十七行为<code>if (trace(atoi(argv[1])) &lt; 0)</code>，我们可以得知trace函数的原型为<code>int trace(int n)</code>其中，n为第一个参数，也就是<code>1&lt;&lt;SYS_xxx</code>,这个SYS_xxx是一个整数“掩码”（这么翻译的，感觉翻译得不太好，调用号更合适些），每一个不同的SYS_xxx对应不同的系统调用。我们可以看看trace函数中的代码：</p>
-<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;kernel/param.h&quot;</span></span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;kernel/types.h&quot;</span></span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;kernel/stat.h&quot;</span></span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;user/user.h&quot;</span></span>
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;kernel/param.h&quot;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;kernel/types.h&quot;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;kernel/stat.h&quot;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;user/user.h&quot;</span></span>
 
-<span class="hljs-function"><span class="hljs-keyword">int</span></span>
-<span class="hljs-function"><span class="hljs-title">main</span><span class="hljs-params">(<span class="hljs-keyword">int</span> argc, <span class="hljs-keyword">char</span> *argv[])</span></span>
-<span class="hljs-function"></span>&#123;
-  <span class="hljs-keyword">int</span> i;
-  <span class="hljs-keyword">char</span> *nargv[MAXARG];
+<span class="hljs-type">int</span>
+<span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, <span class="hljs-type">char</span> *argv[])</span>
+&#123;
+  <span class="hljs-type">int</span> i;
+  <span class="hljs-type">char</span> *nargv[MAXARG];
 
   <span class="hljs-keyword">if</span>(argc &lt; <span class="hljs-number">3</span> || (argv[<span class="hljs-number">1</span>][<span class="hljs-number">0</span>] &lt; <span class="hljs-string">&#x27;0&#x27;</span> || argv[<span class="hljs-number">1</span>][<span class="hljs-number">0</span>] &gt; <span class="hljs-string">&#x27;9&#x27;</span>))&#123;
     <span class="hljs-built_in">fprintf</span>(<span class="hljs-number">2</span>, <span class="hljs-string">&quot;Usage: %s mask command\n&quot;</span>, argv[<span class="hljs-number">0</span>]);
@@ -401,27 +546,27 @@
 <p>在上述程序中，输入的参数必须大于2个，也就是必须要有一个调用号参数，还要有一个另外的一个指令参数，跟踪的正是这个指令中相应调用号的系统调用。正如上述代码中第三个for循环所示，将从第二个参数开始之后的所有参数复制到nargv，然后调用exec函数执行该指令。</p>
 <p>在实验文档中给出的例子中，执行命令<code>trace 32 grep hello README</code>的意思是，跟踪grep命令中调用号为5（32=1&lt;&lt;5）的系统调用。我们可以在syscall.h中看到这些调用号，如下代码所示：</p>
 <div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-comment">// System call numbers</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_fork    1</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_exit    2</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_wait    3</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_pipe    4</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_read    5</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_kill    6</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_exec    7</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_fstat   8</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_chdir   9</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_dup    10</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_getpid 11</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_sbrk   12</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_sleep  13</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_uptime 14</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_open   15</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_write  16</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_mknod  17</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_unlink 18</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_link   19</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_mkdir  20</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SYS_close  21</span></code></pre></div>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_fork    1</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_exit    2</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_wait    3</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_pipe    4</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_read    5</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_kill    6</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_exec    7</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_fstat   8</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_chdir   9</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_dup    10</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_getpid 11</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_sbrk   12</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_sleep  13</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_uptime 14</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_open   15</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_write  16</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_mknod  17</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_unlink 18</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_link   19</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_mkdir  20</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_close  21</span></code></pre></div>
 <p>那么32就对应<code>SYS_read=5</code>。也就是说要跟踪read系统调用。</p>
 <p>因为trace本身也是系统调用之一，在user/usys.pl中加入从用户态进入内核态的入口<code>entry(trace)</code>，生成汇编语言代码，如下所示：</p>
 <div class="code-wrapper"><pre><code class="hljs c">trace:
@@ -433,9 +578,9 @@
 <p>在kernel/syscall.h中加入系统进程号<code>#define SYS_trace 22</code>。</p>
 <p>在kernel/proc.h的结构体proc中加入一个新成员<code>uint64 mask</code>。（我看到有的博主写的是<code>uint32 mask</code>，个人认为位数的多少取决于系统调用的数量。到trace为止，系统调用的数量为22）。</p>
 <p>在kernel/sysproc.c中实现<code>uint64 sys_trace(void)</code>函数。</p>
-<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-function">uint64 <span class="hljs-title">sys_trace</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>
-<span class="hljs-function"></span>&#123;
-    <span class="hljs-keyword">int</span> mask;<span class="hljs-comment">//这里的int也可以换成长整数</span>
+<div class="code-wrapper"><pre><code class="hljs c">uint64 <span class="hljs-title function_">sys_trace</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>
+&#123;
+    <span class="hljs-type">int</span> mask;<span class="hljs-comment">//这里的int也可以换成长整数</span>
     <span class="hljs-keyword">if</span> (argint(<span class="hljs-number">0</span>,&amp;mask) &lt; <span class="hljs-number">0</span>)
         <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;
     myproc()-&gt;mask = mask;
@@ -447,7 +592,7 @@
 <div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-keyword">if</span> (p-&gt;mask &amp; (<span class="hljs-number">1</span> &lt;&lt; num))
       <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%d: syscall %s -&gt; %d\n&quot;</span>, p-&gt;pid, callnames[num - <span class="hljs-number">1</span>], p-&gt;trapframe-&gt;a0);</code></pre></div>
 <p>上述代码中callnamens数组如下所示：</p>
-<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-keyword">static</span> <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* callnames[] = &#123;
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">const</span> <span class="hljs-type">char</span>* callnames[] = &#123;
 	<span class="hljs-string">&quot;fork&quot;</span>,<span class="hljs-string">&quot;exit&quot;</span>,<span class="hljs-string">&quot;wait&quot;</span>,<span class="hljs-string">&quot;pipe&quot;</span>,<span class="hljs-string">&quot;read&quot;</span>,<span class="hljs-string">&quot;kill&quot;</span>,<span class="hljs-string">&quot;exec&quot;</span>,<span class="hljs-string">&quot;fstat&quot;</span>,<span class="hljs-string">&quot;chdir&quot;</span>,
 	<span class="hljs-string">&quot;dup&quot;</span>,<span class="hljs-string">&quot;getpid&quot;</span>,<span class="hljs-string">&quot;sbrk&quot;</span>,<span class="hljs-string">&quot;sleep&quot;</span>,<span class="hljs-string">&quot;uptime&quot;</span>,<span class="hljs-string">&quot;open&quot;</span>,<span class="hljs-string">&quot;write&quot;</span>,<span class="hljs-string">&quot;mknod&quot;</span>,
 	<span class="hljs-string">&quot;unlink&quot;</span>,<span class="hljs-string">&quot;link&quot;</span>,<span class="hljs-string">&quot;mkdir&quot;</span>,<span class="hljs-string">&quot;close&quot;</span>,<span class="hljs-string">&quot;trace&quot;</span>
@@ -468,8 +613,8 @@
 <li><p>在kernel/syscall.h中加入sysinfo的系统调用号<code>#define SYS_sysinfo 23</code>。</p>
 </li>
 <li><p>在kernel/syscall.c函数中加入外部函数生命和函数指针，代码如下所示：</p>
-<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title">sys_sysinfo</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
-<span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-title">uint64</span> <span class="hljs-params">(*syscalls[])</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span> </span>= 
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_sysinfo</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-type">static</span> <span class="hljs-title function_">uint64</span> <span class="hljs-params">(*syscalls[])</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> = 
 &#123;
     .....
     [SYS_sysinfo] sys_sysinfo
@@ -485,9 +630,9 @@
 &#125;;</code></pre></div>
 <p>在sysinfo数据结构中，有两个uint64变量，一个是freemem，代表空闲内存的大小，单位为bytes；另一个是nproc，代表进程的数量。</p>
 <p>现在来具体分析sysinfotest要实现的功能，该系统调用收集正在运行的系统调用的信息。在sysinfotest的主函数如下所示：</p>
-<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">int</span></span>
-<span class="hljs-function"><span class="hljs-title">main</span><span class="hljs-params">(<span class="hljs-keyword">int</span> argc, <span class="hljs-keyword">char</span> *argv[])</span></span>
-<span class="hljs-function"></span>&#123;
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-type">int</span>
+<span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, <span class="hljs-type">char</span> *argv[])</span>
+&#123;
   <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;sysinfotest: start\n&quot;</span>);
   testcall();
   testmem();
@@ -496,8 +641,8 @@
   <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);
 &#125;</code></pre></div>
 <p>在上述主函数中，首先调用了testcall函数，testcall函数如下：</p>
-<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">void</span></span>
-<span class="hljs-function"><span class="hljs-title">testcall</span><span class="hljs-params">()</span> </span>&#123;
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-type">void</span>
+<span class="hljs-title function_">testcall</span><span class="hljs-params">()</span> &#123;
   <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">sysinfo</span> <span class="hljs-title">info</span>;</span>
   
   <span class="hljs-keyword">if</span> (sysinfo(&amp;info) &lt; <span class="hljs-number">0</span>) &#123;
@@ -505,29 +650,29 @@
     <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);
   &#125;
 
-  <span class="hljs-keyword">if</span> (sysinfo((struct sysinfo *) <span class="hljs-number">0xeaeb0b5b00002f5e</span>) !=  <span class="hljs-number">0xffffffffffffffff</span>) &#123;
+  <span class="hljs-keyword">if</span> (sysinfo((<span class="hljs-keyword">struct</span> sysinfo *) <span class="hljs-number">0xeaeb0b5b00002f5e</span>) !=  <span class="hljs-number">0xffffffffffffffff</span>) &#123;
     <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;FAIL: sysinfo succeeded with bad argument\n&quot;</span>);
     <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);
   &#125;
 &#125;</code></pre></div>
 <p>在sysinfo函数中，定义了一个sysinfo变量info。调用sysinfo函数，也就是在内核中调用sys_sysinfo函数，我们在上文中提到，调用sysinfo函数，会在entry中将sys_info的系统调用号赋值给a7（同时将参数赋值给a0），然后进入内核进行调用。那么我们就要来完成sys_sysinfo函数：</p>
-<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-function">uint64</span>
-<span class="hljs-function"><span class="hljs-title">sys_sysinfo</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>
-<span class="hljs-function"></span>&#123;
+<div class="code-wrapper"><pre><code class="hljs c">uint64
+<span class="hljs-title function_">sys_sysinfo</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>
+&#123;
 	uint64 addr;
 	<span class="hljs-keyword">if</span> (argaddr(<span class="hljs-number">0</span>,&amp;addr) &lt; <span class="hljs-number">0</span>)
 		<span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;
 	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">sysinfo</span> <span class="hljs-title">sf</span>;</span>
 	sf.nproc = nop();<span class="hljs-comment">//nop 后面加</span>
 	sf.freemem = freemem();<span class="hljs-comment">// 后面加</span>
-	<span class="hljs-keyword">if</span> (copyout(myproc()-&gt;pagetable,addr,(<span class="hljs-keyword">char</span>*)&amp;sf,<span class="hljs-keyword">sizeof</span>(sf)) &lt; <span class="hljs-number">0</span>)
+	<span class="hljs-keyword">if</span> (copyout(myproc()-&gt;pagetable,addr,(<span class="hljs-type">char</span>*)&amp;sf,<span class="hljs-keyword">sizeof</span>(sf)) &lt; <span class="hljs-number">0</span>)
 		<span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;
 	<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
 &#125;
 </code></pre></div>
 <p>在sys_sysinfo中定义了一个uint64变量addr，sysinfo的参数也就是a0赋值给addr，</p>
-<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">void</span></span>
-<span class="hljs-function"><span class="hljs-title">testmem</span><span class="hljs-params">()</span> </span>&#123;
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-type">void</span>
+<span class="hljs-title function_">testmem</span><span class="hljs-params">()</span> &#123;
   <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">sysinfo</span> <span class="hljs-title">info</span>;</span>
   uint64 n = countfree();
   
@@ -563,11 +708,11 @@
   &#125;
 &#125;
 </code></pre></div>
-<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">testproc</span><span class="hljs-params">()</span> </span>&#123;
+<div class="code-wrapper"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">testproc</span><span class="hljs-params">()</span> &#123;
   <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">sysinfo</span> <span class="hljs-title">info</span>;</span>
   uint64 nproc;
-  <span class="hljs-keyword">int</span> status;
-  <span class="hljs-keyword">int</span> pid;
+  <span class="hljs-type">int</span> status;
+  <span class="hljs-type">int</span> pid;
   
   sinfo(&amp;info);
   nproc = info.nproc;
@@ -593,40 +738,96 @@
   &#125;
 &#125;</code></pre></div>
 
-            </div>
-            <hr>
-            <div>
-              <div class="post-metas mb-3">
-                
-                  <div class="post-meta mr-3">
-                    <i class="iconfont icon-category"></i>
-                    
-                      <a class="hover-with-bg" href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a>
-                    
-                  </div>
-                
-                
-                  <div class="post-meta">
-                    <i class="iconfont icon-tags"></i>
-                    
-                      <a class="hover-with-bg" href="/tags/MIT-6-S081-Lab/">MIT 6.S081 Lab</a>
-                    
-                  </div>
                 
               </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">操作系统</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/MIT-6-S081-Lab/" class="print-no-link">#MIT 6.S081 Lab</a>
+      
+    </div>
+  
+</div>
+
+
               
-                <p class="note note-warning">
-                  
-                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
-                  
-                </p>
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>MIT 6.S081 Lab 2: System calls</div>
+      <div>https://xiao-nanbei.github.io/2022/01/10/MIT-6-S081-Lab-2-System-Calls/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2022年1月10日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
               
               
-                <div class="post-prevnext">
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2022/01/10/MIT-6-S081-xv6-Book-Notes/">
+                      <a href="/2022/01/10/MIT-6-S081-xv6-Book-Notes/" title="MIT 6.S081: xv6 实验参考书解析">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">MIT 6.S081: xv6 实验参考书解析</span>
                         <span class="visible-mobile">上一篇</span>
@@ -636,7 +837,7 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2021/12/17/Go-Goroutine-and-GMP-Scheduler/">
+                      <a href="/2021/12/17/Go-Goroutine-and-GMP-Scheduler/" title="Go Goroutine 与 GMP 调度器">
                         <span class="hidden-mobile">Go Goroutine 与 GMP 调度器</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
@@ -652,19 +853,74 @@
         </div>
       </div>
     </div>
-    
-      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
-        <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
   <div class="toc-body" id="toc-body"></div>
 </div>
 
-      </div>
-    
+
+
+  </aside>
+
+
+    </div>
   </div>
 </div>
 
-<!-- Custom -->
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
 
 
     
@@ -689,32 +945,33 @@
       <div class="modal-body mx-3">
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>
     </div>
   </div>
 </div>
+
     
 
     
   </main>
 
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
-  </div>
+  <footer>
+    <div class="footer-inner">
   
-
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
   
-
   
-</footer>
+  
+</div>
 
+  </footer>
 
-  <!-- SCRIPTS -->
+  <!-- Scripts -->
   
   <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
@@ -733,10 +990,22 @@
 <script  src="/js/events.js" ></script>
 <script  src="/js/plugins.js" ></script>
 
-<!-- Plugins -->
 
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
 
-  <script  src="/js/local-search.js" ></script>
 
 
 
@@ -746,105 +1015,222 @@
 
 
 
-  
-
-
 
   
-    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
-  
-  
-    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
-  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
 
-
-
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
-  <script>
-    (function (window, document) {
-      var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
-      
-        typing(title);
-      
-    })(window, document);
-  </script>
-
-
-
-
-
-  
-
-  
-    <!-- MathJax -->
-    <script>
-      MathJax = {
-        tex: {
-          inlineMath: [['$', '$'], ['\\(', '\\)']]
-        },
-        loader: {
-          load: ['ui/lazy']
-        },
-        options: {
-          renderActions: {
-            findScript: [10, doc => {
-              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
-                const display = !!node.type.match(/; *mode=display/);
-                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
-                const text = document.createTextNode('');
-                node.parentNode.replaceChild(text, node);
-                math.start = { node: text, delim: '', n: 0 };
-                math.end = { node: text, delim: '', n: 0 };
-                doc.math.push(math);
-              });
-            }, '', false],
-            insertedScript: [200, () => {
-              document.querySelectorAll('mjx-container').forEach(node => {
-                let target = node.parentNode;
-                if (target.nodeName.toLowerCase() === 'li') {
-                  target.parentNode.classList.add('has-jax');
-                }
-              });
-            }, '', false]
-          }
-        }
-      };
-    </script>
-
-    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
-
-  
-
-
-
-
-
-  <script  src="https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js" ></script>
-  <script>
-    if (window.mermaid) {
-      mermaid.initialize({"theme":"default"});
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
     }
-  </script>
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
 
 
 
 
 
-
-
-<!-- 主题的启动项 保持在最底部 -->
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
 <script  src="/js/boot.js" ></script>
 
 
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
 </body>
 </html>

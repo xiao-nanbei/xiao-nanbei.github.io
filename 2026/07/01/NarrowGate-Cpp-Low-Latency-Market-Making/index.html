@@ -7,8 +7,11 @@
 
 <head>
   <meta charset="UTF-8">
+
   <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
   <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
@@ -34,30 +37,25 @@
 <meta name="twitter:card" content="summary_large_image">
   
   
+  
   <title>NarrowGate：回测吞吐与 Live 尾延迟工程 - databrains</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
 
 
+
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
 
-  
-    
-    
-      
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
-    
-  
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
 
-  
-    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
-  
 
 
 <!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
 
 
 
@@ -66,21 +64,42 @@
 
 <link  rel="stylesheet" href="/css/main.css" />
 
-<!-- 自定义样式保持在最底部 -->
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
 
 
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
   </script>
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 6.0.0"></head>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
 
 
 <body>
-  <header style="height: 70vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand" href="/">
       <strong>databrains</strong>
@@ -92,7 +111,7 @@
       <div class="animated-icon"><span></span><span></span><span></span></div>
     </button>
 
-    <!-- Collapsible content -->
+    <!-- Collapsible content (desktop) -->
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav ml-auto text-center">
         
@@ -101,9 +120,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/">
+              <a class="nav-link" href="/" target="_self">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                <span>首页</span>
               </a>
             </li>
           
@@ -113,9 +132,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/archives/">
+              <a class="nav-link" href="/archives/" target="_self">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                <span>归档</span>
               </a>
             </li>
           
@@ -125,9 +144,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/categories/">
+              <a class="nav-link" href="/categories/" target="_self">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                <span>分类</span>
               </a>
             </li>
           
@@ -137,9 +156,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/tags/">
+              <a class="nav-link" href="/tags/" target="_self">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                <span>标签</span>
               </a>
             </li>
           
@@ -149,9 +168,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/about/">
+              <a class="nav-link" href="/about/" target="_self">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                <span>关于</span>
               </a>
             </li>
           
@@ -159,14 +178,16 @@
         
           <li class="nav-item" id="search-btn">
             <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
-              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+              <i class="iconfont icon-search"></i>
             </a>
           </li>
+          
         
         
           <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
           </li>
         
       </ul>
@@ -174,57 +195,176 @@
   </div>
 </nav>
 
-    <div class="banner" id="banner" parallax=true
-         style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="NarrowGate：回测吞吐与 Live 尾延迟工程">
-              
-            </span>
-
-            
-              <div class="mt-3">
-  
-  
-    <span class="post-meta">
-      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2026-07-01 08:03" pubdate>
-        2026年7月1日 早上
-      </time>
-    </span>
-  
-</div>
-
-<div class="mt-1">
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-chart"></i>
-      70k 字
-    </span>
-  
-
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-clock-fill"></i>
-      
-      
-      582 分钟
-    </span>
-  
-
-  
-  
-</div>
-
-            
-          </div>
-
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
           
-        </div>
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
       </div>
     </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="NarrowGate：回测吞吐与 Live 尾延迟工程"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-01 08:03" pubdate>
+          2026年7月1日 早上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          73k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          609 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
   </header>
 
   <main>
@@ -233,16 +373,21 @@
 
 <div class="container-fluid nopadding-x">
   <div class="row nomargin-x">
-    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
     <div class="col-lg-8 nopadding-x-md">
       <div class="container nopadding-x-md" id="board-ctn">
-        <div class="py-5" id="board">
+        <div id="board">
           <article class="post-content mx-auto">
-            <!-- SEO header -->
-            <h1 style="display: none">NarrowGate：回测吞吐与 Live 尾延迟工程</h1>
+            <h1 id="seo-header">NarrowGate：回测吞吐与 Live 尾延迟工程</h1>
             
-            <div class="markdown-body">
-              <h2 id="TL-DR：读者收益摘要"><a href="#TL-DR：读者收益摘要" class="headerlink" title="TL;DR：读者收益摘要"></a>TL;DR：读者收益摘要</h2><p>这篇文章是 NarrowGate 的工程篇，接在算法篇 <a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/">《NarrowGate：Maker Quote EV 与被动做市研究框架》</a> 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。</p>
+            
+              <div class="markdown-body">
+                
+                <h2 id="TL-DR：读者收益摘要"><a href="#TL-DR：读者收益摘要" class="headerlink" title="TL;DR：读者收益摘要"></a>TL;DR：读者收益摘要</h2><p>这篇文章是 NarrowGate 的工程篇，接在算法篇 <a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/">《NarrowGate：Maker Quote EV 与被动做市研究框架》</a> 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。</p>
 <p>离线侧的低延时，本质是把严格 replay 从“只能抽样验证”推进到“可以按日、按窗口、按参数臂系统验证”。它关注 wall time、rows/s、windows/hour、内存峰值、路径一致性和结果可重复性；单个函数调用的尾部延迟只有在暴露 fallback、分配、swap 或过度订阅时才有解释价值。</p>
 <p>在线侧的低延时，是让报价、撤单和库存控制在真实事件循环里尽量少出现 stale quote、late cancel、跨语言 fallback 和偶发尖刺。这里必须看 mean、p99、p99.9、CPU migration、page fault、context switch、fallback 计数和长样本 soak。</p>
 <p>这两个目标最终都服务同一件事：让 maker 策略的 spread、skew、TTL、cooldown 和库存风险控制，可以在足够多反例里被验证，也可以在 live 中按预期执行。低延时不是独立于 alpha 的炫技，它是策略工程化后必须面对的执行条件。</p>
@@ -322,7 +467,7 @@ Normalized NumPy arrays
                   v
         summary + trace comparator</code></pre></div>
 <p>伪代码大概是：</p>
-<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">assert_replay_parity</span>(<span class="hljs-params">window, params</span>):</span>
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">assert_replay_parity</span>(<span class="hljs-params">window, params</span>):
     arrays = load_window_as_arrays(
         window,
         timestamp_dtype=<span class="hljs-string">&quot;int64_ms&quot;</span>,
@@ -371,7 +516,7 @@ Normalized NumPy arrays
 <h3 id="1-3-Queue-Ahead：回测要保守，但它不是实时系统"><a href="#1-3-Queue-Ahead：回测要保守，但它不是实时系统" class="headerlink" title="1.3 Queue Ahead：回测要保守，但它不是实时系统"></a>1.3 Queue Ahead：回测要保守，但它不是实时系统</h3><p>bar 回测最容易自欺欺人的地方是：只要下一根 bar 的 low/high 碰到我的价格，就认为成交。maker 策略里这几乎一定会高估结果，因为真实世界里还有队列。</p>
 <p>NarrowGate 的 tick replay 更保守：价格碰到只是必要条件，不是充分条件。订单进入盘口后，需要估计自己前面的 queue ahead，然后用后续 aggressive trade 去消耗这个 queue。</p>
 <p>简化逻辑如下：</p>
-<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">activate_order</span>(<span class="hljs-params">side, quote_px, activation_ts, l2_book</span>):</span>
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">activate_order</span>(<span class="hljs-params">side, quote_px, activation_ts, l2_book</span>):
     level_qty = l2_book.visible_qty_at(quote_px, activation_ts)
 
     <span class="hljs-keyword">if</span> level_qty <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
@@ -385,7 +530,7 @@ Normalized NumPy arrays
     <span class="hljs-keyword">return</span> LiveOrder(side=side, price=quote_px, queue_left=queue_left)
 
 
-<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">process_trade</span>(<span class="hljs-params">order, trade</span>):</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">process_trade</span>(<span class="hljs-params">order, trade</span>):
     <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> trade_crosses_order(trade, order):
         <span class="hljs-keyword">return</span>
 
@@ -683,7 +828,7 @@ Python REST adapter</code></pre></div>
     <span class="hljs-string">&quot;position_open&quot;</span>, <span class="hljs-string">&quot;hold_time_s&quot;</span>, <span class="hljs-string">&quot;unrealized_pnl&quot;</span>,
 )
 
-<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">_cached_cpp_config</span>(<span class="hljs-params">cpp, cfg</span>):</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">_cached_cpp_config</span>(<span class="hljs-params">cpp, cfg</span>):
     <span class="hljs-keyword">global</span> _CPP_CFG_CACHE_KEY, _CPP_CFG_CACHE_REF, _CPP_CFG_CACHE_VALUE
     cached = _CPP_CFG_CACHE_REF() <span class="hljs-keyword">if</span> _CPP_CFG_CACHE_REF <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>
     <span class="hljs-keyword">if</span> _CPP_CFG_CACHE_KEY == <span class="hljs-built_in">id</span>(cfg) <span class="hljs-keyword">and</span> cached <span class="hljs-keyword">is</span> cfg:
@@ -704,7 +849,7 @@ result = cpp.compute_quote_core_live(
 <p>C++ binding 则对 tuple 做长度检查并填充栈上的普通结构体，depth 不再逐档创建 <code>DepthLevel</code> Python wrapper：</p>
 <div class="code-wrapper"><pre><code class="hljs cpp">m.<span class="hljs-built_in">def</span>(<span class="hljs-string">&quot;compute_quote_core_live&quot;</span>,
     [](py::sequence state_values,
-       <span class="hljs-keyword">const</span> QuoteCoreConfig&amp; cfg,
+       <span class="hljs-type">const</span> QuoteCoreConfig&amp; cfg,
        py::sequence pred_values,
        py::handle bids,
        py::handle asks) &#123;
@@ -712,26 +857,26 @@ result = cpp.compute_quote_core_live(
             <span class="hljs-keyword">throw</span> std::<span class="hljs-built_in">invalid_argument</span>(<span class="hljs-string">&quot;live quote state/pred length mismatch&quot;</span>);
 
         QuoteState s;
-        s.mid             = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(state_values[<span class="hljs-number">0</span>]);
-        s.inventory       = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(state_values[<span class="hljs-number">1</span>]);
-        s.sigma_sq        = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(state_values[<span class="hljs-number">2</span>]);
-        s.trade_intensity = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(state_values[<span class="hljs-number">3</span>]);
-        s.best_bid        = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(state_values[<span class="hljs-number">4</span>]);
-        s.best_ask        = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(state_values[<span class="hljs-number">5</span>]);
+        s.mid             = py::<span class="hljs-built_in">cast</span>&lt;<span class="hljs-type">double</span>&gt;(state_values[<span class="hljs-number">0</span>]);
+        s.inventory       = py::<span class="hljs-built_in">cast</span>&lt;<span class="hljs-type">double</span>&gt;(state_values[<span class="hljs-number">1</span>]);
+        s.sigma_sq        = py::<span class="hljs-built_in">cast</span>&lt;<span class="hljs-type">double</span>&gt;(state_values[<span class="hljs-number">2</span>]);
+        s.trade_intensity = py::<span class="hljs-built_in">cast</span>&lt;<span class="hljs-type">double</span>&gt;(state_values[<span class="hljs-number">3</span>]);
+        s.best_bid        = py::<span class="hljs-built_in">cast</span>&lt;<span class="hljs-type">double</span>&gt;(state_values[<span class="hljs-number">4</span>]);
+        s.best_ask        = py::<span class="hljs-built_in">cast</span>&lt;<span class="hljs-type">double</span>&gt;(state_values[<span class="hljs-number">5</span>]);
         <span class="hljs-comment">// ...其余状态按固定位置读取</span>
 
         QuotePrediction p;
-        p.dir_10s = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(pred_values[<span class="hljs-number">0</span>]);
-        p.vol_10s = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(pred_values[<span class="hljs-number">1</span>]);
-        p.ret_10s = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(pred_values[<span class="hljs-number">2</span>]);
-        p.tox_bid = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(pred_values[<span class="hljs-number">3</span>]);
-        p.tox_ask = py::cast&lt;<span class="hljs-keyword">double</span>&gt;(pred_values[<span class="hljs-number">4</span>]);
+        p.dir_10s = py::<span class="hljs-built_in">cast</span>&lt;<span class="hljs-type">double</span>&gt;(pred_values[<span class="hljs-number">0</span>]);
+        p.vol_10s = py::<span class="hljs-built_in">cast</span>&lt;<span class="hljs-type">double</span>&gt;(pred_values[<span class="hljs-number">1</span>]);
+        p.ret_10s = py::<span class="hljs-built_in">cast</span>&lt;<span class="hljs-type">double</span>&gt;(pred_values[<span class="hljs-number">2</span>]);
+        p.tox_bid = py::<span class="hljs-built_in">cast</span>&lt;<span class="hljs-type">double</span>&gt;(pred_values[<span class="hljs-number">3</span>]);
+        p.tox_ask = py::<span class="hljs-built_in">cast</span>&lt;<span class="hljs-type">double</span>&gt;(pred_values[<span class="hljs-number">4</span>]);
 
         <span class="hljs-keyword">return</span> <span class="hljs-built_in">compute_quote_core</span>(
             s, cfg, p, <span class="hljs-built_in">depth_from_python_levels</span>(bids, asks));
     &#125;);</code></pre></div>
 <h5 id="1-4-2-3-diagnostics-不是全有或全无"><a href="#1-4-2-3-diagnostics-不是全有或全无" class="headerlink" title="1.4.2.3 diagnostics 不是全有或全无"></a>1.4.2.3 diagnostics 不是全有或全无</h5><p>side policy 每 tick 真正读取的字段远少于离线 quote EV。compact path 只物化 guard、距离、TTL 和少量 cap 诊断：</p>
-<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">compact_side_context</span>(<span class="hljs-params">side, ctx, result</span>):</span>
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">compact_side_context</span>(<span class="hljs-params">side, ctx, result</span>):
     <span class="hljs-keyword">return</span> &#123;
         <span class="hljs-string">&quot;near_depth_total&quot;</span>: <span class="hljs-built_in">float</span>(result.near_depth_total),
         <span class="hljs-string">&quot;final_quote_delta_to_bbo&quot;</span>: <span class="hljs-built_in">float</span>(ctx.final_quote_delta_to_bbo),
@@ -744,7 +889,7 @@ result = cpp.compute_quote_core_live(
         <span class="hljs-string">&quot;delta_cap&quot;</span>: <span class="hljs-built_in">bool</span>(result.flags.delta_cap),
     &#125;
 
-<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">compute_quote_core_live</span>(<span class="hljs-params">..., require_full_context=<span class="hljs-literal">False</span></span>):</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">compute_quote_core_live</span>(<span class="hljs-params">..., require_full_context=<span class="hljs-literal">False</span></span>):
     <span class="hljs-keyword">if</span> cpp_enabled <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> require_full_context:
         <span class="hljs-keyword">return</span> _compute_quote_core_cpp_compact(...)
     <span class="hljs-keyword">return</span> compute_quote_core(...)       <span class="hljs-comment"># quote EV 需要完整 feature context</span></code></pre></div>
@@ -804,45 +949,45 @@ result = cpp.compute_quote_core_live(
 </ul>
 <p>这里的“完整”指 active baseline 和已显式迁移的参数面，不代表 live-only 故障状态也被历史 replay 凭空重建。user-stream mismatch、REST sync-adjust degrade、真实 ACK 乱序与逐请求 REST latency sample 仍需要 live telemetry 或 Python diagnostic；archived <code>xmarket_retreat</code> 也继续 fail fast，避免旧 policy 借 C++ 快筛重新混进当前候选面。</p>
 <h5 id="1-4-3-1-输入是只读-view，窗口数据不再逐-tick-穿过-Python"><a href="#1-4-3-1-输入是只读-view，窗口数据不再逐-tick-穿过-Python" class="headerlink" title="1.4.3.1 输入是只读 view，窗口数据不再逐 tick 穿过 Python"></a>1.4.3.1 输入是只读 view，窗口数据不再逐 tick 穿过 Python</h5><p>replay 的入口不是 <code>on_trade(dict)</code>，而是一组生命周期覆盖整个调用的连续数组 view。Python 完成 parquet/Arrow 加载和 dtype 归一化后，只跨一次 pybind 边界：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">TickReplayInput</span> &#123;</span>
-    ArrayView&lt;std::<span class="hljs-keyword">int64_t</span>&gt; trade_ts_ms;
-    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; trade_price;
-    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; trade_qty;
-    ArrayView&lt;std::<span class="hljs-keyword">uint8_t</span>&gt; is_buyer_maker;
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">TickReplayInput</span> &#123;
+    ArrayView&lt;std::<span class="hljs-type">int64_t</span>&gt; trade_ts_ms;
+    ArrayView&lt;<span class="hljs-type">double</span>&gt; trade_price;
+    ArrayView&lt;<span class="hljs-type">double</span>&gt; trade_qty;
+    ArrayView&lt;std::<span class="hljs-type">uint8_t</span>&gt; is_buyer_maker;
 
-    ArrayView&lt;std::<span class="hljs-keyword">int64_t</span>&gt; bbo_ts_ms;
-    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; bbo_best_bid;
-    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; bbo_best_ask;
+    ArrayView&lt;std::<span class="hljs-type">int64_t</span>&gt; bbo_ts_ms;
+    ArrayView&lt;<span class="hljs-type">double</span>&gt; bbo_best_bid;
+    ArrayView&lt;<span class="hljs-type">double</span>&gt; bbo_best_ask;
 
-    ArrayView&lt;std::<span class="hljs-keyword">int64_t</span>&gt; l2_ts_ms;
-    MatrixView&lt;<span class="hljs-keyword">double</span>&gt; l2_bid_px;
-    MatrixView&lt;<span class="hljs-keyword">double</span>&gt; l2_bid_qty;
-    MatrixView&lt;<span class="hljs-keyword">double</span>&gt; l2_ask_px;
-    MatrixView&lt;<span class="hljs-keyword">double</span>&gt; l2_ask_qty;
+    ArrayView&lt;std::<span class="hljs-type">int64_t</span>&gt; l2_ts_ms;
+    MatrixView&lt;<span class="hljs-type">double</span>&gt; l2_bid_px;
+    MatrixView&lt;<span class="hljs-type">double</span>&gt; l2_bid_qty;
+    MatrixView&lt;<span class="hljs-type">double</span>&gt; l2_ask_px;
+    MatrixView&lt;<span class="hljs-type">double</span>&gt; l2_ask_qty;
 
-    ArrayView&lt;std::<span class="hljs-keyword">int64_t</span>&gt; quote_ev_ts_ms;
-    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; bid_quote_ev_30s;
-    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; ask_quote_ev_30s;
+    ArrayView&lt;std::<span class="hljs-type">int64_t</span>&gt; quote_ev_ts_ms;
+    ArrayView&lt;<span class="hljs-type">double</span>&gt; bid_quote_ev_30s;
+    ArrayView&lt;<span class="hljs-type">double</span>&gt; ask_quote_ev_30s;
 &#125;;
 
 <span class="hljs-function">TickReplayResult <span class="hljs-title">simulate_tick_arrays</span><span class="hljs-params">(</span></span>
-<span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> TickReplayInput&amp; input,</span></span>
-<span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> TickReplayParams&amp; params)</span></span>;</code></pre></div>
+<span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">const</span> TickReplayInput&amp; input,</span></span>
+<span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">const</span> TickReplayParams&amp; params)</span></span>;</code></pre></div>
 <p><code>ArrayView/MatrixView</code> 只保存指针和 shape，不拥有数据。binding 在调用期间持有 NumPy array，C++ 内循环读取连续内存；结果结束后一次性返回 summary 和可选 trace。这样优化的是整个状态机，而不是把每个 tick 的 Python callback 换成一次 pybind callback。</p>
 <h5 id="1-4-3-2-queue-policy-用模板固定-side-与模式"><a href="#1-4-3-2-queue-policy-用模板固定-side-与模式" class="headerlink" title="1.4.3.2 queue policy 用模板固定 side 与模式"></a>1.4.3.2 queue policy 用模板固定 side 与模式</h5><p>bid/ask 和 exact-level/through-level queue 的分支在循环内非常频繁。这里用模板把 side 和 queue mode 固定到编译期：</p>
 <div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span> &lt;Side S, QueueAheadMode Mode&gt;
-<span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">visible_queue_ahead</span><span class="hljs-params">(</span></span>
-<span class="hljs-params"><span class="hljs-function">    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; prices,</span></span>
-<span class="hljs-params"><span class="hljs-function">    ArrayView&lt;<span class="hljs-keyword">double</span>&gt; quantities,</span></span>
-<span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">double</span> quote_price,</span></span>
-<span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">double</span> tolerance)</span> </span>&#123;
+<span class="hljs-function"><span class="hljs-type">double</span> <span class="hljs-title">visible_queue_ahead</span><span class="hljs-params">(</span></span>
+<span class="hljs-params"><span class="hljs-function">    ArrayView&lt;<span class="hljs-type">double</span>&gt; prices,</span></span>
+<span class="hljs-params"><span class="hljs-function">    ArrayView&lt;<span class="hljs-type">double</span>&gt; quantities,</span></span>
+<span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">double</span> quote_price,</span></span>
+<span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">double</span> tolerance)</span> </span>&#123;
 
-    <span class="hljs-keyword">double</span> visible = <span class="hljs-number">0.0</span>;
-    <span class="hljs-keyword">for</span> (std::<span class="hljs-keyword">size_t</span> i = <span class="hljs-number">0</span>; i &lt; prices.<span class="hljs-built_in">size</span>(); ++i) &#123;
-        <span class="hljs-keyword">bool</span> include = <span class="hljs-literal">false</span>;
+    <span class="hljs-type">double</span> visible = <span class="hljs-number">0.0</span>;
+    <span class="hljs-keyword">for</span> (std::<span class="hljs-type">size_t</span> i = <span class="hljs-number">0</span>; i &lt; prices.<span class="hljs-built_in">size</span>(); ++i) &#123;
+        <span class="hljs-type">bool</span> include = <span class="hljs-literal">false</span>;
         <span class="hljs-function"><span class="hljs-keyword">if</span> <span class="hljs-title">constexpr</span> <span class="hljs-params">(Mode == QueueAheadMode::ExactLevel)</span> </span>&#123;
             include = std::<span class="hljs-built_in">abs</span>(prices.<span class="hljs-built_in">data</span>()[i] - quote_price) &lt;= tolerance;
-        &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> <span class="hljs-built_in"><span class="hljs-keyword">constexpr</span></span> (is_buy_v&lt;S&gt;) &#123;
+        &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> <span class="hljs-built_in">constexpr</span> (is_buy_v&lt;S&gt;) &#123;
             include = prices.<span class="hljs-built_in">data</span>()[i] &gt;= quote_price;
         &#125; <span class="hljs-keyword">else</span> &#123;
             include = prices.<span class="hljs-built_in">data</span>()[i] &lt;= quote_price;
@@ -852,14 +997,14 @@ result = cpp.compute_quote_core_live(
     <span class="hljs-keyword">return</span> visible;
 &#125;</code></pre></div>
 <p>订单本身是一个显式状态机：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">ReplayOrder</span> &#123;</span>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">ReplayOrder</span> &#123;
     Side side;
-    <span class="hljs-keyword">double</span> price, quantity, remaining;
-    <span class="hljs-keyword">double</span> queue_left, queue_init;
-    std::<span class="hljs-keyword">int64_t</span> quote_ts, activate_ts, cancel_effective_ts;
-    std::<span class="hljs-keyword">int64_t</span> ttl_ms;
+    <span class="hljs-type">double</span> price, quantity, remaining;
+    <span class="hljs-type">double</span> queue_left, queue_init;
+    std::<span class="hljs-type">int64_t</span> quote_ts, activate_ts, cancel_effective_ts;
+    std::<span class="hljs-type">int64_t</span> ttl_ms;
     OrderState state;
-    <span class="hljs-keyword">bool</span> side_adverse, defense_guard, local_extreme_guard, quote_ev;
+    <span class="hljs-type">bool</span> side_adverse, defense_guard, local_extreme_guard, quote_ev;
 
     <span class="hljs-comment">// 默认不分配；只有打开 trace 时才指向冷诊断对象。</span>
     TraceOrderPtr trace;
@@ -874,26 +1019,26 @@ order.state = sampled_new_latency_ms &gt; <span class="hljs-number">0</span> ? O
 &#125;</code></pre></div>
 <p><code>PENDING_CANCEL</code> 期间仍允许成交，因此 trace 会单独统计 <code>pending_cancel_fills</code>。这类语义如果只保留“请求撤单后立即删除订单”的简化实现，回测会系统性低估撤单延迟风险。</p>
 <h5 id="1-4-3-3-fill-先消耗-queue，再改变-inventory"><a href="#1-4-3-3-fill-先消耗-queue，再改变-inventory" class="headerlink" title="1.4.3.3 fill 先消耗 queue，再改变 inventory"></a>1.4.3.3 fill 先消耗 queue，再改变 inventory</h5><p>maker fill 不由价格 touch 直接触发。主动成交必须跨过订单价格，并先消耗 <code>queue_left</code>：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">if</span> (!trade_crosses_order&lt;S&gt;(trade_price, order.price))
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">if</span> (!<span class="hljs-built_in">trade_crosses_order</span>&lt;S&gt;(trade_price, order.price))
     <span class="hljs-keyword">continue</span>;
 
 <span class="hljs-keyword">if</span> (order.queue_left &gt; <span class="hljs-number">0.0</span>) &#123;
-    <span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span> eaten = std::<span class="hljs-built_in">min</span>(order.queue_left, remaining_trade_qty);
+    <span class="hljs-type">const</span> <span class="hljs-type">double</span> eaten = std::<span class="hljs-built_in">min</span>(order.queue_left, remaining_trade_qty);
     order.queue_left -= eaten;
     remaining_trade_qty -= eaten;
 &#125;
 
-<span class="hljs-keyword">double</span> fill_qty = <span class="hljs-built_in">floor_lot</span>(
+<span class="hljs-type">double</span> fill_qty = <span class="hljs-built_in">floor_lot</span>(
     std::<span class="hljs-built_in">min</span>(order.remaining, remaining_trade_qty), lot_size);
 <span class="hljs-keyword">if</span> (fill_qty &lt; lot_size)
     <span class="hljs-keyword">continue</span>;
 
-cash += side_cash_delta&lt;S&gt;(order.price, fill_qty, maker_fee);
-inventory += inventory_delta_sign&lt;S&gt;() * fill_qty;
+cash += <span class="hljs-built_in">side_cash_delta</span>&lt;S&gt;(order.price, fill_qty, maker_fee);
+inventory += <span class="hljs-built_in">inventory_delta_sign</span>&lt;S&gt;() * fill_qty;
 order.remaining -= fill_qty;</code></pre></div>
 <p>库存时间风险也在同一事件时钟中积分，不使用“最终仓位乘总时长”的粗略近似：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span> dt_s = (ts[i] - ts[i - <span class="hljs-number">1</span>]) / <span class="hljs-number">1000.0</span>;
-<span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span> mark = trade_price[i - <span class="hljs-number">1</span>];
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-type">const</span> <span class="hljs-type">double</span> dt_s = (ts[i] - ts[i - <span class="hljs-number">1</span>]) / <span class="hljs-number">1000.0</span>;
+<span class="hljs-type">const</span> <span class="hljs-type">double</span> mark = trade_price[i - <span class="hljs-number">1</span>];
 
 summary.signed_inventory_time_s += inventory * dt_s;
 summary.abs_inventory_time_s += std::<span class="hljs-built_in">abs</span>(inventory) * dt_s;
@@ -937,54 +1082,54 @@ trace rows</code></pre></div>
   -&gt; update rolling state
   -&gt; emit compact feature snapshot</code></pre></div>
 <p>固定时间窗的基础统计用模板表达。每次 push 只追加新值并从 deque 左侧淘汰过期值，<code>mean/stddev</code> 直接使用累计的一阶、二阶矩，不再扫描整个窗口：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">int</span> WindowSeconds&gt;
-<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RollingStats</span> &#123;</span>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span> &lt;<span class="hljs-type">int</span> WindowSeconds&gt;
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">RollingStats</span> &#123;
 <span class="hljs-keyword">public</span>:
-    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">push</span><span class="hljs-params">(std::<span class="hljs-keyword">int64_t</span> ts_ms, <span class="hljs-keyword">double</span> value)</span> </span>&#123;
+    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">push</span><span class="hljs-params">(std::<span class="hljs-type">int64_t</span> ts_ms, <span class="hljs-type">double</span> value)</span> </span>&#123;
         values_.<span class="hljs-built_in">push_back</span>(&#123;ts_ms, value&#125;);
         sum_ += value;
         sum_sq_ += value * value;
         <span class="hljs-built_in">expire</span>(ts_ms);
     &#125;
 
-    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">expire</span><span class="hljs-params">(std::<span class="hljs-keyword">int64_t</span> now_ms)</span> </span>&#123;
-        <span class="hljs-keyword">const</span> <span class="hljs-keyword">auto</span> cutoff = now_ms - WindowSeconds * <span class="hljs-number">1000LL</span>;
+    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">expire</span><span class="hljs-params">(std::<span class="hljs-type">int64_t</span> now_ms)</span> </span>&#123;
+        <span class="hljs-type">const</span> <span class="hljs-keyword">auto</span> cutoff = now_ms - WindowSeconds * <span class="hljs-number">1000LL</span>;
         <span class="hljs-keyword">while</span> (!values_.<span class="hljs-built_in">empty</span>() &amp;&amp; values_.<span class="hljs-built_in">front</span>().first &lt;= cutoff) &#123;
-            <span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span> old = values_.<span class="hljs-built_in">front</span>().second;
+            <span class="hljs-type">const</span> <span class="hljs-type">double</span> old = values_.<span class="hljs-built_in">front</span>().second;
             sum_ -= old;
             sum_sq_ -= old * old;
             values_.<span class="hljs-built_in">pop_front</span>();
         &#125;
     &#125;
 
-    <span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">mean</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123;
+    <span class="hljs-function"><span class="hljs-type">double</span> <span class="hljs-title">mean</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123;
         <span class="hljs-keyword">return</span> values_.<span class="hljs-built_in">empty</span>() ? <span class="hljs-number">0.0</span> : sum_ / values_.<span class="hljs-built_in">size</span>();
     &#125;
 
-    <span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">variance</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123;
+    <span class="hljs-function"><span class="hljs-type">double</span> <span class="hljs-title">variance</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123;
         <span class="hljs-keyword">if</span> (values_.<span class="hljs-built_in">size</span>() &lt; <span class="hljs-number">2</span>) <span class="hljs-keyword">return</span> <span class="hljs-number">0.0</span>;
-        <span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span> mu = <span class="hljs-built_in">mean</span>();
+        <span class="hljs-type">const</span> <span class="hljs-type">double</span> mu = <span class="hljs-built_in">mean</span>();
         <span class="hljs-keyword">return</span> std::<span class="hljs-built_in">max</span>(<span class="hljs-number">0.0</span>, sum_sq_ / values_.<span class="hljs-built_in">size</span>() - mu * mu);
     &#125;
 
 <span class="hljs-keyword">private</span>:
-    std::deque&lt;std::pair&lt;std::<span class="hljs-keyword">int64_t</span>, <span class="hljs-keyword">double</span>&gt;&gt; values_;
-    <span class="hljs-keyword">double</span> sum_ = <span class="hljs-number">0.0</span>;
-    <span class="hljs-keyword">double</span> sum_sq_ = <span class="hljs-number">0.0</span>;
+    std::deque&lt;std::pair&lt;std::<span class="hljs-type">int64_t</span>, <span class="hljs-type">double</span>&gt;&gt; values_;
+    <span class="hljs-type">double</span> sum_ = <span class="hljs-number">0.0</span>;
+    <span class="hljs-type">double</span> sum_sq_ = <span class="hljs-number">0.0</span>;
 &#125;;
 
 RollingStats&lt;<span class="hljs-number">3</span>&gt;  tick_sign_3s;
 RollingStats&lt;<span class="hljs-number">10</span>&gt; tick_sign_10s;
 RollingStats&lt;<span class="hljs-number">60</span>&gt; log_ret_60s;</code></pre></div>
 <p>更高层的 engine 只暴露增量接口：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SignalFeatureEngine</span> &#123;</span>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">SignalFeatureEngine</span> &#123;
 <span class="hljs-keyword">public</span>:
-    <span class="hljs-built_in">SignalFeatureEngine</span>(std::<span class="hljs-keyword">size_t</span> max_bars = <span class="hljs-number">320</span>,
-                        std::<span class="hljs-keyword">size_t</span> max_history = <span class="hljs-number">60480</span>);
-    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">push_bar</span><span class="hljs-params">(<span class="hljs-keyword">const</span> Bar1s&amp; bar)</span></span>;
-    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">push_history</span><span class="hljs-params">(<span class="hljs-keyword">const</span> FeatureHistoryRow&amp; row)</span></span>;
+    <span class="hljs-built_in">SignalFeatureEngine</span>(std::<span class="hljs-type">size_t</span> max_bars = <span class="hljs-number">320</span>,
+                        std::<span class="hljs-type">size_t</span> max_history = <span class="hljs-number">60480</span>);
+    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">push_bar</span><span class="hljs-params">(<span class="hljs-type">const</span> Bar1s&amp; bar)</span></span>;
+    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">push_history</span><span class="hljs-params">(<span class="hljs-type">const</span> FeatureHistoryRow&amp; row)</span></span>;
     [[nodiscard]] <span class="hljs-function">SignalFeatureVector <span class="hljs-title">compute</span><span class="hljs-params">(</span></span>
-<span class="hljs-params"><span class="hljs-function">        <span class="hljs-keyword">const</span> Bar1s&amp; bar_10s)</span> <span class="hljs-keyword">const</span></span>;
+<span class="hljs-params"><span class="hljs-function">        <span class="hljs-type">const</span> Bar1s&amp; bar_10s)</span> <span class="hljs-type">const</span></span>;
 
 <span class="hljs-keyword">private</span>:
     CircularBuffer&lt;Bar1s&gt; bars_;
@@ -992,26 +1137,26 @@ RollingStats&lt;<span class="hljs-number">60</span>&gt; log_ret_60s;</code></pre
 &#125;;</code></pre></div>
 <p>这里的返回值也不再是热路径上的 <code>std::map&lt;std::string, double&gt;</code>。80 个稳定字段在 C++ 内部使用 <code>enum class SignalFeatureId</code> 定位，值存进 <code>std::array&lt;double, 80&gt;</code>；只有跨过 pybind 边界返回 Python 时，才按 compile-time 字段表物化一次 dict。这样同时去掉了红黑树节点分配、字符串比较和字段拼写漂移。</p>
 <p>Python 只在 warmup/reconnect 后 seed 一次，正常运行时逐根追加：</p>
-<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">_ensure_cpp_feature_engine</span>(<span class="hljs-params">self</span>):</span>
-    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> self._cpp_feature_engine_seeded:
-        <span class="hljs-keyword">for</span> bar <span class="hljs-keyword">in</span> <span class="hljs-built_in">list</span>(self._bar_buffer)[-<span class="hljs-number">320</span>:]:
-            self._cpp_feature_engine.push_bar(self._bar_to_cpp(bar))
-        <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> self._feat_history:
-            self._cpp_feature_engine.push_history(self._history_to_cpp(row))
-        self._cpp_feature_engine_seeded = <span class="hljs-literal">True</span>
-    <span class="hljs-keyword">return</span> self._cpp_feature_engine
+<div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">_ensure_cpp_feature_engine</span>(<span class="hljs-params">self</span>):
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>._cpp_feature_engine_seeded:
+        <span class="hljs-keyword">for</span> bar <span class="hljs-keyword">in</span> <span class="hljs-built_in">list</span>(<span class="hljs-variable language_">self</span>._bar_buffer)[-<span class="hljs-number">320</span>:]:
+            <span class="hljs-variable language_">self</span>._cpp_feature_engine.push_bar(<span class="hljs-variable language_">self</span>._bar_to_cpp(bar))
+        <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>._feat_history:
+            <span class="hljs-variable language_">self</span>._cpp_feature_engine.push_history(<span class="hljs-variable language_">self</span>._history_to_cpp(row))
+        <span class="hljs-variable language_">self</span>._cpp_feature_engine_seeded = <span class="hljs-literal">True</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>._cpp_feature_engine
 
-<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">_finalize_bar</span>(<span class="hljs-params">self, bar</span>):</span>
-    self._bar_buffer.append(bar)
-    self._ensure_cpp_feature_engine().push_bar(self._bar_to_cpp(bar))
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">_finalize_bar</span>(<span class="hljs-params">self, bar</span>):
+    <span class="hljs-variable language_">self</span>._bar_buffer.append(bar)
+    <span class="hljs-variable language_">self</span>._ensure_cpp_feature_engine().push_bar(<span class="hljs-variable language_">self</span>._bar_to_cpp(bar))
 
-overlay = self._ensure_cpp_feature_engine().compute(cpp_bar_10s)</code></pre></div>
+overlay = <span class="hljs-variable language_">self</span>._ensure_cpp_feature_engine().compute(cpp_bar_10s)</code></pre></div>
 <p>这里故意没有把所有 cross-market book/trade state 一次迁完。当前 C++ overlay 负责稳定、重复的 rolling 数值部分，Python 继续补 execution L2、cross-market、time 和 metrics features。这样的分层可以逐列做 parity；若一口气迁完整 82-feature pipeline，任何时间对齐差异都会很难定位。</p>
 <p>Python 负责事件和研究编排，C++ 负责持续演化的数值状态。这个边界也更接近未来真正值得优化的“计算/决策层”，而不是去重写 WebSocket 和 IO。</p>
 <p>同一组固定环境三轮中位数中，完整“喂入十秒事件并计算 features”的路径从 Python <code>803.20 us</code> 降到 C++ persistent state <code>563.26 us</code>，快约 <strong>29.9%</strong>。单独的 1s ingest 会从 <code>22.42 us</code> 增到约 <code>25.44 us</code>，但十秒整体仍有净收益，因为昂贵的窗口重拷贝被移除了。</p>
 <p>另一个开关 <code>SIGNAL_STATE=1</code> 只把单条 trade aggregation 搬进 C++，Python 仍负责 event dict 解析、锁、回调和 bar 对象同步。它的 ingest 中位数是 <code>23.44 us</code>，比 Python <code>22.42 us</code> 慢约 4.5%，因此继续保持关闭。这里的结论很朴素：<strong>只有状态和足够长的计算链一起迁移才有意义，单独迁四则运算没有。</strong></p>
 <h5 id="1-4-5-1-Fixed-Array-Signal：哪些是-O-1-，哪些还不是"><a href="#1-4-5-1-Fixed-Array-Signal：哪些是-O-1-，哪些还不是" class="headerlink" title="1.4.5.1 Fixed-Array Signal：哪些是 O(1)，哪些还不是"></a>1.4.5.1 Fixed-Array Signal：哪些是 O(1)，哪些还不是</h5><p><code>fixed-array signal</code> 不是一个神秘概念，本质就是把“特征名字符串字典”换成“固定顺序数组”：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-keyword">class</span> <span class="hljs-title">SignalFeatureId</span> &#123;</span>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">enum class</span> <span class="hljs-title class_">SignalFeatureId</span> &#123;
     Return1,
     Volatility60s,
     TradeIntensity60s,
@@ -1020,34 +1165,34 @@ overlay = self._ensure_cpp_feature_engine().compute(cpp_bar_10s)</code></pre></d
     Count,
 &#125;;
 
-<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SignalFeatureVector</span> &#123;</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">SignalFeatureVector</span> &#123;
 <span class="hljs-keyword">public</span>:
-    <span class="hljs-keyword">double</span>&amp; <span class="hljs-keyword">operator</span>[](SignalFeatureId id);
-    <span class="hljs-function"><span class="hljs-keyword">const</span> std::array&lt;<span class="hljs-keyword">double</span>, kSignalFeatureCount&gt;&amp; <span class="hljs-title">values</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;
+    <span class="hljs-type">double</span>&amp; <span class="hljs-keyword">operator</span>[](SignalFeatureId id);
+    <span class="hljs-function"><span class="hljs-type">const</span> std::array&lt;<span class="hljs-type">double</span>, kSignalFeatureCount&gt;&amp; <span class="hljs-title">values</span><span class="hljs-params">()</span> <span class="hljs-type">const</span></span>;
 <span class="hljs-keyword">private</span>:
-    std::array&lt;<span class="hljs-keyword">double</span>, kSignalFeatureCount&gt; values_&#123;&#125;;
+    std::array&lt;<span class="hljs-type">double</span>, kSignalFeatureCount&gt; values_&#123;&#125;;
 &#125;;</code></pre></div>
 <p>行情状态维护则分两层：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TradeBarAggregator</span> &#123;</span>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">TradeBarAggregator</span> &#123;
     <span class="hljs-function">std::optional&lt;Bar1s&gt; <span class="hljs-title">update</span><span class="hljs-params">(ts_ms, price, qty, is_buyer_maker)</span></span>;
     Bar1s current_;
-    <span class="hljs-keyword">int</span> last_trade_side_;
-    <span class="hljs-keyword">int</span> last_trade_run_len_;
+    <span class="hljs-type">int</span> last_trade_side_;
+    <span class="hljs-type">int</span> last_trade_run_len_;
 &#125;;
 
-<span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">int</span> WindowSeconds&gt;
-<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RollingStats</span> &#123;</span>
-    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">push</span><span class="hljs-params">(ts_ms, value)</span> </span>&#123;
+<span class="hljs-keyword">template</span> &lt;<span class="hljs-type">int</span> WindowSeconds&gt;
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">RollingStats</span> &#123;
+    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">push</span><span class="hljs-params">(ts_ms, value)</span> </span>&#123;
         values.<span class="hljs-built_in">push_back</span>(&#123;ts_ms, value&#125;);
         sum += value;
         sum_sq += value * value;
         <span class="hljs-built_in">expire</span>(ts_ms);
     &#125;
-    <span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">mean</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;
-    <span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">stddev</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;
+    <span class="hljs-function"><span class="hljs-type">double</span> <span class="hljs-title">mean</span><span class="hljs-params">()</span> <span class="hljs-type">const</span></span>;
+    <span class="hljs-function"><span class="hljs-type">double</span> <span class="hljs-title">stddev</span><span class="hljs-params">()</span> <span class="hljs-type">const</span></span>;
 &#125;;
 
-<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SignalFeatureEngine</span> &#123;</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">SignalFeatureEngine</span> &#123;
     CircularBuffer&lt;Bar1s&gt; bars_;
     CircularBuffer&lt;FeatureHistoryRow&gt; history_;
     CountRollingMoments return_abs_2160_;
@@ -1218,28 +1363,28 @@ NARROWGATE_CPP_STRICT=1 \
 <span class="hljs-keyword">concept</span> Arithmetic = std::is_arithmetic_v&lt;T&gt;;
 
 <span class="hljs-keyword">template</span> &lt;Arithmetic T&gt;
-<span class="hljs-keyword">using</span> ArrayView = std::span&lt;<span class="hljs-keyword">const</span> T&gt;;
+<span class="hljs-keyword">using</span> ArrayView = std::span&lt;<span class="hljs-type">const</span> T&gt;;
 
 <span class="hljs-keyword">template</span> &lt;Arithmetic T&gt;
-<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">MatrixView</span> &#123;</span>
+<span class="hljs-keyword">struct</span> <span class="hljs-title class_">MatrixView</span> &#123;
     ArrayView&lt;T&gt; values;
-    std::<span class="hljs-keyword">size_t</span> rows&#123;&#125;;
-    std::<span class="hljs-keyword">size_t</span> cols&#123;&#125;;
+    std::<span class="hljs-type">size_t</span> rows&#123;&#125;;
+    std::<span class="hljs-type">size_t</span> cols&#123;&#125;;
 
-    [[nodiscard]] <span class="hljs-function">T <span class="hljs-title">at</span><span class="hljs-params">(std::<span class="hljs-keyword">size_t</span> row,</span></span>
-<span class="hljs-params"><span class="hljs-function">                       std::<span class="hljs-keyword">size_t</span> col)</span> <span class="hljs-keyword">const</span> <span class="hljs-keyword">noexcept</span> </span>&#123;
+    [[nodiscard]] <span class="hljs-function">T <span class="hljs-title">at</span><span class="hljs-params">(std::<span class="hljs-type">size_t</span> row,</span></span>
+<span class="hljs-params"><span class="hljs-function">                       std::<span class="hljs-type">size_t</span> col)</span> <span class="hljs-type">const</span> <span class="hljs-keyword">noexcept</span> </span>&#123;
         <span class="hljs-keyword">return</span> values[row * cols + col];
     &#125;
 &#125;;</code></pre></div>
 <p>这不会自动让循环变快，但它把 shape、ownership 和 constness 写进类型，减少 Python buffer 绑定和 replay 数组新增字段时的错误面。<code>[[nodiscard]]</code> 则放在 quote result、feature snapshot 和 replay result 上，避免调用方无意丢弃策略结果。</p>
 <p>第二项是固定容量 ring buffer。旧的 60,480 行 history 使用 <code>vector.erase(begin())</code> 淘汰头部，每次满载 push 都会搬动后续元素；现在只覆盖 head：</p>
 <div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> T&gt;
-<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CircularBuffer</span> &#123;</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">CircularBuffer</span> &#123;
 <span class="hljs-keyword">public</span>:
-    <span class="hljs-function"><span class="hljs-keyword">explicit</span> <span class="hljs-title">CircularBuffer</span><span class="hljs-params">(std::<span class="hljs-keyword">size_t</span> capacity)</span></span>
+    <span class="hljs-function"><span class="hljs-keyword">explicit</span> <span class="hljs-title">CircularBuffer</span><span class="hljs-params">(std::<span class="hljs-type">size_t</span> capacity)</span></span>
 <span class="hljs-function">        : storage_(capacity) &#123;</span>&#125;
 
-    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">push</span><span class="hljs-params">(<span class="hljs-keyword">const</span> T&amp; value)</span> </span>&#123;
+    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">push</span><span class="hljs-params">(<span class="hljs-type">const</span> T&amp; value)</span> </span>&#123;
         <span class="hljs-keyword">if</span> (size_ &lt; storage_.<span class="hljs-built_in">size</span>()) &#123;
             storage_[(head_ + size_) % storage_.<span class="hljs-built_in">size</span>()] = value;
             ++size_;
@@ -1249,38 +1394,38 @@ NARROWGATE_CPP_STRICT=1 \
         head_ = (head_ + <span class="hljs-number">1</span>) % storage_.<span class="hljs-built_in">size</span>();
     &#125;
 
-    [[nodiscard]] <span class="hljs-keyword">const</span> T&amp; <span class="hljs-keyword">operator</span>[](std::<span class="hljs-keyword">size_t</span> i) <span class="hljs-keyword">const</span> &#123;
+    [[nodiscard]] <span class="hljs-type">const</span> T&amp; <span class="hljs-keyword">operator</span>[](std::<span class="hljs-type">size_t</span> i) <span class="hljs-type">const</span> &#123;
         <span class="hljs-keyword">return</span> storage_[(head_ + i) % storage_.<span class="hljs-built_in">size</span>()];
     &#125;
 
 <span class="hljs-keyword">private</span>:
     std::vector&lt;T&gt; storage_;
-    std::<span class="hljs-keyword">size_t</span> head_&#123;&#125;;
-    std::<span class="hljs-keyword">size_t</span> size_&#123;&#125;;
+    std::<span class="hljs-type">size_t</span> head_&#123;&#125;;
+    std::<span class="hljs-type">size_t</span> size_&#123;&#125;;
 &#125;;</code></pre></div>
 <p>对应的 80 维 feature 输出改成稳定布局；字段名只在边界出现：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-keyword">class</span> <span class="hljs-title">SignalFeatureId</span> :</span> std::<span class="hljs-keyword">size_t</span> &#123;
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">enum class</span> <span class="hljs-title class_">SignalFeatureId</span> : std::<span class="hljs-type">size_t</span> &#123;
     AggressionImbalance10s,
     BookImbalance,
     <span class="hljs-comment">// ... 其余稳定字段</span>
     Count
 &#125;;
 
-<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">SignalFeatureVector</span> &#123;</span>
-    std::array&lt;<span class="hljs-keyword">double</span>,
-        <span class="hljs-keyword">static_cast</span>&lt;std::<span class="hljs-keyword">size_t</span>&gt;(SignalFeatureId::Count)&gt; values&#123;&#125;;
+<span class="hljs-keyword">struct</span> <span class="hljs-title class_">SignalFeatureVector</span> &#123;
+    std::array&lt;<span class="hljs-type">double</span>,
+        <span class="hljs-keyword">static_cast</span>&lt;std::<span class="hljs-type">size_t</span>&gt;(SignalFeatureId::Count)&gt; values&#123;&#125;;
 
-    <span class="hljs-keyword">double</span>&amp; <span class="hljs-keyword">operator</span>[](SignalFeatureId id) <span class="hljs-keyword">noexcept</span> &#123;
-        <span class="hljs-keyword">return</span> values[<span class="hljs-keyword">static_cast</span>&lt;std::<span class="hljs-keyword">size_t</span>&gt;(id)];
+    <span class="hljs-type">double</span>&amp; <span class="hljs-keyword">operator</span>[](SignalFeatureId id) <span class="hljs-keyword">noexcept</span> &#123;
+        <span class="hljs-keyword">return</span> values[<span class="hljs-built_in">static_cast</span>&lt;std::<span class="hljs-type">size_t</span>&gt;(id)];
     &#125;
 &#125;;</code></pre></div>
 <p>名称诊断使用 <code>std::ranges::lower_bound</code>，失败路径附带 <code>std::source_location</code>；窗口常量使用 <code>std::to_array</code>。这些都在冷路径或编译期工作，不给每 tick 增加新分配。</p>
 <p>第三项是让 replay 的状态和 trace 从字符串变成强类型枚举，并用 <code>std::pmr::monotonic_buffer_resource</code> 承担单次 replay 内部短生命周期容器：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-keyword">class</span> <span class="hljs-title">OrderState</span> :</span> std::<span class="hljs-keyword">uint8_t</span> &#123;
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">enum class</span> <span class="hljs-title class_">OrderState</span> : std::<span class="hljs-type">uint8_t</span> &#123;
     PendingNew, Active, PendingCancel, Filled, Cancelled
 &#125;;
 
-<span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-keyword">class</span> <span class="hljs-title">TraceOutcome</span> :</span> std::<span class="hljs-keyword">uint8_t</span> &#123;
+<span class="hljs-keyword">enum class</span> <span class="hljs-title class_">TraceOutcome</span> : std::<span class="hljs-type">uint8_t</span> &#123;
     None, Filled, Cancelled, Expired, Rejected
 &#125;;
 
@@ -1341,44 +1486,44 @@ std::pmr::vector&lt;ReplayOrder&gt; ask_orders&#123;&amp;arena&#125;;</code></pr
 <p>验证也按风险分层完成：第一轮快速 quote/signal/replay 测试为 <code>18 passed, 4 skipped</code>；另行显式运行 May 正常、高波动、Feb 稀疏和 Jan 窗口的 golden parity 为 <code>4 passed</code>。此外三个 C++ 核心翻译单元用 <code>-std=c++20 -Wall -Wextra -Wpedantic</code> 编译为零 warning。由于短路径收益接近噪声，本次只更新 native 基础设施和研究路径，没有修改 live 配置。</p>
 <h5 id="1-4-6-4-第二轮：消除-depth-分配，拆开热状态与诊断状态"><a href="#1-4-6-4-第二轮：消除-depth-分配，拆开热状态与诊断状态" class="headerlink" title="1.4.6.4 第二轮：消除 depth 分配，拆开热状态与诊断状态"></a>1.4.6.4 第二轮：消除 depth 分配，拆开热状态与诊断状态</h5><p>第一轮解决了 Python/C++ 边界和长 history 头删，但 profile 里还有三类成本：每次 requote 临时构造 L2 vectors、热订单携带完整 trace、长周期 vol-regime 每次重新扫历史。第二轮没有改策略公式，而是继续压缩数据运动。</p>
 <h5 id="L2-使用-view，不再逐行复制"><a href="#L2-使用-view，不再逐行复制" class="headerlink" title="L2 使用 view，不再逐行复制"></a>L2 使用 view，不再逐行复制</h5><p>原始 L2 输入是四个 SoA 矩阵：bid price/qty、ask price/qty。把它们先拼成 <code>vector&lt;DepthLevel&gt;</code>，既分配又把 SoA 重新交错。现在 quote core 直接消费两个 span pair：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">DepthSideView</span> &#123;</span>
-    std::span&lt;<span class="hljs-keyword">const</span> DepthLevel&gt; levels; <span class="hljs-comment">// owned API 可用</span>
-    std::span&lt;<span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span>&gt; prices;     <span class="hljs-comment">// matrix row 可用</span>
-    std::span&lt;<span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span>&gt; quantities;
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">DepthSideView</span> &#123;
+    std::span&lt;<span class="hljs-type">const</span> DepthLevel&gt; levels; <span class="hljs-comment">// owned API 可用</span>
+    std::span&lt;<span class="hljs-type">const</span> <span class="hljs-type">double</span>&gt; prices;     <span class="hljs-comment">// matrix row 可用</span>
+    std::span&lt;<span class="hljs-type">const</span> <span class="hljs-type">double</span>&gt; quantities;
 
-    [[nodiscard]] <span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">price</span><span class="hljs-params">(std::<span class="hljs-keyword">size_t</span> i)</span> <span class="hljs-keyword">const</span> <span class="hljs-keyword">noexcept</span></span>;
-    [[nodiscard]] <span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">quantity</span><span class="hljs-params">(std::<span class="hljs-keyword">size_t</span> i)</span> <span class="hljs-keyword">const</span> <span class="hljs-keyword">noexcept</span></span>;
+    [[nodiscard]] <span class="hljs-function"><span class="hljs-type">double</span> <span class="hljs-title">price</span><span class="hljs-params">(std::<span class="hljs-type">size_t</span> i)</span> <span class="hljs-type">const</span> <span class="hljs-keyword">noexcept</span></span>;
+    [[nodiscard]] <span class="hljs-function"><span class="hljs-type">double</span> <span class="hljs-title">quantity</span><span class="hljs-params">(std::<span class="hljs-type">size_t</span> i)</span> <span class="hljs-type">const</span> <span class="hljs-keyword">noexcept</span></span>;
 &#125;;
 
-<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">DepthView</span> &#123;</span>
+<span class="hljs-keyword">struct</span> <span class="hljs-title class_">DepthView</span> &#123;
     DepthSideView bids;
     DepthSideView asks;
 &#125;;
 
-<span class="hljs-keyword">const</span> DepthView depth&#123;
+<span class="hljs-type">const</span> DepthView depth&#123;
     DepthSideView&#123;&#123;&#125;, bid_px.<span class="hljs-built_in">row</span>(i), bid_qty.<span class="hljs-built_in">row</span>(i)&#125;,
     DepthSideView&#123;&#123;&#125;, ask_px.<span class="hljs-built_in">row</span>(i), ask_qty.<span class="hljs-built_in">row</span>(i)&#125;,
 &#125;;
-<span class="hljs-keyword">const</span> <span class="hljs-keyword">auto</span> quote = <span class="hljs-built_in">compute_quote_core</span>(state, cfg, pred, depth);</code></pre></div>
+<span class="hljs-type">const</span> <span class="hljs-keyword">auto</span> quote = <span class="hljs-built_in">compute_quote_core</span>(state, cfg, pred, depth);</code></pre></div>
 <p>公开 pybind API 仍保留 owning <code>DepthSnapshot</code>，它只需提供 <code>.view()</code>。replay 和 batch 则直接 view NumPy buffer 的矩阵行，不再为每个 tick/row 分配两个 vector。</p>
 <p>BBO/L2 的 current-time snapshot 也从每次 binary search 改成 loop-owned cursor：</p>
 <div class="code-wrapper"><pre><code class="hljs cpp">bbo_idx = <span class="hljs-built_in">advance_index</span>(input.bbo_ts_ms, bbo_idx, ts);
 l2_idx = <span class="hljs-built_in">advance_index</span>(input.l2_ts_ms, l2_idx, ts);
-<span class="hljs-keyword">const</span> <span class="hljs-keyword">auto</span> book = <span class="hljs-built_in">book_snapshot_at</span>(input, ts, bbo_idx, l2_idx, ...);</code></pre></div>
+<span class="hljs-type">const</span> <span class="hljs-keyword">auto</span> book = <span class="hljs-built_in">book_snapshot_at</span>(input, ts, bbo_idx, l2_idx, ...);</code></pre></div>
 <p>这里有一个不能“顺手优化”的边界：queue ahead 使用未来 <code>activate_ts</code>，而 latency jitter 会让相邻订单的 activation timestamp 不保证单调。它不能共享 current-time cursor，因此仍保留二分。错误共享 cursor 会把未来盘口泄漏给当前 quote，速度快了，回测却坏了。</p>
 <h5 id="ReplayOrder-只保存会参与成交循环的字段"><a href="#ReplayOrder-只保存会参与成交循环的字段" class="headerlink" title="ReplayOrder 只保存会参与成交循环的字段"></a>ReplayOrder 只保存会参与成交循环的字段</h5><p>旧 <code>ReplayOrder</code> 同时持有完整 <code>SideQuoteContext</code> 和 <code>TraceOrderRow</code>。即使 trace 关闭，<code>transition_orders()</code>、<code>best_live_order()</code>、<code>process_side_fill()</code> 扫描的每个订单也背着一大块冷数据。现在热结构只保留成交状态：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">ReplayOrder</span> &#123;</span>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">ReplayOrder</span> &#123;
     Side side;
-    <span class="hljs-keyword">double</span> price, remaining, queue_left, queue_init;
-    std::<span class="hljs-keyword">int64_t</span> quote_ts, activate_ts, cancel_effective_ts, ttl_ms;
+    <span class="hljs-type">double</span> price, remaining, queue_left, queue_init;
+    std::<span class="hljs-type">int64_t</span> quote_ts, activate_ts, cancel_effective_ts, ttl_ms;
     OrderState state;
-    <span class="hljs-keyword">bool</span> side_adverse, defense_guard, local_extreme_guard, quote_ev;
+    <span class="hljs-type">bool</span> side_adverse, defense_guard, local_extreme_guard, quote_ev;
     TraceOrderRow* trace = <span class="hljs-literal">nullptr</span>;
 &#125;;</code></pre></div>
 <p>只有 <code>trace_quotes_max</code> 或 <code>trace_fills_max</code> 大于零时，才从 arena-backed <code>unsynchronized_pool_resource</code> 分配 cold row。hot order 用带 PMR deleter 的 RAII pointer；订单退出后 slot 回到 pool，不会像纯 monotonic allocation 一样随长窗口持续累积。输出 trace 仍复制到 owning result vector，pool pointer 不跨函数生命周期。</p>
 <p>fill trace 的时间窗也改成 <code>lower_bound/upper_bound</code> 定位，不再从第零条成交开始扫；1s/5s/30s markout 同样用 <code>lower_bound</code> 找 horizon。trace 默认关闭，这项优化主要服务大规模 quote decomposition。</p>
 <h5 id="summary-only-不是简单丢掉曲线"><a href="#summary-only-不是简单丢掉曲线" class="headerlink" title="summary-only 不是简单丢掉曲线"></a>summary-only 不是简单丢掉曲线</h5><p>PnL curves 原先还承担 Python 侧 Sharpe 和 max drawdown，所以不能直接禁用。C++ replay 现在每次 requote 在线维护 peak、drawdown、PnL delta、时间增量以及标准化 delta 的一、二阶矩：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span> normalized = pnl_delta / std::<span class="hljs-built_in">sqrt</span>(dt_s);
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-type">const</span> <span class="hljs-type">double</span> normalized = pnl_delta / std::<span class="hljs-built_in">sqrt</span>(dt_s);
 pnl_delta_sum += pnl_delta;
 pnl_dt_sum += dt_s;
 normalized_sum += normalized;
@@ -1388,16 +1533,16 @@ max_drawdown = std::<span class="hljs-built_in">max</span>(max_drawdown, peak_pn
 <p>单次 API 的 <code>collect_curves=true</code> 保持兼容；C++ sweep、cap A/B、统一 <code>tick_ab.py</code> 和 quote-EV A/B 自动使用 summary-only。2M trades、200k requotes 的 synthetic replay 中，CPU 只从 42.18ms 降到 41.77ms，约 1%；真正收益是三条 200k vector 变成零行，也无需再转成 NumPy。</p>
 <h5 id="长周期-moments-增量化，但保持数值稳定"><a href="#长周期-moments-增量化，但保持数值稳定" class="headerlink" title="长周期 moments 增量化，但保持数值稳定"></a>长周期 moments 增量化，但保持数值稳定</h5><p>长 history 的主要扫描来自 2,160/8,640 条 <code>return_abs</code> 均值和最多 60,480 条 <code>vol_regime_6h</code> z-score。它们现在由 fixed-count rolling moments 在 <code>push_history()</code> 时更新。</p>
 <p>简单维护 <code>sum_sq - sum²/n</code> 在低方差序列上会严重消差；长历史 parity test 正好抓到了这个问题。因此实现使用支持删除最旧值的 Welford <code>mean/M2</code> 更新，而不是放宽测试：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">remove_value</span><span class="hljs-params">(<span class="hljs-keyword">double</span> x, std::<span class="hljs-keyword">size_t</span> n,</span></span>
-<span class="hljs-params"><span class="hljs-function">                         <span class="hljs-keyword">double</span>&amp; mean, <span class="hljs-keyword">double</span>&amp; m2)</span> <span class="hljs-keyword">noexcept</span> </span>&#123;
-    <span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span> next_mean = (n * mean - x) / (n - <span class="hljs-number">1</span>);
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title">remove_value</span><span class="hljs-params">(<span class="hljs-type">double</span> x, std::<span class="hljs-type">size_t</span> n,</span></span>
+<span class="hljs-params"><span class="hljs-function">                         <span class="hljs-type">double</span>&amp; mean, <span class="hljs-type">double</span>&amp; m2)</span> <span class="hljs-keyword">noexcept</span> </span>&#123;
+    <span class="hljs-type">const</span> <span class="hljs-type">double</span> next_mean = (n * mean - x) / (n - <span class="hljs-number">1</span>);
     m2 = std::<span class="hljs-built_in">max</span>(<span class="hljs-number">0.0</span>, m2 - (x - mean) * (x - next_mean));
     mean = next_mean;
 &#125;</code></pre></div>
 <p><code>SignalFeatureEngine.compute_values()</code> 返回固定顺序的 NumPy array；<code>SIGNAL_FEATURE_NAMES</code> 只在模块初始化时创建一次。旧 dict API 仍兼容。满 60,480 history 时，fixed-array snapshot 从第一轮约 111.23us 降到 1.90us，兼容 dict 为 4.42us。短历史 live 整体仍受 Python feature merge/model 路径影响，没有据此切换 live 默认配置。</p>
 <h5 id="只给逐行独立-batch-加线程"><a href="#只给逐行独立-batch-加线程" class="headerlink" title="只给逐行独立 batch 加线程"></a>只给逐行独立 batch 加线程</h5><p>单个 replay 的订单、库存、现金和 latency 状态强顺序依赖，仍保持单线程。depth quote batch 的每一行独立，才新增显式 <code>workers</code> 参数；默认 1，每 worker 至少 4,096 行：</p>
 <div class="code-wrapper"><pre><code class="hljs cpp">std::vector&lt;std::jthread&gt; threads;
-<span class="hljs-keyword">for</span> (std::<span class="hljs-keyword">size_t</span> worker = <span class="hljs-number">0</span>; worker &lt; worker_count; ++worker) &#123;
+<span class="hljs-keyword">for</span> (std::<span class="hljs-type">size_t</span> worker = <span class="hljs-number">0</span>; worker &lt; worker_count; ++worker) &#123;
     threads.<span class="hljs-built_in">emplace_back</span>(run_rows, begin[worker], end[worker]);
 &#125;</code></pre></div>
 <p>100k rows × 10 levels 的 Release benchmark：1 worker 为 35.48ms / 2.82M rows/s，4 workers 为 10.08ms / 9.92M rows/s，快 3.52x。参数已经贯通到 <code>cross_market_shock_audit.py --quote-context-workers N</code>，但不会自动开启：若外层已经按 day/window/arm 多进程并行，再把每个进程开满内部线程只会过度订阅。</p>
@@ -1448,7 +1593,7 @@ max_drawdown = std::<span class="hljs-built_in">max</span>(max_drawdown, peak_pn
   --symbol BTCUSDC \
   --tag parameter_quick_20260705 \
   --stage quick-smoke \
-  --groups spread guard cooldown execution \
+  --<span class="hljs-built_in">groups</span> spread guard cooldown execution \
   --single-factor \
   --workers 4 \
   --window-cache-dir <span class="hljs-variable">$&#123;NARROWGATE_DATA_ROOT&#125;</span>/window_cache \
@@ -1740,6 +1885,14 @@ MALLOC_ARENA_MAX=1</code></pre></div>
 <p>第一版只把 <code>replace_min_price_change_ticks</code> 设成 1-2 tick，结果几乎没有减少 REST：BTCUSDC 报价每轮自然跳动经常是几十 tick，2 tick 门槛基本等于没设。后来改成非零的 adding/reducing 门槛，并保留减仓方向更敏捷的 interval。这个改动不是 alpha 参数，而是 order lifecycle coalescing：价格没有变到足够多时，不做 cancel+new；TTL、stale-data、pause 和库存安全撤单不被阻断。</p>
 <p>受控 soak 里，<code>cpp_routing_used</code> 覆盖率达到约 97%-99.6%，并出现 <code>REPLACE_THROTTLE</code>。但 2026-07-10 回查当前进程时发现了一个更值得记录的部署问题：进程通过 <code>live/run.sh</code> 重启时只从 <code>live/.env</code> 加载了 API 凭据，<code>NARROWGATE_CPP_QUOTE_CORE</code>、<code>NARROWGATE_CPP_SIGNAL_FEATURES</code>、<code>NARROWGATE_CPP_LIVE_ROUTING</code> 和 <code>NARROWGATE_CPP_STRICT</code> 都没有持久化。结果是当前约 24 小时 telemetry 中 <code>cpp_routing_used=0%</code>，signal/quote/routing 也都回到了 Python 路径。</p>
 <p>这不是 C++ 运行时退化，而是 <strong>opt-in feature flag 没有成为部署 profile</strong>。它暴露了一个低延时系统很实际的问题：benchmark 命令里的环境变量如果没有进入 <code>run.sh</code> 可审计的 profile，下一次策略参数重启就会静默丢失。以后 live soak 必须同时记录进程启动环境、extension 路径、strict flag 和 telemetry native-hit rate；只看“机器上可以 import <code>narrowgate_cpp</code>”远远不够。</p>
+<p>随后把这个部署缺口修成了显式 profile，而不是继续依赖运维人员记住一串 <code>export</code>：</p>
+<div class="code-wrapper"><pre><code class="hljs bash"><span class="hljs-comment"># 凭据仍来自不进 Git 的 live/.env；这里只选择非秘密计算 profile。</span>
+NARROWGATE_LIVE_PROFILE=python ./live/run.sh restart
+NARROWGATE_LIVE_PROFILE=native ./live/run.sh restart
+
+<span class="hljs-comment"># 在真正重启前先审计将被加载的开关。</span>
+NARROWGATE_LIVE_PROFILE=native ./live/run.sh profile</code></pre></div>
+<p><code>native.env</code> 固化 <code>QUOTE_CORE + SIGNAL_FEATURES + LIVE_ROUTING + STRICT</code>，并把 OMP、OpenBLAS、MKL、NumExpr 的线程数固定为 1；<code>python.env</code> 保留相同线程环境，只关闭 native 实现。<code>main.py</code> 启动时主动 import extension，检查所需 API，并把 profile 名、全部开关和 <code>.so</code> 来源写进启动日志。strict profile 如果缺模块或 binding，会在连接交易所、发送订单之前失败；<code>run.sh status</code> 也会显示当前持久化 profile。这样“Python/native A/B”才是在换实现，而不是顺手换了线程池、配置或环境。</p>
 <p>下面把两段历史 native soak 与当前 Python 进程放在一起。它们不是同一市场时段的 A/B，不能据此计算“C++ 让端到端快了多少”；这张表只用于检查数量级和部署状态。REST 分位数使用每个 requote 内真实调用的 max sample，不把零调用行混进统计：</p>
 <div class="table-container">
 <table>
@@ -1782,7 +1935,7 @@ MALLOC_ARENA_MAX=1</code></pre></div>
 </table>
 </div>
 <p>当前 Python 24 小时窗口的 <code>requote_total_us</code> p99.9 仍约 1.41 秒；<code>update_orders_us</code> p99 约 440ms，而 <code>_compute_quotes</code> p99 约 12.7ms。也就是说，即使重新打开 C++ quote/routing，端到端 p99 的上限仍然主要由 order lifecycle 决定。历史 native soak 的 signal p50 明显更低，但 p99 仍可达数百毫秒，也说明解释器调度、模型/日志、虚拟机抢占和行情状态会盖过单个 C++ tight loop 的收益。</p>
-<p>真实 live telemetry 因此保留了最初的工程判断：<code>keep</code> 已经明显出现，说明 replace throttle 确实减少了一部分无意义撤挂；<code>pending_coalesce</code> 需要单独 counter，不能只从 action mix 里猜。REST 只统计有真实 REST 调用的行时，new/cancel 的 p99 仍然可以进入百毫秒量级；完整 requote 的 p99/p99.9 仍由 order lifecycle 拉长。所以当前 live 尾部的主因仍然不是 quote math，而是：</p>
+<p>这段 live telemetry 因此保留了最初的工程判断：<code>keep</code> 已经明显出现，说明 replace throttle 确实减少了一部分无意义撤挂；它也暴露出 <code>pending_coalesce</code> 必须有独立 counter，不能只从 action mix 里猜，后续 gateway telemetry 正是为此补上的。REST 只统计有真实 REST 调用的行时，new/cancel 的 p99 仍然可以进入百毫秒量级；完整 requote 的 p99/p99.9 仍由 order lifecycle 拉长。所以当前 live 尾部的主因仍然不是 quote math，而是：</p>
 <ol>
 <li>REST cancel/new 的百毫秒级尾部；</li>
 <li><code>update_orders()</code> 同步等待导致的路径拉长；</li>
@@ -1790,8 +1943,34 @@ MALLOC_ARENA_MAX=1</code></pre></div>
 <li>WebSocket 短时 silence/reconnect 对 freshness 的扰动。</li>
 </ol>
 <p>安全路径在当前窗口仍然工作：telemetry 有少量 <code>stale_book</code> / <code>risk_block</code>，日志没有进程级 traceback，也没有持续 stream silence；偶发 post-only reject 和 cancel unknown-order 仍会进入订单状态机。关键读法是，网络/交易所路径的毛刺会直接进入 live p99，不能被 synthetic benchmark 消去。</p>
-<p>当前不应该根据上表直接继续调 replace threshold，也不能宣称 native live 已经 promotion。更严谨的下一步是先把 C++ 开关做成显式、可审计、重启不丢失的 deployment profile，并让启动 HEALTH 打印 extension 来源和四个 native flags；然后在同一代码、同一参数面上各跑 1-2 小时 Python/native controlled soak。只有 native-hit rate 接近 100%、strict 模式无 fallback、action mix/fills 没有被误伤，才比较 p99/p99.9，并决定是否继续 pending coalesce 或 async order manager。</p>
-<p>因此当前结论不是“C++ 已经解决 live 延迟”，而是更具体：<strong>C++ fixed-array 已证明可以压 signal 计算，compact routing ABI 成本很低；但当前 live 实际没有启用 native profile，真实 p99 仍由 order lifecycle、REST tail、pending state 和 WebSocket freshness 共同决定。</strong></p>
+<p>profile 固化后，目标 x86 live 机的第一段同步 native preflight 已经做到 <code>cpp_routing_used=100%</code>，strict 模式没有 fallback，extension 来源也与预期的 x86 CPython wheel 一致。这个短窗口只证明部署链路恢复了，不能替代完整的 Python/native 1-2 小时同口径 soak；restart 附近的 inventory sync、warmup 和 sync-degrade 行也必须先从 marker 中排除。</p>
+<p>同一配置下又做了两段相邻的短窗 preflight。Python-sync 约 8.4 分钟，native-sync 约 9.1 分钟；后者的 <code>requote_total_us</code> p50/p99 从约 <code>44.5/434.7ms</code> 变成 <code>40.5/318.3ms</code>，<code>signal_compute_us</code> p99 从约 <code>132.8ms</code> 变成 <code>95.4ms</code>，<code>compute_quotes_us</code> p99 从约 <code>14.4ms</code> 变成 <code>3.9ms</code>。native hit 为 100%，没有 strict fallback。这里最重要的不是百分比，而是口径：两个窗口共享代码、配置、线程限制和 marker schema，但市场时间不重叠，因此只能作为 deployment preflight，不能称为严格因果 A/B。</p>
+<p>因此仍不应该根据短窗口直接调 replace threshold。更严谨的顺序变成：先用同一配置做 Python/native sync A/B；再保持 native profile 不变，只切换 async gateway；只有 action mix、placed/fill、双边完整性、WebSocket freshness 和安全撤单都没有被误伤，才比较 p99/p99.9，并决定加仓侧 replace threshold 是否还需要提高。</p>
+<p>当前结论也随之更新：<strong>C++ fixed-array 已经进入可持久化的 live profile，能压缩 signal/quote/routing 的计算部分；端到端 p99 的剩余主因仍是 order lifecycle、REST tail、pending state 和系统调度，因此下一步是隔离 REST，而不是继续搬一个 scalar 公式。</strong></p>
+<h4 id="2-1-1-Per-side-latest-wins-order-gateway"><a href="#2-1-1-Per-side-latest-wins-order-gateway" class="headerlink" title="2.1.1 Per-side latest-wins order gateway"></a>2.1.1 Per-side latest-wins order gateway</h4><p>直接把 <code>rest.new_order()</code> 扔进普通线程池并不安全。行情每几秒可能产生一个新目标，而前一个 cancel/new 还在交易所或用户流中收敛；无界任务队列会让“最新报价”排在一串已经过期的价格后面。这里需要的不是更多线程，而是 <strong>每侧容量为 1 的状态机</strong>：</p>
+<div class="code-wrapper"><pre><code class="hljs text">market / decision thread
+    desired[BUY]  = newest bid intent
+    desired[SELL] = newest ask intent
+              │
+              ├── BUY worker: wait pending -&gt; cancel old -&gt; re-read newest -&gt; place
+              └── SELL worker: wait pending -&gt; cancel old -&gt; re-read newest -&gt; place
+
+new intent while REST is in flight:
+    overwrite desired[side]
+    coalesced_count += 1
+    do not append another REST job</code></pre></div>
+<p>对应实现放在 <code>strategy/order_gateway.py</code>。BUY/SELL 各有一个 worker，避免一侧 cancel 尾部阻塞另一侧；每侧只保留最新 <code>QuoteIntent</code>，旧 generation 不会继续下单。worker 在 <code>PENDING_NEW/PENDING_CANCEL</code> 时等待状态收敛，超时只记 telemetry，不绕过订单账本。REST cancel response 只证明请求返回，订单终态和 cancel 前可能发生的 fill 仍由 user stream 驱动；缺失事件继续走原有 stale pending reconciliation，不能为了少等几毫秒提前吞掉 late fill。</p>
+<p>异步路径只接管正常 quote/place/replace。以下路径故意保持同步并高优先级：</p>
+<ul>
+<li>stale book / stream safety cancel；</li>
+<li>cancel-all 与进程 shutdown；</li>
+<li>emergency close 和 maker 原生退出；</li>
+<li>库存硬上限触发的即时撤单。</li>
+</ul>
+<p><code>async_order_gateway_enabled</code> 是 startup-only 开关，SIGHUP 试图切换时只告警，不在有活跃订单时改线程模型。逐操作的 <code>place/cancel/coalesce/pending_timeout/error</code> 写入独立的 <code>order_gateway_telemetry.csv</code>；原来的 <code>live_perf_telemetry.csv</code> 继续描述决策线程，因此 async 打开后 <code>update_orders_us</code> 不再混入 REST 等待时间。<code>HEALTH</code> 同时输出 pending/inflight/submit/coalesce/timeout/error 累计值。</p>
+<p>第一段 native-async 安全 preflight 约 10.1 分钟。窗口内记录到 <code>178</code> 次 submit、<code>164</code> 次 cancel、<code>165</code> 次 place，<code>coalesce/timeout/error=0/0/0</code>；gateway new/cancel p99 约为 <code>172/184ms</code>。<code>update_orders_us</code> p50 从同步 native 的约 <code>36.8ms</code> 降到 <code>15.5ms</code>，说明正常 REST 已经离开决策线程；但 p99 从约 <code>249ms</code> 升到 <code>833ms</code>，不能据此宣布尾部改善。逐行复盘发现，最慢的两次 requote 同时伴随 signal、quote 和 update-orders 的整体停顿，而 gateway 没有 pending timeout 或 error，更像 VM 调度、GIL/日志竞争或同一时刻的进程级 stall。每段只有约百个 requote，p99 实际只由一两个样本决定。</p>
+<p>这个结果也解释了为什么不能在实现 async 后立刻提高 replace threshold：当前 5 秒 requote 下 coalesce 为零，说明大多数 REST 在下一轮前已经收敛，尚不存在需要靠更高门槛消除的任务堆积。现阶段保留 adding/reducing threshold 不变，让 async 继续积累 1-2 小时同口径样本；只有 operation rate、placed/fill、双边 action mix 和安全路径保持稳定，而且长窗仍显示 replace 压力，才单独调加仓侧门槛。减仓侧和 safety cancel 不跟着变慢。</p>
+<p>为避免 A/B 又变成手工摘日志，<code>scripts/analyze_live_soak.py</code> 用各 CSV 和 maker log 的起始行号创建 marker，再统一输出 action mix、native hit、WS age、placed/fills，以及 signal/quote/update/requote 和 REST/gateway 的 p50/p95/p99/p99.9/max。<code>scripts/x86_live_profile_ab_soak.sh</code> 只能通过 <code>run.sh</code> 管理进程，并要求显式 <code>ACK_LIVE_SOAK=YES</code>，避免误把 benchmark helper 变成无人值守的实盘重启器。</p>
 <p>第三类是研究机制边界。当前 active baseline 的 queue-enabled fill selection 已经能进入 C++ fast screening；side/regime queue lookup、replace throttle、pending coalesce、reducing/adaptive cooldown、campaign soft control 和 BUY fill-selection 也已经补进 native replay。这里需要修正一个旧说法：这些机制不再是“Python-only 缺口”。</p>
 <p>仍不能交给 C++ 历史 replay 裁决的，是三类本质不同的问题：<code>xmarket_retreat_enabled</code> 已归档且会 fail fast；empirical REST latency 目前还是分布/样本近似，而不是逐请求真实 ACK tape；user-stream mismatch、sync-adjust degrade、断线重连和交易所 reject 属于 live-only 故障闭环。它们需要 Python diagnostic 或真实 live soak，不能靠给 C++ 多加几个字段就假装已经回放。</p>
 <p>这条边界很关键：C++ 现在适合两件事。第一，active baseline 以及已 parity 参数面的宽 arm / retained fast screening；第二，quote context、order-level denominator、shock/label 前处理这类批处理 tight loop。它不适合替还没过 evidence gate 的新机制背书。换句话说，C++ 可以让反例更便宜，但不能把一个未验证机制变成 alpha。</p>
@@ -1878,37 +2057,37 @@ result = narrowgate_cpp.compute_quote(ctx)</code></pre></div>
 <li>C++ 算完以后再组一个 Python dict 返回。</li>
 </ul>
 <p>Compact Context 的方向不是“把所有东西都迁到 C++”，而是把边界变成固定字段 ABI：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">CompactMarketView</span> &#123;</span>
-    <span class="hljs-keyword">double</span> mid;
-    <span class="hljs-keyword">double</span> best_bid;
-    <span class="hljs-keyword">double</span> best_ask;
-    std::span&lt;<span class="hljs-keyword">const</span> DepthLevel&gt; bids;
-    std::span&lt;<span class="hljs-keyword">const</span> DepthLevel&gt; asks;
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">CompactMarketView</span> &#123;
+    <span class="hljs-type">double</span> mid;
+    <span class="hljs-type">double</span> best_bid;
+    <span class="hljs-type">double</span> best_ask;
+    std::span&lt;<span class="hljs-type">const</span> DepthLevel&gt; bids;
+    std::span&lt;<span class="hljs-type">const</span> DepthLevel&gt; asks;
 &#125;;
 
-<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">CompactInventoryView</span> &#123;</span>
-    <span class="hljs-keyword">double</span> position;
-    <span class="hljs-keyword">double</span> abs_inventory_time_s;
-    <span class="hljs-keyword">double</span> signed_inventory_time_s;
+<span class="hljs-keyword">struct</span> <span class="hljs-title class_">CompactInventoryView</span> &#123;
+    <span class="hljs-type">double</span> position;
+    <span class="hljs-type">double</span> abs_inventory_time_s;
+    <span class="hljs-type">double</span> signed_inventory_time_s;
 &#125;;
 
-<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">CompactPredictionView</span> &#123;</span>
-    <span class="hljs-keyword">double</span> ret_1s_bps;
-    <span class="hljs-keyword">double</span> ret_5s_bps;
-    <span class="hljs-keyword">double</span> toxicity;
-    <span class="hljs-keyword">double</span> vol_bps;
-    <span class="hljs-keyword">double</span> ref_move_bps;
+<span class="hljs-keyword">struct</span> <span class="hljs-title class_">CompactPredictionView</span> &#123;
+    <span class="hljs-type">double</span> ret_1s_bps;
+    <span class="hljs-type">double</span> ret_5s_bps;
+    <span class="hljs-type">double</span> toxicity;
+    <span class="hljs-type">double</span> vol_bps;
+    <span class="hljs-type">double</span> ref_move_bps;
 &#125;;
 
-<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">CompactRoutingResult</span> &#123;</span>
-    <span class="hljs-keyword">double</span> bid_px;
-    <span class="hljs-keyword">double</span> ask_px;
-    <span class="hljs-keyword">double</span> bid_qty;
-    <span class="hljs-keyword">double</span> ask_qty;
-    <span class="hljs-keyword">bool</span> can_bid;
-    <span class="hljs-keyword">bool</span> can_ask;
-    <span class="hljs-keyword">uint32_t</span> bid_reason_mask;
-    <span class="hljs-keyword">uint32_t</span> ask_reason_mask;
+<span class="hljs-keyword">struct</span> <span class="hljs-title class_">CompactRoutingResult</span> &#123;
+    <span class="hljs-type">double</span> bid_px;
+    <span class="hljs-type">double</span> ask_px;
+    <span class="hljs-type">double</span> bid_qty;
+    <span class="hljs-type">double</span> ask_qty;
+    <span class="hljs-type">bool</span> can_bid;
+    <span class="hljs-type">bool</span> can_ask;
+    <span class="hljs-type">uint32_t</span> bid_reason_mask;
+    <span class="hljs-type">uint32_t</span> ask_reason_mask;
 &#125;;</code></pre></div>
 <p>Python 侧则只传固定顺序的 tuple/array 和已经缓存的 native config：</p>
 <div class="code-wrapper"><pre><code class="hljs python">market = (
@@ -1962,8 +2141,8 @@ exchange REST/WebSocket</code></pre></div>
 <h4 id="2-2-3-routing-bridge：当前还不是完整-native-决策包"><a href="#2-2-3-routing-bridge：当前还不是完整-native-决策包" class="headerlink" title="2.2.3 routing bridge：当前还不是完整 native 决策包"></a>2.2.3 routing bridge：当前还不是完整 native 决策包</h4><p><code>_build_side_policy()</code> 是 live 路径的另一个计算热点。它接收 quote_context、L2 metrics 和 pred，输出 <code>spread_mult</code>、<code>size_mult</code>、<code>allow_post</code>、<code>reason_mask</code>，大量工作是评估 10+ 个 policy guard 的条件。</p>
 <p>这些条件判断本身不重，但每次需要访问 Python dict（<code>quote_ctx.get(&quot;side_adverse&quot;, False)</code> 等），在单 tick 热路径上积少成多。</p>
 <p><code>NARROWGATE_CPP_LIVE_ROUTING</code> 仍只接管后半段的价格调整、spread cap、库存准入、size 和 cancel/replace 判断，但跨语言接口已经从动态 dict 收紧为固定布局：</p>
-<div class="code-wrapper"><pre><code class="hljs python">bid_policy = self._build_side_policy(Side.BUY, mid, q, pred)
-ask_policy = self._build_side_policy(Side.SELL, mid, q, pred)
+<div class="code-wrapper"><pre><code class="hljs python">bid_policy = <span class="hljs-variable language_">self</span>._build_side_policy(Side.BUY, mid, q, pred)
+ask_policy = <span class="hljs-variable language_">self</span>._build_side_policy(Side.SELL, mid, q, pred)
 
 routed = cpp_route.compute_live_routing_decision(
     (
@@ -1990,70 +2169,70 @@ routed = cpp_route.compute_live_routing_decision(
     ),
 )</code></pre></div>
 <p>native 侧对应的是普通结构体，而不是把业务逻辑继续堆在 pybind lambda 中：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">LiveRoutingPolicy</span> &#123;</span>
-    <span class="hljs-keyword">bool</span> allow_post;
-    <span class="hljs-keyword">bool</span> allow_exposure_increase;
-    <span class="hljs-keyword">double</span> spread_mult;
-    <span class="hljs-keyword">double</span> size_mult;
-    <span class="hljs-keyword">double</span> order_ttl_ms;
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">LiveRoutingPolicy</span> &#123;
+    <span class="hljs-type">bool</span> allow_post;
+    <span class="hljs-type">bool</span> allow_exposure_increase;
+    <span class="hljs-type">double</span> spread_mult;
+    <span class="hljs-type">double</span> size_mult;
+    <span class="hljs-type">double</span> order_ttl_ms;
 &#125;;
 
 <span class="hljs-function">LiveRoutingResult <span class="hljs-title">compute_live_routing_decision</span><span class="hljs-params">(</span></span>
-<span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> LiveRoutingInput&amp; input,</span></span>
-<span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> LiveRoutingPolicy&amp; bid,</span></span>
-<span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> LiveRoutingPolicy&amp; ask)</span></span>;</code></pre></div>
+<span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">const</span> LiveRoutingInput&amp; input,</span></span>
+<span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">const</span> LiveRoutingPolicy&amp; bid,</span></span>
+<span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">const</span> LiveRoutingPolicy&amp; ask)</span></span>;</code></pre></div>
 <p>它仍不是 quote → policy → routing 的完全 fused kernel，因为 <code>_build_side_policy()</code> 还在 Python；但 routing 边界自身已不再创建两个 20+ 字段 dict、逐个做字符串 key 查询、再创建结果 dict。旧/新二进制使用同一组输入做 100,000 次对照，checksum 完全一致：mean <code>6.024 → 0.472 us</code>，p99 <code>6.375 → 0.583 us</code>。这个约 92% 的下降只描述 routing binding，不代表完整 <code>_update_orders()</code> 或网络报单延迟也下降 92%。</p>
 <p>最终更理想的 live C++ 决策包应该继续向下面这个形态收敛：一次调用接收 market state、model prediction、inventory state 和 live order state，返回两个 side 的完整动作，但仍不负责 REST IO。</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-keyword">class</span> <span class="hljs-title">OrderAction</span> :</span> std::<span class="hljs-keyword">uint8_t</span> &#123;
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">enum class</span> <span class="hljs-title class_">OrderAction</span> : std::<span class="hljs-type">uint8_t</span> &#123;
     Keep,
     Cancel,
     Replace,
     NewOrder,
 &#125;;
 
-<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">LiveDecisionInput</span> &#123;</span>
-    <span class="hljs-keyword">double</span> mid;
-    <span class="hljs-keyword">double</span> best_bid;
-    <span class="hljs-keyword">double</span> best_ask;
-    <span class="hljs-keyword">double</span> tick_size;
-    <span class="hljs-keyword">double</span> lot_size;
+<span class="hljs-keyword">struct</span> <span class="hljs-title class_">LiveDecisionInput</span> &#123;
+    <span class="hljs-type">double</span> mid;
+    <span class="hljs-type">double</span> best_bid;
+    <span class="hljs-type">double</span> best_ask;
+    <span class="hljs-type">double</span> tick_size;
+    <span class="hljs-type">double</span> lot_size;
 
-    <span class="hljs-keyword">double</span> inventory;
-    <span class="hljs-keyword">double</span> max_inventory;
-    <span class="hljs-keyword">double</span> sigma_sq;
-    <span class="hljs-keyword">double</span> ret_10s;
-    <span class="hljs-keyword">double</span> tox_bid;
-    <span class="hljs-keyword">double</span> tox_ask;
+    <span class="hljs-type">double</span> inventory;
+    <span class="hljs-type">double</span> max_inventory;
+    <span class="hljs-type">double</span> sigma_sq;
+    <span class="hljs-type">double</span> ret_10s;
+    <span class="hljs-type">double</span> tox_bid;
+    <span class="hljs-type">double</span> tox_ask;
 
     ActiveOrder bid_order;
     ActiveOrder ask_order;
     DepthView depth;
 &#125;;
 
-<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">SideDecision</span> &#123;</span>
+<span class="hljs-keyword">struct</span> <span class="hljs-title class_">SideDecision</span> &#123;
     OrderAction action;
-    <span class="hljs-keyword">double</span> price;
-    <span class="hljs-keyword">double</span> quantity;
-    <span class="hljs-keyword">double</span> ttl_ms;
-    std::<span class="hljs-keyword">uint32_t</span> reason_mask;
+    <span class="hljs-type">double</span> price;
+    <span class="hljs-type">double</span> quantity;
+    <span class="hljs-type">double</span> ttl_ms;
+    std::<span class="hljs-type">uint32_t</span> reason_mask;
 &#125;;
 
-<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">LiveDecision</span> &#123;</span>
+<span class="hljs-keyword">struct</span> <span class="hljs-title class_">LiveDecision</span> &#123;
     SideDecision bid;
     SideDecision ask;
-    <span class="hljs-keyword">double</span> final_spread;
-    <span class="hljs-keyword">bool</span> inventory_blocked;
+    <span class="hljs-type">double</span> final_spread;
+    <span class="hljs-type">bool</span> inventory_blocked;
 &#125;;
 
 <span class="hljs-function">LiveDecision <span class="hljs-title">compute_live_decision</span><span class="hljs-params">(</span></span>
-<span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> LiveDecisionInput&amp; in,</span></span>
-<span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> QuoteCoreConfig&amp; quote_cfg,</span></span>
-<span class="hljs-params"><span class="hljs-function">    <span class="hljs-keyword">const</span> PolicyConfig&amp; policy_cfg)</span> </span>&#123;
+<span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">const</span> LiveDecisionInput&amp; in,</span></span>
+<span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">const</span> QuoteCoreConfig&amp; quote_cfg,</span></span>
+<span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">const</span> PolicyConfig&amp; policy_cfg)</span> </span>&#123;
     <span class="hljs-keyword">auto</span> quote = <span class="hljs-built_in">compute_quote_core_compact</span>(in, quote_cfg);
 
-    <span class="hljs-keyword">auto</span> bid_policy = evaluate_side_policy&lt;Side::Buy&gt;(
+    <span class="hljs-keyword">auto</span> bid_policy = <span class="hljs-built_in">evaluate_side_policy</span>&lt;Side::Buy&gt;(
         quote.bid, in.inventory, in.tox_bid, policy_cfg);
-    <span class="hljs-keyword">auto</span> ask_policy = evaluate_side_policy&lt;Side::Sell&gt;(
+    <span class="hljs-keyword">auto</span> ask_policy = <span class="hljs-built_in">evaluate_side_policy</span>&lt;Side::Sell&gt;(
         quote.ask, in.inventory, in.tox_ask, policy_cfg);
 
     <span class="hljs-keyword">return</span> <span class="hljs-built_in">route_quote_to_orders</span>(
@@ -2122,10 +2301,10 @@ iTLB-loads,iTLB-load-misses \
   ./bench_hot_path</code></pre></div>
 <p>源码审计也需要给模板设预算。当前模板维度主要是 <code>Side</code>、<code>QueueAheadMode</code>、固定 rolling window 和容器 view：</p>
 <div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span> &lt;Side S, QueueAheadMode Mode&gt;
-<span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">visible_queue_ahead</span><span class="hljs-params">(...)</span></span>;
+<span class="hljs-function"><span class="hljs-type">double</span> <span class="hljs-title">visible_queue_ahead</span><span class="hljs-params">(...)</span></span>;
 
-<span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">int</span> WindowSeconds&gt;
-<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RollingStats</span>;</span></code></pre></div>
+<span class="hljs-keyword">template</span> &lt;<span class="hljs-type">int</span> WindowSeconds&gt;
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">RollingStats</span>;</code></pre></div>
 <p><code>Side x QueueAheadMode</code> 只有四种 queue 实例，<code>RollingStats&lt;60&gt;</code> 即使有多个对象也只有同一种类型；quote core 的大主体本身不是模板。这里没有 <code>EnableAdverse x EnableDefense x EnableQuoteEV x ...</code> 这样的布尔笛卡尔积，因此目前不存在明显的模板组合爆炸。side-specific helper 展开后，<code>compute_quote_core()</code> 总体仍只有约 7.4 KiB。</p>
 <p>审计发现的两个缺口随后都做了收敛：</p>
 <ol>
@@ -2313,11 +2492,11 @@ order gateway thread</code></pre></div>
 <p>因此策略侧下一步不再是“把某个风险桶变成 arm”，而是先建立统一的 order-level training table：每一行 placed order 都带 quote-time 状态、是否成交、1s/5s/20s/30s markout、campaign terminal outcome、campaign MAE、random/null 对照和 oracle 上界。只有当一个 side-specific score 能稳定把 actual fills 从 toxic selection 拉回接近 null，才允许设计极小 policy knob。最近的 BUY-only fill-selection soft-keep 就属于这种 rolling-baseline probe：它不是 size-up，也不是盈利证明，而是把一个 side-specific denominator 信号放进真实订单簿继续验证。后续任何参数搜索都以实际运行配置作为滚动 baseline；公开 <code>live/config.yaml</code> 只是安全示例，不能代替私有运行配置做 parity。</p>
 <p><strong>系统性质工作</strong>则围绕真实 x86 live soak 和 order lifecycle：</p>
 <ol>
-<li><strong>固化 native deployment profile</strong>：<code>run.sh</code> 不能只依赖一次性 shell export；启动时要显式加载并打印 quote core、signal features、live routing、strict mode、extension path，重启后以 telemetry hit rate 校验。</li>
-<li><strong>重跑同口径 1-2 小时 A/B soak</strong>：同一代码和策略参数分别跑 Python/native，跟踪 <code>requote_total_us</code>、<code>update_orders_us</code>、<code>rest_new/cancel</code> p99/p99.9、<code>cpp_routing_used</code>、WebSocket age、replace throttle 命中率和 stale block。</li>
-<li><strong>补 pending replace telemetry</strong>：<code>pending_coalesce</code>、pending cancel/new overlap、fills while pending cancel 要有独立 counter，不能只靠 action mix 推断。</li>
-<li><strong>谨慎测试 cancel-first</strong>：<code>replace_cancel_first_exposure_increasing=true</code> 只能单独短窗口测试，不和 alpha arm 混在一起；如果 stream silence/reconnect 多，优先保持关闭。</li>
-<li><strong>评估 async order manager</strong>：如果 REST p99 仍是主因，再把 quote decision 和 REST submit 分离，设计 pending replace coalescing 或异步 order manager，而不是继续调 quote 公式。</li>
+<li><strong>已完成：固化 native deployment profile</strong>。<code>run.sh</code> 显式加载并打印 quote core、signal features、live routing、strict mode 与 extension path，重启后由 telemetry hit rate 再校验。</li>
+<li><strong>短窗 preflight 已完成，长窗进行中：同口径 1-2 小时 A/B soak</strong>。同一代码和策略参数分别跟踪 <code>requote_total_us</code>、<code>update_orders_us</code>、REST p99/p99.9、<code>cpp_routing_used</code>、WebSocket age、action mix 和 stale block；restart warmup 行不进入统计。短窗证明 native profile 和 gateway 安全链路可用，但 p99 样本不足。</li>
+<li><strong>已完成实现：per-side pending telemetry</strong>。submit/coalesce、pending timeout、实际 place/cancel 与错误不再只靠 action mix 推断。</li>
+<li><strong>谨慎测试 cancel-first</strong>：<code>replace_cancel_first_exposure_increasing=true</code> 继续保持关闭；async gateway 自己保证同侧 cancel 收敛后只提交最新目标，不把这个旧 soak arm 与新线程模型叠加。</li>
+<li><strong>已完成实现、待长 soak：async order gateway</strong>。quote decision 与 REST submit 已可分离，短窗内无 timeout/error 且 order-update p50 下降；p99 被少数全进程 stall 主导，replace threshold 因此保持不变。</li>
 <li><strong>保持 public/private 边界</strong>：公开仓库只暴露模板配置、sample workflow、CI 和 no-data examples；私有 live 参数、基础设施地址、实盘结果和 paid data manifest 不进入 public docs。</li>
 </ol>
 <blockquote>
@@ -2338,51 +2517,107 @@ order gateway thread</code></pre></div>
 <li>C++ 适合长期驻留的状态、高频低基数分支、完整窗口 replay 和稳定的 live hot path 小决策包；</li>
 <li>pybind 边界必须按数组、固定 tuple 或 compact context 设计，不能每 tick 传大 dict/dataclass；</li>
 <li>parity 比速度更重要，没有路径级和金额级一致性，sweep 越快越危险；</li>
-<li>当前 live 架构已经实现 native hot-path 原型、shadow telemetry 和 order lifecycle coalescing，但 native 开关尚未固化成重启不丢失的 deployment profile；先补这一层，再谈专用 order gateway、线程隔离和更长时间的 p99/p99.9 soak。</li>
+<li>当前 live 架构已经实现可持久化 native profile、shadow/perf telemetry、per-side latest-wins order gateway 和同步 safety bypass；下一步不是继续扩线程数，而是完成同口径长 soak，确认行为保持后再决定 replace threshold 与更深的网络/线程隔离。</li>
 </ol>
 <p>所以 C++ 在 NarrowGate 里的定位不是外置加速器，而是 maker 策略工程化的一部分：离线侧让严格 replay、反例搜索、null baseline、order-level evidence 和参数 racing 变得可负担；live 侧把稳定、高频、低基数的状态和决策边界收紧到更少动态对象、更少无意义 replace、更可控的尾延迟。低延时本身不是 alpha 结论，但它决定了一个 maker alpha 能否被真实验证、稳定执行，并在风险变坏时及时撤退。</p>
 <p>面向开源版本，C++ 还有另一层价值：它迫使项目把边界说清楚。哪些路径有 Python/C++ parity，哪些只能 fast screening，哪些仍必须由 Python replay 做正式证据，都应该在 public README、CI 和 examples 里体现出来。否则一个看起来很快的 extension 只会让陌生人更快踩进旧结论。</p>
 <hr>
 <p>本文及 NarrowGate 项目仅用于 C++ 低延时系统、市场微观结构、价格行为学、做市模型和机器学习回测方法的学习交流与技术研究，不构成财务、投资、法律或合规建议。中国大陆关于 crypto 交易及相关业务活动的监管环境具有不确定性；任何人将相关代码用于连接交易平台、交易、商业展业或投资决策，其合规风险、资金损失、技术故障及其他后果均由使用者自行承担，与作者无关。</p>
 
-            </div>
-            <hr>
-            <div>
-              <div class="post-metas mb-3">
-                
-                  <div class="post-meta mr-3">
-                    <i class="iconfont icon-category"></i>
-                    
-                      <a class="hover-with-bg" href="/categories/C/">C++</a>
-                    
-                  </div>
-                
-                
-                  <div class="post-meta">
-                    <i class="iconfont icon-tags"></i>
-                    
-                      <a class="hover-with-bg" href="/tags/Market-Making/">Market Making</a>
-                    
-                      <a class="hover-with-bg" href="/tags/C/">C++</a>
-                    
-                      <a class="hover-with-bg" href="/tags/%E4%BD%8E%E5%BB%B6%E6%97%B6/">低延时</a>
-                    
-                      <a class="hover-with-bg" href="/tags/pybind11/">pybind11</a>
-                    
-                      <a class="hover-with-bg" href="/tags/%E7%B3%BB%E7%BB%9F%E5%B7%A5%E7%A8%8B/">系统工程</a>
-                    
-                  </div>
                 
               </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/C/" class="category-chain-item">C++</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
+      
+        <a href="/tags/C/" class="print-no-link">#C++</a>
+      
+        <a href="/tags/%E4%BD%8E%E5%BB%B6%E6%97%B6/" class="print-no-link">#低延时</a>
+      
+        <a href="/tags/pybind11/" class="print-no-link">#pybind11</a>
+      
+        <a href="/tags/%E7%B3%BB%E7%BB%9F%E5%B7%A5%E7%A8%8B/" class="print-no-link">#系统工程</a>
+      
+    </div>
+  
+</div>
+
+
               
-                <p class="note note-warning">
-                  
-                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
-                  
-                </p>
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>NarrowGate：回测吞吐与 Live 尾延迟工程</div>
+      <div>https://xiao-nanbei.github.io/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月1日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
               
               
-                <div class="post-prevnext">
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
                     
@@ -2390,7 +2625,7 @@ order gateway thread</code></pre></div>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/">
+                      <a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/" title="NarrowGate：Maker Quote EV 与被动做市研究框架">
                         <span class="hidden-mobile">NarrowGate：Maker Quote EV 与被动做市研究框架</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
@@ -2406,19 +2641,74 @@ order gateway thread</code></pre></div>
         </div>
       </div>
     </div>
-    
-      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
-        <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
   <div class="toc-body" id="toc-body"></div>
 </div>
 
-      </div>
-    
+
+
+  </aside>
+
+
+    </div>
   </div>
 </div>
 
-<!-- Custom -->
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
 
 
     
@@ -2443,32 +2733,33 @@ order gateway thread</code></pre></div>
       <div class="modal-body mx-3">
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>
     </div>
   </div>
 </div>
+
     
 
     
   </main>
 
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
-  </div>
+  <footer>
+    <div class="footer-inner">
   
-
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
   
-
   
-</footer>
+  
+</div>
 
+  </footer>
 
-  <!-- SCRIPTS -->
+  <!-- Scripts -->
   
   <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
@@ -2487,10 +2778,22 @@ order gateway thread</code></pre></div>
 <script  src="/js/events.js" ></script>
 <script  src="/js/plugins.js" ></script>
 
-<!-- Plugins -->
 
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
 
-  <script  src="/js/local-search.js" ></script>
 
 
 
@@ -2500,105 +2803,222 @@ order gateway thread</code></pre></div>
 
 
 
-  
-
-
 
   
-    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
-  
-  
-    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
-  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
 
-
-
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
-  <script>
-    (function (window, document) {
-      var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
-      
-        typing(title);
-      
-    })(window, document);
-  </script>
-
-
-
-
-
-  
-
-  
-    <!-- MathJax -->
-    <script>
-      MathJax = {
-        tex: {
-          inlineMath: [['$', '$'], ['\\(', '\\)']]
-        },
-        loader: {
-          load: ['ui/lazy']
-        },
-        options: {
-          renderActions: {
-            findScript: [10, doc => {
-              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
-                const display = !!node.type.match(/; *mode=display/);
-                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
-                const text = document.createTextNode('');
-                node.parentNode.replaceChild(text, node);
-                math.start = { node: text, delim: '', n: 0 };
-                math.end = { node: text, delim: '', n: 0 };
-                doc.math.push(math);
-              });
-            }, '', false],
-            insertedScript: [200, () => {
-              document.querySelectorAll('mjx-container').forEach(node => {
-                let target = node.parentNode;
-                if (target.nodeName.toLowerCase() === 'li') {
-                  target.parentNode.classList.add('has-jax');
-                }
-              });
-            }, '', false]
-          }
-        }
-      };
-    </script>
-
-    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
-
-  
-
-
-
-
-
-  <script  src="https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js" ></script>
-  <script>
-    if (window.mermaid) {
-      mermaid.initialize({"theme":"default"});
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
     }
-  </script>
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
 
 
 
 
 
-
-
-<!-- 主题的启动项 保持在最底部 -->
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
 <script  src="/js/boot.js" ></script>
 
 
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
 </body>
 </html>

@@ -7,8 +7,11 @@
 
 <head>
   <meta charset="UTF-8">
+
   <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
   <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
@@ -30,30 +33,25 @@
 <meta name="twitter:card" content="summary_large_image">
   
   
+  
   <title>Stanford CS144 Lab 1: Stream reassembler - databrains</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
 
 
+
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
 
-  
-    
-    
-      
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
-    
-  
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
 
-  
-    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
-  
 
 
 <!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
 
 
 
@@ -62,21 +60,42 @@
 
 <link  rel="stylesheet" href="/css/main.css" />
 
-<!-- 自定义样式保持在最底部 -->
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
 
 
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
   </script>
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 6.0.0"></head>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
 
 
 <body>
-  <header style="height: 70vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand" href="/">
       <strong>databrains</strong>
@@ -88,7 +107,7 @@
       <div class="animated-icon"><span></span><span></span><span></span></div>
     </button>
 
-    <!-- Collapsible content -->
+    <!-- Collapsible content (desktop) -->
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav ml-auto text-center">
         
@@ -97,9 +116,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/">
+              <a class="nav-link" href="/" target="_self">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                <span>首页</span>
               </a>
             </li>
           
@@ -109,9 +128,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/archives/">
+              <a class="nav-link" href="/archives/" target="_self">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                <span>归档</span>
               </a>
             </li>
           
@@ -121,9 +140,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/categories/">
+              <a class="nav-link" href="/categories/" target="_self">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                <span>分类</span>
               </a>
             </li>
           
@@ -133,9 +152,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/tags/">
+              <a class="nav-link" href="/tags/" target="_self">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                <span>标签</span>
               </a>
             </li>
           
@@ -145,9 +164,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/about/">
+              <a class="nav-link" href="/about/" target="_self">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                <span>关于</span>
               </a>
             </li>
           
@@ -155,14 +174,16 @@
         
           <li class="nav-item" id="search-btn">
             <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
-              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+              <i class="iconfont icon-search"></i>
             </a>
           </li>
+          
         
         
           <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
           </li>
         
       </ul>
@@ -170,57 +191,176 @@
   </div>
 </nav>
 
-    <div class="banner" id="banner" parallax=true
-         style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="Stanford CS144 Lab 1: Stream reassembler">
-              
-            </span>
-
-            
-              <div class="mt-3">
-  
-  
-    <span class="post-meta">
-      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2021-11-27 15:42" pubdate>
-        2021年11月27日 下午
-      </time>
-    </span>
-  
-</div>
-
-<div class="mt-1">
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-chart"></i>
-      10k 字
-    </span>
-  
-
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-clock-fill"></i>
-      
-      
-      87 分钟
-    </span>
-  
-
-  
-  
-</div>
-
-            
-          </div>
-
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
           
-        </div>
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
       </div>
     </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Stanford CS144 Lab 1: Stream reassembler"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-11-27 15:42" pubdate>
+          2021年11月27日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          10k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          87 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
   </header>
 
   <main>
@@ -229,16 +369,21 @@
 
 <div class="container-fluid nopadding-x">
   <div class="row nomargin-x">
-    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
     <div class="col-lg-8 nopadding-x-md">
       <div class="container nopadding-x-md" id="board-ctn">
-        <div class="py-5" id="board">
+        <div id="board">
           <article class="post-content mx-auto">
-            <!-- SEO header -->
-            <h1 style="display: none">Stanford CS144 Lab 1: Stream reassembler</h1>
+            <h1 id="seo-header">Stanford CS144 Lab 1: Stream reassembler</h1>
             
-            <div class="markdown-body">
-              <p>该lab要求我们实现一个流重组类，可以将Sender发来的带索引号的字节碎片重组成有序的字节写入到byte_stream。接收端从发送端读取数据，调用流重组器，流重组器对数据进行排序，排序好后写入byte_stream。</p>
+            
+              <div class="markdown-body">
+                
+                <p>该lab要求我们实现一个流重组类，可以将Sender发来的带索引号的字节碎片重组成有序的字节写入到byte_stream。接收端从发送端读取数据，调用流重组器，流重组器对数据进行排序，排序好后写入byte_stream。</p>
 <p>值得注意的是，无论是 lab0 中的 byte_stream，还是 lab1 中的重组器，都有 <code>capacity</code> 的概念。<code>capacity</code> 对应可用缓冲上限，它由“重组器中尚未拼接的数据”与“已经写入 byte_stream 但尚未被读取的数据”共同占用。</p>
 <p>所以我们在进行重组和读写操作时，都要根据 <code>capacity</code> 约束维护重组器。为了方便起见，我们依旧使用双端队列作为重组器。</p>
 <p>在重组器类的函数中，push_substring函数完成重组工作。其参数有data(string),index(size_t),eof(bool),data是待排序的数据，index是数据首元素的序号，eof用于判断是否结束。结束后将不再有数据输入。</p>
@@ -249,7 +394,7 @@
 &#125;</code></pre></div>
 <p>2.如果 <code>data</code> 的尾部超出当前可接受范围，我们只保留窗口内可接纳的那一段。写入时常见两种情况：一是 <code>index</code> 在当前重组尾部之后，需要补占位并标记状态；二是 <code>index</code> 落在已有区间内，需要按覆盖规则处理重叠部分。代码如下：</p>
 <div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">if</span>(index+data.<span class="hljs-built_in">length</span>()&gt;_capacity+_output.<span class="hljs-built_in">bytes_read</span>())&#123;
-    <span class="hljs-keyword">for</span>(<span class="hljs-keyword">size_t</span> i=_lens_un+_output.<span class="hljs-built_in">bytes_written</span>();i&lt;_capacity+_output.<span class="hljs-built_in">bytes_read</span>();i++)&#123;
+    <span class="hljs-keyword">for</span>(<span class="hljs-type">size_t</span> i=_lens_un+_output.<span class="hljs-built_in">bytes_written</span>();i&lt;_capacity+_output.<span class="hljs-built_in">bytes_read</span>();i++)&#123;
         <span class="hljs-keyword">if</span>(i&lt;index)&#123;
             _unassembled_byte.<span class="hljs-built_in">push_back</span>(<span class="hljs-string">&#x27;\0&#x27;</span>);
             _check_byte.<span class="hljs-built_in">push_back</span>(<span class="hljs-literal">false</span>);
@@ -265,19 +410,19 @@
 <p>3.我们要判断index是否等于已经写入byte_stream(_output)中的数据，如果是的，我们就直接将data中的数据写入byte_stream,然后在重组器中弹出data.length()个数据，值得注意的是，当重组器中的数据个数小于data.length()，我们就全部弹出。代码如下：</p>
 <div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">if</span>(index==_output.<span class="hljs-built_in">bytes_written</span>())&#123;
     _output.<span class="hljs-built_in">write</span>(data);
-    <span class="hljs-keyword">size_t</span> temp_len=std::<span class="hljs-built_in">min</span>(_lens_un,data.<span class="hljs-built_in">length</span>());
+    <span class="hljs-type">size_t</span> temp_len=std::<span class="hljs-built_in">min</span>(_lens_un,data.<span class="hljs-built_in">length</span>());
     _unassembled_byte.<span class="hljs-built_in">erase</span>(_unassembled_byte.<span class="hljs-built_in">begin</span>(),_unassembled_byte.<span class="hljs-built_in">begin</span>()+temp_len);
     _check_byte.<span class="hljs-built_in">erase</span>(_check_byte.<span class="hljs-built_in">begin</span>(),_check_byte.<span class="hljs-built_in">begin</span>()+temp_len);
     _lens_un-=temp_len;
 &#125;</code></pre></div>
 <p>4.我们要判断index是否大于流重组器中的最后一个数据的序号和写入byte_stream中的数据个数之和，如果大于，我们就可以参考1的处理，代码如下：</p>
 <div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">if</span>(index&gt;_output.<span class="hljs-built_in">bytes_written</span>()+_lens_un)&#123;
-    <span class="hljs-keyword">for</span>(<span class="hljs-keyword">size_t</span> i=_output.<span class="hljs-built_in">bytes_written</span>()+_lens_un;i&lt;index;i++)&#123;
+    <span class="hljs-keyword">for</span>(<span class="hljs-type">size_t</span> i=_output.<span class="hljs-built_in">bytes_written</span>()+_lens_un;i&lt;index;i++)&#123;
         _unassembled_byte.<span class="hljs-built_in">push_back</span>(<span class="hljs-string">&#x27;\0&#x27;</span>);
         _check_byte.<span class="hljs-built_in">push_back</span>(<span class="hljs-literal">false</span>);
         _lens_un++;
     &#125;
-    <span class="hljs-keyword">for</span>(<span class="hljs-keyword">char</span> i : data)&#123;
+    <span class="hljs-keyword">for</span>(<span class="hljs-type">char</span> i : data)&#123;
         _unassembled_byte.<span class="hljs-built_in">push_back</span>(i);
         _lens_un++;
         _check_byte.<span class="hljs-built_in">push_back</span>(<span class="hljs-literal">true</span>);
@@ -290,24 +435,24 @@
     &#125;
     <span class="hljs-function">std::string <span class="hljs-title">data_cut</span><span class="hljs-params">(data.begin()+_output.bytes_written()-index,data.end())</span></span>;
     _output.<span class="hljs-built_in">write</span>(data_cut);
-    <span class="hljs-keyword">size_t</span> temp_len=std::<span class="hljs-built_in">min</span>(_lens_un,data_cut.<span class="hljs-built_in">length</span>());
+    <span class="hljs-type">size_t</span> temp_len=std::<span class="hljs-built_in">min</span>(_lens_un,data_cut.<span class="hljs-built_in">length</span>());
     _unassembled_byte.<span class="hljs-built_in">erase</span>(_unassembled_byte.<span class="hljs-built_in">begin</span>(),_unassembled_byte.<span class="hljs-built_in">begin</span>()+temp_len);
     _check_byte.<span class="hljs-built_in">erase</span>(_check_byte.<span class="hljs-built_in">begin</span>(),_check_byte.<span class="hljs-built_in">begin</span>()+temp_len);
     _lens_un-=temp_len;</code></pre></div>
 <p>6.在上述特殊情况都被排除之后，剩下的就是index处于流重组器的中间，我们就插入data中的数据到流重组器就行了。代码如下：</p>
 <div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-comment">//在中间插入元素</span>
 <span class="hljs-comment">//先弹出一部分数据保存到栈中</span>
-std::stack&lt;<span class="hljs-keyword">char</span>&gt; temp;
-std::stack&lt;<span class="hljs-keyword">bool</span>&gt; temp_check;
-<span class="hljs-keyword">for</span>(<span class="hljs-keyword">size_t</span> i=<span class="hljs-number">0</span>;i&lt;index-_output.<span class="hljs-built_in">bytes_written</span>();i++)&#123;
+std::stack&lt;<span class="hljs-type">char</span>&gt; temp;
+std::stack&lt;<span class="hljs-type">bool</span>&gt; temp_check;
+<span class="hljs-keyword">for</span>(<span class="hljs-type">size_t</span> i=<span class="hljs-number">0</span>;i&lt;index-_output.<span class="hljs-built_in">bytes_written</span>();i++)&#123;
     temp.<span class="hljs-built_in">push</span>(_unassembled_byte.<span class="hljs-built_in">at</span>(i));
     temp_check.<span class="hljs-built_in">push</span>(_check_byte.<span class="hljs-built_in">at</span>(i));
 &#125;
-<span class="hljs-keyword">size_t</span> temp_len=std::<span class="hljs-built_in">min</span>(_lens_un,data.<span class="hljs-built_in">length</span>()+index-_output.<span class="hljs-built_in">bytes_written</span>());
+<span class="hljs-type">size_t</span> temp_len=std::<span class="hljs-built_in">min</span>(_lens_un,data.<span class="hljs-built_in">length</span>()+index-_output.<span class="hljs-built_in">bytes_written</span>());
 _unassembled_byte.<span class="hljs-built_in">erase</span>(_unassembled_byte.<span class="hljs-built_in">begin</span>(),_unassembled_byte.<span class="hljs-built_in">begin</span>()+temp_len);
 _check_byte.<span class="hljs-built_in">erase</span>(_check_byte.<span class="hljs-built_in">begin</span>(),_check_byte.<span class="hljs-built_in">begin</span>()+temp_len);
 _lens_un-=temp_len;
-<span class="hljs-keyword">for</span>(<span class="hljs-keyword">int</span> i=data.<span class="hljs-built_in">length</span>()<span class="hljs-number">-1</span>;i&gt;=<span class="hljs-number">0</span>;i--)&#123;
+<span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i=data.<span class="hljs-built_in">length</span>()<span class="hljs-number">-1</span>;i&gt;=<span class="hljs-number">0</span>;i--)&#123;
     _unassembled_byte.<span class="hljs-built_in">push_front</span>(data[i]);
     _check_byte.<span class="hljs-built_in">push_front</span>(<span class="hljs-literal">true</span>);
     _lens_un++;
@@ -328,9 +473,9 @@ _check_byte.<span class="hljs-built_in">erase</span>(_check_byte.<span class="hl
 <span class="hljs-keyword">if</span>(eof) input_end_index=index+data.<span class="hljs-built_in">length</span>();
 <span class="hljs-keyword">if</span>(input_end_index==_output.<span class="hljs-built_in">bytes_written</span>()) _output.<span class="hljs-built_in">end_input</span>();</code></pre></div>
 <p>至于unassembled_byte函数，就是返回流重组器中false数据的个数，empty就是一个判空函数，代码如下：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">StreamReassembler::unassembled_bytes</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123;
-    <span class="hljs-keyword">size_t</span> res=<span class="hljs-number">0</span>;
-    <span class="hljs-keyword">for</span>(<span class="hljs-keyword">bool</span> i:_check_byte)&#123;
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">size_t</span> <span class="hljs-title">StreamReassembler::unassembled_bytes</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123;
+    <span class="hljs-type">size_t</span> res=<span class="hljs-number">0</span>;
+    <span class="hljs-keyword">for</span>(<span class="hljs-type">bool</span> i:_check_byte)&#123;
         <span class="hljs-keyword">if</span>(i)&#123;
             res++;
         &#125;
@@ -338,12 +483,12 @@ _check_byte.<span class="hljs-built_in">erase</span>(_check_byte.<span class="hl
     <span class="hljs-keyword">return</span> res;
 &#125;
 
-<span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">StreamReassembler::empty</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> _lens_un==<span class="hljs-number">0</span>; &#125;</code></pre></div>
+<span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">StreamReassembler::empty</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> _lens_un==<span class="hljs-number">0</span>; &#125;</code></pre></div>
 <p>stream_reassembler.cc代码如下：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;stream_reassembler.hh&quot;</span></span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;stack&quot;</span></span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;cstring&quot;</span></span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;iostream&quot;</span></span>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;stream_reassembler.hh&quot;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;stack&quot;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;cstring&quot;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;iostream&quot;</span></span>
 <span class="hljs-comment">// Dummy implementation of a stream reassembler.</span>
 
 <span class="hljs-comment">// For Lab 1, please replace with a real implementation that passes the</span>
@@ -352,23 +497,23 @@ _check_byte.<span class="hljs-built_in">erase</span>(_check_byte.<span class="hl
 <span class="hljs-comment">// You will need to add private members to the class declaration in `stream_reassembler.hh`</span>
 
 <span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span>... Targs&gt;
-<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">DUMMY_CODE</span><span class="hljs-params">(Targs &amp;&amp;... <span class="hljs-comment">/* unused */</span>)</span> </span>&#123;&#125;
+<span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">DUMMY_CODE</span><span class="hljs-params">(Targs &amp;&amp;... <span class="hljs-comment">/* unused */</span>)</span> </span>&#123;&#125;
 
 <span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;
 
-StreamReassembler::<span class="hljs-built_in">StreamReassembler</span>(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> capacity) : _output(capacity), _capacity(capacity), _unassembled_byte(<span class="hljs-number">0</span>),_check_byte(<span class="hljs-number">0</span>),_lens_un(<span class="hljs-number">0</span>),<span class="hljs-built_in">input_end_index</span>(<span class="hljs-number">-1</span>)&#123;&#125;
+StreamReassembler::<span class="hljs-built_in">StreamReassembler</span>(<span class="hljs-type">const</span> <span class="hljs-type">size_t</span> capacity) : _output(capacity), _capacity(capacity), _unassembled_byte(<span class="hljs-number">0</span>),_check_byte(<span class="hljs-number">0</span>),_lens_un(<span class="hljs-number">0</span>),<span class="hljs-built_in">input_end_index</span>(<span class="hljs-number">-1</span>)&#123;&#125;
 
 <span class="hljs-comment">//! \details This function accepts a substring (aka a segment) of bytes,</span>
 <span class="hljs-comment">//! possibly out-of-order, from the logical stream, and assembles any newly</span>
 <span class="hljs-comment">//! contiguous substrings and writes them into the output stream in order.</span>
 <span class="hljs-comment">//</span>
-<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">StreamReassembler::push_substring</span><span class="hljs-params">(<span class="hljs-keyword">const</span> string &amp;data, <span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> index, <span class="hljs-keyword">const</span> <span class="hljs-keyword">bool</span> eof)</span> </span>&#123;
+<span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">StreamReassembler::push_substring</span><span class="hljs-params">(<span class="hljs-type">const</span> string &amp;data, <span class="hljs-type">const</span> <span class="hljs-type">size_t</span> index, <span class="hljs-type">const</span> <span class="hljs-type">bool</span> eof)</span> </span>&#123;
     <span class="hljs-built_in">DUMMY_CODE</span>(data, index, eof);
     <span class="hljs-comment">//始终使用绝对索引</span>
     <span class="hljs-keyword">if</span>(index&gt;_output.<span class="hljs-built_in">bytes_read</span>()+_capacity)&#123;
         <span class="hljs-keyword">return</span>;
     &#125;<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(index+data.<span class="hljs-built_in">length</span>()&gt;_capacity+_output.<span class="hljs-built_in">bytes_read</span>())&#123;
-        <span class="hljs-keyword">for</span>(<span class="hljs-keyword">size_t</span> i=_lens_un+_output.<span class="hljs-built_in">bytes_written</span>();i&lt;_capacity+_output.<span class="hljs-built_in">bytes_read</span>();i++)&#123;
+        <span class="hljs-keyword">for</span>(<span class="hljs-type">size_t</span> i=_lens_un+_output.<span class="hljs-built_in">bytes_written</span>();i&lt;_capacity+_output.<span class="hljs-built_in">bytes_read</span>();i++)&#123;
             <span class="hljs-keyword">if</span>(i&lt;index)&#123;
                 _unassembled_byte.<span class="hljs-built_in">push_back</span>(<span class="hljs-string">&#x27;\0&#x27;</span>);
                 _check_byte.<span class="hljs-built_in">push_back</span>(<span class="hljs-literal">false</span>);
@@ -382,17 +527,17 @@ StreamReassembler::<span class="hljs-built_in">StreamReassembler</span>(<span cl
         &#125;
     &#125;<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(index==_output.<span class="hljs-built_in">bytes_written</span>())&#123;
         _output.<span class="hljs-built_in">write</span>(data);
-        <span class="hljs-keyword">size_t</span> temp_len=std::<span class="hljs-built_in">min</span>(_lens_un,data.<span class="hljs-built_in">length</span>());
+        <span class="hljs-type">size_t</span> temp_len=std::<span class="hljs-built_in">min</span>(_lens_un,data.<span class="hljs-built_in">length</span>());
         _unassembled_byte.<span class="hljs-built_in">erase</span>(_unassembled_byte.<span class="hljs-built_in">begin</span>(),_unassembled_byte.<span class="hljs-built_in">begin</span>()+temp_len);
         _check_byte.<span class="hljs-built_in">erase</span>(_check_byte.<span class="hljs-built_in">begin</span>(),_check_byte.<span class="hljs-built_in">begin</span>()+temp_len);
         _lens_un-=temp_len;
     &#125;<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(index&gt;_output.<span class="hljs-built_in">bytes_written</span>()+_lens_un)&#123;
-        <span class="hljs-keyword">for</span>(<span class="hljs-keyword">size_t</span> i=_output.<span class="hljs-built_in">bytes_written</span>()+_lens_un;i&lt;index;i++)&#123;
+        <span class="hljs-keyword">for</span>(<span class="hljs-type">size_t</span> i=_output.<span class="hljs-built_in">bytes_written</span>()+_lens_un;i&lt;index;i++)&#123;
             _unassembled_byte.<span class="hljs-built_in">push_back</span>(<span class="hljs-string">&#x27;\0&#x27;</span>);
             _check_byte.<span class="hljs-built_in">push_back</span>(<span class="hljs-literal">false</span>);
             _lens_un++;
         &#125;
-        <span class="hljs-keyword">for</span>(<span class="hljs-keyword">char</span> i : data)&#123;
+        <span class="hljs-keyword">for</span>(<span class="hljs-type">char</span> i : data)&#123;
             _unassembled_byte.<span class="hljs-built_in">push_back</span>(i);
             _lens_un++;
             _check_byte.<span class="hljs-built_in">push_back</span>(<span class="hljs-literal">true</span>);
@@ -403,24 +548,24 @@ StreamReassembler::<span class="hljs-built_in">StreamReassembler</span>(<span cl
         &#125;
         <span class="hljs-function">std::string <span class="hljs-title">data_cut</span><span class="hljs-params">(data.begin()+_output.bytes_written()-index,data.end())</span></span>;
         _output.<span class="hljs-built_in">write</span>(data_cut);
-        <span class="hljs-keyword">size_t</span> temp_len=std::<span class="hljs-built_in">min</span>(_lens_un,data_cut.<span class="hljs-built_in">length</span>());
+        <span class="hljs-type">size_t</span> temp_len=std::<span class="hljs-built_in">min</span>(_lens_un,data_cut.<span class="hljs-built_in">length</span>());
         _unassembled_byte.<span class="hljs-built_in">erase</span>(_unassembled_byte.<span class="hljs-built_in">begin</span>(),_unassembled_byte.<span class="hljs-built_in">begin</span>()+temp_len);
         _check_byte.<span class="hljs-built_in">erase</span>(_check_byte.<span class="hljs-built_in">begin</span>(),_check_byte.<span class="hljs-built_in">begin</span>()+temp_len);
         _lens_un-=temp_len;
     &#125;<span class="hljs-keyword">else</span>&#123;
         <span class="hljs-comment">//在中间插入元素</span>
         <span class="hljs-comment">//先弹出一部分数据保存到栈中</span>
-        std::stack&lt;<span class="hljs-keyword">char</span>&gt; temp;
-        std::stack&lt;<span class="hljs-keyword">bool</span>&gt; temp_check;
-        <span class="hljs-keyword">for</span>(<span class="hljs-keyword">size_t</span> i=<span class="hljs-number">0</span>;i&lt;index-_output.<span class="hljs-built_in">bytes_written</span>();i++)&#123;
+        std::stack&lt;<span class="hljs-type">char</span>&gt; temp;
+        std::stack&lt;<span class="hljs-type">bool</span>&gt; temp_check;
+        <span class="hljs-keyword">for</span>(<span class="hljs-type">size_t</span> i=<span class="hljs-number">0</span>;i&lt;index-_output.<span class="hljs-built_in">bytes_written</span>();i++)&#123;
             temp.<span class="hljs-built_in">push</span>(_unassembled_byte.<span class="hljs-built_in">at</span>(i));
             temp_check.<span class="hljs-built_in">push</span>(_check_byte.<span class="hljs-built_in">at</span>(i));
         &#125;
-        <span class="hljs-keyword">size_t</span> temp_len=std::<span class="hljs-built_in">min</span>(_lens_un,data.<span class="hljs-built_in">length</span>()+index-_output.<span class="hljs-built_in">bytes_written</span>());
+        <span class="hljs-type">size_t</span> temp_len=std::<span class="hljs-built_in">min</span>(_lens_un,data.<span class="hljs-built_in">length</span>()+index-_output.<span class="hljs-built_in">bytes_written</span>());
         _unassembled_byte.<span class="hljs-built_in">erase</span>(_unassembled_byte.<span class="hljs-built_in">begin</span>(),_unassembled_byte.<span class="hljs-built_in">begin</span>()+temp_len);
         _check_byte.<span class="hljs-built_in">erase</span>(_check_byte.<span class="hljs-built_in">begin</span>(),_check_byte.<span class="hljs-built_in">begin</span>()+temp_len);
         _lens_un-=temp_len;
-        <span class="hljs-keyword">for</span>(<span class="hljs-keyword">int</span> i=data.<span class="hljs-built_in">length</span>()<span class="hljs-number">-1</span>;i&gt;=<span class="hljs-number">0</span>;i--)&#123;
+        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i=data.<span class="hljs-built_in">length</span>()<span class="hljs-number">-1</span>;i&gt;=<span class="hljs-number">0</span>;i--)&#123;
             _unassembled_byte.<span class="hljs-built_in">push_front</span>(data[i]);
             _check_byte.<span class="hljs-built_in">push_front</span>(<span class="hljs-literal">true</span>);
             _lens_un++;
@@ -433,7 +578,7 @@ StreamReassembler::<span class="hljs-built_in">StreamReassembler</span>(<span cl
             temp_check.<span class="hljs-built_in">pop</span>();
         &#125;
     &#125;
-    <span class="hljs-keyword">size_t</span> i=<span class="hljs-number">0</span>;
+    <span class="hljs-type">size_t</span> i=<span class="hljs-number">0</span>;
     <span class="hljs-keyword">while</span>(i&lt;_lens_un)&#123;
         <span class="hljs-keyword">if</span>(!_check_byte.<span class="hljs-built_in">at</span>(i))&#123;
             <span class="hljs-keyword">break</span>;
@@ -449,9 +594,9 @@ StreamReassembler::<span class="hljs-built_in">StreamReassembler</span>(<span cl
     <span class="hljs-keyword">if</span>(input_end_index==_output.<span class="hljs-built_in">bytes_written</span>()) _output.<span class="hljs-built_in">end_input</span>();
 &#125;
 
-<span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">StreamReassembler::unassembled_bytes</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123;
-    <span class="hljs-keyword">size_t</span> res=<span class="hljs-number">0</span>;
-    <span class="hljs-keyword">for</span>(<span class="hljs-keyword">bool</span> i:_check_byte)&#123;
+<span class="hljs-function"><span class="hljs-type">size_t</span> <span class="hljs-title">StreamReassembler::unassembled_bytes</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123;
+    <span class="hljs-type">size_t</span> res=<span class="hljs-number">0</span>;
+    <span class="hljs-keyword">for</span>(<span class="hljs-type">bool</span> i:_check_byte)&#123;
         <span class="hljs-keyword">if</span>(i)&#123;
             res++;
         &#125;
@@ -459,33 +604,33 @@ StreamReassembler::<span class="hljs-built_in">StreamReassembler</span>(<span cl
     <span class="hljs-keyword">return</span> res;
 &#125;
 
-<span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">StreamReassembler::empty</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> _lens_un==<span class="hljs-number">0</span>; &#125;</code></pre></div>
+<span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">StreamReassembler::empty</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> _lens_un==<span class="hljs-number">0</span>; &#125;</code></pre></div>
 <p>stream_reassembler.hh代码如下：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-meta-keyword">ifndef</span> SPONGE_LIBSPONGE_STREAM_REASSEMBLER_HH</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SPONGE_LIBSPONGE_STREAM_REASSEMBLER_HH</span>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">ifndef</span> SPONGE_LIBSPONGE_STREAM_REASSEMBLER_HH</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SPONGE_LIBSPONGE_STREAM_REASSEMBLER_HH</span>
 
-<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;byte_stream.hh&quot;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;byte_stream.hh&quot;</span></span>
 
-<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;cstdint&gt;</span></span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;string&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;cstdint&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;string&gt;</span></span>
 
 <span class="hljs-comment">//! \brief A class that assembles a series of excerpts from a byte stream (possibly out of order,</span>
 <span class="hljs-comment">//! possibly overlapping) into an in-order byte stream.</span>
-<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">StreamReassembler</span> &#123;</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">StreamReassembler</span> &#123;
   <span class="hljs-keyword">private</span>:
     <span class="hljs-comment">// Your code here -- add private members as necessary.</span>
     ByteStream _output;  <span class="hljs-comment">//!&lt; The reassembled in-order byte stream</span>
     <span class="hljs-comment">//capacity是SreamReassembler里面储存的max_index减去在bytestream里面还没有被读取min_index,然后还要加上1</span>
-    <span class="hljs-keyword">size_t</span> _capacity;    <span class="hljs-comment">//!&lt; The maximum number of bytes</span>
-    std::deque&lt;<span class="hljs-keyword">char</span>&gt; _unassembled_byte;<span class="hljs-comment">//</span>
-    std::deque&lt;<span class="hljs-keyword">bool</span>&gt; _check_byte;
-    <span class="hljs-keyword">size_t</span> _lens_un;
-    <span class="hljs-keyword">bool</span> _eof;
+    <span class="hljs-type">size_t</span> _capacity;    <span class="hljs-comment">//!&lt; The maximum number of bytes</span>
+    std::deque&lt;<span class="hljs-type">char</span>&gt; _unassembled_byte;<span class="hljs-comment">//</span>
+    std::deque&lt;<span class="hljs-type">bool</span>&gt; _check_byte;
+    <span class="hljs-type">size_t</span> _lens_un;
+    <span class="hljs-type">bool</span> _eof;
   <span class="hljs-keyword">public</span>:
     <span class="hljs-comment">//! \brief Construct a `StreamReassembler` that will store up to `capacity` bytes.</span>
     <span class="hljs-comment">//! \note This capacity limits both the bytes that have been reassembled,</span>
     <span class="hljs-comment">//! and those that have not yet been reassembled.</span>
-    <span class="hljs-built_in">StreamReassembler</span>(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> capacity);
+    <span class="hljs-built_in">StreamReassembler</span>(<span class="hljs-type">const</span> <span class="hljs-type">size_t</span> capacity);
 
     <span class="hljs-comment">//! \brief Receive a substring and write any newly contiguous bytes into the stream.</span>
     <span class="hljs-comment">//!</span>
@@ -495,11 +640,11 @@ StreamReassembler::<span class="hljs-built_in">StreamReassembler</span>(<span cl
     <span class="hljs-comment">//! \param data the substring</span>
     <span class="hljs-comment">//! \param index indicates the index (place in sequence) of the first byte in `data`</span>
     <span class="hljs-comment">//! \param eof the last byte of `data` will be the last byte in the entire stream</span>
-    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">push_substring</span><span class="hljs-params">(<span class="hljs-keyword">const</span> std::string &amp;data, <span class="hljs-keyword">const</span> <span class="hljs-keyword">uint64_t</span> index, <span class="hljs-keyword">const</span> <span class="hljs-keyword">bool</span> eof)</span></span>;
+    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">push_substring</span><span class="hljs-params">(<span class="hljs-type">const</span> std::string &amp;data, <span class="hljs-type">const</span> <span class="hljs-type">uint64_t</span> index, <span class="hljs-type">const</span> <span class="hljs-type">bool</span> eof)</span></span>;
 
     <span class="hljs-comment">//! \name Access the reassembled byte stream</span>
     <span class="hljs-comment">//!@&#123;</span>
-    <span class="hljs-function"><span class="hljs-keyword">const</span> ByteStream &amp;<span class="hljs-title">stream_out</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> _output; &#125;
+    <span class="hljs-function"><span class="hljs-type">const</span> ByteStream &amp;<span class="hljs-title">stream_out</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> _output; &#125;
     <span class="hljs-function">ByteStream &amp;<span class="hljs-title">stream_out</span><span class="hljs-params">()</span> </span>&#123; <span class="hljs-keyword">return</span> _output; &#125;
     <span class="hljs-comment">//!@&#125;</span>
 
@@ -510,15 +655,15 @@ StreamReassembler::<span class="hljs-built_in">StreamReassembler</span>(<span cl
     <span class="hljs-comment">/*unassembled byte是还未传递但是要传递给bytestream的储存在StreamReassembler的字符数，</span>
 <span class="hljs-comment">     * 其中如果不同的字符串有重叠部分的话，重叠部分只算一次</span>
 <span class="hljs-comment">     * */</span>
-    <span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">unassembled_bytes</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;
+    <span class="hljs-function"><span class="hljs-type">size_t</span> <span class="hljs-title">unassembled_bytes</span><span class="hljs-params">()</span> <span class="hljs-type">const</span></span>;
 
     <span class="hljs-comment">//! \brief Is the internal state empty (other than the output stream)?</span>
     <span class="hljs-comment">//! \returns `true` if no substrings are waiting to be assembled</span>
     <span class="hljs-comment">//判空函数，</span>
-    <span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">empty</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;
+    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">empty</span><span class="hljs-params">()</span> <span class="hljs-type">const</span></span>;
 &#125;;
 
-<span class="hljs-meta">#<span class="hljs-meta-keyword">endif</span>  <span class="hljs-comment">// SPONGE_LIBSPONGE_STREAM_REASSEMBLER_HH</span></span></code></pre></div>
+<span class="hljs-meta">#<span class="hljs-keyword">endif</span>  <span class="hljs-comment">// SPONGE_LIBSPONGE_STREAM_REASSEMBLER_HH</span></span></code></pre></div>
 <p>后记：</p>
 <p>在我面试的时候，面试官问我：</p>
 <p>如果遇到极端情况，当前所需的第一个字节index为i，但包含这个字节的segment迟迟不来，这个时候应该怎么办？</p>
@@ -526,40 +671,96 @@ StreamReassembler::<span class="hljs-built_in">StreamReassembler</span>(<span cl
 <p>大家如果要看快速重传的内容可以到这里下载：</p>
 <p><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/hust-cs/tree/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/%E5%AE%9E%E9%AA%8C%E4%BA%8C(%E4%BC%A0%E8%BE%93%E5%8D%8F%E8%AE%AE%EF%BC%89">GBN&amp;SR&amp;TCP</a>）</p>
 
-            </div>
-            <hr>
-            <div>
-              <div class="post-metas mb-3">
-                
-                  <div class="post-meta mr-3">
-                    <i class="iconfont icon-category"></i>
-                    
-                      <a class="hover-with-bg" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">计算机网络</a>
-                    
-                  </div>
-                
-                
-                  <div class="post-meta">
-                    <i class="iconfont icon-tags"></i>
-                    
-                      <a class="hover-with-bg" href="/tags/Stanford-CS144-Lab/">Stanford CS144 Lab</a>
-                    
-                  </div>
                 
               </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="category-chain-item">计算机网络</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Stanford-CS144-Lab/" class="print-no-link">#Stanford CS144 Lab</a>
+      
+    </div>
+  
+</div>
+
+
               
-                <p class="note note-warning">
-                  
-                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
-                  
-                </p>
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Stanford CS144 Lab 1: Stream reassembler</div>
+      <div>https://xiao-nanbei.github.io/2021/11/27/Stanford-CS144-Lab-1-Stream-Reassembler/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2021年11月27日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
               
               
-                <div class="post-prevnext">
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2021/12/13/%E5%AF%B9%E6%B5%AE%E7%82%B9%E6%95%B0%E7%B2%BE%E5%BA%A6%E4%B8%A2%E5%A4%B1%E7%9A%84%E4%B8%80%E7%82%B9%E7%A0%94%E7%A9%B6/">
+                      <a href="/2021/12/13/%E5%AF%B9%E6%B5%AE%E7%82%B9%E6%95%B0%E7%B2%BE%E5%BA%A6%E4%B8%A2%E5%A4%B1%E7%9A%84%E4%B8%80%E7%82%B9%E7%A0%94%E7%A9%B6/" title="浮点数精度丢失：IEEE 754、舍入误差与工程实践">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">浮点数精度丢失：IEEE 754、舍入误差与工程实践</span>
                         <span class="visible-mobile">上一篇</span>
@@ -569,7 +770,7 @@ StreamReassembler::<span class="hljs-built_in">StreamReassembler</span>(<span cl
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2021/11/23/Stanford-CS144-Lab-3-TCP-Sender/">
+                      <a href="/2021/11/23/Stanford-CS144-Lab-3-TCP-Sender/" title="Stanford CS144 Lab 3: TCP sender">
                         <span class="hidden-mobile">Stanford CS144 Lab 3: TCP sender</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
@@ -585,19 +786,74 @@ StreamReassembler::<span class="hljs-built_in">StreamReassembler</span>(<span cl
         </div>
       </div>
     </div>
-    
-      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
-        <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
   <div class="toc-body" id="toc-body"></div>
 </div>
 
-      </div>
-    
+
+
+  </aside>
+
+
+    </div>
   </div>
 </div>
 
-<!-- Custom -->
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
 
 
     
@@ -622,32 +878,33 @@ StreamReassembler::<span class="hljs-built_in">StreamReassembler</span>(<span cl
       <div class="modal-body mx-3">
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>
     </div>
   </div>
 </div>
+
     
 
     
   </main>
 
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
-  </div>
+  <footer>
+    <div class="footer-inner">
   
-
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
   
-
   
-</footer>
+  
+</div>
 
+  </footer>
 
-  <!-- SCRIPTS -->
+  <!-- Scripts -->
   
   <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
@@ -666,10 +923,22 @@ StreamReassembler::<span class="hljs-built_in">StreamReassembler</span>(<span cl
 <script  src="/js/events.js" ></script>
 <script  src="/js/plugins.js" ></script>
 
-<!-- Plugins -->
 
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
 
-  <script  src="/js/local-search.js" ></script>
 
 
 
@@ -679,105 +948,222 @@ StreamReassembler::<span class="hljs-built_in">StreamReassembler</span>(<span cl
 
 
 
-  
-
-
 
   
-    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
-  
-  
-    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
-  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
 
-
-
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
-  <script>
-    (function (window, document) {
-      var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
-      
-        typing(title);
-      
-    })(window, document);
-  </script>
-
-
-
-
-
-  
-
-  
-    <!-- MathJax -->
-    <script>
-      MathJax = {
-        tex: {
-          inlineMath: [['$', '$'], ['\\(', '\\)']]
-        },
-        loader: {
-          load: ['ui/lazy']
-        },
-        options: {
-          renderActions: {
-            findScript: [10, doc => {
-              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
-                const display = !!node.type.match(/; *mode=display/);
-                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
-                const text = document.createTextNode('');
-                node.parentNode.replaceChild(text, node);
-                math.start = { node: text, delim: '', n: 0 };
-                math.end = { node: text, delim: '', n: 0 };
-                doc.math.push(math);
-              });
-            }, '', false],
-            insertedScript: [200, () => {
-              document.querySelectorAll('mjx-container').forEach(node => {
-                let target = node.parentNode;
-                if (target.nodeName.toLowerCase() === 'li') {
-                  target.parentNode.classList.add('has-jax');
-                }
-              });
-            }, '', false]
-          }
-        }
-      };
-    </script>
-
-    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
-
-  
-
-
-
-
-
-  <script  src="https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js" ></script>
-  <script>
-    if (window.mermaid) {
-      mermaid.initialize({"theme":"default"});
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
     }
-  </script>
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
 
 
 
 
 
-
-
-<!-- 主题的启动项 保持在最底部 -->
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
 <script  src="/js/boot.js" ></script>
 
 
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
 </body>
 </html>

@@ -7,8 +7,11 @@
 
 <head>
   <meta charset="UTF-8">
+
   <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
   <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
@@ -32,30 +35,25 @@
 <meta name="twitter:image" content="https://img-blog.csdnimg.cn/20190323002502144.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2RqbDgwNjk0MzM3MQ==,size_16,color_FFFFFF,t_70">
   
   
+  
   <title>Stanford CS144 Lab 0: Networking warmup - databrains</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
 
 
+
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
 
-  
-    
-    
-      
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
-    
-  
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
 
-  
-    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
-  
 
 
 <!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
 
 
 
@@ -64,21 +62,42 @@
 
 <link  rel="stylesheet" href="/css/main.css" />
 
-<!-- 自定义样式保持在最底部 -->
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
 
 
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
   </script>
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 6.0.0"></head>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
 
 
 <body>
-  <header style="height: 70vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand" href="/">
       <strong>databrains</strong>
@@ -90,7 +109,7 @@
       <div class="animated-icon"><span></span><span></span><span></span></div>
     </button>
 
-    <!-- Collapsible content -->
+    <!-- Collapsible content (desktop) -->
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav ml-auto text-center">
         
@@ -99,9 +118,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/">
+              <a class="nav-link" href="/" target="_self">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                <span>首页</span>
               </a>
             </li>
           
@@ -111,9 +130,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/archives/">
+              <a class="nav-link" href="/archives/" target="_self">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                <span>归档</span>
               </a>
             </li>
           
@@ -123,9 +142,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/categories/">
+              <a class="nav-link" href="/categories/" target="_self">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                <span>分类</span>
               </a>
             </li>
           
@@ -135,9 +154,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/tags/">
+              <a class="nav-link" href="/tags/" target="_self">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                <span>标签</span>
               </a>
             </li>
           
@@ -147,9 +166,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/about/">
+              <a class="nav-link" href="/about/" target="_self">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                <span>关于</span>
               </a>
             </li>
           
@@ -157,14 +176,16 @@
         
           <li class="nav-item" id="search-btn">
             <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
-              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+              <i class="iconfont icon-search"></i>
             </a>
           </li>
+          
         
         
           <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
           </li>
         
       </ul>
@@ -172,57 +193,176 @@
   </div>
 </nav>
 
-    <div class="banner" id="banner" parallax=true
-         style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="Stanford CS144 Lab 0: Networking warmup">
-              
-            </span>
-
-            
-              <div class="mt-3">
-  
-  
-    <span class="post-meta">
-      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2021-11-20 05:57" pubdate>
-        2021年11月20日 凌晨
-      </time>
-    </span>
-  
-</div>
-
-<div class="mt-1">
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-chart"></i>
-      11k 字
-    </span>
-  
-
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-clock-fill"></i>
-      
-      
-      94 分钟
-    </span>
-  
-
-  
-  
-</div>
-
-            
-          </div>
-
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
           
-        </div>
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
       </div>
     </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Stanford CS144 Lab 0: Networking warmup"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-11-20 05:57" pubdate>
+          2021年11月20日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          11k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          94 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
   </header>
 
   <main>
@@ -231,16 +371,21 @@
 
 <div class="container-fluid nopadding-x">
   <div class="row nomargin-x">
-    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
     <div class="col-lg-8 nopadding-x-md">
       <div class="container nopadding-x-md" id="board-ctn">
-        <div class="py-5" id="board">
+        <div id="board">
           <article class="post-content mx-auto">
-            <!-- SEO header -->
-            <h1 style="display: none">Stanford CS144 Lab 0: Networking warmup</h1>
+            <h1 id="seo-header">Stanford CS144 Lab 0: Networking warmup</h1>
             
-            <div class="markdown-body">
-              <p>Stanford大学的CS144 lab要求我们实现一个TCP。CS144的课程我觉得可以配合《自顶向下》来学习，它是目前最好的中文的计算机网络书籍了。《自顶向下》中采用的是五层模型，当然在CS144中介绍了四层模型和七层模型。华科的计算机网络课程是根据《自顶向下》来备课的，如果有空的话，还可以听一听华科的计网mooc。既然都写到这里了，我们在前言来聊聊计算机网络模型：</p>
+            
+              <div class="markdown-body">
+                
+                <p>Stanford大学的CS144 lab要求我们实现一个TCP。CS144的课程我觉得可以配合《自顶向下》来学习，它是目前最好的中文的计算机网络书籍了。《自顶向下》中采用的是五层模型，当然在CS144中介绍了四层模型和七层模型。华科的计算机网络课程是根据《自顶向下》来备课的，如果有空的话，还可以听一听华科的计网mooc。既然都写到这里了，我们在前言来聊聊计算机网络模型：</p>
 <hr>
 <h5 id="四层网络模型"><a href="#四层网络模型" class="headerlink" title="四层网络模型"></a>四层网络模型</h5><p>链路层：定义单个链路如何传输。</p>
 <p>网络层：选择合适的网间路由，确保数据及时到达。常见的协议有IP协议。在internet中连接局域网和广域网是路由器。</p>
@@ -347,7 +492,7 @@
 <span class="hljs-attribute">Host</span><span class="hljs-punctuation">: </span>host</code></pre></div>
 <p>故write函数里面的字符输入为<code>sock.write(&quot;GET &quot; + path + &quot; HTTP/1.1\r\nHost: &quot; + host + &quot;\r\n\r\n\r\n&quot;);</code></p>
 <p>webget.cc代码如下：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">get_URL</span><span class="hljs-params">(<span class="hljs-keyword">const</span> string &amp;host, <span class="hljs-keyword">const</span> string &amp;path)</span> </span>&#123;
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">get_URL</span><span class="hljs-params">(<span class="hljs-type">const</span> string &amp;host, <span class="hljs-type">const</span> string &amp;path)</span> </span>&#123;
     <span class="hljs-comment">// Your code here.</span>
 
     <span class="hljs-comment">// You will need to connect to the &quot;http&quot; service on</span>
@@ -370,10 +515,10 @@
 <p>该部分要在计算机的内存中实现一个提供可靠的有序字节流的抽象。该抽象充当运输层与应用层的连接。也就是应用层从socket中读取数据的部分。其中，byte_stream的byte_read函数将byte_stream中的数据发送到应用层，byte_write函数将有序的而数据写入byte_stream。</p>
 <p>该抽象使用deque实现。</p>
 <p>对于write函数，我们将data中的数据写入deque，返回本次实际写入的数据长度。注意 <code>capacity</code> 代表字节流容量，写入时不能超过剩余可用空间。代码如下：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ByteStream::write</span><span class="hljs-params">(<span class="hljs-keyword">const</span> string &amp;data)</span> </span>&#123;
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">size_t</span> <span class="hljs-title">ByteStream::write</span><span class="hljs-params">(<span class="hljs-type">const</span> string &amp;data)</span> </span>&#123;
     <span class="hljs-built_in">DUMMY_CODE</span>(data);
     <span class="hljs-comment">//取其中的较小值，data的长度，bytestream的容量和deque长度的差,保证其不超过bytestream容量</span>
-    <span class="hljs-keyword">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(data.<span class="hljs-built_in">size</span>(),stream_capacity - byte_stream.<span class="hljs-built_in">size</span>());
+    <span class="hljs-type">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(data.<span class="hljs-built_in">size</span>(),stream_capacity - byte_stream.<span class="hljs-built_in">size</span>());
     <span class="hljs-comment">//在deque的末尾插入data的数据</span>
     byte_stream.<span class="hljs-built_in">insert</span>(byte_stream.<span class="hljs-built_in">end</span>(),data.<span class="hljs-built_in">begin</span>(),data.<span class="hljs-built_in">begin</span>()+lens_byte);
     <span class="hljs-comment">//写入的长度增加</span>
@@ -381,10 +526,10 @@
     <span class="hljs-keyword">return</span> lens_byte;
 &#125;</code></pre></div>
 <p>对于read函数，我们只需要弹出len个数据，注意是len和deque.size()的较小值。代码如下：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-function">std::string <span class="hljs-title">ByteStream::read</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> len)</span> </span>&#123;
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-function">std::string <span class="hljs-title">ByteStream::read</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">size_t</span> len)</span> </span>&#123;
     <span class="hljs-built_in">DUMMY_CODE</span>(len);
     <span class="hljs-comment">//找到要read的长度byte_stream长度的较小值，尽可能地读</span>
-    <span class="hljs-keyword">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(len,byte_stream.<span class="hljs-built_in">size</span>());
+    <span class="hljs-type">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(len,byte_stream.<span class="hljs-built_in">size</span>());
     <span class="hljs-comment">//读取数据</span>
     <span class="hljs-function">std::string <span class="hljs-title">n</span><span class="hljs-params">(byte_stream.begin(),byte_stream.begin()+lens_byte)</span></span>;
     <span class="hljs-comment">//将读取后的数据弹出</span>
@@ -392,35 +537,35 @@
     <span class="hljs-keyword">return</span> n;
 &#125;</code></pre></div>
 <p>byte_stream.hh代码如下：</p>
-<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-meta">#<span class="hljs-meta-keyword">ifndef</span> SPONGE_LIBSPONGE_BYTE_STREAM_HH</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SPONGE_LIBSPONGE_BYTE_STREAM_HH</span>
+<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-meta">#<span class="hljs-keyword">ifndef</span> SPONGE_LIBSPONGE_BYTE_STREAM_HH</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> SPONGE_LIBSPONGE_BYTE_STREAM_HH</span>
 
-<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;string&gt;</span></span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;queue&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;string&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;queue&gt;</span></span>
 <span class="hljs-comment">//! \brief An in-order byte stream.</span>
 
 <span class="hljs-comment">//! Bytes are written on the &quot;input&quot; side and read from the &quot;output&quot;</span>
 <span class="hljs-comment">//! side.  The byte stream is finite: the writer can end the input,</span>
 <span class="hljs-comment">//! and then no more bytes can be written.</span>
-<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ByteStream</span> &#123;</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ByteStream</span> &#123;
   <span class="hljs-keyword">private</span>:
     <span class="hljs-comment">// Your code here -- add private members as necessary.</span>
-    <span class="hljs-keyword">size_t</span> stream_capacity;<span class="hljs-comment">//容量大小</span>
-    <span class="hljs-keyword">size_t</span> byte_written;<span class="hljs-comment">//写入</span>
-    <span class="hljs-keyword">size_t</span> byte_read;<span class="hljs-comment">//读取</span>
-    std::deque&lt;<span class="hljs-keyword">char</span>&gt; byte_stream;<span class="hljs-comment">//快速插入和删除</span>
-    <span class="hljs-keyword">bool</span> _end;<span class="hljs-comment">//结束标志</span>
+    <span class="hljs-type">size_t</span> stream_capacity;<span class="hljs-comment">//容量大小</span>
+    <span class="hljs-type">size_t</span> byte_written;<span class="hljs-comment">//写入</span>
+    <span class="hljs-type">size_t</span> byte_read;<span class="hljs-comment">//读取</span>
+    std::deque&lt;<span class="hljs-type">char</span>&gt; byte_stream;<span class="hljs-comment">//快速插入和删除</span>
+    <span class="hljs-type">bool</span> _end;<span class="hljs-comment">//结束标志</span>
     <span class="hljs-comment">// Hint: This doesn&#x27;t need to be a sophisticated data structure at</span>
     <span class="hljs-comment">// all, but if any of your tests are taking longer than a second,</span>
     <span class="hljs-comment">// that&#x27;s a sign that you probably want to keep exploring</span>
     <span class="hljs-comment">// different approaches.</span>
 
-    <span class="hljs-keyword">bool</span> _error&#123;&#125;;  <span class="hljs-comment">//!&lt; Flag indicating that the stream suffered an error.</span>
+    <span class="hljs-type">bool</span> _error&#123;&#125;;  <span class="hljs-comment">//!&lt; Flag indicating that the stream suffered an error.</span>
 
   <span class="hljs-keyword">public</span>:
     <span class="hljs-comment">//! Construct a stream with room for `capacity` bytes.</span>
     <span class="hljs-comment">//构造函数，构造一个带有容量字节空间的流。</span>
-    <span class="hljs-built_in">ByteStream</span>(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> capacity);
+    <span class="hljs-built_in">ByteStream</span>(<span class="hljs-type">const</span> <span class="hljs-type">size_t</span> capacity);
 
     <span class="hljs-comment">//! \name &quot;Input&quot; interface for the writer</span>
     <span class="hljs-comment">//!@&#123;</span>
@@ -429,18 +574,18 @@
     <span class="hljs-comment">//! as will fit, and return how many were written.</span>
     <span class="hljs-comment">//! \returns the number of bytes accepted into the stream</span>
     <span class="hljs-comment">//写入字节，返回字节的数量</span>
-    <span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">write</span><span class="hljs-params">(<span class="hljs-keyword">const</span> std::string &amp;data)</span></span>;
+    <span class="hljs-function"><span class="hljs-type">size_t</span> <span class="hljs-title">write</span><span class="hljs-params">(<span class="hljs-type">const</span> std::string &amp;data)</span></span>;
 
     <span class="hljs-comment">//! \returns the number of additional bytes that the stream has space for</span>
     <span class="hljs-comment">//</span>
-    <span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">remaining_capacity</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;
+    <span class="hljs-function"><span class="hljs-type">size_t</span> <span class="hljs-title">remaining_capacity</span><span class="hljs-params">()</span> <span class="hljs-type">const</span></span>;
 
     <span class="hljs-comment">//! Signal that the byte stream has reached its ending</span>
     <span class="hljs-comment">//结束输入</span>
-    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">end_input</span><span class="hljs-params">()</span></span>;
+    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">end_input</span><span class="hljs-params">()</span></span>;
 
     <span class="hljs-comment">//! Indicate that the stream suffered an error.</span>
-    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">set_error</span><span class="hljs-params">()</span> </span>&#123; _error = <span class="hljs-literal">true</span>; &#125;
+    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">set_error</span><span class="hljs-params">()</span> </span>&#123; _error = <span class="hljs-literal">true</span>; &#125;
     <span class="hljs-comment">//!@&#125;</span>
 
     <span class="hljs-comment">//! \name &quot;Output&quot; interface for the reader</span>
@@ -448,45 +593,45 @@
 
     <span class="hljs-comment">//! Peek at next &quot;len&quot; bytes of the stream</span>
     <span class="hljs-comment">//! \returns a string</span>
-    <span class="hljs-function">std::string <span class="hljs-title">peek_output</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> len)</span> <span class="hljs-keyword">const</span></span>;
+    <span class="hljs-function">std::string <span class="hljs-title">peek_output</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">size_t</span> len)</span> <span class="hljs-type">const</span></span>;
 
     <span class="hljs-comment">//! Remove bytes from the buffer</span>
-    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">pop_output</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> len)</span></span>;
+    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">pop_output</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">size_t</span> len)</span></span>;
 
     <span class="hljs-comment">//! Read (i.e., copy and then pop) the next &quot;len&quot; bytes of the stream</span>
     <span class="hljs-comment">//! \returns a string</span>
-    <span class="hljs-function">std::string <span class="hljs-title">read</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> len)</span></span>;
+    <span class="hljs-function">std::string <span class="hljs-title">read</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">size_t</span> len)</span></span>;
 
     <span class="hljs-comment">//! \returns `true` if the stream input has ended</span>
-    <span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">input_ended</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;
+    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">input_ended</span><span class="hljs-params">()</span> <span class="hljs-type">const</span></span>;
 
     <span class="hljs-comment">//! \returns `true` if the stream has suffered an error</span>
-    <span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">error</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> _error; &#125;
+    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">error</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> _error; &#125;
 
     <span class="hljs-comment">//! \returns the maximum amount that can currently be read from the stream</span>
-    <span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">buffer_size</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;
+    <span class="hljs-function"><span class="hljs-type">size_t</span> <span class="hljs-title">buffer_size</span><span class="hljs-params">()</span> <span class="hljs-type">const</span></span>;
 
     <span class="hljs-comment">//! \returns `true` if the buffer is empty</span>
-    <span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">buffer_empty</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;
+    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">buffer_empty</span><span class="hljs-params">()</span> <span class="hljs-type">const</span></span>;
 
     <span class="hljs-comment">//! \returns `true` if the output has reached the ending</span>
-    <span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">eof</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;
+    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">eof</span><span class="hljs-params">()</span> <span class="hljs-type">const</span></span>;
     <span class="hljs-comment">//!@&#125;</span>
 
     <span class="hljs-comment">//! \name General accounting</span>
     <span class="hljs-comment">//!@&#123;</span>
 
     <span class="hljs-comment">//! Total number of bytes written</span>
-    <span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">bytes_written</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;
+    <span class="hljs-function"><span class="hljs-type">size_t</span> <span class="hljs-title">bytes_written</span><span class="hljs-params">()</span> <span class="hljs-type">const</span></span>;
 
     <span class="hljs-comment">//! Total number of bytes popped</span>
-    <span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">bytes_read</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;
+    <span class="hljs-function"><span class="hljs-type">size_t</span> <span class="hljs-title">bytes_read</span><span class="hljs-params">()</span> <span class="hljs-type">const</span></span>;
     <span class="hljs-comment">//!@&#125;</span>
 &#125;;
 
-<span class="hljs-meta">#<span class="hljs-meta-keyword">endif</span>  <span class="hljs-comment">// SPONGE_LIBSPONGE_BYTE_STREAM_HH</span></span></code></pre></div>
+<span class="hljs-meta">#<span class="hljs-keyword">endif</span>  <span class="hljs-comment">// SPONGE_LIBSPONGE_BYTE_STREAM_HH</span></span></code></pre></div>
 <p>byte_stream.cc代码如下：</p>
-<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;byte_stream.hh&quot;</span></span>
+<div class="code-wrapper"><pre><code class="hljs c++"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;byte_stream.hh&quot;</span></span>
 
 <span class="hljs-comment">// Dummy implementation of a flow-controlled in-memory byte stream.</span>
 
@@ -496,33 +641,33 @@
 <span class="hljs-comment">// You will need to add private members to the class declaration in `byte_stream.hh`</span>
 
 <span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span>... Targs&gt;
-<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">DUMMY_CODE</span><span class="hljs-params">(Targs &amp;&amp;... <span class="hljs-comment">/* unused */</span>)</span> </span>&#123;&#125;
+<span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">DUMMY_CODE</span><span class="hljs-params">(Targs &amp;&amp;... <span class="hljs-comment">/* unused */</span>)</span> </span>&#123;&#125;
 
 <span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;
 
-ByteStream::<span class="hljs-built_in">ByteStream</span>(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> capacity) : <span class="hljs-built_in">stream_capacity</span>(capacity),<span class="hljs-built_in">byte_written</span>(<span class="hljs-number">0</span>),<span class="hljs-built_in">byte_read</span>(<span class="hljs-number">0</span>),<span class="hljs-built_in">byte_stream</span>(<span class="hljs-number">0</span>),_end(<span class="hljs-literal">false</span>),_error(<span class="hljs-literal">false</span>)&#123;
+ByteStream::<span class="hljs-built_in">ByteStream</span>(<span class="hljs-type">const</span> <span class="hljs-type">size_t</span> capacity) : <span class="hljs-built_in">stream_capacity</span>(capacity),<span class="hljs-built_in">byte_written</span>(<span class="hljs-number">0</span>),<span class="hljs-built_in">byte_read</span>(<span class="hljs-number">0</span>),<span class="hljs-built_in">byte_stream</span>(<span class="hljs-number">0</span>),_end(<span class="hljs-literal">false</span>),_error(<span class="hljs-literal">false</span>)&#123;
     <span class="hljs-built_in">DUMMY_CODE</span>(capacity);
 &#125;
 
-<span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ByteStream::write</span><span class="hljs-params">(<span class="hljs-keyword">const</span> string &amp;data)</span> </span>&#123;
+<span class="hljs-function"><span class="hljs-type">size_t</span> <span class="hljs-title">ByteStream::write</span><span class="hljs-params">(<span class="hljs-type">const</span> string &amp;data)</span> </span>&#123;
     <span class="hljs-built_in">DUMMY_CODE</span>(data);
     <span class="hljs-comment">//取其中的</span>
-    <span class="hljs-keyword">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(data.<span class="hljs-built_in">size</span>(),stream_capacity - byte_stream.<span class="hljs-built_in">size</span>());
+    <span class="hljs-type">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(data.<span class="hljs-built_in">size</span>(),stream_capacity - byte_stream.<span class="hljs-built_in">size</span>());
     byte_stream.<span class="hljs-built_in">insert</span>(byte_stream.<span class="hljs-built_in">end</span>(),data.<span class="hljs-built_in">begin</span>(),data.<span class="hljs-built_in">begin</span>()+lens_byte);
     byte_written+=lens_byte;
     <span class="hljs-keyword">return</span> lens_byte;
 &#125;
 
 <span class="hljs-comment">//! \param[in] len bytes will be copied from the output side of the buffer</span>
-<span class="hljs-function">string <span class="hljs-title">ByteStream::peek_output</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> len)</span> <span class="hljs-keyword">const</span> </span>&#123;
+<span class="hljs-function">string <span class="hljs-title">ByteStream::peek_output</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">size_t</span> len)</span> <span class="hljs-type">const</span> </span>&#123;
     <span class="hljs-built_in">DUMMY_CODE</span>(len);
     <span class="hljs-keyword">return</span> std::<span class="hljs-built_in">string</span>(byte_stream.<span class="hljs-built_in">begin</span>(),byte_stream.<span class="hljs-built_in">begin</span>()+std::<span class="hljs-built_in">min</span>(len,byte_stream.<span class="hljs-built_in">size</span>()));
 &#125;
 
 <span class="hljs-comment">//! \param[in] len bytes will be removed from the output side of the buffer</span>
-<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">ByteStream::pop_output</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> len)</span> </span>&#123;
+<span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">ByteStream::pop_output</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">size_t</span> len)</span> </span>&#123;
     <span class="hljs-built_in">DUMMY_CODE</span>(len);
-    <span class="hljs-keyword">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(len,byte_stream.<span class="hljs-built_in">size</span>());
+    <span class="hljs-type">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(len,byte_stream.<span class="hljs-built_in">size</span>());
     byte_stream.<span class="hljs-built_in">erase</span>(byte_stream.<span class="hljs-built_in">begin</span>(),byte_stream.<span class="hljs-built_in">begin</span>()+lens_byte);
     byte_read+=lens_byte;
 &#125;
@@ -530,29 +675,29 @@ ByteStream::<span class="hljs-built_in">ByteStream</span>(<span class="hljs-keyw
 <span class="hljs-comment">//! Read (i.e., copy and then pop) the next &quot;len&quot; bytes of the stream</span>
 <span class="hljs-comment">//! \param[in] len bytes will be popped and returned</span>
 <span class="hljs-comment">//! \returns a string</span>
-<span class="hljs-function">std::string <span class="hljs-title">ByteStream::read</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> len)</span> </span>&#123;
+<span class="hljs-function">std::string <span class="hljs-title">ByteStream::read</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">size_t</span> len)</span> </span>&#123;
     <span class="hljs-built_in">DUMMY_CODE</span>(len);
-    <span class="hljs-keyword">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(len,byte_stream.<span class="hljs-built_in">size</span>());
+    <span class="hljs-type">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(len,byte_stream.<span class="hljs-built_in">size</span>());
     <span class="hljs-function">std::string <span class="hljs-title">n</span><span class="hljs-params">(byte_stream.begin(),byte_stream.begin()+lens_byte)</span></span>;
     <span class="hljs-built_in">pop_output</span>(len);
     <span class="hljs-keyword">return</span> n;
 &#125;
 
-<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">ByteStream::end_input</span><span class="hljs-params">()</span> </span>&#123;_end= <span class="hljs-literal">true</span>;&#125;
+<span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">ByteStream::end_input</span><span class="hljs-params">()</span> </span>&#123;_end= <span class="hljs-literal">true</span>;&#125;
 
-<span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">ByteStream::input_ended</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> _end; &#125;
+<span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">ByteStream::input_ended</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> _end; &#125;
 
-<span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ByteStream::buffer_size</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_stream.<span class="hljs-built_in">size</span>(); &#125;
+<span class="hljs-function"><span class="hljs-type">size_t</span> <span class="hljs-title">ByteStream::buffer_size</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_stream.<span class="hljs-built_in">size</span>(); &#125;
 
-<span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">ByteStream::buffer_empty</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_stream.<span class="hljs-built_in">empty</span>(); &#125;
+<span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">ByteStream::buffer_empty</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_stream.<span class="hljs-built_in">empty</span>(); &#125;
 
-<span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">ByteStream::eof</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> _end&amp;&amp;byte_stream.<span class="hljs-built_in">empty</span>(); &#125;
+<span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">ByteStream::eof</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> _end&amp;&amp;byte_stream.<span class="hljs-built_in">empty</span>(); &#125;
 
-<span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ByteStream::bytes_written</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_written; &#125;
+<span class="hljs-function"><span class="hljs-type">size_t</span> <span class="hljs-title">ByteStream::bytes_written</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_written; &#125;
 
-<span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ByteStream::bytes_read</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_read; &#125;
+<span class="hljs-function"><span class="hljs-type">size_t</span> <span class="hljs-title">ByteStream::bytes_read</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_read; &#125;
 
-<span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ByteStream::remaining_capacity</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> stream_capacity-byte_stream.<span class="hljs-built_in">size</span>(); &#125;<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&quot;byte_stream.hh&quot;</span></span>
+<span class="hljs-function"><span class="hljs-type">size_t</span> <span class="hljs-title">ByteStream::remaining_capacity</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> stream_capacity-byte_stream.<span class="hljs-built_in">size</span>(); &#125;<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;byte_stream.hh&quot;</span></span>
 
 <span class="hljs-comment">// Dummy implementation of a flow-controlled in-memory byte stream.</span>
 
@@ -562,18 +707,18 @@ ByteStream::<span class="hljs-built_in">ByteStream</span>(<span class="hljs-keyw
 <span class="hljs-comment">// You will need to add private members to the class declaration in `byte_stream.hh`</span>
 
 <span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span>... Targs&gt;
-<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">DUMMY_CODE</span><span class="hljs-params">(Targs &amp;&amp;... <span class="hljs-comment">/* unused */</span>)</span> </span>&#123;&#125;
+<span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">DUMMY_CODE</span><span class="hljs-params">(Targs &amp;&amp;... <span class="hljs-comment">/* unused */</span>)</span> </span>&#123;&#125;
 
 <span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;
 
-ByteStream::<span class="hljs-built_in">ByteStream</span>(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> capacity) : <span class="hljs-built_in">stream_capacity</span>(capacity),<span class="hljs-built_in">byte_written</span>(<span class="hljs-number">0</span>),<span class="hljs-built_in">byte_read</span>(<span class="hljs-number">0</span>),<span class="hljs-built_in">byte_stream</span>(<span class="hljs-number">0</span>),_end(<span class="hljs-literal">false</span>),_error(<span class="hljs-literal">false</span>)&#123;
+ByteStream::<span class="hljs-built_in">ByteStream</span>(<span class="hljs-type">const</span> <span class="hljs-type">size_t</span> capacity) : <span class="hljs-built_in">stream_capacity</span>(capacity),<span class="hljs-built_in">byte_written</span>(<span class="hljs-number">0</span>),<span class="hljs-built_in">byte_read</span>(<span class="hljs-number">0</span>),<span class="hljs-built_in">byte_stream</span>(<span class="hljs-number">0</span>),_end(<span class="hljs-literal">false</span>),_error(<span class="hljs-literal">false</span>)&#123;
     <span class="hljs-built_in">DUMMY_CODE</span>(capacity);
 &#125;
 
-<span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ByteStream::write</span><span class="hljs-params">(<span class="hljs-keyword">const</span> string &amp;data)</span> </span>&#123;
+<span class="hljs-function"><span class="hljs-type">size_t</span> <span class="hljs-title">ByteStream::write</span><span class="hljs-params">(<span class="hljs-type">const</span> string &amp;data)</span> </span>&#123;
     <span class="hljs-built_in">DUMMY_CODE</span>(data);
     <span class="hljs-comment">//取其中的较小值，data的长度，bytestream的容量和deque长度的差,保证其不超过bytestream容量</span>
-    <span class="hljs-keyword">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(data.<span class="hljs-built_in">size</span>(),stream_capacity - byte_stream.<span class="hljs-built_in">size</span>());
+    <span class="hljs-type">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(data.<span class="hljs-built_in">size</span>(),stream_capacity - byte_stream.<span class="hljs-built_in">size</span>());
     <span class="hljs-comment">//在deque的末尾插入data的数据</span>
     byte_stream.<span class="hljs-built_in">insert</span>(byte_stream.<span class="hljs-built_in">end</span>(),data.<span class="hljs-built_in">begin</span>(),data.<span class="hljs-built_in">begin</span>()+lens_byte);
     <span class="hljs-comment">//写入的长度增加</span>
@@ -582,16 +727,16 @@ ByteStream::<span class="hljs-built_in">ByteStream</span>(<span class="hljs-keyw
 &#125;
 
 <span class="hljs-comment">//! \param[in] len bytes will be copied from the output side of the buffer</span>
-<span class="hljs-function">string <span class="hljs-title">ByteStream::peek_output</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> len)</span> <span class="hljs-keyword">const</span> </span>&#123;
+<span class="hljs-function">string <span class="hljs-title">ByteStream::peek_output</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">size_t</span> len)</span> <span class="hljs-type">const</span> </span>&#123;
     <span class="hljs-built_in">DUMMY_CODE</span>(len);
     <span class="hljs-keyword">return</span> std::<span class="hljs-built_in">string</span>(byte_stream.<span class="hljs-built_in">begin</span>(),byte_stream.<span class="hljs-built_in">begin</span>()+std::<span class="hljs-built_in">min</span>(len,byte_stream.<span class="hljs-built_in">size</span>()));
 &#125;
 
 <span class="hljs-comment">//! \param[in] len bytes will be removed from the output side of the buffer</span>
-<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">ByteStream::pop_output</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> len)</span> </span>&#123;
+<span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">ByteStream::pop_output</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">size_t</span> len)</span> </span>&#123;
     <span class="hljs-built_in">DUMMY_CODE</span>(len);
     <span class="hljs-comment">//其实在实际情况下并不需要求较小值，但是为了通过单个测试，必须要求较小值</span>
-    <span class="hljs-keyword">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(len,byte_stream.<span class="hljs-built_in">size</span>());
+    <span class="hljs-type">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(len,byte_stream.<span class="hljs-built_in">size</span>());
     <span class="hljs-comment">//删除这些数据</span>
     byte_stream.<span class="hljs-built_in">erase</span>(byte_stream.<span class="hljs-built_in">begin</span>(),byte_stream.<span class="hljs-built_in">begin</span>()+lens_byte);
     <span class="hljs-comment">//已经读取的数据增加</span>
@@ -601,10 +746,10 @@ ByteStream::<span class="hljs-built_in">ByteStream</span>(<span class="hljs-keyw
 <span class="hljs-comment">//! Read (i.e., copy and then pop) the next &quot;len&quot; bytes of the stream</span>
 <span class="hljs-comment">//! \param[in] len bytes will be popped and returned</span>
 <span class="hljs-comment">//! \returns a string</span>
-<span class="hljs-function">std::string <span class="hljs-title">ByteStream::read</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> len)</span> </span>&#123;
+<span class="hljs-function">std::string <span class="hljs-title">ByteStream::read</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">size_t</span> len)</span> </span>&#123;
     <span class="hljs-built_in">DUMMY_CODE</span>(len);
     <span class="hljs-comment">//找到要read的长度byte_stream长度的较小值，尽可能地读</span>
-    <span class="hljs-keyword">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(len,byte_stream.<span class="hljs-built_in">size</span>());
+    <span class="hljs-type">size_t</span> lens_byte = std::<span class="hljs-built_in">min</span>(len,byte_stream.<span class="hljs-built_in">size</span>());
     <span class="hljs-comment">//读取数据</span>
     <span class="hljs-function">std::string <span class="hljs-title">n</span><span class="hljs-params">(byte_stream.begin(),byte_stream.begin()+lens_byte)</span></span>;
     <span class="hljs-comment">//将读取后的数据弹出</span>
@@ -612,57 +757,113 @@ ByteStream::<span class="hljs-built_in">ByteStream</span>(<span class="hljs-keyw
     <span class="hljs-keyword">return</span> n;
 &#125;
 
-<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">ByteStream::end_input</span><span class="hljs-params">()</span> </span>&#123;_end= <span class="hljs-literal">true</span>;&#125;
+<span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">ByteStream::end_input</span><span class="hljs-params">()</span> </span>&#123;_end= <span class="hljs-literal">true</span>;&#125;
 
-<span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">ByteStream::input_ended</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> _end; &#125;
+<span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">ByteStream::input_ended</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> _end; &#125;
 
-<span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ByteStream::buffer_size</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_stream.<span class="hljs-built_in">size</span>(); &#125;
+<span class="hljs-function"><span class="hljs-type">size_t</span> <span class="hljs-title">ByteStream::buffer_size</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_stream.<span class="hljs-built_in">size</span>(); &#125;
 
-<span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">ByteStream::buffer_empty</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_stream.<span class="hljs-built_in">empty</span>(); &#125;
+<span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">ByteStream::buffer_empty</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_stream.<span class="hljs-built_in">empty</span>(); &#125;
 
-<span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">ByteStream::eof</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> _end&amp;&amp;byte_stream.<span class="hljs-built_in">empty</span>(); &#125;
+<span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">ByteStream::eof</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> _end&amp;&amp;byte_stream.<span class="hljs-built_in">empty</span>(); &#125;
 
-<span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ByteStream::bytes_written</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_written; &#125;
+<span class="hljs-function"><span class="hljs-type">size_t</span> <span class="hljs-title">ByteStream::bytes_written</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_written; &#125;
 
-<span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ByteStream::bytes_read</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_read; &#125;
+<span class="hljs-function"><span class="hljs-type">size_t</span> <span class="hljs-title">ByteStream::bytes_read</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> byte_read; &#125;
 
-<span class="hljs-function"><span class="hljs-keyword">size_t</span> <span class="hljs-title">ByteStream::remaining_capacity</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>&#123; <span class="hljs-keyword">return</span> stream_capacity-byte_stream.<span class="hljs-built_in">size</span>(); &#125;</code></pre></div>
+<span class="hljs-function"><span class="hljs-type">size_t</span> <span class="hljs-title">ByteStream::remaining_capacity</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> stream_capacity-byte_stream.<span class="hljs-built_in">size</span>(); &#125;</code></pre></div>
 <p>实验结果如下：</p>
 
-            </div>
-            <hr>
-            <div>
-              <div class="post-metas mb-3">
-                
-                  <div class="post-meta mr-3">
-                    <i class="iconfont icon-category"></i>
-                    
-                      <a class="hover-with-bg" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">计算机网络</a>
-                    
-                  </div>
-                
-                
-                  <div class="post-meta">
-                    <i class="iconfont icon-tags"></i>
-                    
-                      <a class="hover-with-bg" href="/tags/Stanford-CS144-Lab/">Stanford CS144 Lab</a>
-                    
-                  </div>
                 
               </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="category-chain-item">计算机网络</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Stanford-CS144-Lab/" class="print-no-link">#Stanford CS144 Lab</a>
+      
+    </div>
+  
+</div>
+
+
               
-                <p class="note note-warning">
-                  
-                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
-                  
-                </p>
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Stanford CS144 Lab 0: Networking warmup</div>
+      <div>https://xiao-nanbei.github.io/2021/11/20/Stanford-CS144-Lab-0-Networking-Warmup/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2021年11月20日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
               
               
-                <div class="post-prevnext">
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2021/11/20/Stanford-CS144-Lab-2-TCP-Receiver/">
+                      <a href="/2021/11/20/Stanford-CS144-Lab-2-TCP-Receiver/" title="Stanford CS144 Lab 2: TCP receiver">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">Stanford CS144 Lab 2: TCP receiver</span>
                         <span class="visible-mobile">上一篇</span>
@@ -682,19 +883,74 @@ ByteStream::<span class="hljs-built_in">ByteStream</span>(<span class="hljs-keyw
         </div>
       </div>
     </div>
-    
-      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
-        <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
   <div class="toc-body" id="toc-body"></div>
 </div>
 
-      </div>
-    
+
+
+  </aside>
+
+
+    </div>
   </div>
 </div>
 
-<!-- Custom -->
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
 
 
     
@@ -719,32 +975,33 @@ ByteStream::<span class="hljs-built_in">ByteStream</span>(<span class="hljs-keyw
       <div class="modal-body mx-3">
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>
     </div>
   </div>
 </div>
+
     
 
     
   </main>
 
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
-  </div>
+  <footer>
+    <div class="footer-inner">
   
-
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
   
-
   
-</footer>
+  
+</div>
 
+  </footer>
 
-  <!-- SCRIPTS -->
+  <!-- Scripts -->
   
   <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
@@ -763,10 +1020,22 @@ ByteStream::<span class="hljs-built_in">ByteStream</span>(<span class="hljs-keyw
 <script  src="/js/events.js" ></script>
 <script  src="/js/plugins.js" ></script>
 
-<!-- Plugins -->
 
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
 
-  <script  src="/js/local-search.js" ></script>
 
 
 
@@ -776,105 +1045,222 @@ ByteStream::<span class="hljs-built_in">ByteStream</span>(<span class="hljs-keyw
 
 
 
-  
-
-
 
   
-    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
-  
-  
-    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
-  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
 
-
-
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
-  <script>
-    (function (window, document) {
-      var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
-      
-        typing(title);
-      
-    })(window, document);
-  </script>
-
-
-
-
-
-  
-
-  
-    <!-- MathJax -->
-    <script>
-      MathJax = {
-        tex: {
-          inlineMath: [['$', '$'], ['\\(', '\\)']]
-        },
-        loader: {
-          load: ['ui/lazy']
-        },
-        options: {
-          renderActions: {
-            findScript: [10, doc => {
-              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
-                const display = !!node.type.match(/; *mode=display/);
-                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
-                const text = document.createTextNode('');
-                node.parentNode.replaceChild(text, node);
-                math.start = { node: text, delim: '', n: 0 };
-                math.end = { node: text, delim: '', n: 0 };
-                doc.math.push(math);
-              });
-            }, '', false],
-            insertedScript: [200, () => {
-              document.querySelectorAll('mjx-container').forEach(node => {
-                let target = node.parentNode;
-                if (target.nodeName.toLowerCase() === 'li') {
-                  target.parentNode.classList.add('has-jax');
-                }
-              });
-            }, '', false]
-          }
-        }
-      };
-    </script>
-
-    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
-
-  
-
-
-
-
-
-  <script  src="https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js" ></script>
-  <script>
-    if (window.mermaid) {
-      mermaid.initialize({"theme":"default"});
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
     }
-  </script>
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
 
 
 
 
 
-
-
-<!-- 主题的启动项 保持在最底部 -->
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
 <script  src="/js/boot.js" ></script>
 
 
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
 </body>
 </html>

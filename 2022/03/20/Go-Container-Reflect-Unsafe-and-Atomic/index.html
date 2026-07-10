@@ -7,8 +7,11 @@
 
 <head>
   <meta charset="UTF-8">
+
   <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
   <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
@@ -31,30 +34,25 @@
 <meta name="twitter:card" content="summary_large_image">
   
   
+  
   <title>Go 标准库：container、reflect、unsafe 与 atomic - databrains</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
 
 
+
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
 
-  
-    
-    
-      
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
-    
-  
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
 
-  
-    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
-  
 
 
 <!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
 
 
 
@@ -63,21 +61,42 @@
 
 <link  rel="stylesheet" href="/css/main.css" />
 
-<!-- 自定义样式保持在最底部 -->
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
 
 
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
   </script>
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 6.0.0"></head>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
 
 
 <body>
-  <header style="height: 70vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand" href="/">
       <strong>databrains</strong>
@@ -89,7 +108,7 @@
       <div class="animated-icon"><span></span><span></span><span></span></div>
     </button>
 
-    <!-- Collapsible content -->
+    <!-- Collapsible content (desktop) -->
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav ml-auto text-center">
         
@@ -98,9 +117,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/">
+              <a class="nav-link" href="/" target="_self">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                <span>首页</span>
               </a>
             </li>
           
@@ -110,9 +129,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/archives/">
+              <a class="nav-link" href="/archives/" target="_self">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                <span>归档</span>
               </a>
             </li>
           
@@ -122,9 +141,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/categories/">
+              <a class="nav-link" href="/categories/" target="_self">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                <span>分类</span>
               </a>
             </li>
           
@@ -134,9 +153,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/tags/">
+              <a class="nav-link" href="/tags/" target="_self">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                <span>标签</span>
               </a>
             </li>
           
@@ -146,9 +165,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/about/">
+              <a class="nav-link" href="/about/" target="_self">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                <span>关于</span>
               </a>
             </li>
           
@@ -156,14 +175,16 @@
         
           <li class="nav-item" id="search-btn">
             <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
-              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+              <i class="iconfont icon-search"></i>
             </a>
           </li>
+          
         
         
           <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
           </li>
         
       </ul>
@@ -171,57 +192,176 @@
   </div>
 </nav>
 
-    <div class="banner" id="banner" parallax=true
-         style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="Go 标准库：container、reflect、unsafe 与 atomic">
-              
-            </span>
-
-            
-              <div class="mt-3">
-  
-  
-    <span class="post-meta">
-      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2022-03-20 15:05" pubdate>
-        2022年3月20日 下午
-      </time>
-    </span>
-  
-</div>
-
-<div class="mt-1">
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-chart"></i>
-      14k 字
-    </span>
-  
-
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-clock-fill"></i>
-      
-      
-      114 分钟
-    </span>
-  
-
-  
-  
-</div>
-
-            
-          </div>
-
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
           
-        </div>
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
       </div>
     </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Go 标准库：container、reflect、unsafe 与 atomic"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2022-03-20 15:05" pubdate>
+          2022年3月20日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          14k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          114 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
   </header>
 
   <main>
@@ -230,44 +370,49 @@
 
 <div class="container-fluid nopadding-x">
   <div class="row nomargin-x">
-    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
     <div class="col-lg-8 nopadding-x-md">
       <div class="container nopadding-x-md" id="board-ctn">
-        <div class="py-5" id="board">
+        <div id="board">
           <article class="post-content mx-auto">
-            <!-- SEO header -->
-            <h1 style="display: none">Go 标准库：container、reflect、unsafe 与 atomic</h1>
+            <h1 id="seo-header">Go 标准库：container、reflect、unsafe 与 atomic</h1>
             
-            <div class="markdown-body">
-              <h3 id="Go-map"><a href="#Go-map" class="headerlink" title="Go map"></a>Go map</h3><h4 id="底层实现"><a href="#底层实现" class="headerlink" title="底层实现"></a>底层实现</h4><p>Go语言的map底层实现基于哈希表。Hash会把任意长度输入映射到有限值域，因此一定会存在冲突。Go map 不是“传统链地址法”的单链表实现，而是“bucket + overflow bucket”结构：每个 bucket 固定容纳若干键值对，冲突严重时通过 overflow bucket 串接扩展。值得注意的是：==Java1.8中在冲突链较长时会做树化优化，而 Go map 走的是 bucket 扩容与渐进迁移路线。==</p>
+            
+              <div class="markdown-body">
+                
+                <h3 id="Go-map"><a href="#Go-map" class="headerlink" title="Go map"></a>Go map</h3><h4 id="底层实现"><a href="#底层实现" class="headerlink" title="底层实现"></a>底层实现</h4><p>Go语言的map底层实现基于哈希表。Hash会把任意长度输入映射到有限值域，因此一定会存在冲突。Go map 不是“传统链地址法”的单链表实现，而是“bucket + overflow bucket”结构：每个 bucket 固定容纳若干键值对，冲突严重时通过 overflow bucket 串接扩展。值得注意的是：==Java1.8中在冲突链较长时会做树化优化，而 Go map 走的是 bucket 扩容与渐进迁移路线。==</p>
 <p>使用哈希表的目的就是要快速查找到目标key，然而，随着向map中添加的key越来越多，key发生碰撞的概率也越来越大，bucket中的8个cell会被逐渐塞满，插入、查找和删除key的效率也会越来越低，最理想的情况是bucket只装入一个key，这样，就能达到$O(1)$的效率，但这样空间消耗太大，代价太高。</p>
 <p>底层源码如下所示：</p>
 <div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-comment">// A header for a Go map.</span>
 <span class="hljs-keyword">type</span> hmap <span class="hljs-keyword">struct</span> &#123;
-	count     <span class="hljs-keyword">int</span> <span class="hljs-comment">// # live cells == size of map.  Must be first (used by len() builtin)</span>
-	flags     <span class="hljs-keyword">uint8</span>
-	B         <span class="hljs-keyword">uint8</span>  <span class="hljs-comment">// log_2 of # of buckets (can hold up to loadFactor * 2^B items)</span>
-	noverflow <span class="hljs-keyword">uint16</span> 
-	hash0     <span class="hljs-keyword">uint32</span> <span class="hljs-comment">// hash seed</span>
+	count     <span class="hljs-type">int</span> <span class="hljs-comment">// # live cells == size of map.  Must be first (used by len() builtin)</span>
+	flags     <span class="hljs-type">uint8</span>
+	B         <span class="hljs-type">uint8</span>  <span class="hljs-comment">// log_2 of # of buckets (can hold up to loadFactor * 2^B items)</span>
+	noverflow <span class="hljs-type">uint16</span> 
+	hash0     <span class="hljs-type">uint32</span> <span class="hljs-comment">// hash seed</span>
 
 	buckets    unsafe.Pointer <span class="hljs-comment">// array of 2^B Buckets. may be nil if count==0.</span>
 	oldbuckets unsafe.Pointer <span class="hljs-comment">// previous bucket array of half the size, non-nil only when growing</span>
-	nevacuate  <span class="hljs-keyword">uintptr</span>        <span class="hljs-comment">// progress counter for evacuation (buckets less than this have been evacuated)</span>
+	nevacuate  <span class="hljs-type">uintptr</span>        <span class="hljs-comment">// progress counter for evacuation (buckets less than this have been evacuated)</span>
 
 	extra *mapextra <span class="hljs-comment">// optional fields</span>
 &#125;</code></pre></div>
 <p>其中，<code>buckets unsafe.Pointer</code>指向具体的buckets数组，这个数组是<code>bmap</code>结构，如下所示：</p>
 <div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-comment">// A bucket for a Go map.</span>
 <span class="hljs-keyword">type</span> bmap <span class="hljs-keyword">struct</span> &#123;
-	tophash [bucketCnt]<span class="hljs-keyword">uint8</span>
+	tophash [bucketCnt]<span class="hljs-type">uint8</span>
 &#125;</code></pre></div>
 <p>在实际编译期间，Go语言的<code>bmap</code>会经过反射生成真正的<code>bmap</code>类型：</p>
 <div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-keyword">type</span> bmap <span class="hljs-keyword">struct</span> &#123;
-  topbits  [<span class="hljs-number">8</span>]<span class="hljs-keyword">uint8</span>
+  topbits  [<span class="hljs-number">8</span>]<span class="hljs-type">uint8</span>
   keys     [<span class="hljs-number">8</span>]keytype
   values   [<span class="hljs-number">8</span>]valuetype
-  pad      <span class="hljs-keyword">uintptr</span>
-  overflow <span class="hljs-keyword">uintptr</span>
+  pad      <span class="hljs-type">uintptr</span>
+  overflow <span class="hljs-type">uintptr</span>
 &#125;</code></pre></div>
 <p>map的访问即通过给定的key在map中寻找其对应value，过程如下：</p>
 <ol>
@@ -303,7 +448,7 @@ fmt.Println(l)</code></pre></div>
 <span class="hljs-comment">// The zero value for List is an empty list ready to use.</span>
 <span class="hljs-keyword">type</span> List <span class="hljs-keyword">struct</span> &#123;
 	root Element <span class="hljs-comment">// sentinel list element, only &amp;root, root.prev, and root.next are used</span>
-	<span class="hljs-built_in">len</span>  <span class="hljs-keyword">int</span>     <span class="hljs-comment">// current list length excluding (this) sentinel element</span>
+	<span class="hljs-built_in">len</span>  <span class="hljs-type">int</span>     <span class="hljs-comment">// current list length excluding (this) sentinel element</span>
 &#125;</code></pre></div>
 <p>结合上面的打印，我们可以发现，<code>&#123;0xc00007c180 0xc00007c1b0 &lt;nil&gt; &lt;nil&gt;&#125;</code> 是<code>root Element</code>，<code>2</code>是<code>len int</code>。我们接着打印：</p>
 <div class="code-wrapper"><pre><code class="hljs go">l := list.New()<span class="hljs-comment">//初始化</span>
@@ -330,8 +475,8 @@ fmt.Println(l)</code></pre></div>
 &amp;&#123;&#123;<span class="hljs-number">0xc00007c180</span> <span class="hljs-number">0xc00007c1e0</span> &lt;<span class="hljs-literal">nil</span>&gt; &lt;<span class="hljs-literal">nil</span>&gt;&#125; <span class="hljs-number">3</span>&#125;</code></pre></div>
 <h4 id="container-heap"><a href="#container-heap" class="headerlink" title="container/heap"></a><code>container/heap</code></h4><p>我们来看看如何初始化一个heap，如下所示：</p>
 <div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-keyword">type</span> Student <span class="hljs-keyword">struct</span> &#123;
-	name  <span class="hljs-keyword">string</span>
-	score <span class="hljs-keyword">int</span>
+	name  <span class="hljs-type">string</span>
+	score <span class="hljs-type">int</span>
 &#125;
 h := &amp;StudentHeap&#123;
 	&#123;name: <span class="hljs-string">&quot;xiaoming&quot;</span>, score: <span class="hljs-number">82</span>&#125;,
@@ -347,7 +492,7 @@ heap.Init(h)</code></pre></div>
 		down(h, i, n)
 	&#125;
 &#125;
-<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">down</span><span class="hljs-params">(h Interface, i0, n <span class="hljs-keyword">int</span>)</span> <span class="hljs-title">bool</span></span> &#123;
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">down</span><span class="hljs-params">(h Interface, i0, n <span class="hljs-type">int</span>)</span></span> <span class="hljs-type">bool</span> &#123;
 	i := i0
 	<span class="hljs-keyword">for</span> &#123;
 		j1 := <span class="hljs-number">2</span>*i + <span class="hljs-number">1</span>
@@ -374,8 +519,8 @@ heap.Init(h)</code></pre></div>
 <p>我觉得这句话总结得很好，</p>
 <h3 id="reflect"><a href="#reflect" class="headerlink" title="reflect"></a><code>reflect</code></h3><h4 id="reflect-DeepEqual"><a href="#reflect-DeepEqual" class="headerlink" title="reflect.DeepEqual"></a><code>reflect.DeepEqual</code></h4><p><code>DeepEqual</code>函数用来判断两个值是否深度一致。这和<code>==</code>有什么不同吗？我们来看看下面例子：</p>
 <div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-keyword">type</span> S <span class="hljs-keyword">struct</span>&#123;
-	name <span class="hljs-keyword">string</span>
-    age	 <span class="hljs-keyword">int</span>
+	name <span class="hljs-type">string</span>
+    age	 <span class="hljs-type">int</span>
 &#125;
 <span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span>&#123;
      a := S&#123;
@@ -391,21 +536,21 @@ heap.Init(h)</code></pre></div>
 &#125;</code></pre></div>
 <p>其中<code>a==b</code>为<code>true</code>。如果我们将结构体中加入一个指针，就会返回false，这是因为指针指向的地址不一样，如下所示：</p>
 <div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-keyword">type</span> S <span class="hljs-keyword">struct</span> &#123;
-    Name    <span class="hljs-keyword">string</span>
-    Age     <span class="hljs-keyword">int</span>
-    Address *<span class="hljs-keyword">int</span>
+    Name    <span class="hljs-type">string</span>
+    Age     <span class="hljs-type">int</span>
+    Address *<span class="hljs-type">int</span>
 &#125;
 
 <span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;
     a := S&#123;
         Name:    <span class="hljs-string">&quot;aa&quot;</span>,
         Age:     <span class="hljs-number">1</span>,
-        Address: <span class="hljs-built_in">new</span>(<span class="hljs-keyword">int</span>),
+        Address: <span class="hljs-built_in">new</span>(<span class="hljs-type">int</span>),
     &#125;
     b := S&#123;
         Name:    <span class="hljs-string">&quot;aa&quot;</span>,
         Age:     <span class="hljs-number">1</span>,
-        Address: <span class="hljs-built_in">new</span>(<span class="hljs-keyword">int</span>),
+        Address: <span class="hljs-built_in">new</span>(<span class="hljs-type">int</span>),
     &#125;
 
    fmt.Println(a == b)
@@ -413,7 +558,7 @@ heap.Init(h)</code></pre></div>
 </code></pre></div>
 <p>这时会返回<code>false</code>。</p>
 <p>值得注意的是：<code>slice</code>、<code>map</code>、<code>function</code>是不能参与比较的，如果在结构体中出现以上类型，会<code>panic</code>。在这里我们就有一个疑问？到底是什么原因导致<code>slice</code>、<code>map</code>、<code>function</code>不能进行比较，如果是因为引用类型的原因，<code>channel</code>却可以进行比较。我们先来看看比较<code>slice</code>的时候返回的错误，如下所示：</p>
-<div class="code-wrapper"><pre><code class="hljs go">invalid operation: a == b (<span class="hljs-keyword">struct</span> containing []<span class="hljs-keyword">int</span> cannot be compared)</code></pre></div>
+<div class="code-wrapper"><pre><code class="hljs go">invalid operation: a == b (<span class="hljs-keyword">struct</span> containing []<span class="hljs-type">int</span> cannot be compared)</code></pre></div>
 <p>有的博主说<code>slice</code>不可比较有两个原因：</p>
 <ul>
 <li>引用类型，比较地址没有意义。</li>
@@ -421,21 +566,21 @@ heap.Init(h)</code></pre></div>
 </ul>
 <p>但是我们来看看这个情况：</p>
 <div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-keyword">type</span> S <span class="hljs-keyword">struct</span> &#123;
-	Name    <span class="hljs-keyword">string</span>
-	Age     <span class="hljs-keyword">int</span>
-	Ch	<span class="hljs-keyword">chan</span> []<span class="hljs-keyword">int</span>
+	Name    <span class="hljs-type">string</span>
+	Age     <span class="hljs-type">int</span>
+	Ch	<span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>
 &#125;
 
 <span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;
 	a := S&#123;
 		Name:    <span class="hljs-string">&quot;aa&quot;</span>,
 		Age:     <span class="hljs-number">1</span>,
-		Ch:      <span class="hljs-built_in">make</span>(<span class="hljs-keyword">chan</span> []<span class="hljs-keyword">int</span>),
+		Ch:      <span class="hljs-built_in">make</span>(<span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>),
 	&#125;
 	b := S&#123;
 		Name:    <span class="hljs-string">&quot;aa&quot;</span>,
 		Age:     <span class="hljs-number">1</span>,
-		Ch:      <span class="hljs-built_in">make</span>(<span class="hljs-keyword">chan</span> []<span class="hljs-keyword">int</span>),
+		Ch:      <span class="hljs-built_in">make</span>(<span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>),
 	&#125;
 
 	fmt.Println(a == b)
@@ -451,15 +596,15 @@ heap.Init(h)</code></pre></div>
 <p>总结：类型不同的空接口间的比较结果不相同，不能比较空接口中的动态值。</p>
 <p>回到正题，我们来看看<code>reflect.DeepEqual</code>，<code>reflect.DeepEqual</code>在可以时（主要是基本类型）会使用<code>==</code>；但还会比较<code>array</code>、<code>slice</code>的<strong>成员</strong>，<code>map</code>的<strong>键值对</strong>，<strong>结构体字段</strong>进行深入比对。如下所示：</p>
 <div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;
-	m1 := <span class="hljs-keyword">map</span>[<span class="hljs-keyword">int</span>]<span class="hljs-keyword">interface</span>&#123;&#125;&#123;<span class="hljs-number">1</span>: []<span class="hljs-keyword">int</span>&#123;<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>&#125;, <span class="hljs-number">2</span>: <span class="hljs-number">3</span>, <span class="hljs-number">3</span>: <span class="hljs-string">&quot;a&quot;</span>&#125;
-	m2 := <span class="hljs-keyword">map</span>[<span class="hljs-keyword">int</span>]<span class="hljs-keyword">interface</span>&#123;&#125;&#123;<span class="hljs-number">1</span>: []<span class="hljs-keyword">int</span>&#123;<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>&#125;, <span class="hljs-number">2</span>: <span class="hljs-number">3</span>, <span class="hljs-number">3</span>: <span class="hljs-string">&quot;a&quot;</span>&#125;
+	m1 := <span class="hljs-keyword">map</span>[<span class="hljs-type">int</span>]<span class="hljs-keyword">interface</span>&#123;&#125;&#123;<span class="hljs-number">1</span>: []<span class="hljs-type">int</span>&#123;<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>&#125;, <span class="hljs-number">2</span>: <span class="hljs-number">3</span>, <span class="hljs-number">3</span>: <span class="hljs-string">&quot;a&quot;</span>&#125;
+	m2 := <span class="hljs-keyword">map</span>[<span class="hljs-type">int</span>]<span class="hljs-keyword">interface</span>&#123;&#125;&#123;<span class="hljs-number">1</span>: []<span class="hljs-type">int</span>&#123;<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>&#125;, <span class="hljs-number">2</span>: <span class="hljs-number">3</span>, <span class="hljs-number">3</span>: <span class="hljs-string">&quot;a&quot;</span>&#125;
 	<span class="hljs-keyword">if</span> reflect.DeepEqual(m1, m2) &#123;
 		fmt.Println(<span class="hljs-string">&quot;相等&quot;</span>)
 	&#125;
 &#125;
 <span class="hljs-comment">//输出”相等”</span></code></pre></div>
 <p>当然，我们还是要从它的源码进行分析:</p>
-<div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">DeepEqual</span><span class="hljs-params">(x, y <span class="hljs-keyword">interface</span>&#123;&#125;)</span> <span class="hljs-title">bool</span></span> &#123;
+<div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">DeepEqual</span><span class="hljs-params">(x, y <span class="hljs-keyword">interface</span>&#123;&#125;)</span></span> <span class="hljs-type">bool</span> &#123;
 	<span class="hljs-keyword">if</span> x == <span class="hljs-literal">nil</span> || y == <span class="hljs-literal">nil</span> &#123;
 		<span class="hljs-keyword">return</span> x == y
 	&#125;
@@ -468,11 +613,11 @@ heap.Init(h)</code></pre></div>
 	<span class="hljs-keyword">if</span> v1.Type() != v2.Type() &#123;
 		<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>
 	&#125;
-	<span class="hljs-keyword">return</span> deepValueEqual(v1, v2, <span class="hljs-built_in">make</span>(<span class="hljs-keyword">map</span>[visit]<span class="hljs-keyword">bool</span>))
+	<span class="hljs-keyword">return</span> deepValueEqual(v1, v2, <span class="hljs-built_in">make</span>(<span class="hljs-keyword">map</span>[visit]<span class="hljs-type">bool</span>))
 &#125;
 </code></pre></div>
 <p>我们可以看到，如果<code>x==nil</code>或者<code>y==nil</code>，就比较二者的指针，否则比较二者的类型，如果类型相同，那么我们就用<code>deepValueEqual</code>函数进行比较。这个函数的核心逻辑可以概括为：先处理类型和值的边界条件，再按 <code>Kind</code> 递归比较。源码中还有 <code>visited</code> 结构，用来避免带环的数据结构导致无限递归。</p>
-<div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">deepValueEqual</span><span class="hljs-params">(v1, v2 Value, visited <span class="hljs-keyword">map</span>[visit]<span class="hljs-keyword">bool</span>)</span> <span class="hljs-title">bool</span></span> &#123;
+<div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">deepValueEqual</span><span class="hljs-params">(v1, v2 Value, visited <span class="hljs-keyword">map</span>[visit]<span class="hljs-type">bool</span>)</span></span> <span class="hljs-type">bool</span> &#123;
 	<span class="hljs-keyword">if</span> !v1.IsValid() || !v2.IsValid() &#123;
 		<span class="hljs-keyword">return</span> v1.IsValid() == v2.IsValid()
 	&#125;
@@ -528,9 +673,9 @@ heap.Init(h)</code></pre></div>
 <h4 id="unsafe-Pointer"><a href="#unsafe-Pointer" class="headerlink" title="unsafe.Pointer"></a><code>unsafe.Pointer</code></h4><p>我以前有一个疑问：既然指针代表的是地址，那为什么还要分类呢？原来，针区分类型是为了在通过指针访问它所指向的存储空间的时候，能够正确访问，如果通过一个char类型的指针操作一个int的变量，如果值的二进制数据超过1字节，那么就造成数据错误。</p>
 <p>我们先看如下例子：</p>
 <div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;
-	<span class="hljs-keyword">var</span> value <span class="hljs-keyword">int64</span> = <span class="hljs-number">5</span>
+	<span class="hljs-keyword">var</span> value <span class="hljs-type">int64</span> = <span class="hljs-number">5</span>
 	<span class="hljs-keyword">var</span> p1 = &amp;value
-	<span class="hljs-keyword">var</span> p2 = (*<span class="hljs-keyword">int32</span>)(unsafe.Pointer(p1))
+	<span class="hljs-keyword">var</span> p2 = (*<span class="hljs-type">int32</span>)(unsafe.Pointer(p1))
 	fmt.Println(p1)
 	fmt.Println(p2)
 &#125;</code></pre></div>
@@ -538,14 +683,14 @@ heap.Init(h)</code></pre></div>
 <div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-number">0xc00001e0d0</span>
 <span class="hljs-number">0xc00001e0d0</span></code></pre></div>
 <p>可以发现这两个指针所指向的地址是一样的，这个方法能让你创造一个<code>int32</code>的<code>p2</code>指针去指向一个<code>int64</code>的<code>value</code>变量，而这个变量是使用<code>p1</code>指针去访问的。我们通过以下例子来说明：</p>
-<div class="code-wrapper"><pre><code class="hljs go">x := <span class="hljs-keyword">int32</span>(<span class="hljs-number">5</span>)
-<span class="hljs-keyword">var</span> p=(*<span class="hljs-keyword">byte</span>)(unsafe.Pointer(&amp;x))
+<div class="code-wrapper"><pre><code class="hljs go">x := <span class="hljs-type">int32</span>(<span class="hljs-number">5</span>)
+<span class="hljs-keyword">var</span> p=(*<span class="hljs-type">byte</span>)(unsafe.Pointer(&amp;x))
 s:=*p
 fmt.Println(s)
 <span class="hljs-comment">//输出5</span></code></pre></div>
 <p>但是从<code>byte</code>转换成<code>int32</code>的时候会出现问题：</p>
 <div class="code-wrapper"><pre><code class="hljs go">b:=<span class="hljs-string">&#x27;5&#x27;</span>
-<span class="hljs-keyword">var</span> p=(*<span class="hljs-keyword">int32</span>)(unsafe.Pointer(&amp;b))
+<span class="hljs-keyword">var</span> p=(*<span class="hljs-type">int32</span>)(unsafe.Pointer(&amp;b))
 i:=*p
 fmt.Println(i)
 <span class="hljs-comment">//输出53</span></code></pre></div>
@@ -561,18 +706,18 @@ fmt.Println(i)
 <h3 id="sync"><a href="#sync" class="headerlink" title="sync"></a><code>sync</code></h3><p>sync包中提供了常见的并发编程同步原语，所谓原语，一般是指由若干条指令组成的程序段，用来实现某个特定的功能，在执行过程中不可被中断，否则就会出现操作错误，造成系统混乱。</p>
 <h4 id="sync-Mutex"><a href="#sync-Mutex" class="headerlink" title="sync.Mutex"></a><code>sync.Mutex</code></h4><p>sync.Mutex是sync包中使用最广泛的原语，它允许在共享资源上互斥访问。</p>
 <div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-keyword">type</span> mutex <span class="hljs-keyword">struct</span>&#123;
-	state	<span class="hljs-keyword">int32</span>
-	sema	<span class="hljs-keyword">uint32</span>
+	state	<span class="hljs-type">int32</span>
+	sema	<span class="hljs-type">uint32</span>
 &#125;</code></pre></div>
 <p>上述是<code>mutex</code>的结构，<code>state</code>表示当前互斥锁的状态，<code>sema</code>是用于控制锁状态的信号量。在<code>state</code>中有一个标志位叫<code>mutexStarving</code>，表示当前的互斥锁是否进入了饥饿状态，在正常状态下，锁的等待者会按照先进先出的顺序获取锁；在饥饿模式下，互斥锁会直接交给等待队列最前面的 Goroutine。新的 Goroutine 在该状态下不能获取锁、也不会进入自旋状态，它们只会在队列的末尾等待。如果一个 Goroutine 获得了互斥锁并且它在队列的末尾或者它等待的时间少于 1ms，那么当前的互斥锁就会切换回正常模式。</p>
-<h5 id="sync-Mutex-Lock"><a href="#sync-Mutex-Lock" class="headerlink" title="sync.Mutex.Lock"></a><code>sync.Mutex.Lock</code></h5><div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(m *Mutex)</span> <span class="hljs-title">Lock</span><span class="hljs-params">()</span></span> &#123;
+<h5 id="sync-Mutex-Lock"><a href="#sync-Mutex-Lock" class="headerlink" title="sync.Mutex.Lock"></a><code>sync.Mutex.Lock</code></h5><div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(m *Mutex)</span></span> Lock() &#123;
 	<span class="hljs-keyword">if</span> atomic.CompareAndSwapInt32(&amp;m.state, <span class="hljs-number">0</span>, mutexLocked) &#123;
 		<span class="hljs-keyword">return</span>
 	&#125;
 	m.lockSlow()
 &#125;</code></pre></div>
 <p>在这里用到原子操作CAS，常常被用于自旋机制，具体讲解在下面。当锁的状态是0时，就会将<code>mutexLocked</code>位置设置为1，如果互斥锁的状态不是0就会调用<code>lockSlow</code>尝试通过自旋等待锁的释放。</p>
-<h5 id="sync-Mutex-Unlock"><a href="#sync-Mutex-Unlock" class="headerlink" title="sync.Mutex.Unlock"></a><code>sync.Mutex.Unlock</code></h5><div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(m *Mutex)</span> <span class="hljs-title">Unlock</span><span class="hljs-params">()</span></span> &#123;
+<h5 id="sync-Mutex-Unlock"><a href="#sync-Mutex-Unlock" class="headerlink" title="sync.Mutex.Unlock"></a><code>sync.Mutex.Unlock</code></h5><div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(m *Mutex)</span></span> Unlock() &#123;
 	<span class="hljs-built_in">new</span> := atomic.AddInt32(&amp;m.state, -mutexLocked)
 	<span class="hljs-keyword">if</span> <span class="hljs-built_in">new</span> != <span class="hljs-number">0</span> &#123;
 		m.unlockSlow(<span class="hljs-built_in">new</span>)
@@ -581,10 +726,10 @@ fmt.Println(i)
 <p>在<code>Unlock</code>中，用到了原子操作Add，这里这个原子操作的意思是：如果只是<code>mutexLocked</code>位为1，那么我们将state设置为0，return；否则，调用<code>UnlockSlow</code>进行缓慢解锁。也就是说如果有其他goroutine等待着，那么我们就会进入缓慢解锁的状态——移交锁的所有权给下一个goroutine。</p>
 <h4 id="sync-RWMutex"><a href="#sync-RWMutex" class="headerlink" title="sync.RWMutex"></a><code>sync.RWMutex</code></h4><div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-keyword">type</span> RWMutex <span class="hljs-keyword">struct</span> &#123;
 	w           Mutex  <span class="hljs-comment">// held if there are pending writers</span>
-	writerSem   <span class="hljs-keyword">uint32</span> <span class="hljs-comment">// semaphore for writers to wait for completing readers</span>
-	readerSem   <span class="hljs-keyword">uint32</span> <span class="hljs-comment">// semaphore for readers to wait for completing writers</span>
-	readerCount <span class="hljs-keyword">int32</span>  <span class="hljs-comment">// number of pending readers</span>
-	readerWait  <span class="hljs-keyword">int32</span>  <span class="hljs-comment">// number of departing readers</span>
+	writerSem   <span class="hljs-type">uint32</span> <span class="hljs-comment">// semaphore for writers to wait for completing readers</span>
+	readerSem   <span class="hljs-type">uint32</span> <span class="hljs-comment">// semaphore for readers to wait for completing writers</span>
+	readerCount <span class="hljs-type">int32</span>  <span class="hljs-comment">// number of pending readers</span>
+	readerWait  <span class="hljs-type">int32</span>  <span class="hljs-comment">// number of departing readers</span>
 &#125;</code></pre></div>
 <p>我们可以看到，<code>RWMutex</code>继承了<code>Mutex</code>，并且增加了几个成员。我们先来说说这几个成员：</p>
 <ul>
@@ -609,7 +754,7 @@ fmt.Println(i)
 	throw(<span class="hljs-string">&quot;sync: Unlock of unlocked RWMutex&quot;</span>)
 &#125;
 <span class="hljs-comment">// Unblock blocked readers, if any.</span>
-<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-keyword">int</span>(r); i++ &#123;
+<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-type">int</span>(r); i++ &#123;
 	runtime_Semrelease(&amp;rw.readerSem, <span class="hljs-literal">false</span>, <span class="hljs-number">0</span>)
 &#125;</code></pre></div>
 <h4 id="sync-atomic"><a href="#sync-atomic" class="headerlink" title="sync/atomic"></a><code>sync/atomic</code></h4><blockquote>
@@ -639,14 +784,14 @@ fmt.Println(i)
 <h5 id="总线锁"><a href="#总线锁" class="headerlink" title="总线锁"></a>总线锁</h5><p>处理器会自动保证基本的内存操作的原子性。处理器保证从系统内存当中读取或者写入一个字节是原子的，意思是当一个处理器读取一个字节时，其他处理器不能访问这个字节的内存地址。</p>
 <p>上述操作就是通过总线锁实现的，<strong>在x86 平台上，CPU提供了在指令执行期间对</strong>总线加锁的手段，这样能实现并行时的原子操作。</p>
 <h5 id="Go支持的原子操作概述"><a href="#Go支持的原子操作概述" class="headerlink" title="Go支持的原子操作概述"></a>Go支持的原子操作概述</h5><p>Win32 API中常用的原子操作主要有三类，一种是加一减一操作，二是比较交换操作，三赋值操作。对于一个整数类型<code>T</code>，<code>sync/atomic</code>标准库包提供了下列原子操作函数。 其中<code>T</code>可以是内置<code>int32</code>、<code>int64</code>、<code>uint32</code>、<code>uint64</code>和<code>uintptr</code>类型。</p>
-<div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">AddT</span><span class="hljs-params">(addr *T, delta T)</span><span class="hljs-params">(<span class="hljs-built_in">new</span> T)</span></span>
-<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">LoadT</span><span class="hljs-params">(addr *T)</span> <span class="hljs-params">(val T)</span></span>
+<div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">AddT</span><span class="hljs-params">(addr *T, delta T)</span></span>(<span class="hljs-built_in">new</span> T)
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">LoadT</span><span class="hljs-params">(addr *T)</span></span> (val T)
 <span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">StoreT</span><span class="hljs-params">(addr *T, val T)</span></span>
-<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">SwapT</span><span class="hljs-params">(addr *T, <span class="hljs-built_in">new</span> T)</span> <span class="hljs-params">(old T)</span></span>
-<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">CompareAndSwapT</span><span class="hljs-params">(addr *T, old, <span class="hljs-built_in">new</span> T)</span> <span class="hljs-params">(swapped <span class="hljs-keyword">bool</span>)</span></span></code></pre></div>
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">SwapT</span><span class="hljs-params">(addr *T, <span class="hljs-built_in">new</span> T)</span></span> (old T)
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">CompareAndSwapT</span><span class="hljs-params">(addr *T, old, <span class="hljs-built_in">new</span> T)</span></span> (swapped <span class="hljs-type">bool</span>)</code></pre></div>
 <p>我们看看<code>CompareAndSwap</code>的源码：</p>
 <div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-comment">// sync/atomic 中的声明形式大致如下：</span>
-<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">CompareAndSwapInt32</span><span class="hljs-params">(addr *<span class="hljs-keyword">int32</span>, old, <span class="hljs-built_in">new</span> <span class="hljs-keyword">int32</span>)</span> <span class="hljs-params">(swapped <span class="hljs-keyword">bool</span>)</span></span>
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">CompareAndSwapInt32</span><span class="hljs-params">(addr *<span class="hljs-type">int32</span>, old, <span class="hljs-built_in">new</span> <span class="hljs-type">int32</span>)</span></span> (swapped <span class="hljs-type">bool</span>)
 
 <span class="hljs-comment">// amd64 上最终会落到类似这样的原子指令序列：</span>
 <span class="hljs-comment">// MOVQ addr, BX</span>
@@ -668,16 +813,16 @@ fmt.Println(i)
 <li>循环引用无法编码，会返回错误。</li>
 </ol>
 <div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-keyword">type</span> User <span class="hljs-keyword">struct</span> &#123;
-	ID    <span class="hljs-keyword">int</span>    <span class="hljs-string">`json:&quot;id&quot;`</span>
-	Name  <span class="hljs-keyword">string</span> <span class="hljs-string">`json:&quot;name&quot;`</span>
-	Email <span class="hljs-keyword">string</span> <span class="hljs-string">`json:&quot;email,omitempty&quot;`</span>
+	ID    <span class="hljs-type">int</span>    <span class="hljs-string">`json:&quot;id&quot;`</span>
+	Name  <span class="hljs-type">string</span> <span class="hljs-string">`json:&quot;name&quot;`</span>
+	Email <span class="hljs-type">string</span> <span class="hljs-string">`json:&quot;email,omitempty&quot;`</span>
 &#125;
 
 b, err := json.Marshal(User&#123;ID: <span class="hljs-number">1</span>, Name: <span class="hljs-string">&quot;nanbei&quot;</span>&#125;)
 <span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> &#123;
 	<span class="hljs-keyword">return</span> err
 &#125;
-fmt.Println(<span class="hljs-keyword">string</span>(b)) <span class="hljs-comment">// &#123;&quot;id&quot;:1,&quot;name&quot;:&quot;nanbei&quot;&#125;</span></code></pre></div>
+fmt.Println(<span class="hljs-type">string</span>(b)) <span class="hljs-comment">// &#123;&quot;id&quot;:1,&quot;name&quot;:&quot;nanbei&quot;&#125;</span></code></pre></div>
 <p><code>omitempty</code> 的判断基于零值：空字符串、0、false、nil 指针、nil slice、nil map 都会被省略。需要区分“字段不存在”和“字段存在但为空”时，应该使用指针或自定义类型表达。</p>
 <h4 id="Unmarshal"><a href="#Unmarshal" class="headerlink" title="Unmarshal"></a><code>Unmarshal</code></h4><p><code>json.Unmarshal</code> 会把 JSON 字节序列解码到传入的指针里。这里必须传指针，否则函数无法修改调用方的变量。</p>
 <div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-keyword">var</span> user User
@@ -692,51 +837,107 @@ fmt.Println(<span class="hljs-keyword">string</span>(b)) <span class="hljs-comme
 <li><code>null</code> 解到指针、slice、map 时会得到 nil；解到普通数字或字符串字段时不会把它变成特殊值。</li>
 </ol>
 <p>如果需要自定义编码/解码，可以实现 <code>MarshalJSON</code> 和 <code>UnmarshalJSON</code>：</p>
-<div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(u User)</span> <span class="hljs-title">MarshalJSON</span><span class="hljs-params">()</span> <span class="hljs-params">([]<span class="hljs-keyword">byte</span>, error)</span></span> &#123;
+<div class="code-wrapper"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(u User)</span></span> MarshalJSON() ([]<span class="hljs-type">byte</span>, <span class="hljs-type">error</span>) &#123;
 	<span class="hljs-keyword">type</span> Alias User
 	<span class="hljs-keyword">return</span> json.Marshal(<span class="hljs-keyword">struct</span> &#123;
 		Alias
-		Kind <span class="hljs-keyword">string</span> <span class="hljs-string">`json:&quot;kind&quot;`</span>
+		Kind <span class="hljs-type">string</span> <span class="hljs-string">`json:&quot;kind&quot;`</span>
 	&#125;&#123;Alias: Alias(u), Kind: <span class="hljs-string">&quot;user&quot;</span>&#125;)
 &#125;</code></pre></div>
 <p><code>encoding/json</code> 最大的优点是标准、稳定、反射能力强；缺点是反射带来的性能开销较明显。高性能场景可以考虑代码生成或专用 JSON 库，但业务系统的默认选择仍然应该先从标准库开始。</p>
 
-            </div>
-            <hr>
-            <div>
-              <div class="post-metas mb-3">
-                
-                  <div class="post-meta mr-3">
-                    <i class="iconfont icon-category"></i>
-                    
-                      <a class="hover-with-bg" href="/categories/Go%E8%AF%AD%E8%A8%80/">Go语言</a>
-                    
-                  </div>
-                
-                
-                  <div class="post-meta">
-                    <i class="iconfont icon-tags"></i>
-                    
-                      <a class="hover-with-bg" href="/tags/Go/">Go</a>
-                    
-                      <a class="hover-with-bg" href="/tags/Go-standard-library/">Go standard library</a>
-                    
-                  </div>
                 
               </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Go%E8%AF%AD%E8%A8%80/" class="category-chain-item">Go语言</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Go/" class="print-no-link">#Go</a>
+      
+        <a href="/tags/Go-standard-library/" class="print-no-link">#Go standard library</a>
+      
+    </div>
+  
+</div>
+
+
               
-                <p class="note note-warning">
-                  
-                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
-                  
-                </p>
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Go 标准库：container、reflect、unsafe 与 atomic</div>
+      <div>https://xiao-nanbei.github.io/2022/03/20/Go-Container-Reflect-Unsafe-and-Atomic/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2022年3月20日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
               
               
-                <div class="post-prevnext">
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2022/04/03/Go-select-and-IO-multiplexing/">
+                      <a href="/2022/04/03/Go-select-and-IO-multiplexing/" title="Go select 与 I/O 多路复用">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">Go select 与 I/O 多路复用</span>
                         <span class="visible-mobile">上一篇</span>
@@ -746,7 +947,7 @@ fmt.Println(<span class="hljs-keyword">string</span>(b)) <span class="hljs-comme
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2022/03/12/Go-runtime-panic-and-defer/">
+                      <a href="/2022/03/12/Go-runtime-panic-and-defer/" title="Go runtime: panic 与 defer">
                         <span class="hidden-mobile">Go runtime: panic 与 defer</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
@@ -762,19 +963,74 @@ fmt.Println(<span class="hljs-keyword">string</span>(b)) <span class="hljs-comme
         </div>
       </div>
     </div>
-    
-      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
-        <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
   <div class="toc-body" id="toc-body"></div>
 </div>
 
-      </div>
-    
+
+
+  </aside>
+
+
+    </div>
   </div>
 </div>
 
-<!-- Custom -->
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
 
 
     
@@ -799,32 +1055,33 @@ fmt.Println(<span class="hljs-keyword">string</span>(b)) <span class="hljs-comme
       <div class="modal-body mx-3">
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>
     </div>
   </div>
 </div>
+
     
 
     
   </main>
 
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
-  </div>
+  <footer>
+    <div class="footer-inner">
   
-
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
   
-
   
-</footer>
+  
+</div>
 
+  </footer>
 
-  <!-- SCRIPTS -->
+  <!-- Scripts -->
   
   <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
@@ -843,10 +1100,22 @@ fmt.Println(<span class="hljs-keyword">string</span>(b)) <span class="hljs-comme
 <script  src="/js/events.js" ></script>
 <script  src="/js/plugins.js" ></script>
 
-<!-- Plugins -->
 
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
 
-  <script  src="/js/local-search.js" ></script>
 
 
 
@@ -856,105 +1125,222 @@ fmt.Println(<span class="hljs-keyword">string</span>(b)) <span class="hljs-comme
 
 
 
-  
-
-
 
   
-    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
-  
-  
-    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
-  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
 
-
-
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
-  <script>
-    (function (window, document) {
-      var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
-      
-        typing(title);
-      
-    })(window, document);
-  </script>
-
-
-
-
-
-  
-
-  
-    <!-- MathJax -->
-    <script>
-      MathJax = {
-        tex: {
-          inlineMath: [['$', '$'], ['\\(', '\\)']]
-        },
-        loader: {
-          load: ['ui/lazy']
-        },
-        options: {
-          renderActions: {
-            findScript: [10, doc => {
-              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
-                const display = !!node.type.match(/; *mode=display/);
-                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
-                const text = document.createTextNode('');
-                node.parentNode.replaceChild(text, node);
-                math.start = { node: text, delim: '', n: 0 };
-                math.end = { node: text, delim: '', n: 0 };
-                doc.math.push(math);
-              });
-            }, '', false],
-            insertedScript: [200, () => {
-              document.querySelectorAll('mjx-container').forEach(node => {
-                let target = node.parentNode;
-                if (target.nodeName.toLowerCase() === 'li') {
-                  target.parentNode.classList.add('has-jax');
-                }
-              });
-            }, '', false]
-          }
-        }
-      };
-    </script>
-
-    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
-
-  
-
-
-
-
-
-  <script  src="https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js" ></script>
-  <script>
-    if (window.mermaid) {
-      mermaid.initialize({"theme":"default"});
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
     }
-  </script>
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
 
 
 
 
 
-
-
-<!-- 主题的启动项 保持在最底部 -->
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
 <script  src="/js/boot.js" ></script>
 
 
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
 </body>
 </html>

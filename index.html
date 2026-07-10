@@ -7,8 +7,11 @@
 
 <head>
   <meta charset="UTF-8">
+
   <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
   <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
@@ -25,15 +28,19 @@
 <meta name="twitter:card" content="summary_large_image">
   
   
+  
   <title>databrains</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
 
 
 
-<!-- 主题依赖的图标库，不要自行修改 -->
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
 
 
 
@@ -42,21 +49,42 @@
 
 <link  rel="stylesheet" href="/css/main.css" />
 
-<!-- 自定义样式保持在最底部 -->
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
 
 
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
   </script>
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 6.0.0"></head>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
 
 
 <body>
-  <header style="height: 100vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 100vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand" href="/">
       <strong>databrains</strong>
@@ -68,7 +96,7 @@
       <div class="animated-icon"><span></span><span></span><span></span></div>
     </button>
 
-    <!-- Collapsible content -->
+    <!-- Collapsible content (desktop) -->
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav ml-auto text-center">
         
@@ -77,9 +105,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/">
+              <a class="nav-link" href="/" target="_self">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                <span>首页</span>
               </a>
             </li>
           
@@ -89,9 +117,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/archives/">
+              <a class="nav-link" href="/archives/" target="_self">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                <span>归档</span>
               </a>
             </li>
           
@@ -101,9 +129,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/categories/">
+              <a class="nav-link" href="/categories/" target="_self">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                <span>分类</span>
               </a>
             </li>
           
@@ -113,9 +141,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/tags/">
+              <a class="nav-link" href="/tags/" target="_self">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                <span>标签</span>
               </a>
             </li>
           
@@ -125,9 +153,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/about/">
+              <a class="nav-link" href="/about/" target="_self">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                <span>关于</span>
               </a>
             </li>
           
@@ -135,14 +163,16 @@
         
           <li class="nav-item" id="search-btn">
             <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
-              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+              <i class="iconfont icon-search"></i>
             </a>
           </li>
+          
         
         
           <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
           </li>
         
       </ul>
@@ -150,58 +180,170 @@
   </div>
 </nav>
 
-    <div class="banner" id="banner" parallax=true
-         style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="Nanbei&#39;s blog">
-              
-            </span>
-
-            
-          </div>
-
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
           
-            <div class="scroll-down-bar">
-              <i class="iconfont icon-arrowdown"></i>
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
             </div>
           
-        </div>
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
       </div>
     </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Nanbei&#39;s blog"></span>
+          
+        </div>
+
+        
+      </div>
+
+      
+        <div class="scroll-down-bar">
+          <i class="iconfont icon-arrowdown"></i>
+        </div>
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
   </header>
 
   <main>
     
       <div class="container nopadding-x-md">
-        <div class="py-5" id="board"
-          style=margin-top:0>
+        <div id="board"
+          style="margin-top: 0">
           
           <div class="container">
             <div class="row">
               <div class="col-12 col-md-10 m-auto">
                 
 
+<h1 style="display: none">databrains</h1>
 
   <div class="row mx-auto index-card">
     
     
     <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
         <a href="/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/" target="_self">
           NarrowGate：回测吞吐与 Live 尾延迟工程
         </a>
-      </h1>
+      </h2>
 
-      <p class="index-excerpt">
-        <a href="/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/" target="_self">
-          
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/" target="_self">
+        <div>
           TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV 与被动做市研究框架》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。 离线侧的低延时，本质是把严格 replay 从“只能抽样验证”推进
-        </a>
-      </p>
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -213,26 +355,40 @@
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/C/">C++</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/C/" class="category-chain-item">C++</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Market-Making/">Market Making</a>
+              <a href="/tags/Market-Making/">#Market Making</a>
             
-              <a href="/tags/C/">C++</a>
+              <a href="/tags/C/">#C++</a>
             
-              <a href="/tags/%E4%BD%8E%E5%BB%B6%E6%97%B6/">低延时</a>
+              <a href="/tags/%E4%BD%8E%E5%BB%B6%E6%97%B6/">#低延时</a>
             
-              <a href="/tags/pybind11/">pybind11</a>
+              <a href="/tags/pybind11/">#pybind11</a>
             
-              <a href="/tags/%E7%B3%BB%E7%BB%9F%E5%B7%A5%E7%A8%8B/">系统工程</a>
+              <a href="/tags/%E7%B3%BB%E7%BB%9F%E5%B7%A5%E7%A8%8B/">#系统工程</a>
             
           </div>
         
@@ -244,19 +400,19 @@
     
     
     <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
         <a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/" target="_self">
           NarrowGate：Maker Quote EV 与被动做市研究框架
         </a>
-      </h1>
+      </h2>
 
-      <p class="index-excerpt">
-        <a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/" target="_self">
-          
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/" target="_self">
+        <div>
           TL;DR：读者收益摘要NarrowGate 不是一个“做市策略已经跑通并盈利”的项目，而是一个用于验证 maker quote EV 的研究框架。它研究的核心问题是：一笔被动限价单被成交之后，到底是在收取 spread，还是在替更快的信息交易者接风险。 这篇文章只讲算法与证据框架；C++、pybind、x86 benchmark 和 live hot path 细节拆到另一篇：NarrowGat
-        </a>
-      </p>
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -268,26 +424,40 @@
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/Market-Making/">Market Making</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Market-Making/" class="category-chain-item">Market Making</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Market-Making/">Market Making</a>
+              <a href="/tags/Market-Making/">#Market Making</a>
             
-              <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/">市场微观结构</a>
+              <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/">#市场微观结构</a>
             
-              <a href="/tags/%E6%95%B0%E6%8D%AE%E8%B4%A8%E9%87%8F/">数据质量</a>
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E8%B4%A8%E9%87%8F/">#数据质量</a>
             
-              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">机器学习</a>
+              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">#机器学习</a>
             
-              <a href="/tags/%E5%9B%9E%E6%B5%8B/">回测</a>
+              <a href="/tags/%E5%9B%9E%E6%B5%8B/">#回测</a>
             
           </div>
         
@@ -299,19 +469,19 @@
     
     
     <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
         <a href="/2023/02/21/MIT-6-S081-Lab-5-Lazy-Page-Allocation/" target="_self">
           MIT 6.S081 Lab 5: Lazy page allocation
         </a>
-      </h1>
+      </h2>
 
-      <p class="index-excerpt">
-        <a href="/2023/02/21/MIT-6-S081-Lab-5-Lazy-Page-Allocation/" target="_self">
-          
-          Eliminate allocation from sbrk()我们先来看看这个图：  代码段不必多说，唯一要注意的点是：在原始 xv6 实现里，sbrk() 会触发实际物理页分配并建立映射；而本实验要改成“先只扩大地址空间，再按缺页异常补映射”的方式。 本实验你的任务是修改 sys_sbrk()使得其只增加&#x2F;减少进程地址空间大小，而不真正地分配页面。sbrk是xv6提供的系统调用，它使得用户应用
-        </a>
-      </p>
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2023/02/21/MIT-6-S081-Lab-5-Lazy-Page-Allocation/" target="_self">
+        <div>
+          Eliminate allocation from sbrk()我们先来看看这个图：  代码段不必多说，唯一要注意的点是：在原始 xv6 实现里，sbrk() 会触发实际物理页分配并建立映射；而本实验要改成“先只扩大地址空间，再按缺页异常补映射”的方式。 本实验你的任务是修改 sys_sbrk()使得其只增加/减少进程地址空间大小，而不真正地分配页面。sbrk是xv6提供的系统调用，它使得用户应用
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -323,18 +493,32 @@
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">操作系统</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/MIT-6-S081-Lab/">MIT 6.S081 Lab</a>
+              <a href="/tags/MIT-6-S081-Lab/">#MIT 6.S081 Lab</a>
             
           </div>
         
@@ -346,19 +530,19 @@
     
     
     <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
         <a href="/2022/12/12/MIT-6-S081-Lab-1-Xv6-and-Unix-Utilities/" target="_self">
           MIT 6.S081 Lab 1: Xv6 and Unix utilities
         </a>
-      </h1>
+      </h2>
 
-      <p class="index-excerpt">
-        <a href="/2022/12/12/MIT-6-S081-Lab-1-Xv6-and-Unix-Utilities/" target="_self">
-          
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/12/12/MIT-6-S081-Lab-1-Xv6-and-Unix-Utilities/" target="_self">
+        <div>
           在这个实验中要实现几个用户级别的应用程序，其对应的系统调用在kernel中都已经被实现好了。 sleep本实验要为 xv6 实现 UNIX 程序 sleep； 您的睡眠应暂停用户指定的滴答数。 滴答是 xv6 内核定义的时间概念，即来自定时器芯片的两次中断之间的时间。 我们检查参数，如果出现不是数字的参数就exit(-1)，否则进行sleep。代码如下所示： #include &quot;kern
-        </a>
-      </p>
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -370,18 +554,32 @@
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">操作系统</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/MIT-6-S081-Lab/">MIT 6.S081 Lab</a>
+              <a href="/tags/MIT-6-S081-Lab/">#MIT 6.S081 Lab</a>
             
           </div>
         
@@ -393,19 +591,19 @@
     
     
     <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
         <a href="/2022/05/29/%E8%AE%B0%E4%B8%80%E6%AC%A1manjaro-OS%E6%81%A2%E5%A4%8D/" target="_self">
           记一次manjaro OS恢复
         </a>
-      </h1>
+      </h2>
 
-      <p class="index-excerpt">
-        <a href="/2022/05/29/%E8%AE%B0%E4%B8%80%E6%AC%A1manjaro-OS%E6%81%A2%E5%A4%8D/" target="_self">
-          
-          我的PC前段时间短路了，更换主板之后重新启动电脑没有manjaro OS和Windows的启动项选择界面了，而是直接进入Winows，查看BOIS之后发现只有一个Winows启动项，遂开始恢复。 首先我发现只有一个Winows启动项，于是直接在Winows下管理员cmd中输入如下命令增加启动项： $bcdedit &#x2F;set &quot;&amp;#123;bootmgr&amp;#125;&quot; path
-        </a>
-      </p>
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/05/29/%E8%AE%B0%E4%B8%80%E6%AC%A1manjaro-OS%E6%81%A2%E5%A4%8D/" target="_self">
+        <div>
+          我的PC前段时间短路了，更换主板之后重新启动电脑没有manjaro OS和Windows的启动项选择界面了，而是直接进入Winows，查看BOIS之后发现只有一个Winows启动项，遂开始恢复。 首先我发现只有一个Winows启动项，于是直接在Winows下管理员cmd中输入如下命令增加启动项： $bcdedit /set &quot;&#123;bootmgr&#125;&quot; path
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -426,19 +624,19 @@
     
     
     <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
         <a href="/2022/05/16/CMU-15-445-Project-3-Query-Execution/" target="_self">
           CMU 15-445 Project 3: Query execution
         </a>
-      </h1>
+      </h2>
 
-      <p class="index-excerpt">
-        <a href="/2022/05/16/CMU-15-445-Project-3-Query-Execution/" target="_self">
-          
-          TASK #1 - SYSTEM CATALOG在这个任务中，我们会修改rc&#x2F;include&#x2F;catalog&#x2F;catalog.h以允许 DBMS 将新表添加到数据库并使用名称或内部对象标识符 ( table_oid_t) 检索它们。 我们在最新的BusTub中可以看到catalog的实现，但是这个版本只能实现通过6个测试， 先来看看TableInfo的结构体： struct TableInfo &amp;
-        </a>
-      </p>
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/05/16/CMU-15-445-Project-3-Query-Execution/" target="_self">
+        <div>
+          TASK #1 - SYSTEM CATALOG在这个任务中，我们会修改rc/include/catalog/catalog.h以允许 DBMS 将新表添加到数据库并使用名称或内部对象标识符 ( table_oid_t) 检索它们。 我们在最新的BusTub中可以看到catalog的实现，但是这个版本只能实现通过6个测试， 先来看看TableInfo的结构体： struct TableInfo &
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -450,18 +648,32 @@
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" class="category-chain-item">数据库</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/CMU-15-445/">CMU 15-445</a>
+              <a href="/tags/CMU-15-445/">#CMU 15-445</a>
             
           </div>
         
@@ -473,19 +685,19 @@
     
     
     <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
         <a href="/2022/04/03/Go-select-and-IO-multiplexing/" target="_self">
           Go select 与 I/O 多路复用
         </a>
-      </h1>
+      </h2>
 
-      <p class="index-excerpt">
-        <a href="/2022/04/03/Go-select-and-IO-multiplexing/" target="_self">
-          
-          selectGo 的 select 关键字用到了“多路等待”的思想，但它本身不是操作系统层面的 I&#x2F;O 多路复用，因为 select 面向的是 channel，而不是文件描述符。先看下面的例子： package main  import ( 	&quot;fmt&quot; 	&quot;sync&quot; ) func main() &amp;#123; 	c1 :&#x3D; make(chan int, 1
-        </a>
-      </p>
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/04/03/Go-select-and-IO-multiplexing/" target="_self">
+        <div>
+          selectGo 的 select 关键字用到了“多路等待”的思想，但它本身不是操作系统层面的 I/O 多路复用，因为 select 面向的是 channel，而不是文件描述符。先看下面的例子： package main  import ( 	&quot;fmt&quot; 	&quot;sync&quot; ) func main() &#123; 	c1 := make(chan int, 1
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -497,20 +709,34 @@
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/Go%E8%AF%AD%E8%A8%80/">Go语言</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Go%E8%AF%AD%E8%A8%80/" class="category-chain-item">Go语言</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Go/">Go</a>
+              <a href="/tags/Go/">#Go</a>
             
-              <a href="/tags/I-O-multiplexing/">I/O multiplexing</a>
+              <a href="/tags/I-O-multiplexing/">#I/O multiplexing</a>
             
           </div>
         
@@ -522,19 +748,19 @@
     
     
     <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
         <a href="/2022/03/20/Go-Container-Reflect-Unsafe-and-Atomic/" target="_self">
           Go 标准库：container、reflect、unsafe 与 atomic
         </a>
-      </h1>
+      </h2>
 
-      <p class="index-excerpt">
-        <a href="/2022/03/20/Go-Container-Reflect-Unsafe-and-Atomic/" target="_self">
-          
-          Go map底层实现Go语言的map底层实现基于哈希表。Hash会把任意长度输入映射到有限值域，因此一定会存在冲突。Go map 不是“传统链地址法”的单链表实现，而是“bucket + overflow bucket”结构：每个 bucket 固定容纳若干键值对，冲突严重时通过 overflow bucket 串接扩展。值得注意的是：&#x3D;&#x3D;Java1.8中在冲突链较长时会做树化优化，而 Go ma
-        </a>
-      </p>
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/03/20/Go-Container-Reflect-Unsafe-and-Atomic/" target="_self">
+        <div>
+          Go map底层实现Go语言的map底层实现基于哈希表。Hash会把任意长度输入映射到有限值域，因此一定会存在冲突。Go map 不是“传统链地址法”的单链表实现，而是“bucket + overflow bucket”结构：每个 bucket 固定容纳若干键值对，冲突严重时通过 overflow bucket 串接扩展。值得注意的是：==Java1.8中在冲突链较长时会做树化优化，而 Go ma
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -546,20 +772,34 @@
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/Go%E8%AF%AD%E8%A8%80/">Go语言</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Go%E8%AF%AD%E8%A8%80/" class="category-chain-item">Go语言</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Go/">Go</a>
+              <a href="/tags/Go/">#Go</a>
             
-              <a href="/tags/Go-standard-library/">Go standard library</a>
+              <a href="/tags/Go-standard-library/">#Go standard library</a>
             
           </div>
         
@@ -571,19 +811,19 @@
     
     
     <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
         <a href="/2022/03/12/Go-runtime-panic-and-defer/" target="_self">
           Go runtime: panic 与 defer
         </a>
-      </h1>
+      </h2>
 
-      <p class="index-excerpt">
-        <a href="/2022/03/12/Go-runtime-panic-and-defer/" target="_self">
-          
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/03/12/Go-runtime-panic-and-defer/" target="_self">
+        <div>
           Go panic大多数编程语言都提供了异常处理机制，恰恰相反，Go延续了C语言的风格，并未提供异常处理机制。但在Go中，提供了panic异常，从某种意义上说，它也非常接近其他语言的异常处理。 Go语言在编译期间就能捕获大量异常，但是有些异常只能发生在运行期间，比如运行期间的除以0的异常，数组越界错误等。 除了程序本身的问题导致panic异常外，也可以直接在程序里调用panic函数引发panic异常
-        </a>
-      </p>
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -595,18 +835,32 @@
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/Go%E8%AF%AD%E8%A8%80/">Go语言</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Go%E8%AF%AD%E8%A8%80/" class="category-chain-item">Go语言</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Go-runtime/">Go runtime</a>
+              <a href="/tags/Go-runtime/">#Go runtime</a>
             
           </div>
         
@@ -618,19 +872,19 @@
     
     
     <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
         <a href="/2022/02/24/MIT-6-S081-Lab-6-Copy-on-Write-Fork/" target="_self">
           MIT 6.S081 Lab 6: Copy-on-write fork
         </a>
-      </h1>
+      </h2>
 
-      <p class="index-excerpt">
-        <a href="/2022/02/24/MIT-6-S081-Lab-6-Copy-on-Write-Fork/" target="_self">
-          
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/02/24/MIT-6-S081-Lab-6-Copy-on-Write-Fork/" target="_self">
+        <div>
           早期的fork()实现较为“简单粗暴”，会将父进程的物理内存完整拷贝一份，并映射到子进程的内存空间中，这种方式在很多情况下是不必要的，一部分虚拟内存是只读的，对他们进行拷贝是一种浪费，其次，由于进程有时会在调用fork函数之后立即调用exec以载入新的可执行文件，重置地址空间，之前的内存拷贝就完全失去了意义。因此可以用写时拷贝技术来对fork的实现进行优化。对于本来就是只读的虚拟页，父进程和子进
-        </a>
-      </p>
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -642,18 +896,32 @@
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">操作系统</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/MIT-6-S081-Lab/">MIT 6.S081 Lab</a>
+              <a href="/tags/MIT-6-S081-Lab/">#MIT 6.S081 Lab</a>
             
           </div>
         
@@ -698,32 +966,33 @@
       <div class="modal-body mx-3">
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>
     </div>
   </div>
 </div>
+
     
 
     
   </main>
 
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
-  </div>
+  <footer>
+    <div class="footer-inner">
   
-
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
   
-
   
-</footer>
+  
+</div>
 
+  </footer>
 
-  <!-- SCRIPTS -->
+  <!-- Scripts -->
   
   <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
@@ -742,10 +1011,22 @@
 <script  src="/js/events.js" ></script>
 <script  src="/js/plugins.js" ></script>
 
-<!-- Plugins -->
 
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
 
-  <script  src="/js/local-search.js" ></script>
 
 
 
@@ -755,43 +1036,22 @@
 
 
 
-  
+
+  <script  src="/js/local-search.js" ></script>
 
 
 
 
 
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
-  <script>
-    (function (window, document) {
-      var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
-      
-        typing(title);
-      
-    })(window, document);
-  </script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- 主题的启动项 保持在最底部 -->
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
 <script  src="/js/boot.js" ></script>
 
 
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
 </body>
 </html>
