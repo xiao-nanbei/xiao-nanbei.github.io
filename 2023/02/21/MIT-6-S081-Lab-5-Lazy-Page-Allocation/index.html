@@ -16,7 +16,7 @@
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
   <meta name="theme-color" content="#2f4154">
-  <meta name="author" content="John Doe">
+  <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
     <meta name="description" content="Eliminate allocation from sbrk()我们先来看看这个图：  代码段不必多说，唯一要注意的点是：在原始 xv6 实现里，sbrk() 会触发实际物理页分配并建立映射；而本实验要改成“先只扩大地址空间，再按缺页异常补映射”的方式。 本实验你的任务是修改 sys_sbrk()使得其只增加&#x2F;减少进程地址空间大小，而不真正地分配页面。sbrk是xv6提供的系统调用，它使得用户应用">
@@ -29,7 +29,7 @@
 <meta property="og:image" content="https://img2020.cnblogs.com/blog/2002319/202101/2002319-20210104192210213-1712203988.png">
 <meta property="article:published_time" content="2023-02-21T08:04:00.000Z">
 <meta property="article:modified_time" content="2026-06-06T01:20:34.272Z">
-<meta property="article:author" content="John Doe">
+<meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="MIT 6.S081 Lab">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://img2020.cnblogs.com/blog/2002319/202101/2002319-20210104192210213-1712203988.png">
@@ -542,7 +542,7 @@ mappages(p-&gt;pagetable, PGROUNDDOWN(va), PGSIZE, (uint64)mem, PTE_W|PTE_X|PTE_
       
         <div class="license-meta-item">
           <div>作者</div>
-          <div>John Doe</div>
+          <div>Xuan Tan</div>
         </div>
       
       
