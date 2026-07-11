@@ -336,7 +336,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          62k 字
+          63k 字
         
       </span>
     
@@ -348,7 +348,7 @@
         
         
           <!-- compatible with older versions-->
-          517 分钟
+          522 分钟
         
       </span>
     
@@ -641,15 +641,15 @@ fill-quality / risk / quote-EV shadow evidence + daily gates</code></pre></div>
 </tr>
 <tr>
 <td>cross-market anchors</td>
-<td>BTCUSDT perp、BTCUSDT spot、BTCUSDC spot</td>
-<td>区分本地流动性冲击和更广泛的信息重定价</td>
-<td>多个 Binance 市场高度相关，不能伪装成独立 venue consensus</td>
+<td>BTCUSDT perp、BTCUSDT spot、BTCUSDC spot、<code>USDCUSDT</code> spot</td>
+<td>Binance BTCUSDT 做本地 level bridge；<code>BTCUSDT / USDCUSDT</code> 换算到 USDC；BTCUSDC spot 做 cross-check/fallback</td>
+<td>多个 Binance 市场高度相关，不能伪装成独立 venue consensus；交易对正式 symbol 是 USDCUSDT，不是反向乘法</td>
 </tr>
 <tr>
 <td>independent venue shadow</td>
-<td>Bitget perp/spot WebSocket 与历史 trades；Bybit perp REST、spot WebSocket 与历史 trades；OKX perp REST 与已校验历史子集</td>
+<td>Bitget、Bybit、OKX 的 perp/spot public feed 与 retained111 历史 trades</td>
 <td>cross-venue consensus、leader/divergence、campaign moderator</td>
-<td>全部 shadow-only；REST 不能支持 50/100ms cancel；历史 trades 不等于 exact L2；OKX 当前仅有 7 个完整 UTC retained 日</td>
+<td>全部 shadow-only；REST 不能支持 50/100ms cancel；历史 trades 不等于 exact L2；spot/perp 是两个因子，不是六张独立选票</td>
 </tr>
 </tbody>
 </table>
@@ -1322,8 +1322,9 @@ cv_ref_spot_*</code></pre></div>
 <li>已经把 Bitget 历史逐笔成交严格裁成与 BTCUSDC 相同的 111 个 UTC good days：约 <code>1.5024</code> 亿笔 trades，构造约 <code>706.9</code> 万条 causal 1s states；原始压缩包文件名按 UTC+8 日组织，因此导入时必须按每一行事件时间重新切成 UTC day，不能直接按文件名归日；</li>
 <li>已经接入 Bybit BTCUSDT linear perpetual public REST BBO / recent trades，作为第二个独立 venue 的 receive-time shadow source；它没有 API key、账户或下单接口；</li>
 <li>已经从 Bybit 官方日度 contract-trade archive 收口同一份 retained111：<code>252,387,353</code> 笔 normalized trades，生成 <code>7,276,709</code> 条右边界可见的 causal 1s states，111 个 gzip 和两层 metadata 全部通过完整性检查；</li>
-<li>已经进一步接入 Bitget spot WebSocket；Bybit spot 先经 REST 完成 wiring 预检，随后切到 public WebSocket <code>orderbook.1/publicTrade</code>；OKX <code>BTC-USDT-SWAP</code> 也已作为第 5 个 public REST shadow source 接入。各输入使用 <code>venue:instrument:symbol</code> 独立 ID，不会互相覆盖，也不会进入 Binance quote policy；</li>
-<li>spot 历史同样只保留 retained111：Bitget spot <code>40,287,185</code> 笔 trades / <code>5,315,761</code> 条 causal states，Bybit spot <code>106,016,009</code> / <code>5,417,506</code>；双 venue spot consensus 有 <code>5,725,769</code> 个状态，与 perp consensus 的新鲜交集有 <code>5,188,119</code> 个状态；</li>
+<li>已经进一步接入 Bitget spot WebSocket、Bybit spot public WebSocket <code>orderbook.1/publicTrade</code>，以及 OKX perp/spot public REST books/trades；live 当前有 6 个 external market ID。各输入使用 <code>venue:instrument:symbol</code> 独立 ID，不会互相覆盖，也不会进入 Binance quote policy；</li>
+<li>spot 历史同样只保留 retained111：Bitget spot <code>40,287,185</code> 笔 trades / <code>5,315,761</code> 条 causal states，Bybit spot <code>106,016,009</code> / <code>5,417,506</code>，OKX spot <code>69,915,914</code> / <code>5,846,509</code>；三 venue spot consensus 有 <code>7,747,571</code> 个状态，perp consensus 有 <code>9,225,272</code> 个状态，新鲜交集为 <code>7,547,083</code>；</li>
+<li>Binance <code>USDCUSDT</code> spot 也按相同 retained111 收口为 <code>46,776,513</code> 笔 aggTrades / <code>8,792,656</code> 条 1s bars。它是 USDT-per-USDC 的币种换算锚，所以 <code>BTCUSDT / USDCUSDT -&gt; BTCUSDC</code>；BTCUSDC spot 只保留为 cross-check/fallback，不算 external vote；</li>
 <li>Bitget 单 venue、Bitget+Bybit perp consensus、以及最新 spot/perp cross-instrument Stage 0 都没有通过。因此不能把“接入更多市场”写成“cross-venue alpha 已成立”。</li>
 </ul>
 <p>Bitget Stage 0 使用 <code>bitget_move - local_move</code> 构造 1s/3s/5s pending residual，并在同一张 order-level denominator 上检查 1s/5s/20s/30s markout 与 campaign outcome。单独 pending residual 没有稳定排序力；再与本地 depth/refill/flow absorption 状态相交，也没有通过 daily stability。最接近的线索是 <code>SELL + submit 1s + local mixed</code>：30s markout 差约 <code>+0.50 bps</code>，但 5s 只有 <code>+0.03 bps</code>，daily 同号为 <code>41/73</code>，不足以进入 re-center、cancel 或 size policy。</p>
@@ -1338,7 +1339,9 @@ cv_ref_spot_*</code></pre></div>
 <p>spot/perp 两层随后做了更严格的复核。每秒分别构造 <code>spot_consensus</code> 与 <code>perp_consensus</code>，再计算历史锚定后的 <code>perp_minus_spot_bps</code>、<code>spot_perp_agreement</code>、<code>venue_divergence_bps</code>，把 quote-time 状态分为 <code>spot_leading</code>、<code>perp_only</code>、<code>confirmed</code>、<code>divergent</code> 与 <code>neutral</code>。所有状态都与同日、同侧、同 sample-time 的 neutral 配对，而不是只看 pooled markout。</p>
 <p>最接近的是 <code>BUY fill-time + spot_leading_up</code>：相对 neutral 的 1s/5s/20s/30s markout 约为 <code>+0.07/+0.58/+0.70/+3.11 bps</code>，30s 在 20 个配对日中有 13 天同号。但它所在 campaign 的 terminal PnL 反而约 <code>-0.26</code>，repair rate 约 <code>-0.12</code>。这说明外部 spot 的方向信息可能在少数 fill 后继续兑现，却没有把库存路径变成更安全、更容易修复的 campaign。<code>SELL + perp_only_up</code> 也只在 1s/5s 略好，20s/30s 和 campaign outcome 转差。</p>
 <p>因此最新结论不是“spot 没信息”，而是：<strong>当前 1 秒 trade-time 状态还不能把 spot-leading 或 perp-only liquidation 稳定映射成可执行动作。</strong> 它们继续作为 risk moderator、leader diagnostic 与后续 receive-time 模型输入，不进入 reservation re-center、local-absorption keep/tighten、cancel、size 或 lifecycle policy。</p>
-<p>OKX perpetual 是随后加入的第三个独立 derivatives venue。OKX 下载页的 daily ZIP 按<br>UTC+8 切日，正式导入必须合并 D/D+1 后再裁出 UTC D；当前只得到 7 个与 retained manifest<br>重叠的完整 UTC 日，共 <code>25,106,329</code> 笔 trades。严格要求 Bitget、Bybit、OKX 三边同时新鲜<br>后，<code>SELL fill-time 3s</code> 的 favorable-minus-adverse 20s/30s markout 在这 7 日子面板约为<br><code>+1.97/+1.53bps</code>，6/6 个有双桶支持的日期同号；相同日期的原双 venue consensus 只有<br><code>+0.18/+0.06bps</code>。这是目前最清楚的 OKX 增量 clue，但 campaign terminal outcome 逐日仅约<br>一半改善，而且总日期太少，因此仍不能进入 re-center、cancel 或 local-absorption policy。<br>live REST 15 秒 preflight 的 book transport lag 约 31ms、REST RTT 约 95ms；部署后的<br>HEALTH 连续显示 <code>externalSources=5</code>、<code>externalErrors=0</code>，JSONL 也持续写入。这些只有工程可用性<br>含义，不是 alpha evidence。下一步优先扩充 OKX perp 完整 UTC good days；OKX spot 值得用于区分同 venue<br>perp-only liquidation 与 spot-confirmed repricing，但应先补匹配历史数据，再启用 live shadow。</p>
+<p>OKX 随后同时补齐 perpetual 与 spot。下载页 daily ZIP 按 UTC+8 切日，正式导入仍必须<br>合并 D/D+1 后再裁出 UTC D；perpetual 的合约数按 <code>ctVal=0.01 BTC</code> 转换。最终两层均为<br>111/111 retained UTC 日：perpetual <code>399,947,490</code> 笔 trades / <code>8,742,874</code> 条 causal states，<br>spot <code>69,915,914</code> / <code>5,846,509</code>。早期 7 日 clue 因而只保留为 interim provenance，不能再当<br>当前 evidence。</p>
+<p>完整 hierarchical Stage 0 使用三 venue spot/perp 两个 common innovation、Binance BTCUSDT<br>本地 bridge、<code>USDCUSDT</code> 换算、causal slow basis 与最多 1 tick 的 shadow correction。<br>6,247,083 条 reference states 中，4,659,028 条通过严格 validity gate。full 与三个<br>leave-one-venue-out 的结论仍没有进入 policy：唯一四版都保持 30s/campaign 同方向的<br>global-residual 行是 <code>SELL submit 1s</code>，但 30s 只约 <code>+0.05~+0.10bps</code>，5s 为负，日度同号<br>接近一半。<code>SELL fill + divergent</code> 有更大的 30s clue，却没有稳定的 5s、repair 和 campaign<br>支持。第三个 venue 在这里首先提高的是反证能力，不是自动提高 alpha。</p>
+<p>live 已运行 6 个只读 external sources，并单独订阅 <code>USDCUSDT</code> spot bookTicker。HEALTH 的<br>book freshness 为 6/6、connector error 为 0；这些只有工程可用性含义，不证明任何 venue<br>领先 Binance。当前仍不启用 re-center、cancel、local-absorption、size 或 lifecycle policy。<br><code>USDCUSDT</code> 是慢速币种换算锚，不参与 2-of-3 vote：live 对三家 spot/perp innovation 继续<br>使用严格的秒级 freshness，对稳定币与 BTCUSDC spot fallback 则使用独立的 30 秒 level<br>freshness。否则稳定币盘口只是几秒没有变化，也会被错误解释为 global reference 断流。</p>
 <p>数据源本身也必须分级。Binance Vision 是交易所官方公开归档；CryptoHFTData 则是个人/第三方维护的 Binance orderbook collection，不是 Binance 官方源，可能缺日、缺小时、缺 snapshot 或连续段。项目只把通过 hourly parts、BBO/L2 coverage、gap、时间戳单调性和 label-horizon audit 的日期写进 retained manifest，不能因为文件存在就把某天认定为 good day。</p>
 <h3 id="1-9-quote-EV：方向看起来对，但统计还不允许下结论"><a href="#1-9-quote-EV：方向看起来对，但统计还不允许下结论" class="headerlink" title="1.9 quote EV：方向看起来对，但统计还不允许下结论"></a>1.9 quote EV：方向看起来对，但统计还不允许下结论</h3><p>为了避免把 cross-market 信息硬编码成一个布尔开关，项目又训练了逐侧 quote EV 模型。它不直接预测 BTC 下一秒涨跌，而是分别估计：</p>
 <ul>
@@ -1908,7 +1911,7 @@ trend_inventory_risk       # 大级别趋势是否正在放大库存风险</code
 <li><strong>local signal confirmation</strong>：reference 只作为已有本地 adverse / repair 信号的乘数或 veto，不单独成为 alpha 开关。</li>
 </ol>
 <p>这条线已经完成了短 horizon 与 fill-time 复核。BTCUSDT futures 的 submit-time <code>pending_ref</code> 在 1s/5s 上排序很弱，fill-time 重采样也没有改善：BUY 多数更差，SELL 只剩弱 30s 噪声。因此 direct re-center 与 post-fill futures moderator 都暂时关闭，<code>pending_ref_*</code> 降级为 diagnostic / interaction feature，不进入 1/2/3 tick reservation-shift arm。</p>
-<p>Bitget 的第一轮结论与此一致，但它回答的是更严格的问题：换成独立交易所后，秒级 residual 是否出现稳定增量。答案仍然是否。第二个独立 venue 以及 spot/perp 两层 consensus 已补齐但没有通过 Stage 0；第三个 derivatives venue OKX 在 7 日子面板上产生了 SELL markout clue，日期与 campaign 支撑仍不足。当前下一步不是打开 cross-venue policy，而是继续采集五条 source 的真实 receive-time book/trade tape，并扩充 OKX 的 matched UTC good days，判断更短 event-time 上的 leader confidence 是否活得足够久，且能否同时改善 fill markout 与 campaign outcome。单 venue residual 与 spot/perp divergence 继续作为 interaction feature，不单独担任正向或防守开关。</p>
+<p>Bitget 的第一轮结论与此一致，但它回答的是更严格的问题：换成独立交易所后，秒级 residual 是否出现稳定增量。答案仍然是否。随后 Bitget、Bybit、OKX 的 spot/perp retained111、2-of-3 consensus、hierarchical bridge 和三个 leave-one-venue-out 都已补齐，Stage 0 仍未通过。当前下一步不是打开 cross-venue policy，而是继续采集六条 external source 与 Binance <code>USDCUSDT</code> anchor 的真实 receive-time tape，判断更短 event-time 上的 leader confidence 是否活得足够久，且能否同时改善 fill markout、campaign outcome 与 repair。单 venue residual、spot/perp divergence 和 stablecoin basis 继续作为 interaction feature，不单独担任正向或防守开关。</p>
 <p>spot 的结论稍有不同。<code>fill_exec_spot_pending_*</code> 与 <code>fill_ref_spot_pending_*</code> 已接入 <code>post_fill_spot_pending_risk_score</code> 和 <code>post_fill_campaign_outcome_risk_score</code>；retained111 上，高分桶能较稳定标记更差短窗 markout、更差 aggregate terminal campaign PnL 与更高 tail rate。但这些字段只有 fill 后才可见，所以它们只能服务 post-fill campaign calibration / shadow management，不能被偷渡成 quote-time re-center、pre-fill veto 或正向 alpha 开关。</p>
 <p>换句话说，reference/spot 当前都没有通过“直接改变报价”的证据门。它们仍有价值，但价值落在解释和校准层：futures residual 作为 interaction diagnostic，spot residual 作为 post-fill risk label。这个边界比简单写一句“multi-market 有用/没用”更准确。</p>
 <h3 id="2-5-先排除实现归因，再继续找-alpha"><a href="#2-5-先排除实现归因，再继续找-alpha" class="headerlink" title="2.5 先排除实现归因，再继续找 alpha"></a>2.5 先排除实现归因，再继续找 alpha</h3><p>当几乎所有参数 arm 都是负数时，不能只用“市场太 toxic”解释，也不能看到一段可疑公式就宣布找到 bug。最新 formal replay 增加了三组可复核输出：</p>

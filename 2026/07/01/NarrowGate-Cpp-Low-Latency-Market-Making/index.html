@@ -331,7 +331,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          79k 字
+          80k 字
         
       </span>
     
@@ -343,7 +343,7 @@
         
         
           <!-- compatible with older versions-->
-          661 分钟
+          666 分钟
         
       </span>
     
@@ -515,6 +515,7 @@ Normalized NumPy arrays
 <li><strong>NaN 不能“顺手补 0”</strong>：spot/reference/orderbook 缺失时，应该进入 quality mask 或 segment reset，而不是让 C++ 默认值悄悄参与训练和回放。</li>
 <li><strong>pending cancel fill 要显式建模</strong>：订单发出 cancel 后，在 cancel latency 到达前仍可能成交。Python 如果已经把它当撤单、C++ 还把它当 live order，fill path 会马上分叉。</li>
 <li><strong>模块来源要 strict</strong>：两个项目都叫 <code>narrowgate_cpp</code> 时，同一个 venv 可能 import 到另一个 repo 的扩展。strict 模式下必须检查 <code>narrowgate_cpp.__file__</code>、字段 shape 和 ABI version。</li>
+<li><strong>函数存在不等于 ABI 一致</strong>：一次 x86 部署中，旧 pybind 模块仍有 <code>compute_quote_core_live</code>，但返回的 <code>QuoteFlags</code> 缺少新字段 <code>cap_exposure_block</code>。只检查函数名会在第一轮 quote 才失败；当前启动 preflight 同时实例化 <code>QuoteFlags</code>/<code>SideQuoteContext</code> 并核对字段 contract，旧扩展会在连接行情和报单前被拒绝。</li>
 </ul>
 <p>所以双引擎 parity 的本质不是“我把 Python 翻译成 C++ 了”，而是建立一套制度：<strong>每次 C++ 多迁一个状态机，都必须先在小真实窗口里通过路径级和金额级审讯，然后才允许进入 sweep/A/B</strong>。</p>
 <h3 id="1-3-Queue-Ahead：回测要保守，但它不是实时系统"><a href="#1-3-Queue-Ahead：回测要保守，但它不是实时系统" class="headerlink" title="1.3 Queue Ahead：回测要保守，但它不是实时系统"></a>1.3 Queue Ahead：回测要保守，但它不是实时系统</h3><p>bar 回测最容易自欺欺人的地方是：只要下一根 bar 的 low/high 碰到我的价格，就认为成交。maker 策略里这几乎一定会高估结果，因为真实世界里还有队列。</p>
@@ -2024,7 +2025,7 @@ new intent while REST is in flight:
 </div>
 <p>这仍是相邻、非重叠市场窗口，所以不能把 ratio 当成严格因果 A/B；但工程决策不需要假装有优势：async 没有形成足够 coalesce，p99/p99.9 也没有改善，复杂度和故障面却更高。因此生产 baseline 已回滚到 synchronous order gateway，native C++ profile 保留，replace threshold 不因这次 system soak 额外提高。异步实现继续留在代码中作为可观测的研究路径，而不是默认 live 路径。</p>
 <p>为避免 A/B 又变成手工摘日志，<code>scripts/analyze_live_soak.py</code> 用各 CSV 和 maker log 的起始行号创建 marker，再统一输出 action mix、native hit、WS age、placed/fills，以及 signal/quote/update/requote 和 REST/gateway 的 p50/p95/p99/p99.9/max。<code>scripts/x86_live_profile_ab_soak.sh</code> 只能通过 <code>run.sh</code> 管理进程，并要求显式 <code>ACK_LIVE_SOAK=YES</code>，避免误把 benchmark helper 变成无人值守的实盘重启器。</p>
-<h4 id="2-1-2-独立-venue-行情：receive-time-也是-hot-path-输入"><a href="#2-1-2-独立-venue-行情：receive-time-也是-hot-path-输入" class="headerlink" title="2.1.2 独立 venue 行情：receive-time 也是 hot-path 输入"></a>2.1.2 独立 venue 行情：receive-time 也是 hot-path 输入</h4><p>接入外部 reference 后，延迟预算不能只看 Binance quote、routing 和 REST。Bitget BTCUSDT perpetual public <code>books1</code> / trade WebSocket 与 Bybit BTCUSDT linear perpetual public REST BBO / recent trades 已在同一台 x86 live 机上以 shadow-only 方式运行：它们没有 API key、没有下单接口、不进入当前报价函数，只记录 venue-aware event，目的是先证明数据链路和时钟口径可靠。</p>
+<h4 id="2-1-2-独立-venue-行情：receive-time-也是-hot-path-输入"><a href="#2-1-2-独立-venue-行情：receive-time-也是-hot-path-输入" class="headerlink" title="2.1.2 独立 venue 行情：receive-time 也是 hot-path 输入"></a>2.1.2 独立 venue 行情：receive-time 也是 hot-path 输入</h4><p>接入外部 reference 后，延迟预算不能只看 Binance quote、routing 和 REST。当前 x86 live 机以 shadow-only 方式接收 Bitget、Bybit、OKX 的 BTCUSDT spot/perpetual 六条行情；外部 connector 没有下单接口，也不进入当前报价函数，只记录 venue-aware event。Binance <code>USDCUSDT</code> spot bookTicker 另作本地币种换算锚，不算第七个独立 vote。</p>
 <p>每条事件同时保留：</p>
 <div class="code-wrapper"><pre><code class="hljs text">exchange_event_ts_ns
 local_receive_ts_ns
@@ -2100,13 +2101,15 @@ market_id = venue:instrument_type:symbol</code></pre></div>
 </table>
 </div>
 <p>双 source HEALTH 保持 <code>externalSources=2</code>、<code>externalStale=0</code>、connector error 为 0，Binance live 仍正常保持双边订单。Bybit trade 的 max age 会在市场安静时被旧 recent-trade 拉长，因此 availability 仍由 BBO freshness 决定，trade silence 只设置独立 <code>tradeStale</code>。这个 REST source 可用于秒级 consensus 和 campaign moderator，不能承担 50/100ms event-cancel；需要这种动作时，必须换成同采集点的 WebSocket receive-time tape。</p>
-<p>这不是当前实现的终点。随后 Bitget spot 与 Bybit spot 被接成独立的 public WebSocket<br>shadow source，OKX <code>BTC-USDT-SWAP</code> 则作为只读 public REST books/trades source 加入。<br>当前 live HEALTH 中的五个 ID 是：</p>
+<p>这不是当前实现的终点。随后 Bitget spot 与 Bybit spot 被接成独立 public WebSocket<br>shadow source，OKX <code>BTC-USDT-SWAP</code> 与 <code>BTC-USDT</code> spot 则作为两条只读 public REST<br>books/trades source 加入。当前 live HEALTH 中的六个 external ID 是：</p>
 <div class="code-wrapper"><pre><code class="hljs text">bitget:perp:BTCUSDT
 bybit:perp:BTCUSDT
 bitget:spot:BTCUSDT
 bybit:spot:BTCUSDT
-okx:perp:BTCUSDT</code></pre></div>
-<p>OKX 在 x86 live 机上的 15 秒 preflight 中，book transport lag 约 31ms、request RTT<br>约 95ms；部署后 JSONL 持续增长，HEALTH 显示 <code>externalSources=5</code>、<br><code>externalErrors=0</code>，且它没有密钥、账户或下单方法。REST recent trades 在安静窗口会自然<br>出现 <code>tradeStale</code>，但不能覆盖仍新鲜的 BBO。这里的数字只证明第五路 receive-time 输入已<br>可靠进入观测层，不证明 OKX 领先 Binance，也不能与 Binance order REST p99 机械相加。<br>五路 source 仍不进入 active quote policy。</p>
+okx:perp:BTCUSDT
+okx:spot:BTCUSDT</code></pre></div>
+<p>OKX 在 x86 live 机上的 15 秒 preflight 中，book transport lag 约 31ms、request RTT<br>约 95ms；部署后 JSONL 持续增长，HEALTH 显示 <code>externalSources=6</code>、<br><code>externalErrors=0</code>，且它没有密钥、账户或下单方法。REST recent trades 在安静窗口会自然<br>出现 <code>tradeStale</code>，但不能覆盖仍新鲜的 BBO。这里的数字只证明 OKX receive-time 输入已<br>可靠进入观测层，不证明 OKX 领先 Binance，也不能与 Binance order REST p99 机械相加。<br>六路 source 仍不进入 active quote policy。</p>
+<p>稳定币换算也必须写清方向。Binance 正式 symbol 是 <code>USDCUSDT</code>，表示一单位 USDC<br>对应多少 USDT，因此 BTCUSDC bridge 是 <code>BTCUSDT / USDCUSDT</code>。live 只为这个 anchor<br>订阅 bookTicker，不订阅无用的 aggTrade；历史层则只下载 canonical retained days，聚合成<br>1s bars 后删除 raw CSV/ZIP。BTCUSDC spot 继续作为 cross-check/fallback，而不是外部共识票。<br>这个慢速 anchor 使用独立的 30 秒 level freshness；三家外部 spot/perpetual 的 innovation<br>仍使用严格的秒级 freshness。二者不能共用同一个阈值，否则稳定币 BBO 几秒不变会制造<br>假的 reference-invalid。HEALTH 也分别输出 fresh venue 数、dispersion、basis warmup 样本数<br>和 invalid reason，而不再只给一个无法归因的布尔值。</p>
 <p>这些数字只能证明目标机器上的接收链路数量级和实现语义，不能证明 cross-venue alpha，也不能直接与 Binance REST p99 相加。样本仍短、市场窗口单一，而且各 venue 与 Binance 的网络路径不同。后续若研究 50/100ms event cancel 或 1 tick re-center，必须使用同一采集点的 receive-time tape，并把：</p>
 <div class="code-wrapper"><pre><code class="hljs text">external feed age
 + feature / decision latency
