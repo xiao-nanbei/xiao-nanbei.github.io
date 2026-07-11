@@ -29,10 +29,10 @@
 <meta property="article:published_time" content="2026-07-01T00:03:00.000Z">
 <meta property="article:modified_time" content="2026-07-11T04:10:00.000Z">
 <meta property="article:author" content="Xuan Tan">
-<meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="C++">
 <meta property="article:tag" content="低延时">
 <meta property="article:tag" content="pybind11">
+<meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="系统工程">
 <meta name="twitter:card" content="summary_large_image">
   
@@ -331,7 +331,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          80k 字
+          81k 字
         
       </span>
     
@@ -343,7 +343,7 @@
         
         
           <!-- compatible with older versions-->
-          666 分钟
+          677 分钟
         
       </span>
     
@@ -1908,6 +1908,7 @@ NARROWGATE_LIVE_PROFILE=native ./live/run.sh restart
 <span class="hljs-comment"># 在真正重启前先审计将被加载的开关。</span>
 NARROWGATE_LIVE_PROFILE=native ./live/run.sh profile</code></pre></div>
 <p><code>native.env</code> 固化 <code>QUOTE_CORE + SIGNAL_FEATURES + LIVE_ROUTING + STRICT</code>，并把 OMP、OpenBLAS、MKL、NumExpr 的线程数固定为 1；<code>python.env</code> 保留相同线程环境，只关闭 native 实现。<code>main.py</code> 启动时主动 import extension，检查所需 API，并把 profile 名、全部开关和 <code>.so</code> 来源写进启动日志。strict profile 如果缺模块或 binding，会在连接交易所、发送订单之前失败；<code>run.sh status</code> 也会显示当前持久化 profile。这样“Python/native A/B”才是在换实现，而不是顺手换了线程池、配置或环境。</p>
+<p>2026-07-11 又发现了一个比函数 benchmark 更危险的部署边界：一段历史进程使用相对路径 <code>.venv/bin/python3 live/main.py</code> 启动，而旧版 <code>run.sh</code> 只按绝对 <code>main.py</code> 路径识别进程。一次 restart 因此误判为“未运行”，又启动了第二个 maker，交易所短暂出现两组双边订单。确认订单归属后先撤单并终止旧进程，随后把 <code>run.sh</code> 改为同时识别绝对/相对入口；即使 PID 文件缺失，<code>start</code> 也会先扫描现有 maker，发现单实例已存在就拒绝重复启动。这个事故没有改变策略参数，却说明低延时工程的正确性还包括<strong>单实例、订单所有权和可恢复启动</strong>；只优化 p99，而不能证明现场只有一个决策者，性能数字没有生产意义。</p>
 <p>下面把两段历史 native soak 与当前 Python 进程放在一起。它们不是同一市场时段的 A/B，不能据此计算“C++ 让端到端快了多少”；这张表只用于检查数量级和部署状态。REST 分位数使用每个 requote 内真实调用的 max sample，不把零调用行混进统计：</p>
 <div class="table-container">
 <table>
@@ -2029,45 +2030,12 @@ new intent while REST is in flight:
 <p>每条事件同时保留：</p>
 <div class="code-wrapper"><pre><code class="hljs text">exchange_event_ts_ns
 local_receive_ts_ns
+feature_ready_ts_ns
 transport_lag_ms
 sequence_number
 market_id = venue:instrument_type:symbol</code></pre></div>
 <p>这个双时钟不是装饰。第一次独立 smoke 只按 receive-time 判断 freshness，发现连接刚建立时 trade channel 会返回一小批较旧成交：消息是“刚收到的”，但成交事件已经过去十几秒。如果直接把 receive age 当成 market age，trade p99 会被错误放大，策略也可能把历史成交当作新冲击。修复后，snapshot 同时输出 book/trade event age 与 transport lag；整体 reference availability 由 <code>bookStale</code> 决定，成交流安静只设置独立的 <code>tradeStale</code>，不能覆盖仍然新鲜的 <code>books1</code>。</p>
-<p>重启后排除 60 秒 warmup 的 live shadow 窗口得到：</p>
-<div class="table-container">
-<table>
-<thead>
-<tr>
-<th>Bitget public stream</th>
-<th style="text-align:right">samples</th>
-<th style="text-align:right">transport p50</th>
-<th style="text-align:right">p95</th>
-<th style="text-align:right">p99</th>
-<th style="text-align:right">max</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>books1</code></td>
-<td style="text-align:right">729</td>
-<td style="text-align:right">5.09 ms</td>
-<td style="text-align:right">12.00 ms</td>
-<td style="text-align:right">37.92 ms</td>
-<td style="text-align:right">66.45 ms</td>
-</tr>
-<tr>
-<td>trade</td>
-<td style="text-align:right">755</td>
-<td style="text-align:right">7.77 ms</td>
-<td style="text-align:right">23.54 ms</td>
-<td style="text-align:right">38.53 ms</td>
-<td style="text-align:right">51.27 ms</td>
-</tr>
-</tbody>
-</table>
-</div>
-<p>同一窗口 schema error、负 transport lag、connector error 和 reconnect 都为 0；live 仍保持双边订单，<code>externalSources=1</code>，新鲜盘口下 <code>externalStale=0</code>，trade 暂时安静时只出现 <code>externalTradeStale=1</code>。JSONL recorder 持续增长，说明 public WebSocket、normalization、venue state 和 HEALTH wiring 已经跑通。</p>
-<p>第二个 source 刻意使用不同的 transport，用来验证“HTTP 返回快”与“市场事件新鲜”不能混为一谈。Bybit warmup 后 live shadow 样本如下：</p>
+<p>接入过程中的第一个 Bitget-only 窗口曾测到 <code>books1</code> transport p50/p99 约<br><code>5.1/37.9ms</code>，trade 约 <code>7.8/38.5ms</code>。随后第二个 source 刻意先用 REST，验证<br>“HTTP 返回快”与“市场事件新鲜”不能混为一谈。Bybit 早期 warmup 后基线如下：</p>
 <div class="table-container">
 <table>
 <thead>
@@ -2100,16 +2068,62 @@ market_id = venue:instrument_type:symbol</code></pre></div>
 </tbody>
 </table>
 </div>
-<p>双 source HEALTH 保持 <code>externalSources=2</code>、<code>externalStale=0</code>、connector error 为 0，Binance live 仍正常保持双边订单。Bybit trade 的 max age 会在市场安静时被旧 recent-trade 拉长，因此 availability 仍由 BBO freshness 决定，trade silence 只设置独立 <code>tradeStale</code>。这个 REST source 可用于秒级 consensus 和 campaign moderator，不能承担 50/100ms event-cancel；需要这种动作时，必须换成同采集点的 WebSocket receive-time tape。</p>
-<p>这不是当前实现的终点。随后 Bitget spot 与 Bybit spot 被接成独立 public WebSocket<br>shadow source，OKX <code>BTC-USDT-SWAP</code> 与 <code>BTC-USDT</code> spot 则作为两条只读 public REST<br>books/trades source 加入。当前 live HEALTH 中的六个 external ID 是：</p>
+<p>这张 REST 表现在只保留为 transport 反例：它适合说明轮询为什么不能承担 50/100ms<br>maker action，不代表当前 live。当前 Bitget、Bybit、OKX 的 BTCUSDT spot/perpetual 已全部<br>切成<strong>无需 API key 的 public WebSocket BBO + trades</strong>；connector 只暴露行情方法，没有账户、<br>持仓或下单接口。当前 live HEALTH 中的六个 external ID 是：</p>
 <div class="code-wrapper"><pre><code class="hljs text">bitget:perp:BTCUSDT
 bybit:perp:BTCUSDT
 bitget:spot:BTCUSDT
 bybit:spot:BTCUSDT
 okx:perp:BTCUSDT
 okx:spot:BTCUSDT</code></pre></div>
-<p>OKX 在 x86 live 机上的 15 秒 preflight 中，book transport lag 约 31ms、request RTT<br>约 95ms；部署后 JSONL 持续增长，HEALTH 显示 <code>externalSources=6</code>、<br><code>externalErrors=0</code>，且它没有密钥、账户或下单方法。REST recent trades 在安静窗口会自然<br>出现 <code>tradeStale</code>，但不能覆盖仍新鲜的 BBO。这里的数字只证明 OKX receive-time 输入已<br>可靠进入观测层，不证明 OKX 领先 Binance，也不能与 Binance order REST p99 机械相加。<br>六路 source 仍不进入 active quote policy。</p>
-<p>稳定币换算也必须写清方向。Binance 正式 symbol 是 <code>USDCUSDT</code>，表示一单位 USDC<br>对应多少 USDT，因此 BTCUSDC bridge 是 <code>BTCUSDT / USDCUSDT</code>。live 只为这个 anchor<br>订阅 bookTicker，不订阅无用的 aggTrade；历史层则只下载 canonical retained days，聚合成<br>1s bars 后删除 raw CSV/ZIP。BTCUSDC spot 继续作为 cross-check/fallback，而不是外部共识票。<br>这个慢速 anchor 使用独立的 30 秒 level freshness；三家外部 spot/perpetual 的 innovation<br>仍使用严格的秒级 freshness。二者不能共用同一个阈值，否则稳定币 BBO 几秒不变会制造<br>假的 reference-invalid。HEALTH 也分别输出 fresh venue 数、dispersion、basis warmup 样本数<br>和 invalid reason，而不再只给一个无法归因的布尔值。</p>
+<p>统一 public-WS 的 15 秒零密钥 preflight 得到下表。lag 是样本末端<br><code>local_receive_ts - exchange_event_ts</code> 的短窗观测，不是长期 SLA：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>source</th>
+<th style="text-align:right">BBO / trade events</th>
+<th style="text-align:right">末端 BBO / trade lag</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bitget perpetual</td>
+<td style="text-align:right">173 / 70</td>
+<td style="text-align:right">约 5 / 6ms</td>
+</tr>
+<tr>
+<td>Bybit perpetual</td>
+<td style="text-align:right">132 / 21</td>
+<td style="text-align:right">约 38 / 39ms</td>
+</tr>
+<tr>
+<td>OKX perpetual</td>
+<td style="text-align:right">203 / 46</td>
+<td style="text-align:right">约 29 / 30ms</td>
+</tr>
+<tr>
+<td>Bitget spot</td>
+<td style="text-align:right">67 / 51</td>
+<td style="text-align:right">约 13 / 6ms</td>
+</tr>
+<tr>
+<td>Bybit spot</td>
+<td style="text-align:right">94 / 12</td>
+<td style="text-align:right">约 40 / 39ms</td>
+</tr>
+<tr>
+<td>OKX spot</td>
+<td style="text-align:right">75 / 11</td>
+<td style="text-align:right">约 28 / 28ms</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>六条 source 的 connector error/reconnect 都为 0，spot/perpetual 各有 3/3 fresh venue。<br>部署后的 HEALTH 继续显示 <code>externalSources=6</code>、<code>externalStale=0</code>、<code>externalErrors=0</code>，<br><code>marketTapeDropped=0</code>、<code>marketTapeInvalid=0</code> 与 <code>globalFlow100Valid=1</code>。receive-time tape<br>使用无损流式 <code>.jsonl.gz</code>；短窗写盘投影由未压缩约 5.9GB/day 降到约 0.54GB/day，<br>没有为了省空间退回 1 秒聚合。六路 source 仍不进入 active quote policy。</p>
+<p>在 AWS Tokyo <code>ap-northeast-1</code> 的 <code>t3.medium</code>（2 vCPU、3.75GiB、x86_64、Amazon<br>Linux 2023）上又固定测了 3600 秒，共 682,110 条事件。外部 BBO p50 是 Bitget<br>约 5-6ms、OKX 约 29-36ms、Bybit 约 38-40ms；p99 已放大到约 268-701ms。<br>更值得警惕的是，同机 Binance perpetual callback p99 约 2.8 秒，而 feature processing<br>p50 通常只有约 71-136µs。这说明尾部主要不是一个 C++ scalar 公式，也不能简单归因于<br>交易所距离；公网 delivery、callback/GIL 竞争、VM 调度与一次受控 restart 都进入了这张表。</p>
+<p>这组环境参数已经写成可重放 profile。<code>captured</code> 使用现场 <code>feature_ready_ts</code>，不再加延迟；<br><code>exchange_zero</code> 是理想对照；<code>profile_p50/empirical/p99</code> 从 exchange timestamp 重建可见时间。<br>四笔 maker BUY fill 的 wiring smoke 里，p99 profile 基本消除了 10ms flow，并把 100ms<br>方向相对 captured 的一致率降到 50%。markout 保持不变，因为 external state 仍未接入报价。<br>这只能证明尾延迟足以改变短窗信息集，不能证明 re-center/cancel 有收益。重启时返回的陈旧<br>trade batch 继续保留在 tape，但 event age 超过 1 秒时不再进入 10-500ms flow。</p>
+<p>当前实现也没有把 BBO 冒充 exact L2。<code>GlobalFlowEngine</code> 只从 public top-of-book 与逐笔成交<br>构造 10/25/50/100/250/500ms aggressive buy/sell volume、trade imbalance、L1 OFI、<br>bid/ask depletion/refill proxy、spot/perpetual 2-of-3 consensus 和 global-minus-local<br>residual。只有通过 2-of-3 freshness 的 spot 或 perpetual 层才有资格进入 global common<br>factor；单个 venue 即使数值极端也不能投票。离线 <code>fill_toxicity.py</code> 再严格按<br><code>feature_ready_ts_ns &lt;= fill_ts_ns</code> 重放这些事件，并用 Binance BTCUSDC receive-time BBO<br>计算同 horizon 的 maker-signed markout。它回答的是 fill toxicity sorting，不是 keep、cancel<br>或 re-center 的反事实收益。</p>
+<p>稳定币换算也必须写清方向。Binance 正式 symbol 是 <code>USDCUSDT</code>，表示一单位 USDC<br>对应多少 USDT，因此 BTCUSDC bridge 是 <code>BTCUSDT / USDCUSDT</code>。live 只为这个 anchor<br>订阅 bookTicker，不订阅无用的 aggTrade；历史层则只下载 canonical retained days，聚合成<br>1s bars 后删除 raw CSV/ZIP。BTCUSDC spot 继续作为 cross-check/fallback，而不是外部共识票。<br>这个慢速 anchor 使用独立的 30 秒 level freshness；三家外部 spot/perpetual 的 BBO<br>freshness 与 10-500ms event window 单独计算。二者不能共用同一个阈值，否则稳定币 BBO<br>几秒不变会制造假的 reference-invalid。旧 retained111 的 1 秒 trade-time Stage 0 已冻结为<br>历史诊断，不再继续调 threshold；新 Stage 0 只使用真实 receive-time tape。HEALTH 也分别<br>输出 fresh venue 数、flow pressure、agreement、basis warmup 样本数和 invalid reason，而不再<br>只给一个无法归因的布尔值。</p>
 <p>这些数字只能证明目标机器上的接收链路数量级和实现语义，不能证明 cross-venue alpha，也不能直接与 Binance REST p99 相加。样本仍短、市场窗口单一，而且各 venue 与 Binance 的网络路径不同。后续若研究 50/100ms event cancel 或 1 tick re-center，必须使用同一采集点的 receive-time tape，并把：</p>
 <div class="code-wrapper"><pre><code class="hljs text">external feed age
 + feature / decision latency
@@ -2710,13 +2724,13 @@ order gateway thread</code></pre></div>
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
-      
         <a href="/tags/C/" class="print-no-link">#C++</a>
       
         <a href="/tags/%E4%BD%8E%E5%BB%B6%E6%97%B6/" class="print-no-link">#低延时</a>
       
         <a href="/tags/pybind11/" class="print-no-link">#pybind11</a>
+      
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
       
         <a href="/tags/%E7%B3%BB%E7%BB%9F%E5%B7%A5%E7%A8%8B/" class="print-no-link">#系统工程</a>
       
