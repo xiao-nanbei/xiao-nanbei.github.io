@@ -331,7 +331,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          75k 字
+          77k 字
         
       </span>
     
@@ -343,7 +343,7 @@
         
         
           <!-- compatible with older versions-->
-          626 分钟
+          643 分钟
         
       </span>
     
@@ -2015,6 +2015,88 @@ new intent while REST is in flight:
 </div>
 <p>这仍是相邻、非重叠市场窗口，所以不能把 ratio 当成严格因果 A/B；但工程决策不需要假装有优势：async 没有形成足够 coalesce，p99/p99.9 也没有改善，复杂度和故障面却更高。因此生产 baseline 已回滚到 synchronous order gateway，native C++ profile 保留，replace threshold 不因这次 system soak 额外提高。异步实现继续留在代码中作为可观测的研究路径，而不是默认 live 路径。</p>
 <p>为避免 A/B 又变成手工摘日志，<code>scripts/analyze_live_soak.py</code> 用各 CSV 和 maker log 的起始行号创建 marker，再统一输出 action mix、native hit、WS age、placed/fills，以及 signal/quote/update/requote 和 REST/gateway 的 p50/p95/p99/p99.9/max。<code>scripts/x86_live_profile_ab_soak.sh</code> 只能通过 <code>run.sh</code> 管理进程，并要求显式 <code>ACK_LIVE_SOAK=YES</code>，避免误把 benchmark helper 变成无人值守的实盘重启器。</p>
+<h4 id="2-1-2-独立-venue-行情：receive-time-也是-hot-path-输入"><a href="#2-1-2-独立-venue-行情：receive-time-也是-hot-path-输入" class="headerlink" title="2.1.2 独立 venue 行情：receive-time 也是 hot-path 输入"></a>2.1.2 独立 venue 行情：receive-time 也是 hot-path 输入</h4><p>接入外部 reference 后，延迟预算不能只看 Binance quote、routing 和 REST。Bitget BTCUSDT perpetual public <code>books1</code> / trade WebSocket 与 Bybit BTCUSDT linear perpetual public REST BBO / recent trades 已在同一台 x86 live 机上以 shadow-only 方式运行：它们没有 API key、没有下单接口、不进入当前报价函数，只记录 venue-aware event，目的是先证明数据链路和时钟口径可靠。</p>
+<p>每条事件同时保留：</p>
+<div class="code-wrapper"><pre><code class="hljs text">exchange_event_ts_ns
+local_receive_ts_ns
+transport_lag_ms
+sequence_number
+market_id = bitget:perp:BTCUSDT | bybit:perp:BTCUSDT</code></pre></div>
+<p>这个双时钟不是装饰。第一次独立 smoke 只按 receive-time 判断 freshness，发现连接刚建立时 trade channel 会返回一小批较旧成交：消息是“刚收到的”，但成交事件已经过去十几秒。如果直接把 receive age 当成 market age，trade p99 会被错误放大，策略也可能把历史成交当作新冲击。修复后，snapshot 同时输出 book/trade event age 与 transport lag；整体 reference availability 由 <code>bookStale</code> 决定，成交流安静只设置独立的 <code>tradeStale</code>，不能覆盖仍然新鲜的 <code>books1</code>。</p>
+<p>重启后排除 60 秒 warmup 的 live shadow 窗口得到：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Bitget public stream</th>
+<th style="text-align:right">samples</th>
+<th style="text-align:right">transport p50</th>
+<th style="text-align:right">p95</th>
+<th style="text-align:right">p99</th>
+<th style="text-align:right">max</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>books1</code></td>
+<td style="text-align:right">729</td>
+<td style="text-align:right">5.09 ms</td>
+<td style="text-align:right">12.00 ms</td>
+<td style="text-align:right">37.92 ms</td>
+<td style="text-align:right">66.45 ms</td>
+</tr>
+<tr>
+<td>trade</td>
+<td style="text-align:right">755</td>
+<td style="text-align:right">7.77 ms</td>
+<td style="text-align:right">23.54 ms</td>
+<td style="text-align:right">38.53 ms</td>
+<td style="text-align:right">51.27 ms</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>同一窗口 schema error、负 transport lag、connector error 和 reconnect 都为 0；live 仍保持双边订单，<code>externalSources=1</code>，新鲜盘口下 <code>externalStale=0</code>，trade 暂时安静时只出现 <code>externalTradeStale=1</code>。JSONL recorder 持续增长，说明 public WebSocket、normalization、venue state 和 HEALTH wiring 已经跑通。</p>
+<p>第二个 source 刻意使用不同的 transport，用来验证“HTTP 返回快”与“市场事件新鲜”不能混为一谈。Bybit warmup 后 live shadow 样本如下：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Bybit public REST</th>
+<th style="text-align:right">samples</th>
+<th style="text-align:right">event lag p50</th>
+<th style="text-align:right">p95</th>
+<th style="text-align:right">p99</th>
+<th style="text-align:right">REST RTT p50 / p95 / p99</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BBO</td>
+<td style="text-align:right">323</td>
+<td style="text-align:right">139.9 ms</td>
+<td style="text-align:right">208.9 ms</td>
+<td style="text-align:right">236.6 ms</td>
+<td style="text-align:right">76.4 / 82.5 / 95.4 ms</td>
+</tr>
+<tr>
+<td>trade</td>
+<td style="text-align:right">442</td>
+<td style="text-align:right">190.9 ms</td>
+<td style="text-align:right">470.2 ms</td>
+<td style="text-align:right">512.4 ms</td>
+<td style="text-align:right">80.0 / 96.2 / 105.5 ms</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>双 source HEALTH 保持 <code>externalSources=2</code>、<code>externalStale=0</code>、connector error 为 0，Binance live 仍正常保持双边订单。Bybit trade 的 max age 会在市场安静时被旧 recent-trade 拉长，因此 availability 仍由 BBO freshness 决定，trade silence 只设置独立 <code>tradeStale</code>。这个 REST source 可用于秒级 consensus 和 campaign moderator，不能承担 50/100ms event-cancel；需要这种动作时，必须换成同采集点的 WebSocket receive-time tape。</p>
+<p>这组数字只能证明目标机器上的接收链路数量级和实现语义，不能证明 cross-venue alpha，也不能直接与 Binance REST p99 相加。样本仍短、市场窗口单一，而且 Bitget 与 Binance 的网络路径不同。后续若研究 50/100ms event cancel 或 1 tick re-center，必须使用同一采集点的 receive-time tape，并把：</p>
+<div class="code-wrapper"><pre><code class="hljs text">external feed age
++ feature / decision latency
++ Binance cancel-or-replace latency
++ exchange acknowledgement / matching latency</code></pre></div>
+<p>一起与信号半衰期比较。只有 predictive horizon 在 p95/p99 端仍长于完整执行链路，cross-venue evidence 才可能进入 policy；否则它最多是 post-fill campaign moderator 或 risk diagnostic。</p>
 <p>第三类是研究机制边界。当前 active baseline 的 queue-enabled fill selection 已经能进入 C++ fast screening；side/regime queue lookup、replace throttle、pending coalesce、reducing/adaptive cooldown、campaign soft control 和 BUY fill-selection 也已经补进 native replay。这里需要修正一个旧说法：这些机制不再是“Python-only 缺口”。</p>
 <p>仍不能交给 C++ 历史 replay 裁决的，是三类本质不同的问题：<code>xmarket_retreat_enabled</code> 已归档且会 fail fast；empirical REST latency 目前还是分布/样本近似，而不是逐请求真实 ACK tape；user-stream mismatch、sync-adjust degrade、断线重连和交易所 reject 属于 live-only 故障闭环。它们需要 Python diagnostic 或真实 live soak，不能靠给 C++ 多加几个字段就假装已经回放。</p>
 <p>这条边界很关键：C++ 现在适合两件事。第一，active baseline 以及已 parity 参数面的宽 arm / retained fast screening；第二，quote context、order-level denominator、shock/label 前处理这类批处理 tight loop。它不适合替还没过 evidence gate 的新机制背书。换句话说，C++ 可以让反例更便宜，但不能把一个未验证机制变成 alpha。</p>
