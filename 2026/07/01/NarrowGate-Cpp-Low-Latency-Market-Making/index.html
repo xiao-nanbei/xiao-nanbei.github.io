@@ -331,7 +331,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          81k 字
+          83k 字
         
       </span>
     
@@ -343,7 +343,7 @@
         
         
           <!-- compatible with older versions-->
-          677 分钟
+          695 分钟
         
       </span>
     
@@ -1361,11 +1361,11 @@ NARROWGATE_CPP_STRICT=1 \
 <p><strong>这张表怎么读</strong></p>
 <ul>
 <li>说明什么：迁移优先级来自计算形态，不来自文件名或语言偏好。</li>
-<li>不能说明什么：不能说明 WebSocket、REST、日志这些冷路径没有工程价值，只是它们不是当前 CPU 热点。</li>
+<li>不能说明什么：synthetic CPU isolation 不能裁决 WebSocket、REST、日志是否会制造 live 尾部；后文的 receive-time soak 需要单独审计这些边界。</li>
 <li>下一步验证：对候选迁移点先做 flame/profile，再设计最小 native API，而不是照搬 Python 对象模型。</li>
 </ul>
 </blockquote>
-<p>这张表也解释了为什么 WebSocket 层没有成为 C++ 迁移重点。网络等待、JSON 解码和 Python callback 不是当前最大的可控 CPU 成本；真正值得迁的是 WebSocket 上方的 rolling state、quote/policy bundle 和订单状态机。把 IO 也改写，只会扩大维护面，却不一定缩短决策尾延迟。</p>
+<p>这张表解释的是 C++ 迁移优先级，不是 WebSocket 可以不治理。在这轮 synthetic CPU<br>isolation 中，rolling state、quote/policy bundle 和 replay 状态机比重写 IO 更适合 native；<br>但后续 3600 秒 receive-time soak 证明，多个 Python callback 同步争用 GIL/共享锁时仍会制造<br>明显 p99。随后做的两种 Python dispatcher 实验又补了一条反例：每 source 一个 worker 会<br>增加调度竞争，单个共享 worker 则会把 burst 串行积压到秒级。因此“缩短 callback”仍是正确<br>目标，但不能把工作机械搬给更多 Python 线程；当前 live 已回到同步 reference callback，下一步<br>应收紧 <code>SignalEngine</code> 锁内对象和 native compact global-flow 边界。</p>
 <p>当前相关 quote、signal、tick replay 快速测试共 <code>20 passed</code>；显式开启的四个真实窗口 golden tests 也全部通过。这些 benchmark 是同机 synthetic CPU isolation，关闭 ML 以分离 feature/quote 成本；它们不代表网络延迟、模型推理或完整事件引擎的端到端耗时，也不能直接决定 live 默认配置。</p>
 <h5 id="1-4-6-3-C-20-现代化：改的是数据运动，不只是标准号"><a href="#1-4-6-3-C-20-现代化：改的是数据运动，不只是标准号" class="headerlink" title="1.4.6.3 C++20 现代化：改的是数据运动，不只是标准号"></a>1.4.6.3 C++20 现代化：改的是数据运动，不只是标准号</h5><p>完成 Python/C++ parity 后，构建标准从 C++17 升到了 C++20：</p>
 <div class="code-wrapper"><pre><code class="hljs cmake"><span class="hljs-keyword">set</span>(CMAKE_CXX_STANDARD <span class="hljs-number">20</span>)
@@ -2122,6 +2122,43 @@ okx:spot:BTCUSDT</code></pre></div>
 <p>六条 source 的 connector error/reconnect 都为 0，spot/perpetual 各有 3/3 fresh venue。<br>部署后的 HEALTH 继续显示 <code>externalSources=6</code>、<code>externalStale=0</code>、<code>externalErrors=0</code>，<br><code>marketTapeDropped=0</code>、<code>marketTapeInvalid=0</code> 与 <code>globalFlow100Valid=1</code>。receive-time tape<br>使用无损流式 <code>.jsonl.gz</code>；短窗写盘投影由未压缩约 5.9GB/day 降到约 0.54GB/day，<br>没有为了省空间退回 1 秒聚合。六路 source 仍不进入 active quote policy。</p>
 <p>在 AWS Tokyo <code>ap-northeast-1</code> 的 <code>t3.medium</code>（2 vCPU、3.75GiB、x86_64、Amazon<br>Linux 2023）上又固定测了 3600 秒，共 682,110 条事件。外部 BBO p50 是 Bitget<br>约 5-6ms、OKX 约 29-36ms、Bybit 约 38-40ms；p99 已放大到约 268-701ms。<br>更值得警惕的是，同机 Binance perpetual callback p99 约 2.8 秒，而 feature processing<br>p50 通常只有约 71-136µs。这说明尾部主要不是一个 C++ scalar 公式，也不能简单归因于<br>交易所距离；公网 delivery、callback/GIL 竞争、VM 调度与一次受控 restart 都进入了这张表。</p>
 <p>这组环境参数已经写成可重放 profile。<code>captured</code> 使用现场 <code>feature_ready_ts</code>，不再加延迟；<br><code>exchange_zero</code> 是理想对照；<code>profile_p50/empirical/p99</code> 从 exchange timestamp 重建可见时间。<br>四笔 maker BUY fill 的 wiring smoke 里，p99 profile 基本消除了 10ms flow，并把 100ms<br>方向相对 captured 的一致率降到 50%。markout 保持不变，因为 external state 仍未接入报价。<br>这只能证明尾延迟足以改变短窗信息集，不能证明 re-center/cancel 有收益。重启时返回的陈旧<br>trade batch 继续保留在 tape，但 event age 超过 1 秒时不再进入 10-500ms flow。</p>
+<h4 id="2-1-3-callback-解耦实验：有界队列不等于低尾延迟"><a href="#2-1-3-callback-解耦实验：有界队列不等于低尾延迟" class="headerlink" title="2.1.3 callback 解耦实验：有界队列不等于低尾延迟"></a>2.1.3 callback 解耦实验：有界队列不等于低尾延迟</h4><p>3600 秒 profile 后，我按代码审计结论实现了第一版 callback 解耦：网络线程只记录<br><code>local_receive_ts_ns</code>、解 JSON 并入有界队列；BBO 使用每 source 最新值 mailbox，trade/control<br>保持 FIFO；同一 venue frame 内的 trades 通过 <code>on_cross_agg_trade_batch()</code> 一次拿 signal 锁。<br>队列深度、高水位、最老事件年龄、BBO coalesce、trade drop 和 handler error 全部进入<br><code>HEALTH</code>，所以排队不能靠换线程从 telemetry 里消失。</p>
+<p>这个机制先后测了两种拓扑，结果都没有 promotion：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>receive-to-feature 路径</th>
+<th style="text-align:right">external book feature p99</th>
+<th style="text-align:right">external trade feature p99</th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>原同步 callback，600s</td>
+<td style="text-align:right">约 0.43-6.20ms</td>
+<td style="text-align:right">约 0.72-27.13ms</td>
+<td>保留</td>
+</tr>
+<tr>
+<td>六个 per-source worker，600s</td>
+<td style="text-align:right">约 32.97-105.33ms</td>
+<td style="text-align:right">约 43.85-546.68ms</td>
+<td>回退</td>
+</tr>
+<tr>
+<td>一个 shared worker，420s</td>
+<td style="text-align:right">约 17.75-45.64ms</td>
+<td style="text-align:right">约 747.16-1,960.82ms</td>
+<td>回退</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>六 worker 把六条 source 的 runnable 线程一起压到 2 vCPU 上，调度、GIL 和同一把<br><code>SignalEngine._lock</code> 的竞争更重。shared worker 虽然少了线程，却串行承担所有 venue 的归一化<br>和 trade 更新；一次 burst 把 FIFO 高水位推到 <code>1,486</code> frame，最大排队年龄达到 <code>4.05s</code>。<br>两版都没有 trade drop，也没有 dispatcher handler error，这恰好说明失败不是“少记了坏样本”，<br>而是<strong>无损队列本身已经 stale</strong>。相邻窗口不是严格因果 A/B，但这种数量级回归与队列机制量<br>足以做系统 fail-fast。</p>
+<p>因此当前生产口径是：六路 public WS reference 继续在线、仍然只做 shadow/reference；<br><code>dispatch_enabled=false</code>，order gateway 保持 synchronous，native compute profile 保留。<br>已经完成所需 receive-time capture 后，六路 external JSONL 与 Binance market tape 也默认关闭；<br>记录期间 Binance writer 曾达到 <code>7,151</code> 行高水位和 <code>4.4s</code> writer queue age，说明完整 raw tape<br>应该是有起止 marker 的审计模式，不是常驻 live 默认项。关闭录制后的相邻 600 秒 sanity 中，<br><code>signal_compute</code>、<code>update_orders</code>、<code>requote_total</code> p99 分别约从 <code>282/809/989ms</code> 降到<br><code>169/542/797ms</code>；REST tail 和 action mix 同时变化，所以这里只把它当作“没有机制损伤”的<br>工程检查，不当成严格因果加速比。</p>
+<p>这轮还修了两个容易被性能图掩盖的工程问题。第一，外部连接停机改为并发关闭，整体等待由<br>最慢一路决定，不再把六个 WebSocket join timeout 相加。第二，tape 改成 UTC day + recorder<br>session 独立 gzip；强制停机最多损坏当前 session，不会再向坏 member 后追加一整天数据。<br>下一步若继续优化 callback，不再增加 Python worker，而是先减少锁内 dict/deque 物化，把<br>5-10ms per-source trade frame 聚合与 fixed-array global-flow state 作为一个较大的 native 边界，<br>再用同一环境标签复测 p50/p99/p99.9。</p>
 <p>当前实现也没有把 BBO 冒充 exact L2。<code>GlobalFlowEngine</code> 只从 public top-of-book 与逐笔成交<br>构造 10/25/50/100/250/500ms aggressive buy/sell volume、trade imbalance、L1 OFI、<br>bid/ask depletion/refill proxy、spot/perpetual 2-of-3 consensus 和 global-minus-local<br>residual。只有通过 2-of-3 freshness 的 spot 或 perpetual 层才有资格进入 global common<br>factor；单个 venue 即使数值极端也不能投票。离线 <code>fill_toxicity.py</code> 再严格按<br><code>feature_ready_ts_ns &lt;= fill_ts_ns</code> 重放这些事件，并用 Binance BTCUSDC receive-time BBO<br>计算同 horizon 的 maker-signed markout。它回答的是 fill toxicity sorting，不是 keep、cancel<br>或 re-center 的反事实收益。</p>
 <p>稳定币换算也必须写清方向。Binance 正式 symbol 是 <code>USDCUSDT</code>，表示一单位 USDC<br>对应多少 USDT，因此 BTCUSDC bridge 是 <code>BTCUSDT / USDCUSDT</code>。live 只为这个 anchor<br>订阅 bookTicker，不订阅无用的 aggTrade；历史层则只下载 canonical retained days，聚合成<br>1s bars 后删除 raw CSV/ZIP。BTCUSDC spot 继续作为 cross-check/fallback，而不是外部共识票。<br>这个慢速 anchor 使用独立的 30 秒 level freshness；三家外部 spot/perpetual 的 BBO<br>freshness 与 10-500ms event window 单独计算。二者不能共用同一个阈值，否则稳定币 BBO<br>几秒不变会制造假的 reference-invalid。旧 retained111 的 1 秒 trade-time Stage 0 已冻结为<br>历史诊断，不再继续调 threshold；新 Stage 0 只使用真实 receive-time tape。HEALTH 也分别<br>输出 fresh venue 数、flow pressure、agreement、basis warmup 样本数和 invalid reason，而不再<br>只给一个无法归因的布尔值。</p>
 <p>这些数字只能证明目标机器上的接收链路数量级和实现语义，不能证明 cross-venue alpha，也不能直接与 Binance REST p99 相加。样本仍短、市场窗口单一，而且各 venue 与 Binance 的网络路径不同。后续若研究 50/100ms event cancel 或 1 tick re-center，必须使用同一采集点的 receive-time tape，并把：</p>
@@ -2137,10 +2174,14 @@ okx:spot:BTCUSDT</code></pre></div>
 <p><code>perf stat</code> 也给了一个现实提醒：这台 KVM 实例不暴露 <code>cycles</code>、<code>instructions</code>、<code>L1-icache-load-misses</code>、<code>iTLB-load-misses</code> 这些硬件事件，最后只能看到 context switches、cpu migrations 和 page faults。因此“x86 benchmark”也要继续细分：普通云主机能做 wall-time/tail-latency 复测，但真正要分析 L1I/iTLB/cache miss，可能需要裸金属、特定实例族或能暴露 PMU 的环境。</p>
 <h3 id="2-2-live-路径的-C-优化：与-replay-完全不同的约束"><a href="#2-2-live-路径的-C-优化：与-replay-完全不同的约束" class="headerlink" title="2.2 live 路径的 C++ 优化：与 replay 完全不同的约束"></a>2.2 live 路径的 C++ 优化：与 replay 完全不同的约束</h3><p>前面几节讲的 quote core batch、tick replay 状态机和 streaming features，都是以”吞吐量”为优化目标：输入是连续数组或完整窗口，可以释放 GIL、多线程并行、用 SoA 布局喂给 SIMD。但 live 路径是另一种世界。</p>
 <p>从 C++ 学习的角度看，live 优化最容易犯的错是把“语言更快”误解为“函数搬过去就会更快”。maker live path 里单个 quote 公式可能只要几十微秒，pybind 边界、Python 字典、dataclass 展开、日志对象构造和 feature merge 却可能比公式本身更贵。因此这里分析的重点不是 C++ 语法，而是 <strong>C++ 函数边界应该长什么样</strong>。</p>
-<p>事件引擎每隔 <code>requote_interval</code> 秒被 Python main loop 调用一次 <code>tick()</code>。<strong>报价决策与默认<br>同步 REST new/cancel 在 main thread 串行执行，但 Binance WebSocket decode/callback 位于各自<br>callback thread，并通过 <code>SignalEngine</code> 的锁更新共享状态。</strong> receive timestamp 在 callback<br>接收/归一化边界打点；main thread 在 requote 时读取一致 snapshot。当前默认 order adapter<br>没有独立线程，只有关闭的 async-gateway research path 才把 REST 工作移出 decision thread。</p>
-<div class="code-wrapper"><pre><code class="hljs text">WebSocket callback threads ─► decode / receive timestamp / SignalEngine update
-                                              │ lock-protected shared state
-                                              ▼
+<p>事件引擎每隔 <code>requote_interval</code> 秒被 Python main loop 调用一次 <code>tick()</code>。<strong>报价决策与默认<br>同步 REST new/cancel 在 main thread 串行执行；Binance execution callback 直接更新<br><code>SignalEngine</code>。六条 external shadow feed 当前也由各自 callback 做 frame-level normalize 和<br>batched signal update；两种 Python dispatcher 拓扑都因 p99 回归而关闭。</strong> main thread 在<br>requote 时读取一致 snapshot。当前默认 order adapter 没有独立线程，只有关闭的<br>async-gateway research path 才把 REST 工作移出 decision thread。</p>
+<div class="code-wrapper"><pre><code class="hljs text">Binance callback threads ─► receive/decode ─► SignalEngine update
+external callback threads ─► receive/decode/normalize
+                                                    │ frame-batched trade update
+                                                    ▼
+                                      SignalEngine shared state
+                                                    │ lock-protected snapshot
+                                                    ▼
 main decision thread: tick() ──► _requote()
            │              ├── compute_signal()          # LightGBM predict
            │              ├── compute_quote_core_live() # C++ compact path
@@ -2304,7 +2345,7 @@ Python order adapter
         v
 exchange REST/WebSocket</code></pre></div>
 <p>这样做的收益不是“C++ 数学快了多少”，而是减少边界上的动态对象。前面的 live benchmark 里也能看到这个现象：原始 routing 桥接大约是 <code>6us</code> 级别，当前 x86 artifact 中 compact ABI 约为 <code>1.94us</code> mean、<code>3.10us</code> p99；但如果只把 scalar quote core 单独搬过去，pybind/dataclass 往返会把收益吃掉，甚至变慢。</p>
-<p>这也是为什么 WebSocket 目前不急着迁 C++。现有 profile 尚未证明它比 state/quote/routing<br>边界有更高收益；真正先收紧的是 receive-state 与下单 adapter 之间的<br><strong>rolling state -&gt; native quote -&gt; Python policy -&gt; native partial route decision</strong>。这是一条<br>当前机器和代码下的优先级判断，不是关于所有 WebSocket 实现的一般定律。</p>
+<p>这也是为什么 WebSocket 目前不急着迁 C++。receive-time profile 已经证明 callback 排队值得<br>治理，但没有证明“把 socket 库换成 C++”本身就是答案；两种全 Python dispatcher 已经实测<br>失败，真正应先收紧的是 callback 后的 lock ownership、compact global-flow state，以及<br>receive-state 与下单 adapter 之间的<br><strong>rolling state -&gt; native quote -&gt; Python policy -&gt; native partial route decision</strong>。这是一条<br>当前机器和代码下的优先级判断，不是关于所有 WebSocket 实现的一般定律。</p>
 <h4 id="2-2-3-routing-bridge：当前还不是完整-native-决策包"><a href="#2-2-3-routing-bridge：当前还不是完整-native-决策包" class="headerlink" title="2.2.3 routing bridge：当前还不是完整 native 决策包"></a>2.2.3 routing bridge：当前还不是完整 native 决策包</h4><p><code>_build_side_policy()</code> 是 live 路径的另一个计算热点。它接收 quote_context、L2 metrics 和 pred，输出 <code>spread_mult</code>、<code>size_mult</code>、<code>allow_post</code>、<code>reason_mask</code>，大量工作是评估 10+ 个 policy guard 的条件。</p>
 <p>这些条件判断本身不重，但每次需要访问 Python dict（<code>quote_ctx.get(&quot;side_adverse&quot;, False)</code> 等），在单 tick 热路径上积少成多。</p>
 <p><code>NARROWGATE_CPP_LIVE_ROUTING</code> 仍只接管后半段的价格调整、spread cap、库存准入、size 和 cancel/replace 判断，但跨语言接口已经从动态 dict 收紧为固定布局：</p>
@@ -2576,7 +2617,7 @@ iTLB-loads,iTLB-load-misses \
 </blockquote>
 <h4 id="2-2-6-live-路径不该做的事"><a href="#2-2-6-live-路径不该做的事" class="headerlink" title="2.2.6 live 路径不该做的事"></a>2.2.6 live 路径不该做的事</h4><p>这套设计也确定了 live 路径不迁移的边界：</p>
 <ul>
-<li><strong>WebSocket 层</strong>：在当前机器、feed 与 Python callback profile 下，尚未证明迁移 WebSocket 比 quote/state/routing 边界有更高收益，因此暂不列为优先项；这不是一般工程定律</li>
+<li><strong>WebSocket 层</strong>：当前不把 socket client 整体迁到 C++；per-source/shared Python dispatcher 都因 p99 回归而关闭。保留 frame-level trade batching，下一步优化 lock ownership 与 native compact state，而不是继续加 Python worker</li>
 <li><strong>LightGBM 推理</strong>：模型本身已 native（LightGBM C API），Python 只做 feature → array 转换</li>
 <li><strong>大块 Python 编排逻辑</strong>：config reload、日志、HEALTH 上报、REST 重连、<code>sell_resiliency_shadow.csv</code> 这类可观测性输出——这些不在 CPU 热点，放 Python 更容易验证和修改</li>
 <li><strong>GIL 释放</strong>：当前 tiny scalar native call 和现有 callback/main-thread 模型下未显示收益；更大 native 区域仍需结合锁、snapshot 一致性和长样本 p99 重新测</li>
@@ -2585,7 +2626,7 @@ iTLB-loads,iTLB-load-misses \
 <blockquote>
 <p><strong>本节工程结论</strong></p>
 <ul>
-<li>live hot path 不应该先迁 WebSocket/REST，而应该先收紧 WebSocket 上方的 rolling state、quote/policy/routing 边界。</li>
+<li>live hot path 不应该先重写 WebSocket/REST 库；先收紧 callback、背压、rolling state、quote/policy/routing 边界。</li>
 <li>单个公式迁到 C++ 很容易被 pybind、dict、dataclass 和日志对象物化反噬；稳定、高频、低基数的决策包才适合 native。</li>
 <li>热路径目标是最小且可预测的指令工作集，而不是让整个 <code>.so</code> 塞进 L1I。</li>
 <li>ARM 回测吞吐、offline sweep 加速、x86 live p99/p99.9 是三种不同证据，不能互相替代。</li>
