@@ -19,19 +19,19 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="TL;DR：读者收益摘要NarrowGate 不是一个“做市策略已经跑通并盈利”的项目，而是一个用于验证 maker quote EV 的研究框架。它研究的核心问题是：一笔被动限价单被成交之后，到底是在收取 spread，还是在替更快的信息交易者接风险。 这篇文章只讲算法与证据框架；C++、pybind、x86 benchmark 和 live hot path 细节拆到另一篇：NarrowGat">
+    <meta name="description" content="TL;DR：读者收益摘要 版本边界（2026-07-11）：本文是一篇持续更新的研究记录，不是某个固定 commit的永久说明。没有明确日期的“当前”均指本次更新时间；历史实验会保留experiment date&#x2F;panel 身份。公开 main、私有 rolling baseline 与文中历史结果可能处在不同阶段，任何 promotion 结论都应回到对应的 config hash、code">
 <meta property="og:type" content="article">
-<meta property="og:title" content="NarrowGate：Maker Quote EV 与被动做市研究框架">
+<meta property="og:title" content="NarrowGate：Maker Quote EV、Order-Level Evidence 与 Campaign Risk">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="TL;DR：读者收益摘要NarrowGate 不是一个“做市策略已经跑通并盈利”的项目，而是一个用于验证 maker quote EV 的研究框架。它研究的核心问题是：一笔被动限价单被成交之后，到底是在收取 spread，还是在替更快的信息交易者接风险。 这篇文章只讲算法与证据框架；C++、pybind、x86 benchmark 和 live hot path 细节拆到另一篇：NarrowGat">
+<meta property="og:description" content="TL;DR：读者收益摘要 版本边界（2026-07-11）：本文是一篇持续更新的研究记录，不是某个固定 commit的永久说明。没有明确日期的“当前”均指本次更新时间；历史实验会保留experiment date&#x2F;panel 身份。公开 main、私有 rolling baseline 与文中历史结果可能处在不同阶段，任何 promotion 结论都应回到对应的 config hash、code">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/maker-hot-path.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/data-lineage.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/quote-ladder.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/order-lifecycle.svg">
 <meta property="article:published_time" content="2026-06-19T08:50:48.000Z">
-<meta property="article:modified_time" content="2026-07-10T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-11T04:10:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
@@ -43,7 +43,7 @@
   
   
   
-  <title>NarrowGate：Maker Quote EV 与被动做市研究框架 - databrains</title>
+  <title>NarrowGate：Maker Quote EV、Order-Level Evidence 与 Campaign Risk - databrains</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
 
@@ -312,7 +312,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="NarrowGate：Maker Quote EV 与被动做市研究框架"></span>
+            <span id="subtitle" data-typed-text="NarrowGate：Maker Quote EV、Order-Level Evidence 与 Campaign Risk"></span>
           
         </div>
 
@@ -336,7 +336,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          57k 字
+          62k 字
         
       </span>
     
@@ -348,7 +348,7 @@
         
         
           <!-- compatible with older versions-->
-          480 分钟
+          517 分钟
         
       </span>
     
@@ -387,12 +387,15 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">NarrowGate：Maker Quote EV 与被动做市研究框架</h1>
+            <h1 id="seo-header">NarrowGate：Maker Quote EV、Order-Level Evidence 与 Campaign Risk</h1>
             
             
               <div class="markdown-body">
                 
-                <h2 id="TL-DR：读者收益摘要"><a href="#TL-DR：读者收益摘要" class="headerlink" title="TL;DR：读者收益摘要"></a>TL;DR：读者收益摘要</h2><p><strong>NarrowGate</strong> 不是一个“做市策略已经跑通并盈利”的项目，而是一个用于验证 maker quote EV 的研究框架。它研究的核心问题是：一笔被动限价单被成交之后，到底是在收取 spread，还是在替更快的信息交易者接风险。</p>
+                <h2 id="TL-DR：读者收益摘要"><a href="#TL-DR：读者收益摘要" class="headerlink" title="TL;DR：读者收益摘要"></a>TL;DR：读者收益摘要</h2><blockquote>
+<p><strong>版本边界（2026-07-11）</strong>：本文是一篇持续更新的研究记录，不是某个固定 commit<br>的永久说明。没有明确日期的“当前”均指本次更新时间；历史实验会保留<br>experiment date/panel 身份。公开 <code>main</code>、私有 rolling baseline 与文中历史结果<br>可能处在不同阶段，任何 promotion 结论都应回到对应的 config hash、code commit、<br>retained manifest 和 holdout 身份核对。</p>
+</blockquote>
+<p><strong>NarrowGate</strong> 不是一个“做市策略已经跑通并盈利”的项目，而是一个用于验证 maker<br>成交选择、订单生命周期与库存 campaign 风险的研究框架。quote EV 是其中一条历史研究<br>路线，不是当前 active live policy 的代称。核心问题仍然是：一笔被动限价单被成交之后，<br>到底是在收取 spread，还是在替更快的信息交易者接风险。</p>
 <p>这篇文章只讲算法与证据框架；C++、pybind、x86 benchmark 和 live hot path 细节拆到另一篇：<a href="/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/">NarrowGate：C++ Tick Replay 与低延时工程边界</a>。</p>
 <p>项目源码与可复现实验入口：<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker">GitHub - xiao-nanbei/NarrowGateMaker</a>。公开仓库提供研究框架、示例配置和测试，不包含私有 live 参数、凭据或基础设施地址。</p>
 <p>读完这篇文章，至少可以得到七个结论：</p>
@@ -403,7 +406,7 @@
 <li>很多早期结果已经被后续审计推翻：连续跨日/月度 replay、坏日/gap 污染、markout EMA latch、fills/day 分母错误，都不能再当作 alpha 证据；</li>
 <li>当前策略并非缺少所有有效机制：side-specific fill selection、execution lifecycle 和 <code>execution + fill85</code> 都显示过局部增量；但这些改善还没有稳定转化为跨 holdout、跨 campaign 的正净期望，主要未通过项集中在库存 campaign 终局和尾部风险；</li>
 <li>当前 live 配置就是滚动 baseline；新机制只能作为 arm 相对当前 baseline 做 daily/campaign gate，不能拿旧 baseline 或旧回测结论直接比较；</li>
-<li>参数搜索已经可以用 C++ 扩到数百至上千个 active arms，但宽搜索只负责发现候选；null baseline、side-specific fill-selection、daily OOS 和 campaign-level label 才负责判断改善是不是来自更好的成交选择，而不是少挂单、少成交或更久持仓。</li>
+<li>参数搜索已经可以用 C++ 扩到数百至上千个 active arms，但宽搜索只负责发现候选；null baseline、side-specific fill-selection、按日隔离验证与 campaign-level label 才负责判断改善是不是来自更好的成交选择，而不是少挂单、少成交或更久持仓。</li>
 </ol>
 <p>这篇文章也不是一份“项目顺利推进报告”。更准确地说，它是一份研究复盘：很多曾经看起来有希望的方向，后来都被更严格的数据质量、日度 fresh-start replay、live/replay 机制量对齐、bucket/OOS 校准和库存时间指标推翻或降级。保留下来的不是某个神奇参数，而是一套更不容易自欺欺人的验证流程。</p>
 <p><strong>NarrowGate</strong> 是我最近一段时间一直在做的 maker/被动做市研究项目。它不是从“我要写一个低延迟系统”开始的，而是从一个更朴素的问题开始：<strong>当市场有人急于成交时，站在被动一侧提供流动性，究竟是在收取 spread，还是在替更快的信息交易者接风险？</strong></p>
@@ -453,7 +456,7 @@
 <tr>
 <td>campaign lifecycle-risk</td>
 <td>更早识别库存 campaign 变坏后就能改 lifecycle</td>
-<td>age/inventory/trend 条件有风险方向，但 daily OOS 不够稳定；refill/cancel 观测没有增量分层</td>
+<td>age/inventory/trend 条件有风险方向，但按日隔离验证不够稳定；refill/cancel 观测没有增量分层</td>
 <td>只进入 <code>campaign_outcome_risk_score</code>，不直接改 live</td>
 </tr>
 <tr>
@@ -551,30 +554,60 @@
 </tbody>
 </table>
 </div>
-<p>整个研究链路可以概括成：</p>
+<h3 id="证据术语：不要把三种日期隔离都叫-OOS"><a href="#证据术语：不要把三种日期隔离都叫-OOS" class="headerlink" title="证据术语：不要把三种日期隔离都叫 OOS"></a>证据术语：不要把三种日期隔离都叫 OOS</h3><p>本文早期把多种按日隔离结果统称为 “daily OOS”，这个说法过宽。当前需要明确区分：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>当前含义</th>
+<th>能证明什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>blocked-day cross-fit</td>
+<td><code>fill_selection_score.py</code> 当前按 <code>date_digits % folds</code> 分组；同一天不同时进入 train/test，但训练集可能包含测试日之后的数据</td>
+<td>避免同日样本混入，不能模拟生产式“只用过去预测未来”</td>
+</tr>
+<tr>
+<td>chronological walk-forward</td>
+<td>训练日严格早于测试日，train/test 之间可加 embargo</td>
+<td>更接近生产部署的时间前推检验；当前 fill-selection scorer 尚未完成这一模式</td>
+</tr>
+<tr>
+<td>late holdout</td>
+<td>不参与特征、标签、阈值、arm 或模型选择的最终时间段</td>
+<td>才能承担最终稳定性复核；一旦反复查看并据此改 arm，就降级为 validation panel</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code>retained39</code> 也不是永久未触碰的 final holdout。它最初相对某一代 quick-smoke 是<br>validation/OOS，但后续已经被用于 top-arm 选择、ablation 与机制解释；当前应称为反复使用的<br>retained validation panel。此后文中没有限定词的 OOS 只表示“相对某次 discovery 的隔离<br>面板”，不等价于 chronological walk-forward 或永久 late holdout。</p>
+<p>截至本次更新，当前研究链路可以概括成：</p>
 <p><img src="/images/narrowgate/maker-hot-path.svg" srcset="/img/loading.gif" lazyload alt="NarrowGate maker live hot path"></p>
-<div class="code-wrapper"><pre><code class="hljs text">Binance Vision / CryptoHFTData
+<div class="code-wrapper"><pre><code class="hljs text">Binance Vision / CryptoHFTData / independent venue tapes
         │
         ▼
 data audit + physical cleanup + gap/horizon guard
         │
         ▼
-1s bars + BBO/L2 + reference/spot features
+1s bars + BBO/L2 + local/reference/external quote-time state
         │
-        ├──► 主 LightGBM：ret / vol / toxicity 等状态预测
-        │
-        ▼
-AS quote core + side policy + inventory controls
+        ├──► state models：ret / vol / toxicity 等状态预测
         │
         ▼
-tick replay：queue / latency / TTL / maker fill gate
+AS/GLFT quote core + active guards/inventory/lifecycle controls
         │
         ▼
-quote trace + fill markout + cross-market shock attribution
+tick replay / live execution：queue / latency / TTL / maker fill gate
         │
         ▼
-quote EV labels/model + daily rollup A/B + strict gates</code></pre></div>
-<p>这条链路很重要，因为 quote EV 并不是从原始行情直接训练出来的万能模型。它依赖上游报价轨迹、成交路径、未来 markout 和 cross-market context；任何一层的数据边界或执行口径出错，最后得到的 AUC 和 PnL 都可能只是被污染后的精确数字。</p>
+order-level denominator + fill markout + campaign labels
+        │
+        ▼
+fill-quality / risk / quote-EV shadow evidence + daily gates</code></pre></div>
+<p>这条链路很重要，因为 quote EV、fill-selection score 和 campaign-risk score 都不是从原始<br>行情直接训练出来的万能模型。它们依赖上游报价轨迹、成交路径、未来 markout 和<br>cross-market context；任何一层的数据边界或执行口径出错，最后得到的 AUC 和 PnL 都可能<br>只是被污染后的精确数字。旧的 direct quote-EV spread/pause/tighten 路径已经归档并<br>fail-fast；文中后续保留的 quote-EV 伪代码或实验，除非明确标为 active，否则都应理解为<br>历史抽象或 shadow calibration。</p>
 <p>这也是为什么数据源需要先分层，而不是全部丢进一个 dataframe。NarrowGate 里至少有四类数据：</p>
 <p><img src="/images/narrowgate/data-lineage.svg" srcset="/img/loading.gif" lazyload alt="NarrowGate research data lineage"></p>
 <div class="table-container">
@@ -611,6 +644,12 @@ quote EV labels/model + daily rollup A/B + strict gates</code></pre></div>
 <td>BTCUSDT perp、BTCUSDT spot、BTCUSDC spot</td>
 <td>区分本地流动性冲击和更广泛的信息重定价</td>
 <td>多个 Binance 市场高度相关，不能伪装成独立 venue consensus</td>
+</tr>
+<tr>
+<td>independent venue shadow</td>
+<td>Bitget perp/spot WebSocket 与历史 trades；Bybit perp REST、spot WebSocket 与历史 trades；OKX perp REST 与已校验历史子集</td>
+<td>cross-venue consensus、leader/divergence、campaign moderator</td>
+<td>全部 shadow-only；REST 不能支持 50/100ms cancel；历史 trades 不等于 exact L2；OKX 当前仅有 7 个完整 UTC retained 日</td>
 </tr>
 </tbody>
 </table>
@@ -733,20 +772,20 @@ P(\operatorname{fill}\mid x)
         cfg=cfg.quote,
     )
 
-    <span class="hljs-comment"># 4. side policy 决定每一侧是否值得暴露</span>
+    <span class="hljs-comment"># 4. active side policy 只消费现役 guard、库存和 lifecycle 状态</span>
     bid_policy = build_side_policy(
         side=<span class="hljs-string">&quot;bid&quot;</span>,
         quote_ctx=quote.bid_ctx,
         inventory=state.position,
         fill_cooldown=state.fill_cooldown,
-        quote_ev=models.bid_quote_ev,
+        active_guards=state.active_guards,
     )
     ask_policy = build_side_policy(
         side=<span class="hljs-string">&quot;ask&quot;</span>,
         quote_ctx=quote.ask_ctx,
         inventory=state.position,
         fill_cooldown=state.fill_cooldown,
-        quote_ev=models.ask_quote_ev,
+        active_guards=state.active_guards,
     )
 
     <span class="hljs-comment"># 5. routing 只做本次订单动作：保留、撤单、换价、新挂</span>
@@ -757,7 +796,11 @@ P(\operatorname{fill}\mid x)
         live_orders=state.live_orders,
         filters=market.exchange_filters,
     )
+    <span class="hljs-comment"># 6. order outcome 之后才进入 denominator/campaign/shadow evidence。</span>
+    <span class="hljs-comment"># delayed would-fill 需要未来 L2/trades 重放，不是决策时刻的已知事实。</span>
+    evidence_log.record_decision(signal, quote, bid_policy, ask_policy, decision)
     <span class="hljs-keyword">return</span> decision</code></pre></div>
+<p>早期 direct quote-EV policy 的抽象曾把 <code>models.bid_quote_ev/ask_quote_ev</code> 直接传给<br><code>build_side_policy()</code>。那段设计仍有研究史价值，但不代表当前 active live 架构；现在 quote<br>EV 主要服务 delayed shadow calibration、order-level score 与 campaign-risk evidence。</p>
 <p>这段伪代码也解释了为什么工程优化不能只盯着某一个公式。<code>compute_quote_core()</code> 的浮点数学很短；真正决定行为的是 feature state、quote context、side policy 和 routing decision 是否共享同一套语义。若只优化报价公式，却让回测、shadow 和 live 在 policy 边界上分叉，速度越快，错误结论也会来得越快。</p>
 <h3 id="1-2-从-AS-报价骨架开始"><a href="#1-2-从-AS-报价骨架开始" class="headerlink" title="1.2 从 AS 报价骨架开始"></a>1.2 从 AS 报价骨架开始</h3><p>项目最早使用经典 Avellaneda-Stoikov 做市模型。它给出了两个很有用的结构：reservation price 和最优 spread。</p>
 <script type="math/tex; mode=display">
@@ -1247,7 +1290,7 @@ cv_ref_spot_*</code></pre></div>
 <p>但“数据有信息”不等于“把开关打开就能形成正 EV”。早期 <code>multi_market.enabled=true/false</code>、enhanced spot、xmarket widen/retreat、reference favorable/adverse bucket、local-flow interaction、calendar/session bucket 都做过复验，详细旧数值现在从正文删除，只保留结论：</p>
 <ul>
 <li><code>multi_market.enabled</code> 只能表示 reference / spot source wiring，不是收益开关；</li>
-<li>direct xmarket widen / pause / TTL / size policy 没有通过 daily OOS 和 campaign gate；</li>
+<li>direct xmarket widen / pause / TTL / size policy 没有通过按日隔离 validation 和 campaign gate；</li>
 <li>reference confirmed adverse 更稳定地表现为 risk label；</li>
 <li>reference favorable 或 spot-unconfirmed 偶尔出现正向线索，但样本和日度稳定性不足；</li>
 <li>新增 source 更适合进入 order-level score、campaign risk、quote EV shadow calibration，而不是直接改报价。</li>
@@ -1269,7 +1312,7 @@ cv_ref_spot_*</code></pre></div>
 \Delta t_{\text{lead-lag}}
 \quad \text{vs} \quad
 \Delta t_{\text{network}} + \Delta t_{\text{decision}} + \Delta t_{\text{exchange}}</script><p>如果 reference 的重定价领先本地执行市场 50ms，而你的端到端反应是 5ms，这个信号可能有执行价值；如果 reference 已经在 0.5ms 内传导完，本地 quote 看到它时，只是在看一个滞后指标。此时统一打开 <code>multi_market</code> 可能不是增强模型，而是把“已经被吸收的流动性冲击”和“真正的信息冲击”混在一起，导致该接的流动性不接、该躲的信息冲击又躲不掉。</p>
-<p>当前 NarrowGate 对这个问题的回答已经从 Binance 内部 reference 推进到了两个独立 venue，但仍然停留在 shadow evidence：</p>
+<p>当前 NarrowGate 对这个问题的回答已经从 Binance 内部 reference 推进到了多个独立 venue，但仍然停留在 shadow evidence：</p>
 <ul>
 <li>已经把 <code>multi_market.enabled</code> 从“收益开关”降级为“需要被审计的 source 条件变量”；</li>
 <li>已经做了 local-only、perp、spot、组合 source profile 的隔离 A/B；</li>
@@ -1279,7 +1322,7 @@ cv_ref_spot_*</code></pre></div>
 <li>已经把 Bitget 历史逐笔成交严格裁成与 BTCUSDC 相同的 111 个 UTC good days：约 <code>1.5024</code> 亿笔 trades，构造约 <code>706.9</code> 万条 causal 1s states；原始压缩包文件名按 UTC+8 日组织，因此导入时必须按每一行事件时间重新切成 UTC day，不能直接按文件名归日；</li>
 <li>已经接入 Bybit BTCUSDT linear perpetual public REST BBO / recent trades，作为第二个独立 venue 的 receive-time shadow source；它没有 API key、账户或下单接口；</li>
 <li>已经从 Bybit 官方日度 contract-trade archive 收口同一份 retained111：<code>252,387,353</code> 笔 normalized trades，生成 <code>7,276,709</code> 条右边界可见的 causal 1s states，111 个 gzip 和两层 metadata 全部通过完整性检查；</li>
-<li>已经进一步接入 Bitget spot WebSocket；Bybit spot 先经 REST 完成 wiring 预检，随后切到 public WebSocket <code>orderbook.1/publicTrade</code>。live 现在同时保留 <code>bitget/bybit × spot/perp</code> 四个独立 market ID，四条输入不会互相覆盖，也不会进入 Binance quote policy；</li>
+<li>已经进一步接入 Bitget spot WebSocket；Bybit spot 先经 REST 完成 wiring 预检，随后切到 public WebSocket <code>orderbook.1/publicTrade</code>；OKX <code>BTC-USDT-SWAP</code> 也已作为第 5 个 public REST shadow source 接入。各输入使用 <code>venue:instrument:symbol</code> 独立 ID，不会互相覆盖，也不会进入 Binance quote policy；</li>
 <li>spot 历史同样只保留 retained111：Bitget spot <code>40,287,185</code> 笔 trades / <code>5,315,761</code> 条 causal states，Bybit spot <code>106,016,009</code> / <code>5,417,506</code>；双 venue spot consensus 有 <code>5,725,769</code> 个状态，与 perp consensus 的新鲜交集有 <code>5,188,119</code> 个状态；</li>
 <li>Bitget 单 venue、Bitget+Bybit perp consensus、以及最新 spot/perp cross-instrument Stage 0 都没有通过。因此不能把“接入更多市场”写成“cross-venue alpha 已成立”。</li>
 </ul>
@@ -1295,6 +1338,7 @@ cv_ref_spot_*</code></pre></div>
 <p>spot/perp 两层随后做了更严格的复核。每秒分别构造 <code>spot_consensus</code> 与 <code>perp_consensus</code>，再计算历史锚定后的 <code>perp_minus_spot_bps</code>、<code>spot_perp_agreement</code>、<code>venue_divergence_bps</code>，把 quote-time 状态分为 <code>spot_leading</code>、<code>perp_only</code>、<code>confirmed</code>、<code>divergent</code> 与 <code>neutral</code>。所有状态都与同日、同侧、同 sample-time 的 neutral 配对，而不是只看 pooled markout。</p>
 <p>最接近的是 <code>BUY fill-time + spot_leading_up</code>：相对 neutral 的 1s/5s/20s/30s markout 约为 <code>+0.07/+0.58/+0.70/+3.11 bps</code>，30s 在 20 个配对日中有 13 天同号。但它所在 campaign 的 terminal PnL 反而约 <code>-0.26</code>，repair rate 约 <code>-0.12</code>。这说明外部 spot 的方向信息可能在少数 fill 后继续兑现，却没有把库存路径变成更安全、更容易修复的 campaign。<code>SELL + perp_only_up</code> 也只在 1s/5s 略好，20s/30s 和 campaign outcome 转差。</p>
 <p>因此最新结论不是“spot 没信息”，而是：<strong>当前 1 秒 trade-time 状态还不能把 spot-leading 或 perp-only liquidation 稳定映射成可执行动作。</strong> 它们继续作为 risk moderator、leader diagnostic 与后续 receive-time 模型输入，不进入 reservation re-center、local-absorption keep/tighten、cancel、size 或 lifecycle policy。</p>
+<p>OKX perpetual 是随后加入的第三个独立 derivatives venue。OKX 下载页的 daily ZIP 按<br>UTC+8 切日，正式导入必须合并 D/D+1 后再裁出 UTC D；当前只得到 7 个与 retained manifest<br>重叠的完整 UTC 日，共 <code>25,106,329</code> 笔 trades。严格要求 Bitget、Bybit、OKX 三边同时新鲜<br>后，<code>SELL fill-time 3s</code> 的 favorable-minus-adverse 20s/30s markout 在这 7 日子面板约为<br><code>+1.97/+1.53bps</code>，6/6 个有双桶支持的日期同号；相同日期的原双 venue consensus 只有<br><code>+0.18/+0.06bps</code>。这是目前最清楚的 OKX 增量 clue，但 campaign terminal outcome 逐日仅约<br>一半改善，而且总日期太少，因此仍不能进入 re-center、cancel 或 local-absorption policy。<br>live REST 15 秒 preflight 的 book transport lag 约 31ms、REST RTT 约 95ms；部署后的<br>HEALTH 连续显示 <code>externalSources=5</code>、<code>externalErrors=0</code>，JSONL 也持续写入。这些只有工程可用性<br>含义，不是 alpha evidence。下一步优先扩充 OKX perp 完整 UTC good days；OKX spot 值得用于区分同 venue<br>perp-only liquidation 与 spot-confirmed repricing，但应先补匹配历史数据，再启用 live shadow。</p>
 <p>数据源本身也必须分级。Binance Vision 是交易所官方公开归档；CryptoHFTData 则是个人/第三方维护的 Binance orderbook collection，不是 Binance 官方源，可能缺日、缺小时、缺 snapshot 或连续段。项目只把通过 hourly parts、BBO/L2 coverage、gap、时间戳单调性和 label-horizon audit 的日期写进 retained manifest，不能因为文件存在就把某天认定为 good day。</p>
 <h3 id="1-9-quote-EV：方向看起来对，但统计还不允许下结论"><a href="#1-9-quote-EV：方向看起来对，但统计还不允许下结论" class="headerlink" title="1.9 quote EV：方向看起来对，但统计还不允许下结论"></a>1.9 quote EV：方向看起来对，但统计还不允许下结论</h3><p>为了避免把 cross-market 信息硬编码成一个布尔开关，项目又训练了逐侧 quote EV 模型。它不直接预测 BTC 下一秒涨跌，而是分别估计：</p>
 <ul>
@@ -1313,10 +1357,10 @@ cv_ref_spot_*</code></pre></div>
 <li><code>P(fill)</code> 不是 alpha，本身甚至可能是 adverse selection 的强信号；</li>
 <li>真正要学的是“成交后不像 toxic fill”的条件，以及这个成交所在 campaign 是否更容易自然修复。</li>
 </ul>
-<p>这里最容易误解的是样本量。quote rows 可以有几十万甚至上百万，但能监督 <code>E(markout | fill)</code> 的只有真实 filled rows。未成交报价能帮助校准 fill probability，却不能直接告诉我们 fill 后的 markout、campaign terminal PnL 或 repair rate。因此 quote EV 的 promotion gate 必须看 filled-row support、calibration、daily OOS、side markout、tail loss、inventory time 和 campaign outcome，而不能只看一次 raw PnL 改善。</p>
+<p>这里最容易误解的是样本量。quote rows 可以有几十万甚至上百万，但能监督 <code>E(markout | fill)</code> 的只有真实 filled rows。未成交报价能帮助校准 fill probability，却不能直接告诉我们 fill 后的 markout、campaign terminal PnL 或 repair rate。因此 quote EV 的 promotion gate 必须看 filled-row support、calibration、按日隔离验证、side markout、tail loss、inventory time 和 campaign outcome，而不能只看一次 raw PnL 改善。</p>
 <p>2026-07 之后，quote EV 的方向已经和 campaign/order-level evidence 合流：每一笔 placed order 都带 quote-time state、fill outcome、markout、campaign label 和 explainable scores。只有这些连续 score 在日级稳定解释 fill quality 与 campaign outcome，才有资格被映射成 spread、skew、lifecycle 的 tiny shadow arm。</p>
 <p>同样被降级的是 SELL resiliency 这类旧 direct arm。它仍然可以写 shadow log、提供 bucket denominator 和机制线索，但不能直接 cap spread 或绕过 replay/live parity。bucket 不是策略本身，它只是解释 score 在什么市场结构下有效或失效。</p>
-<h3 id="1-10-Shadow-Mode：在线校准比回测-PnL-更诚实"><a href="#1-10-Shadow-Mode：在线校准比回测-PnL-更诚实" class="headerlink" title="1.10 Shadow Mode：在线校准比回测 PnL 更诚实"></a>1.10 Shadow Mode：在线校准比回测 PnL 更诚实</h3><p>NarrowGate 不应该把 quote EV 直接从回测 A/B 推到 live。更合理的中间层是 shadow mode：实盘收行情，在线计算 quote、quote EV、side policy 和 would-place/would-fill，但不把它当成交易建议，也不把它当成真实成交承诺。</p>
+<h3 id="1-10-Shadow-Mode：在线校准比回测-PnL-更诚实"><a href="#1-10-Shadow-Mode：在线校准比回测-PnL-更诚实" class="headerlink" title="1.10 Shadow Mode：在线校准比回测 PnL 更诚实"></a>1.10 Shadow Mode：在线校准比回测 PnL 更诚实</h3><p>NarrowGate 不应该把 quote EV 直接从回测 A/B 推到 live。更合理的中间层是 shadow mode：实盘收行情并记录 quote-time state、quote、policy 与 would-place；未来 L2/trades 到达后，再生成 <strong>delayed shadow replay label / delayed would-fill counterfactual</strong>。后者不是决策时刻已知的 live truth，也不是实际订单的交易所 ACK/fill。</p>
 <p>shadow mode 的核心问题不是“预测收益是多少”，而是：</p>
 <script type="math/tex; mode=display">
 P_{\text{model}}(\text{fill} \mid \text{quote context})
@@ -1376,7 +1420,7 @@ E[\text{markout}_{30s} \mid \text{predicted bucket}]
 <li>策略从行情到下单的决策延迟；</li>
 <li>订单从本机到交易所并 ack 的新单延迟。</li>
 </ul>
-<p>因此 shadow mode 需要把 measured new/cancel latency 注入 replay，再比较 live order log 与 replay would-fill：</p>
+<p>因此 shadow mode 需要把 measured new/cancel latency 注入 replay，再比较 live order log 与延迟生成的 replay would-fill：</p>
 <div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">shadow_fill_check</span>(<span class="hljs-params">event, measured_latency</span>):
     quote = compute_quote(event)
     activation_ts = event.ts + measured_latency.new_order_ms
@@ -1396,6 +1440,7 @@ E[\text{markout}_{30s} \mid \text{predicted bucket}]
         <span class="hljs-string">&quot;queue_ahead&quot;</span>: replay_fill.queue_ahead <span class="hljs-keyword">if</span> replay_fill <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>,
     &#125;</code></pre></div>
 <p>这也是为什么 quote EV promotion 要比普通模型上线更保守。当前这种逐侧 quote EV 如果 valid fills 仍然偏少，或者 calibration/Brier/bucket markout 不过 gate，即使某个聚合窗口 ask-only A/B 看起来 raw 为正，也只能算 shadow/research 候选，不能直接当作 live 结论。</p>
+<p>这个 delayed label 仍依赖 queue-ahead、cancellation-ahead、latency injection、future<br>L2/trades 完整性与同 timestamp event ordering。它比 bar-touch 诚实，但不能被写成“不发单也<br>观测到了真实 fill”。</p>
 <blockquote>
 <p><strong>Shadow 小结</strong></p>
 <ul>
@@ -1444,6 +1489,7 @@ E[\text{realized markout}\mid \text{same bucket}]</script><p>实操上我会把 
 </tbody>
 </table>
 </div>
+<p>这些阈值是 operational fail-fast gates，不是显著性或置信度的替代品。正式 promotion 还应<br>报告 day-clustered bootstrap interval、calibration slope/intercept、Brier 相对 baseline 的<br>增量、daily sign consistency、effective sample size、多 arm selection correction，以及从未<br>参与模型选择的 late-holdout effect interval。100 个 fills 若集中在少数相关 campaign，信息量<br>远小于 100 个独立样本。</p>
 <p>当前 quote EV 的真实状态并没有过这些 gate。比如之前 strict-gated run 中，validation valid fills 只有几十个，fill calibration MAE 也超阈值。因此即使某个 ask-side soft-widen A/B 的 raw 看起来不错，也只能被标为 shadow/research 候选。</p>
 <p>一个更像上线前检查表的伪代码是：</p>
 <div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">promotion_gate</span>(<span class="hljs-params">summary</span>):
@@ -1503,11 +1549,11 @@ quick-full-main-effect
   只有显式开启才跑完整 60+ arm 主效应面
         |
         v
-retained39 OOS
+retained39 validation panel
   campaign terminal PnL、tail、MAE、inventory-time、side markout
         |
         v
-full retained + blocked OOS
+full retained + blocked-day validation
   防止只靠某几天或者某个 regime 赚钱
         |
         v
@@ -1529,10 +1575,11 @@ then score =
   - live_mechanism_distance_penalty</code></pre></div>
 <p>这里的 <code>live_mechanism_distance_penalty</code> 包括 fills retention、pause/action mix、BUY/SELL split、bad campaign rate、keep/replace 行为等。如果一个 arm 通过少挂单、少成交、少暴露让 PnL 看起来好，它应该先被标为 mechanism drift，而不是被叫作 alpha。比如此前 <code>kr1p10/kr1p25</code> 在某些 retained39 面板上 raw/terminal 变好，但成交数砍掉二三成、库存时间还变长，这就不是可以直接推 live 的“更优参数”。</p>
 <p>2026-07-08 的 48-arm C++ quick-smoke 正好说明了这套 gate 的作用。修复 queue-enabled C++ parity 后，48 个 active Sobol arms 在 4 个代表日上先过 baseline parity gate，再跑 constraint-first screening。最后只有 baseline 和一个非 baseline arm 通过 hard gate；这个 survivor 进入 retained39 后，raw 与 terminal campaign PnL 都比 baseline 低约 20 USDC，库存时间高约 14%。</p>
-<p>随后搜索面扩到 1024 个 active arms。工程上没有把 1024 组直接塞进 retained39，而是按“单代表日 -&gt; 68 survivors -&gt; 4 日 -&gt; top 16 -&gt; retained39”逐层缩小。4 日窗口里出现过相对 baseline 高两位数 PnL 的 arm，但 top 16 到 retained39 全部落后。这一结果有两个读法：第一，当前 baseline 不是理论全局最优；第二，宽搜索一定会在短面板里制造 sample winner，不能把 4-day 排名当成策略发现。</p>
+<p>在 <strong>2026-07-08 这一代</strong> 搜索中，搜索面扩到 1024 个 active arms。工程上没有把<br>1024 组直接塞进 retained39，而是按“单代表日 -&gt; 68 survivors -&gt; 4 日 -&gt; top 16 -&gt;<br>retained39”逐层缩小。4 日窗口里出现过相对该代 rolling baseline 高两位数 PnL 的 arm，<br>但该代 top 16 到 retained39 全部落后。这个结论只属于当时的 code/config/manifest/search<br>space，不是项目永久状态。后续 ablation 已找到 raw、InvAdj 或 inventory-time 的局部改善<br>组件，但它们仍未同时通过 tail/campaign strict gate。</p>
+<p>以后每次宽搜索必须随结果记录 <code>experiment_id</code>、<code>baseline_config_hash</code>、<code>code_commit</code>、<br><code>retained_manifest_hash</code>、<code>search_space_version</code>、<code>selection_panel</code> 和 <code>late_holdout</code>。缺少这些<br>身份时，只能把表读成历史观察，不能拿“1024 arms 全部落后”概括当前 baseline。</p>
 <p>对 retained39 最接近 baseline 的组合做 ablation 后，出现了一个更微妙的候选：只保留 quote/cap 与 ML 组件，39-day raw loss 比 baseline 少约 26 USDC；加入两个最近完整日后，41-day delta 仍约为正 24 USDC。但它把 fills 降到约 78.5%，扩大平均 spread，并把库存时间提高约 8%。这说明“PnL 改善”可能来自更少参与和风险重新分配，而不是更好的 fill selection。它应进入 terminal campaign PnL、MAE、tail 与 recent-day audit，不能直接叫 live arm。</p>
 <p>因此参数搜索现在有两种不同的 score，不能混用：<code>constraint-first</code> 用于 promotion，先限制机制漂移；<code>pnl-survival</code> / summary-only C++ smoke 用于宽搜索，允许较宽的累计亏损和回撤预算，目的是避免过早淘汰潜在结构。后者只负责产生 survivor，不负责给出最终答案。</p>
-<p>这个变化的核心不是换了一个更复杂的优化器，而是承认 maker 参数搜索的目标不是找到一个样本内最高点，而是找到一个稳定平台区：它在 retained daily OOS 上不破坏机制量，不把 tail 风险转移到少数 campaign，不靠旧回测污染，也能在 live shadow 中按预期触发。</p>
+<p>这个变化的核心不是换了一个更复杂的优化器，而是承认 maker 参数搜索的目标不是找到一个样本内最高点，而是找到一个稳定平台区：它在 retained daily validation 上不破坏机制量，不把 tail 风险转移到少数 campaign，不靠旧回测污染，也能在 live shadow 中按预期触发。最终 promotion 还需要 chronological walk-forward 和真正未参与选择的 late holdout。</p>
 <h3 id="1-11-只看-PnL-还不够：把库存风险写成积分"><a href="#1-11-只看-PnL-还不够：把库存风险写成积分" class="headerlink" title="1.11 只看 PnL 还不够：把库存风险写成积分"></a>1.11 只看 PnL 还不够：把库存风险写成积分</h3><p>maker 策略可能用更长时间、更大库存换取同样的 PnL。如果 A/B 报告只列 raw PnL 和最终库存，这种风险会被隐藏。</p>
 <p>项目因此加入库存时间暴露：</p>
 <script type="math/tex; mode=display">
@@ -1548,12 +1595,13 @@ T_{\text{notional}}=\int_0^T |q(t)|\,\operatorname{mid}(t)\,dt</script><p>它表
 campaign labels:
   max inventory
   duration
-  terminal realized PnL
+  closed campaign realized PnL / censored terminal MTM
   early 5m / 10m / 20m drawdown
   adverse excursion / MAE
   exposure-increasing fills
   reducing fills
   natural repair flag</code></pre></div>
+<p>这里要把终局口径拆开：flat-to-flat 的 closed campaign 才能称为 realized PnL；窗口末仍<br>未回到 flat 的 campaign 是 censored terminal MTM。假想 taker liquidation 只能作为单独压力<br>测试；只有显式 timeout/emergency taker exit 才是真实计入账本的 taker exit。replay 正式<br><code>final_pnl</code> 使用 <code>cash + inventory * terminal_mark</code>，不默认扣除一笔并未发生的期末 taker fee。</p>
 <p>这套标签能回答一个更贴近真实损失来源的问题：亏损到底来自“某一笔成交后的 20 秒 markout”，还是来自“一个库存 campaign 拖得太久、越加越大，最后自然减仓也仍然亏”。从最近 live 复盘看，后者往往更接近真正的风险来源。</p>
 <p>所以 campaign control 现在只适合先做 shadow / replay evidence。例如：</p>
 <div class="code-wrapper"><pre><code class="hljs text">if abs_inventory &gt;= 0.006 BTC:
@@ -1617,7 +1665,7 @@ if high campaign risk and reducing side is firing too frequently:
 </tbody>
 </table>
 </div>
-<p>严格候选相对父桶更差：terminal PnL 从 <code>+0.044</code> 变成 <code>-0.028</code>，MAE 从 <code>-3.077</code> 变成 <code>-3.159</code>，repair rate 也更低。但 daily OOS 并不压倒性：terminal PnL 是 <code>42</code> 天更差、<code>30</code> 天更好；MAE 是 <code>39</code> 天更差、<code>32</code> 天更好。更麻烦的是，<code>refill&lt;=0</code> 和 <code>refill&lt;=0.02</code> 两个版本完全重合，说明当前 quote-time refill/cancel 字段没有真正提供额外筛选力。</p>
+<p>严格候选相对父桶更差：terminal PnL 从 <code>+0.044</code> 变成 <code>-0.028</code>，MAE 从 <code>-3.077</code> 变成 <code>-3.159</code>，repair rate 也更低。但按日隔离结果并不压倒性：terminal PnL 是 <code>42</code> 天更差、<code>30</code> 天更好；MAE 是 <code>39</code> 天更差、<code>32</code> 天更好。更麻烦的是，<code>refill&lt;=0</code> 和 <code>refill&lt;=0.02</code> 两个版本完全重合，说明当前 quote-time refill/cancel 字段没有真正提供额外筛选力。</p>
 <p>所以这条证据的正确位置是：进入 <code>campaign_outcome_risk_score</code>，帮助描述“30-45 分钟、4-6 个 order unit、趋势不利”的风险状态；但不能直接变成 <code>widen/skew/cooldown</code>。下一步不是再扫一个 lifecycle 参数，而是先提高 quote-time local repair/refill 的可观测性，例如从 exact-L2/order trace 里构造更可靠的 pre-fill refill/cancel、depth recovery 和 queue depletion 指标。</p>
 <p>这里要特别澄清 <code>InvAdj</code>。项目里的 <code>InvAdj</code> 不是“风险惩罚后的 PnL”，而是：</p>
 <script type="math/tex; mode=display">
@@ -1788,7 +1836,7 @@ trend_inventory_risk       # 大级别趋势是否正在放大库存风险</code
 \operatorname{Markout}(\text{actual fills})
 \quad\text{vs}\quad
 \operatorname{Markout}(\text{same-day/side random placed opportunities})</script><p>它能支持的判断很具体：在当前 placed-order 分母中，实际被成交的订单后续 markout 明显差于无条件随机抽取的 submit-time opportunity，说明 fill selection 存在 toxic-selection gap。它不能推出“随机 maker 策略能赚 opportunity markout”。静态 opportunity null 没有重放随机订单能否成交、queue ahead、真实 fill time/price、cancel/replace、latency、多订单库存依赖、campaign repair、资金占用或任何期末处理。源码也明确把它定义为 submit-time opportunity reference，而不是完整 fill counterfactual；实现见 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/models/audit/metrics.py">GitHub <code>models/audit/metrics.py</code></a>。因此早期看到的 <code>+5 bps</code> 只能称为<strong>随机 placed opportunity 的 submit-time markout 参照线</strong>，不能称为随机策略收益。</p>
-<p>这层 retained-good-day 结果很刺眼：当前 actual fills 相对 random opportunity 仍有明显 toxic-selection gap，而事后 oracle positive-fill 子集又说明可用空间并不薄。换句话说，baseline 肯定不是“最好的方案”；问题也不是再扫几个 <code>gamma/effective-kappa/cooldown</code> 就能解决，而是必须先找出哪些 quote-time 状态能把实际成交从 toxic selection 拉回 neutral，甚至靠近 oracle 的正子集。</p>
+<p>这层 retained-good-day 结果很刺眼：当前 actual fills 相对 random opportunity 仍有明显<br>toxic-selection gap，事后 oracle 也能在已经发生的结果中挑出正向子集。但两者都不能证明<br>该子集能在 quote time 被稳定预测、改变 policy 后仍会成交，或在 queue/campaign 依赖下产生<br>正 PnL。更准确的结论是：baseline fills 存在需要解释的 selection gap，结果空间中存在<br>ex-post 正向样本；是否存在可学习、可执行的替代政策仍待证明，不能由 hindsight oracle<br>直接推出“机会空间不薄”或“baseline 附近必有可实现正 alpha”。</p>
 <p>第二层是在 2026-07-10 补上的 <strong>executable passive null</strong>。它不再从结果表抽样，而是在完整 tick replay 中随机化 requote cadence 与 flat-state bid/ask geometry；随机订单仍然经过 exact-level queue、new/cancel latency、replace/coalescing、fill cooldown、库存上限、campaign 状态和期末记账。因为一次随机成交会改变后续库存和 cooldown，随机臂不可能与 baseline 保持完全相同的 fills，所以报告必须同时看 activity、spread、action mix、side split、inventory time 和 tail，而不能只看 raw PnL。</p>
 <p>在 retained39、8 个 deterministic seeds 上，按修正后的期末 MTM 口径，当前 rolling baseline 的 raw 为 <code>-98.77</code>，random passive mean 为 <code>-86.34</code>，baseline 反而差 <code>12.43</code>；baseline fills 是 random mean 的 <code>93.3%</code>，库存时间是 <code>1.108x</code>，tail campaigns 多约 <code>7.6</code> 个，raw PnL per fill 也更差。random seed raw 的标准差约 <code>14.28</code>，所以 8 个 seeds 还不够把它写成强统计结论；但 paired daily 的形状更值得看：baseline-minus-random 的中位数仍为 <code>+0.34</code>，baseline 在 <code>21/39</code> 天胜出，少数 tail days 把 ordinary-day 的小优势全部抹掉。这个结果不表示 random passive 可以 live；它表示“当前报价函数已经证明具有稳定 fill-selection alpha”这句话还站不住。</p>
 <p>这也是为什么最新工作把桶分析升级成 order-level denominator table。每一行不再只是一笔 fill，而是一笔 placed order：</p>
@@ -1800,7 +1848,59 @@ trend_inventory_risk       # 大级别趋势是否正在放大库存风险</code
   + 1s / 5s / 20s / 30s markout
   + campaign terminal outcome / MAE / repair
   + null baseline bucket / oracle label</code></pre></div>
-<p>在这个表上，BUY 和 SELL 不能再共用同一个“好成交”定义。BUY side-specific fill-selection score 已经显示出更清楚的 alpha 线索：高分区能把 BUY fill 的负 markout 明显拉向接近 neutral。它目前被看作一个极小的 BUY-only soft-keep live probe，也就是“不额外放大 size、不直接宣称盈利，只把这个 side-specific 选择函数放进真实订单簿继续观察”。SELL 侧没有获得同样结论，必须重新定义 score，不能借用 BUY 的规则。</p>
+<p>在这个表上，BUY 和 SELL 不能再共用同一个“好成交”定义。BUY side-specific score 在<br><strong>baseline 已经产生的 fills</strong> 中显示出窄而可重复的 fill-quality ranking evidence：高分区能<br>把 BUY fill 的负 markout 拉向接近 neutral。监督标签只定义在 filled rows 上，因此它更接近<br><code>P(good fill | baseline placed and filled, x)</code>，既没有单独识别 <code>P(fill | x,a)</code>，也没有估计<br>某个新动作的 policy uplift。它是 policy candidate 的必要证据，不是“BUY alpha 已成立”。<br>当前 BUY-only soft-keep 只是用最小干预测试排序能否转化成增量价值，不加 size，也不是确认<br>alpha 后的上线。SELL 侧没有获得同样结论，必须重新定义 score，不能借用 BUY 的规则。</p>
+<p>fill-selection 特征还需要显式 provenance，避免字段名让人误以为用了 campaign 终局信息：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Feature / label</th>
+<th>可用时点</th>
+<th>截止时间</th>
+<th style="text-align:right">quote-time feature</th>
+<th style="text-align:right">evaluation label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>campaign_age_s</code></td>
+<td>submit</td>
+<td>当前订单提交前</td>
+<td style="text-align:right">是</td>
+<td style="text-align:right">可</td>
+</tr>
+<tr>
+<td><code>campaign_total_pnl_so_far</code></td>
+<td>submit</td>
+<td>当前订单提交前</td>
+<td style="text-align:right">是</td>
+<td style="text-align:right">可</td>
+</tr>
+<tr>
+<td><code>campaign_max_abs_qty_so_far</code> / add/reducing counts so far</td>
+<td>submit</td>
+<td>当前订单提交前</td>
+<td style="text-align:right">是</td>
+<td style="text-align:right">可</td>
+</tr>
+<tr>
+<td><code>campaign_terminal_pnl</code></td>
+<td>campaign close / window boundary</td>
+<td>campaign 结束或被 censor 后</td>
+<td style="text-align:right">否</td>
+<td style="text-align:right">是</td>
+</tr>
+<tr>
+<td>final duration / final MAE / repair</td>
+<td>campaign close / window boundary</td>
+<td>campaign 结束或被 censor 后</td>
+<td style="text-align:right">否</td>
+<td style="text-align:right">是</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>当前表中部分历史列仍沿用 <code>campaign_duration_s</code>、<code>campaign_total_pnl</code> 等容易混淆的名字；<br>文档口径要求它们作为 feature 时必须是 submit-time snapshot。后续代码应把<br><code>FeatureSpec(available_at, source_timestamp, family)</code> 和<br><code>feature_timestamp &lt;= order_submit_timestamp</code> 变成训练入口断言，而不是依赖读者猜测。</p>
 <p>BTCUSDT reference 的位置也要重新定义。旧的 <code>multi_market=true/false</code> 测的是“把 10s reference 特征直接喂给报价/模型”的粗用法，已经证明不适合；纯 event-cancel 防守也很容易因为 false cancel 误杀大量正向 fill。Bitget 独立 venue 的 retained111 Stage 0 又补了一条反例：source 独立性本身不会自动让 pending residual 稳定。更合理的角色有三种：</p>
 <ol>
 <li><strong>re-center / reservation shift</strong>：只使用尚未被 BTCUSDC 本地盘口吸收的短窗残差 <code>pending_ref = ref_move - local_move</code>，用 1-3 tick 的有界平移改变 fair value，而不是统一 widen/pause；</li>
@@ -1808,7 +1908,7 @@ trend_inventory_risk       # 大级别趋势是否正在放大库存风险</code
 <li><strong>local signal confirmation</strong>：reference 只作为已有本地 adverse / repair 信号的乘数或 veto，不单独成为 alpha 开关。</li>
 </ol>
 <p>这条线已经完成了短 horizon 与 fill-time 复核。BTCUSDT futures 的 submit-time <code>pending_ref</code> 在 1s/5s 上排序很弱，fill-time 重采样也没有改善：BUY 多数更差，SELL 只剩弱 30s 噪声。因此 direct re-center 与 post-fill futures moderator 都暂时关闭，<code>pending_ref_*</code> 降级为 diagnostic / interaction feature，不进入 1/2/3 tick reservation-shift arm。</p>
-<p>Bitget 的第一轮结论与此一致，但它回答的是更严格的问题：换成独立交易所后，秒级 residual 是否出现稳定增量。答案仍然是否。第二个独立 venue 以及 spot/perp 两层 consensus 现在也已补齐，仍没有通过 Stage 0。当前下一步不是打开 cross-venue policy，而是持续采集四条 source 的真实 receive-time book/trade tape，判断更短 event-time 上的 leader confidence 是否活得足够久，且能否同时改善 fill markout 与 campaign outcome。单 venue residual 与 spot/perp divergence 继续作为 interaction feature，不单独担任正向或防守开关。</p>
+<p>Bitget 的第一轮结论与此一致，但它回答的是更严格的问题：换成独立交易所后，秒级 residual 是否出现稳定增量。答案仍然是否。第二个独立 venue 以及 spot/perp 两层 consensus 已补齐但没有通过 Stage 0；第三个 derivatives venue OKX 在 7 日子面板上产生了 SELL markout clue，日期与 campaign 支撑仍不足。当前下一步不是打开 cross-venue policy，而是继续采集五条 source 的真实 receive-time book/trade tape，并扩充 OKX 的 matched UTC good days，判断更短 event-time 上的 leader confidence 是否活得足够久，且能否同时改善 fill markout 与 campaign outcome。单 venue residual 与 spot/perp divergence 继续作为 interaction feature，不单独担任正向或防守开关。</p>
 <p>spot 的结论稍有不同。<code>fill_exec_spot_pending_*</code> 与 <code>fill_ref_spot_pending_*</code> 已接入 <code>post_fill_spot_pending_risk_score</code> 和 <code>post_fill_campaign_outcome_risk_score</code>；retained111 上，高分桶能较稳定标记更差短窗 markout、更差 aggregate terminal campaign PnL 与更高 tail rate。但这些字段只有 fill 后才可见，所以它们只能服务 post-fill campaign calibration / shadow management，不能被偷渡成 quote-time re-center、pre-fill veto 或正向 alpha 开关。</p>
 <p>换句话说，reference/spot 当前都没有通过“直接改变报价”的证据门。它们仍有价值，但价值落在解释和校准层：futures residual 作为 interaction diagnostic，spot residual 作为 post-fill risk label。这个边界比简单写一句“multi-market 有用/没用”更准确。</p>
 <h3 id="2-5-先排除实现归因，再继续找-alpha"><a href="#2-5-先排除实现归因，再继续找-alpha" class="headerlink" title="2.5 先排除实现归因，再继续找 alpha"></a>2.5 先排除实现归因，再继续找 alpha</h3><p>当几乎所有参数 arm 都是负数时，不能只用“市场太 toxic”解释，也不能看到一段可疑公式就宣布找到 bug。最新 formal replay 增加了三组可复核输出：</p>
@@ -1895,7 +1995,7 @@ trend_inventory_risk       # 大级别趋势是否正在放大库存风险</code
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>NarrowGate：Maker Quote EV 与被动做市研究框架</div>
+      <div>NarrowGate：Maker Quote EV、Order-Level Evidence 与 Campaign Risk</div>
       <div>https://xiao-nanbei.github.io/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/</div>
     </div>
     <div class="license-meta">

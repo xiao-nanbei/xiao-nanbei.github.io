@@ -19,20 +19,20 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV 与被动做市研究框架》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。 项目源码与构建入口：GitHub - xiao-nanbei&#x2F;Na">
+    <meta name="description" content="TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV、Order-Level Evidence 与 Campaign Risk》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。  版本边界（">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate：回测吞吐与 Live 尾延迟工程">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV 与被动做市研究框架》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。 项目源码与构建入口：GitHub - xiao-nanbei&#x2F;Na">
+<meta property="og:description" content="TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV、Order-Level Evidence 与 Campaign Risk》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。  版本边界（">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-07-01T00:03:00.000Z">
-<meta property="article:modified_time" content="2026-07-10T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-11T04:10:00.000Z">
 <meta property="article:author" content="Xuan Tan">
+<meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="C++">
 <meta property="article:tag" content="低延时">
 <meta property="article:tag" content="pybind11">
-<meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="系统工程">
 <meta name="twitter:card" content="summary_large_image">
   
@@ -331,7 +331,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          77k 字
+          79k 字
         
       </span>
     
@@ -343,7 +343,7 @@
         
         
           <!-- compatible with older versions-->
-          643 分钟
+          661 分钟
         
       </span>
     
@@ -387,7 +387,10 @@
             
               <div class="markdown-body">
                 
-                <h2 id="TL-DR：读者收益摘要"><a href="#TL-DR：读者收益摘要" class="headerlink" title="TL;DR：读者收益摘要"></a>TL;DR：读者收益摘要</h2><p>这篇文章是 NarrowGate 的工程篇，接在算法篇 <a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/">《NarrowGate：Maker Quote EV 与被动做市研究框架》</a> 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。</p>
+                <h2 id="TL-DR：读者收益摘要"><a href="#TL-DR：读者收益摘要" class="headerlink" title="TL;DR：读者收益摘要"></a>TL;DR：读者收益摘要</h2><p>这篇文章是 NarrowGate 的工程篇，接在算法篇 <a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/">《NarrowGate：Maker Quote EV、Order-Level Evidence 与 Campaign Risk》</a> 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。</p>
+<blockquote>
+<p><strong>版本边界（2026-07-11）</strong>：本文持续记录多代 replay/live 实现。benchmark、soak 与<br>1024-arm search 都只属于其对应代码、配置、机器和日期窗口；历史数字不是当前 <code>main</code><br>或私有 rolling baseline 的永久性能/策略结论。</p>
+</blockquote>
 <p>项目源码与构建入口：<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker">GitHub - xiao-nanbei/NarrowGateMaker</a>。公开配置是安全研究模板，不是当前私有 live 参数快照。</p>
 <p>离线侧的低延时，本质是把严格 replay 从“只能抽样验证”推进到“可以按日、按窗口、按参数臂系统验证”。它关注 wall time、rows/s、windows/hour、内存峰值、路径一致性和结果可重复性；单个函数调用的尾部延迟只有在暴露 fallback、分配、swap 或过度订阅时才有解释价值。</p>
 <p>在线侧的低延时，是让报价、撤单和库存控制在真实事件循环里尽量少出现 stale quote、late cancel、跨语言 fallback 和偶发尖刺。这里必须看 mean、p99、p99.9、CPU migration、page fault、context switch、fallback 计数和长样本 soak。</p>
@@ -769,7 +772,13 @@ trace = result.quote_trace <span class="hljs-keyword">if</span> trace_enabled <s
 fixed tuple / small arrays / cached native config
         |
         v
-C++ quote + policy + routing decision
+C++ compact quote core
+        |
+        v
+Python side policy
+        |
+        v
+C++ partial routing decision
         |
         v
 compact result: price, size, can_post, reason_mask
@@ -790,7 +799,7 @@ Python REST adapter</code></pre></div>
 </thead>
 <tbody>
 <tr>
-<td>quote + policy</td>
+<td>mixed quote/policy path</td>
 <td style="text-align:right">85.48 us</td>
 <td style="text-align:right">136.33 us</td>
 <td>C++ 慢约 59%</td>
@@ -914,7 +923,7 @@ result = cpp.compute_quote_core_live(
 <td style="text-align:right"><strong>快 19.4%</strong></td>
 </tr>
 <tr>
-<td>quote + policy</td>
+<td>mixed quote/policy path</td>
 <td style="text-align:right">74.55 us</td>
 <td style="text-align:right">62.32 us</td>
 <td style="text-align:right"><strong>快 16.4%</strong></td>
@@ -925,7 +934,7 @@ result = cpp.compute_quote_core_live(
 <blockquote>
 <p><strong>这张表怎么读</strong></p>
 <ul>
-<li>说明什么：边界收紧后，scalar native path 从负优化翻转为小幅正收益。</li>
+<li>说明什么：边界收紧后，scalar native path 从负优化翻转为小幅性能增益。</li>
 <li>不能说明什么：不能把这组数字套到 quote EV 开启后的完整 context 路径，也不能推出端到端报单延迟改善 16%。</li>
 <li>下一步验证：在目标 x86 live 机型上做 p99/p99.9 soak，并确认 strict 模式没有 fallback。</li>
 </ul>
@@ -1059,7 +1068,7 @@ trace rows</code></pre></div>
 <p>2026-07-08 之后，C++ replay 的角色又往前推了一步：它不再只是“基础路径 fast screening”，而是可以在 <strong>active live baseline 的 parity gate 通过后</strong> 承接宽参数 smoke。这里修掉的关键偏差并不是浮点精度，而是离散状态口径：Python 的 queue 初始化使用成交时钟上的 causal local-rank，而 C++ 曾经复用了 local-extreme rank，在 guard 关闭时会退化成 <code>0.5</code>；同时同一 tick 内多个候选订单的成交优先级也必须按 BUY 高价优先、SELL 低价优先稳定排序。修复后，<code>2026-06-26</code> 与新补齐的 <code>2026-07-04</code> live-like baseline 窗口都做到了 Python/C++ fill 数与 PnL 对齐，retained-day runner 才允许切到 native engine。</p>
 <p>因此新的规则是：C++ 可以用于 active baseline 的参数快筛，但每次 sweep 前要先跑 baseline parity gate；如果 gate 不过，自动退回 Python reference，而不是带着偏移去筛参数。这个边界比“C++ 快不快”更重要，因为参数搜索最怕的不是慢，而是用另一套成交口径选出一个看起来很强的假 arm。</p>
 <p>修复后的第一轮实测是 48 个 active Sobol arms、4 个代表日的 C++ quick-smoke。任务在 4 workers 下约 340 秒完成，baseline parity gate 先通过，然后才进入 arm 筛选。结果也很克制：只有 baseline 和一个非 baseline arm 通过 hard mechanism gate；这个 survivor 进入 retained39 后，raw 与 terminal campaign PnL 都比 baseline 低约 20 USDC，库存时间反而高约 14%。</p>
-<p>随后把搜索面扩大到 1024 个 active arms，但没有直接把 1024 组全部跑 retained39。第一层先用单个代表日和 summary-only C++ replay 筛出 68 个 survivor；第二层在 4 个代表日上筛出 16 个；第三层才进入 retained39。4-day 排名最靠前的 arm 曾比 baseline 高出两位数 PnL，但 top 16 在 retained39 上全部输给 rolling baseline。这不是“baseline 已经全局最优”的证明，而是一个很典型的 multiple-testing 结果：搜索越宽，越容易在四天样本里找到偶然 winner，daily OOS 才负责把它们打回去。</p>
+<p>在 2026-07-08 那一代 code/config/manifest/search space 中，搜索面扩大到 1024 个 active<br>arms，但没有直接把 1024 组全部跑 retained39。第一层先用单个代表日和 summary-only C++<br>replay 筛出 68 个 survivor；第二层在 4 个代表日上筛出 16 个；第三层才进入 retained39。<br>4-day 排名最靠前的 arm 曾比对应 baseline 高出两位数 PnL，但该代 top 16 在 retained39 上<br>全部落后。这不是“baseline 已经全局最优”的证明，而是一个典型 multiple-testing 结果。<br>retained39 后来已被反复用于 ablation，应称为 validation panel，不再称为永久 OOS；每代<br>搜索还必须绑定 experiment ID、baseline/config hash、commit、manifest 与 late holdout。</p>
 <p>这轮搜索还有一个有价值的 ablation。把 retained39 中最接近 baseline 的组合拆开后，<code>quote/cap + ML bundle</code> 能把 39-day raw loss 缩小约 26 USDC；加上两个最近完整日后，41-day delta 仍约为正 24 USDC。但它同时把 fills 压到 baseline 的约 78.5%，扩大平均 spread，并把库存时间提高约 8%。因此它被记作“少亏但机制发生代价交换”的候选，不是 live promotion。下一步必须回到 campaign outcome audit，检查 terminal campaign PnL、MAE、tail campaign 与 recent-day 稳定性，不能只看 summary-only PnL。</p>
 <p>2026-07-10 又补了一轮更基础的 replay integrity diagnosis。它不是继续扩大参数面，而是固定做两组三臂：<code>historical/off/sign-corrected</code> markout feedback，以及 <code>compress/pause-exposure/observe-only</code> spread-cap action；同时拆出 terminal MTM、hypothetical liquidation fee estimate、final PnL 和 cap-compressed fill markout。所有 retained39 运行都要求 <code>--strict-calibration</code>：显式 private baseline config、P3/effective-kappa、daily queue calibration、historical BBO/L2 与 empirical/non-zero REST latency 缺一项就 fail fast。</p>
 <p>这组 native replay 排除了几个容易让人过早兴奋的解释。sign-corrected markout feedback 与关闭 feedback 都比 historical baseline 更差；baseline 只有 <code>18 / 18,455</code> 个 cap-compressed fills，不能把整体负 PnL 归因给 cap 向内压缩。实现层面可疑不等于数据已经证明它是 bug，C++ 加速的价值之一正是让这种反证可以在完整 retained panel 上低成本完成。</p>
@@ -1071,10 +1080,10 @@ trace rows</code></pre></div>
 <li>在 baseline quote context 下预计算 bid/ask EV arrays；</li>
 <li>C++ replay 在每个 tick 直接读取对应分数；</li>
 <li>快速筛掉明显不值得继续的 direct-policy probe；</li>
-<li>最终候选仍必须回到 Python online inference、daily OOS 和 campaign gate。</li>
+<li>最终候选仍必须回到 Python online inference、按日隔离 validation、chronological walk-forward 和 campaign gate。</li>
 </ol>
 <p>这条路径的价值是工程上的：证明预计算数组 + C++ replay 可以显著降低筛选成本。它不再代表当前策略方向，因为 direct quote-EV policy 已经归档。</p>
-<p>研究链路不是一句“打开 C++”就结束，而是把昂贵步骤和快速步骤拆开。早期我曾用 C++ replay + 预计算 quote EV arrays 去快速筛 direct quote-EV policy arms；这条 direct-policy 路线后来已经归档，因为样本质量、calibration、daily OOS 和 campaign gate 都没有过。</p>
+<p>研究链路不是一句“打开 C++”就结束，而是把昂贵步骤和快速步骤拆开。早期我曾用 C++ replay + 预计算 quote EV arrays 去快速筛 direct quote-EV policy arms；这条 direct-policy 路线后来已经归档，因为样本质量、calibration、按日隔离 validation 和 campaign gate 都没有过。</p>
 <p>这段经历仍然留下一个系统结论：C++ 最适合承接<strong>已经固定语义的批处理边界</strong>，例如 quote context batch、order-level denominator、shock/label 前的重复 quote-core 计算、以及已 parity 的 replay fast screening；它不应该替一个还没过 evidence gate 的策略机制背书。</p>
 <p>当前更稳妥的用法是：Python 先负责 retained-day universe、window cache、feature/model loading 和 evidence schema；C++ 只处理可独立验证的 tight loop，并在 <code>NARROWGATE_CPP_STRICT=1</code> 下 fail fast。模块不可用、字段缺失或 shape 错误时直接终止，而不是悄悄 fallback 后输出一个看似成功的 A/B 文件。</p>
 <p>同样，C++ loop 变快以后，CLI wall time 可能仍受 parquet、模型和数据加载支配。后续优化重点因此转向 window cache、数组复用和批量 quote decomposition，而不是继续微调一个已经很快的循环。</p>
@@ -1459,7 +1468,7 @@ std::pmr::vector&lt;ReplayOrder&gt; ask_orders&#123;&amp;arena&#125;;</code></pr
 <td>快约 0.7%，短窗口本来就不是搬移瓶颈</td>
 </tr>
 <tr>
-<td>quote + policy</td>
+<td>mixed quote/policy path</td>
 <td style="text-align:right">63.09 us</td>
 <td style="text-align:right">63.18 us</td>
 <td>统计上持平，现代化没有伤害 scalar path</td>
@@ -1552,7 +1561,7 @@ max_drawdown = std::<span class="hljs-built_in">max</span>(max_drawdown, peak_pn
 &#125;</code></pre></div>
 <p>100k rows × 10 levels 的 Release benchmark：1 worker 为 35.48ms / 2.82M rows/s，4 workers 为 10.08ms / 9.92M rows/s，快 3.52x。参数已经贯通到 <code>cross_market_shock_audit.py --quote-context-workers N</code>，但不会自动开启：若外层已经按 day/window/arm 多进程并行，再把每个进程开满内部线程只会过度订阅。</p>
 <p>第二轮验证结果为快速 suite <code>20 passed, 4 skipped</code>，四个真实窗口 golden parity <code>4 passed</code>，核心 C++20 翻译单元仍为零 warning。优化改变了 allocation、cache footprint 和输出策略，没有改变成交路径，也没有修改 live 配置。</p>
-<h3 id="1-5-ARM-本机-benchmark：离线低延时服务反例产能"><a href="#1-5-ARM-本机-benchmark：离线低延时服务反例产能" class="headerlink" title="1.5 ARM 本机 benchmark：离线低延时服务反例产能"></a>1.5 ARM 本机 benchmark：离线低延时服务反例产能</h3><p>ARM 本机回测里的“低延时”，真正要解决的是反例产能：更多质量合格日、更多窗口、更多策略臂、更重的 quote context，以及更严格的 Python/C++ parity。它的价值不是把某个函数调用压到多漂亮，而是把原本只能抽样看的 replay，推进到可以系统性跑日度 panel、blocked OOS 和 stress diagnostics。</p>
+<h3 id="1-5-ARM-本机-benchmark：离线低延时服务反例产能"><a href="#1-5-ARM-本机-benchmark：离线低延时服务反例产能" class="headerlink" title="1.5 ARM 本机 benchmark：离线低延时服务反例产能"></a>1.5 ARM 本机 benchmark：离线低延时服务反例产能</h3><p>ARM 本机回测里的“低延时”，真正要解决的是反例产能：更多质量合格日、更多窗口、更多策略臂、更重的 quote context，以及更严格的 Python/C++ parity。它的价值不是把某个函数调用压到多漂亮，而是把原本只能抽样看的 replay，推进到可以系统性跑日度 panel、blocked-day validation 和 stress diagnostics。</p>
 <p>离线 benchmark 里的尾部数字仍然有用，但它主要用来定位非确定性来源：隐式 Python fallback、异常对象分配、I/O 抖动、内存暴涨、swap、多进程过度订阅或路径分叉。只要这些风险被排除，离线侧更核心的指标就是完整窗口耗时、每秒处理行数、每天/每臂 sweep 产能、路径级 parity、金额级 parity、内存峰值和失败可解释性。</p>
 <p>这也改变了参数搜索的工程形态。NarrowGate 现在不再把 <code>live/config.yaml</code> 看成一个可以暴力全组合扫描的超大网格，而是先把参数分成五类：</p>
 <div class="table-container">
@@ -1620,8 +1629,8 @@ python3 models/fast_cpp_arm_smoke.py \
   -&gt; quick-smoke retained days
   -&gt; quick-full-main-effect only when explicit
   -&gt; reject mechanism-drift arms early
-  -&gt; retained39 OOS
-  -&gt; full retained + blocked OOS
+  -&gt; retained39 validation panel
+  -&gt; full retained + blocked-day validation
   -&gt; live shadow / soak</code></pre></div>
 <p><code>retained39</code> 不是随意改名。原 retained40 中的 <code>2026-05-23</code> 被 exact-L2 audit 确认为 <code>normalized_gap_with_snapshots</code> bad day，BBO/L2 有效行为空，因此从 manifest 和本地数据层移除。旧文件名里残留的 <code>retained40</code> 只代表历史 artifact，不能重新把该日带回搜索面。</p>
 <p>排序也不再直接看 raw PnL。新的 <code>constraint_first_score</code> 先看 arm 是否仍像 baseline 一样运行：fills retention、pause/action mix、BUY/SELL split、tail campaign、bad campaign rate 和 inventory time 都不能明显漂移。只有这些硬约束过线，terminal campaign PnL、raw、InvAdj 才进入排序。这个设计比“多开几个 worker”更重要，因为它减少的是错误实验本身，而不只是把错误实验跑得更快。</p>
@@ -1726,7 +1735,7 @@ scripts/x86_live_soak.sh</code></pre></div>
 <th>开关</th>
 <th style="text-align:right">signal 10s mean/p99</th>
 <th style="text-align:right"><code>_compute_quotes</code> mean/p99</th>
-<th style="text-align:right"><code>quote+policy</code> mean/p99</th>
+<th style="text-align:right">mixed quote/policy mean/p99</th>
 <th>结论</th>
 </tr>
 </thead>
@@ -1795,10 +1804,10 @@ scripts/x86_live_soak.sh</code></pre></div>
 <td>均值改善，但这轮 p99/p99.9 反而更差，不能把 quote core 单独称为稳定胜出</td>
 </tr>
 <tr>
-<td><code>quote + policy</code></td>
+<td>mixed quote/policy path</td>
 <td style="text-align:right">486 / 1412 / 6592 us</td>
 <td style="text-align:right">438 / 1175 / 5128 us</td>
-<td>完整组合 mean 与尾部都有小幅改善，policy 仍是 Python 主体</td>
+<td>Python side policy + native compact quote/routing 的 mean 与尾部有小幅性能改善；policy 主体仍在 Python</td>
 </tr>
 <tr>
 <td>compact routing ABI</td>
@@ -1868,15 +1877,15 @@ python bench/bench_live_path.py --n 5000 --signal-n 500 --ml --engine cpp --stri
 <td>policy 主体仍在 Python，native quote 不解决这里</td>
 </tr>
 <tr>
-<td><code>quote + policy</code></td>
+<td>mixed quote/policy path</td>
 <td style="text-align:right">536.57 / 895.01 / 1698.98 us</td>
 <td style="text-align:right">696.11 / 4829.99 / 14519.30 us</td>
-<td>这次短跑出现明显尖刺，与 100k 长跑方向不一致</td>
+<td>Python side policy + native quote/routing 的短跑出现明显尖刺，与 100k 长跑方向不一致</td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>这张表和 ARM 本机结论不同：在当前 x86 live 机上，<code>SIGNAL_FEATURES=1</code> 已经不是早期那种负优化；它在短跑和 100k 长跑里都明显降低 10s feature 的均值和尾部。quote core 则更微妙：短跑里 <code>_compute_quotes</code> 均值更低，尾部却更差；100k 长跑里完整 <code>quote + policy</code> 又恢复为小幅改善。这种 run-to-run 波动说明共享 VM 上不能凭一次 microbenchmark 宣布 quote core 胜出，真正稳定的结论仍只有 fixed-array signal 与低成本 compact routing ABI。</p>
+<p>这张表和 ARM 本机结论不同：在当前 x86 live 机上，<code>SIGNAL_FEATURES=1</code> 已经不是早期那种负优化；它在短跑和 100k 长跑里都明显降低 10s feature 的均值和尾部。quote core 则更微妙：短跑里 <code>_compute_quotes</code> 均值更低，尾部却更差；100k 长跑里 mixed quote/policy path 又恢复为小幅改善。这种 run-to-run 波动说明共享 VM 上不能凭一次 microbenchmark 宣布 quote core 胜出，真正稳定的结论仍只有 fixed-array signal 与低成本 compact routing ABI。</p>
 <p>第二类是真实 live 进程旁路 telemetry。我在 <code>MakerEngine</code> 里加了 <code>logs/live_perf_telemetry.csv</code>，每次 requote 记录 <code>signal_compute_us</code>、<code>compute_quotes_us</code>、<code>update_orders_us</code>、REST new/cancel 耗时，以及 futures/spot/reference WebSocket age。</p>
 <p>2026-07-01 的受控 live soak 曾经把进程环境切到：</p>
 <div class="code-wrapper"><pre><code class="hljs bash">NARROWGATE_CPP_QUOTE_CORE=1
@@ -2021,7 +2030,7 @@ new intent while REST is in flight:
 local_receive_ts_ns
 transport_lag_ms
 sequence_number
-market_id = bitget:perp:BTCUSDT | bybit:perp:BTCUSDT</code></pre></div>
+market_id = venue:instrument_type:symbol</code></pre></div>
 <p>这个双时钟不是装饰。第一次独立 smoke 只按 receive-time 判断 freshness，发现连接刚建立时 trade channel 会返回一小批较旧成交：消息是“刚收到的”，但成交事件已经过去十几秒。如果直接把 receive age 当成 market age，trade p99 会被错误放大，策略也可能把历史成交当作新冲击。修复后，snapshot 同时输出 book/trade event age 与 transport lag；整体 reference availability 由 <code>bookStale</code> 决定，成交流安静只设置独立的 <code>tradeStale</code>，不能覆盖仍然新鲜的 <code>books1</code>。</p>
 <p>重启后排除 60 秒 warmup 的 live shadow 窗口得到：</p>
 <div class="table-container">
@@ -2091,7 +2100,14 @@ market_id = bitget:perp:BTCUSDT | bybit:perp:BTCUSDT</code></pre></div>
 </table>
 </div>
 <p>双 source HEALTH 保持 <code>externalSources=2</code>、<code>externalStale=0</code>、connector error 为 0，Binance live 仍正常保持双边订单。Bybit trade 的 max age 会在市场安静时被旧 recent-trade 拉长，因此 availability 仍由 BBO freshness 决定，trade silence 只设置独立 <code>tradeStale</code>。这个 REST source 可用于秒级 consensus 和 campaign moderator，不能承担 50/100ms event-cancel；需要这种动作时，必须换成同采集点的 WebSocket receive-time tape。</p>
-<p>这组数字只能证明目标机器上的接收链路数量级和实现语义，不能证明 cross-venue alpha，也不能直接与 Binance REST p99 相加。样本仍短、市场窗口单一，而且 Bitget 与 Binance 的网络路径不同。后续若研究 50/100ms event cancel 或 1 tick re-center，必须使用同一采集点的 receive-time tape，并把：</p>
+<p>这不是当前实现的终点。随后 Bitget spot 与 Bybit spot 被接成独立的 public WebSocket<br>shadow source，OKX <code>BTC-USDT-SWAP</code> 则作为只读 public REST books/trades source 加入。<br>当前 live HEALTH 中的五个 ID 是：</p>
+<div class="code-wrapper"><pre><code class="hljs text">bitget:perp:BTCUSDT
+bybit:perp:BTCUSDT
+bitget:spot:BTCUSDT
+bybit:spot:BTCUSDT
+okx:perp:BTCUSDT</code></pre></div>
+<p>OKX 在 x86 live 机上的 15 秒 preflight 中，book transport lag 约 31ms、request RTT<br>约 95ms；部署后 JSONL 持续增长，HEALTH 显示 <code>externalSources=5</code>、<br><code>externalErrors=0</code>，且它没有密钥、账户或下单方法。REST recent trades 在安静窗口会自然<br>出现 <code>tradeStale</code>，但不能覆盖仍新鲜的 BBO。这里的数字只证明第五路 receive-time 输入已<br>可靠进入观测层，不证明 OKX 领先 Binance，也不能与 Binance order REST p99 机械相加。<br>五路 source 仍不进入 active quote policy。</p>
+<p>这些数字只能证明目标机器上的接收链路数量级和实现语义，不能证明 cross-venue alpha，也不能直接与 Binance REST p99 相加。样本仍短、市场窗口单一，而且各 venue 与 Binance 的网络路径不同。后续若研究 50/100ms event cancel 或 1 tick re-center，必须使用同一采集点的 receive-time tape，并把：</p>
 <div class="code-wrapper"><pre><code class="hljs text">external feed age
 + feature / decision latency
 + Binance cancel-or-replace latency
@@ -2104,17 +2120,18 @@ market_id = bitget:perp:BTCUSDT | bybit:perp:BTCUSDT</code></pre></div>
 <p><code>perf stat</code> 也给了一个现实提醒：这台 KVM 实例不暴露 <code>cycles</code>、<code>instructions</code>、<code>L1-icache-load-misses</code>、<code>iTLB-load-misses</code> 这些硬件事件，最后只能看到 context switches、cpu migrations 和 page faults。因此“x86 benchmark”也要继续细分：普通云主机能做 wall-time/tail-latency 复测，但真正要分析 L1I/iTLB/cache miss，可能需要裸金属、特定实例族或能暴露 PMU 的环境。</p>
 <h3 id="2-2-live-路径的-C-优化：与-replay-完全不同的约束"><a href="#2-2-live-路径的-C-优化：与-replay-完全不同的约束" class="headerlink" title="2.2 live 路径的 C++ 优化：与 replay 完全不同的约束"></a>2.2 live 路径的 C++ 优化：与 replay 完全不同的约束</h3><p>前面几节讲的 quote core batch、tick replay 状态机和 streaming features，都是以”吞吐量”为优化目标：输入是连续数组或完整窗口，可以释放 GIL、多线程并行、用 SoA 布局喂给 SIMD。但 live 路径是另一种世界。</p>
 <p>从 C++ 学习的角度看，live 优化最容易犯的错是把“语言更快”误解为“函数搬过去就会更快”。maker live path 里单个 quote 公式可能只要几十微秒，pybind 边界、Python 字典、dataclass 展开、日志对象构造和 feature merge 却可能比公式本身更贵。因此这里分析的重点不是 C++ 语法，而是 <strong>C++ 函数边界应该长什么样</strong>。</p>
-<p>事件引擎每隔 <code>requote_interval</code> 秒被 Python main loop 调用一次 <code>tick()</code>，整个决策链跑在同一个线程上：</p>
-<div class="code-wrapper"><pre><code class="hljs text">WebSocket callback → aggTrade/depth → signal.on_agg_trade()
-                                              ↓
-main loop: tick() ──► _requote()
+<p>事件引擎每隔 <code>requote_interval</code> 秒被 Python main loop 调用一次 <code>tick()</code>。<strong>报价决策与默认<br>同步 REST new/cancel 在 main thread 串行执行，但 Binance WebSocket decode/callback 位于各自<br>callback thread，并通过 <code>SignalEngine</code> 的锁更新共享状态。</strong> receive timestamp 在 callback<br>接收/归一化边界打点；main thread 在 requote 时读取一致 snapshot。当前默认 order adapter<br>没有独立线程，只有关闭的 async-gateway research path 才把 REST 工作移出 decision thread。</p>
+<div class="code-wrapper"><pre><code class="hljs text">WebSocket callback threads ─► decode / receive timestamp / SignalEngine update
+                                              │ lock-protected shared state
+                                              ▼
+main decision thread: tick() ──► _requote()
            │              ├── compute_signal()          # LightGBM predict
            │              ├── compute_quote_core_live() # C++ compact path
            │              └── _update_orders()
            │                      ├── _build_side_policy()
            │                      └── REST new/cancel
            └── [sleep rq_interval]</code></pre></div>
-<p>这里没有批量处理的机会：每次报价决策只有一组 state，一个 depth snapshot。释放 GIL 换并行也不适用——WebSocket 回调、quote 决策和 REST 调用都在同一线程中串行执行，GIL 切换反而是额外开销。</p>
+<p>这里没有批量处理的机会：每次报价决策只有一组 state，一个 depth snapshot。当前 tiny<br>scalar native call 与上述线程/锁模型下，释放 GIL 的 benchmark 没有显示收益；这只是该调用<br>边界的实测结论，不是“live 系统一律不该释放 GIL”。callback thread、decision thread、日志<br>和模型调用仍可能竞争 GIL/锁，是否释放必须连同 snapshot 一致性和 p99 soak 一起测。</p>
 <p>早期的错误迁移方式长这样：</p>
 <div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-comment"># 每 tick 都创建大对象，再跨 pybind 边界，再返回大 dict。</span>
 <span class="hljs-comment"># C++ 只算了 quote 公式，Python 仍然负责 policy/routing。</span>
@@ -2254,7 +2271,14 @@ Python normalized event state
         |
         | fixed tuple / array / span-like views
         v
-C++ quote + side policy + routing bundle
+C++ compact quote core
+        |
+        v
+Python `_build_side_policy()`
+        |
+        | fixed policy tuples
+        v
+C++ partial routing / price-size-action back half
         |
         | compact result: price, size, can_post, reason_mask
         v
@@ -2263,7 +2287,7 @@ Python order adapter
         v
 exchange REST/WebSocket</code></pre></div>
 <p>这样做的收益不是“C++ 数学快了多少”，而是减少边界上的动态对象。前面的 live benchmark 里也能看到这个现象：原始 routing 桥接大约是 <code>6us</code> 级别，当前 x86 artifact 中 compact ABI 约为 <code>1.94us</code> mean、<code>3.10us</code> p99；但如果只把 scalar quote core 单独搬过去，pybind/dataclass 往返会把收益吃掉，甚至变慢。</p>
-<p>这也是为什么 WebSocket 不急着迁 C++。行情接收、日志、健康检查、REST adapter 都不是最值得先动的地方。真正应该收紧的是 WebSocket 上方、下单 adapter 下方的这一小段：<strong>rolling state -&gt; quote -&gt; policy -&gt; route decision</strong>。</p>
+<p>这也是为什么 WebSocket 目前不急着迁 C++。现有 profile 尚未证明它比 state/quote/routing<br>边界有更高收益；真正先收紧的是 receive-state 与下单 adapter 之间的<br><strong>rolling state -&gt; native quote -&gt; Python policy -&gt; native partial route decision</strong>。这是一条<br>当前机器和代码下的优先级判断，不是关于所有 WebSocket 实现的一般定律。</p>
 <h4 id="2-2-3-routing-bridge：当前还不是完整-native-决策包"><a href="#2-2-3-routing-bridge：当前还不是完整-native-决策包" class="headerlink" title="2.2.3 routing bridge：当前还不是完整 native 决策包"></a>2.2.3 routing bridge：当前还不是完整 native 决策包</h4><p><code>_build_side_policy()</code> 是 live 路径的另一个计算热点。它接收 quote_context、L2 metrics 和 pred，输出 <code>spread_mult</code>、<code>size_mult</code>、<code>allow_post</code>、<code>reason_mask</code>，大量工作是评估 10+ 个 policy guard 的条件。</p>
 <p>这些条件判断本身不重，但每次需要访问 Python dict（<code>quote_ctx.get(&quot;side_adverse&quot;, False)</code> 等），在单 tick 热路径上积少成多。</p>
 <p><code>NARROWGATE_CPP_LIVE_ROUTING</code> 仍只接管后半段的价格调整、spread cap、库存准入、size 和 cancel/replace 判断，但跨语言接口已经从动态 dict 收紧为固定布局：</p>
@@ -2525,7 +2549,7 @@ iTLB-loads,iTLB-load-misses \
 <p><strong>本节实操结论</strong></p>
 <ul>
 <li>参数映射要从 <code>gamma/kappa/sigma -&gt; spread/reservation/tick</code> 讲清楚，再谈 ML 是否有用。</li>
-<li>queue ahead 的可信度来自保守初始化、逐笔消耗和 live 校准，而不是声称知道真实 FIFO。</li>
+<li>queue ahead 只在“可见 queue ahead 与 cancellation-ahead 假设”这一维度偏悲观；隐藏流动性、聚合 trades、sequence gap、前后方撤单归属和 receive ordering 仍可能让整体误差双向偏移。应报告 assumption sensitivity，不能把整个 execution simulator 简称为保守。</li>
 <li>shadow mode 必须有样本量、fill calibration、markout calibration 和库存风险硬 gate。</li>
 <li>Python/C++ 胶水层的关键是一次传连续数组或固定 tuple，不在每 tick 传动态对象。</li>
 <li>fixed-array signal 当前是渐进式迁移：稳定热点进 C++，实验性特征保留更灵活的路径。</li>
@@ -2535,12 +2559,12 @@ iTLB-loads,iTLB-load-misses \
 </blockquote>
 <h4 id="2-2-6-live-路径不该做的事"><a href="#2-2-6-live-路径不该做的事" class="headerlink" title="2.2.6 live 路径不该做的事"></a>2.2.6 live 路径不该做的事</h4><p>这套设计也确定了 live 路径不迁移的边界：</p>
 <ul>
-<li><strong>WebSocket 层</strong>：网络延迟主导，C++ 写 WebSocket client 不缩短决策尾延迟，只增加维护面</li>
+<li><strong>WebSocket 层</strong>：在当前机器、feed 与 Python callback profile 下，尚未证明迁移 WebSocket 比 quote/state/routing 边界有更高收益，因此暂不列为优先项；这不是一般工程定律</li>
 <li><strong>LightGBM 推理</strong>：模型本身已 native（LightGBM C API），Python 只做 feature → array 转换</li>
 <li><strong>大块 Python 编排逻辑</strong>：config reload、日志、HEALTH 上报、REST 重连、<code>sell_resiliency_shadow.csv</code> 这类可观测性输出——这些不在 CPU 热点，放 Python 更容易验证和修改</li>
-<li><strong>GIL 释放</strong>：live 主路径单线程，释放 GIL 无收益；WebSocket 回调在不同 thread 里，releasing GIL 反而引入竞争</li>
+<li><strong>GIL 释放</strong>：当前 tiny scalar native call 和现有 callback/main-thread 模型下未显示收益；更大 native 区域仍需结合锁、snapshot 一致性和长样本 p99 重新测</li>
 </ul>
-<p>live 路径的结论和 offline 路径相同，但结论的来路完全不同：<strong>offline 关心吞吐，live 关心尾延迟；offline 可以 batch，live 只能 scalar；offline 释放 GIL 有意义，live 中通常没有</strong>。把 offline 的优化模式复制到 live，往往只是更快地得到一个无收益的结果。</p>
+<p>live 路径的结论和 offline 路径相同，但结论的来路完全不同：<strong>offline 关心吞吐，live 关心尾延迟；offline 可以 batch，live 通常是 scalar；GIL 是否释放必须按具体调用边界验证</strong>。把 offline 的优化模式直接复制到 live，往往得不到同样收益。</p>
 <blockquote>
 <p><strong>本节工程结论</strong></p>
 <ul>
@@ -2567,16 +2591,17 @@ iTLB-loads,iTLB-load-misses \
 <div class="code-wrapper"><pre><code class="hljs text">Binance WebSocket client callback threads
         |
         v
-Python WSHandler
+Python WSHandler: decode + receive timestamp
         |
         v
-SignalEngine with Lock
+SignalEngine with lock-protected update/snapshot
         |
         v
-main loop: engine.tick() every short sleep
+main decision loop: engine.tick() / quote / Python side policy
         |
         v
-REST order adapter</code></pre></div>
+synchronous REST order adapter (default baseline)</code></pre></div>
+<p>因此 callback 可能与 decision thread 竞争 GIL 或 <code>SignalEngine</code> lock，但不会在同一个 Python<br>调用栈里串行执行。默认 REST 会阻塞 main decision loop；async gateway 只是一条已回滚为<br>research-only 的可观测路径。这个线程边界也是为什么“某个 pybind call 释放 GIL 无收益”<br>不能外推成整个 live 系统的结论。</p>
 <p>这和更硬核的低延迟架构不同：</p>
 <div class="code-wrapper"><pre><code class="hljs text">NIC / kernel bypass or tuned socket
         |
@@ -2605,7 +2630,7 @@ order gateway thread</code></pre></div>
 <li><strong>campaign-level label</strong>：把 flat -&gt; nonzero -&gt; flat 的 terminal PnL、repair rate、early drawdown、max inventory、duration 和 exposure-increasing fills 做成监督目标，避免只看单笔 20s/30s markout。</li>
 <li><strong>local liquidity reversion / absorptive capacity</strong>：统一 response kernel、OU half-life、depth refill/cancel 的 bucket taxonomy，验证 aggressive flow 是可吸收扰动还是信息冲击。</li>
 <li><strong>multi-venue moderator</strong>：BTCUSDT futures 的 submit/fill-time pending residual 已完成 1s/5s/20s/30s retained111 复核，排序不足以支持 direct re-center；spot fill-time residual 只支持 post-fill campaign-risk calibration。reference 数据的日期集合也不能宽于 BTCUSDC execution good-day universe。</li>
-<li><strong>宽搜索后的因果复盘</strong>：1024-arm fast screening 没有找到 retained39 上直接战胜 baseline 的完整组合；下一步不是继续增加随机 arm 数，而是拆解少亏候选为什么通过降低 fills、扩大 spread 或增加 inventory-time 换来 PnL 改善。</li>
+<li><strong>宽搜索后的因果复盘</strong>：在 2026-07-08 那一代 code/config/manifest/search space 中，1024-arm fast screening 的 top-16 完整组合没有在 retained39 上战胜对应 baseline；后续 ablation 找到 raw/inventory 局部改善组件，但 tail/campaign strict gate 仍未同时通过。下一步不是把这次结果写成永久状态，而是随每次搜索记录 experiment ID、baseline config hash、commit、manifest hash、selection panel 与 late holdout，再拆解改善来自 fill quality 还是活动量/库存风险重分配。</li>
 </ol>
 <p>最近的 lifecycle-risk 复盘也放在这条策略轨道内，而不是系统轨道内。曾经的严格候选：</p>
 <div class="code-wrapper"><pre><code class="hljs text">SHORT campaign
@@ -2682,13 +2707,13 @@ order gateway thread</code></pre></div>
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
+      
         <a href="/tags/C/" class="print-no-link">#C++</a>
       
         <a href="/tags/%E4%BD%8E%E5%BB%B6%E6%97%B6/" class="print-no-link">#低延时</a>
       
         <a href="/tags/pybind11/" class="print-no-link">#pybind11</a>
-      
-        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
       
         <a href="/tags/%E7%B3%BB%E7%BB%9F%E5%B7%A5%E7%A8%8B/" class="print-no-link">#系统工程</a>
       
@@ -2751,8 +2776,8 @@ order gateway thread</code></pre></div>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/" title="NarrowGate：Maker Quote EV 与被动做市研究框架">
-                        <span class="hidden-mobile">NarrowGate：Maker Quote EV 与被动做市研究框架</span>
+                      <a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/" title="NarrowGate：Maker Quote EV、Order-Level Evidence 与 Campaign Risk">
+                        <span class="hidden-mobile">NarrowGate：Maker Quote EV、Order-Level Evidence 与 Campaign Risk</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
