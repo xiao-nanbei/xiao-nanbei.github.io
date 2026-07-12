@@ -331,7 +331,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          85k 字
+          86k 字
         
       </span>
     
@@ -343,7 +343,7 @@
         
         
           <!-- compatible with older versions-->
-          708 分钟
+          713 分钟
         
       </span>
     
@@ -1625,6 +1625,7 @@ python3 models/fast_cpp_arm_smoke.py \
 <p><code>quick-smoke</code> 默认只跑一个上限约 30 个 arms 的 group-balanced 小面板；完整<br>60+ arm 主效应面必须显式使用 <code>--stage quick-full-main-effect</code>。宽 Sobol/search<br>先走 summary-only C++ smoke，只有 survivor 才进入 campaign replay。后者在每个<br>UTC day 完成后写 partial daily / rollup / campaign labels，长任务中断时不会把<br>整段计算全部丢掉。</p>
 <p>它不是“自动炼金器”。它只是把过去散落在多个 <code>*_sweep.py</code>、<code>stage_t_*</code> 和 bucket 脚本里的调参动作，收束成一个约束优先的实验设计：</p>
 <p>这也意味着早期 sweep 里出现过的 winner 不能被重新包装成当前候选。只要它来自连续跨日/月度 replay、pre-cleanup feature、未 parity 的 C++ sweep、回测专属 guard、或只按 raw/InvAdj 排序的旧表格，就只能作为 archived lesson。当前参数研究必须从 rolling live baseline 重新出发，先过 mechanism gate，再看 campaign outcome 和 order-level fill selection。</p>
+<p>C++ fast screening、fill-quality score 和 action-level OPE 也必须分开。C++ 的职责是更快生成经过 parity<br>约束的订单生命周期反事实；score 只负责排序状态；真正估计候选动作价值时，还需要完整 decision<br>denominator、behavior propensity、action overlap、action-specific reward 与 doubly robust evaluation。<br>项目新增的 <code>models.audit.offline_policy_evaluation</code> 会输出 DM、clipped IPS/SNIPS、DR、day-cluster<br>bootstrap、ESS 和 unsupported mass。若 <code>re-center/skip/widen</code> 从未被 behavior policy 尝试，它会 fail<br>overlap gate，而不是让 C++ 回放速度或回归外推替这个动作“补证据”。输入与边界见<br><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/docs/offline_policy_evaluation_20260712.md">GitHub OPE 文档</a>。<br>即使数值 gate 通过，结论仍以 consistency、conditional exchangeability、positivity、无跨 decision<br>干扰和正确 reward attribution 为条件；C++ parity 只提高反事实生成可信度，不会自动满足这些<br>因果识别假设。</p>
 <div class="code-wrapper"><pre><code class="hljs text">parameter coverage
   -&gt; one-factor / Sobol candidates
   -&gt; quick-smoke retained days
