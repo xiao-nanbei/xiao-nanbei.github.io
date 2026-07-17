@@ -19,19 +19,19 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="TL;DR：读者收益摘要 版本边界（2026-07-11）：本文是一篇持续更新的研究记录，不是某个固定 commit的永久说明。没有明确日期的“当前”均指本次更新时间；历史实验会保留experiment date&#x2F;panel 身份。公开 main、私有 rolling baseline 与文中历史结果可能处在不同阶段，任何 promotion 结论都应回到对应的 config hash、code">
+    <meta name="description" content="TL;DR：读者收益摘要 版本边界（2026-07-17）：本文是一篇持续更新的研究记录，不是某个固定 commit的永久说明。没有明确日期的“当前”均指本次更新时间；历史实验会保留experiment date&#x2F;panel 身份。公开 main、私有 rolling baseline 与文中历史结果可能处在不同阶段，任何 promotion 结论都应回到对应的 config hash、code">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate：Maker Quote EV、Order-Level Evidence 与 Campaign Risk">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="TL;DR：读者收益摘要 版本边界（2026-07-11）：本文是一篇持续更新的研究记录，不是某个固定 commit的永久说明。没有明确日期的“当前”均指本次更新时间；历史实验会保留experiment date&#x2F;panel 身份。公开 main、私有 rolling baseline 与文中历史结果可能处在不同阶段，任何 promotion 结论都应回到对应的 config hash、code">
+<meta property="og:description" content="TL;DR：读者收益摘要 版本边界（2026-07-17）：本文是一篇持续更新的研究记录，不是某个固定 commit的永久说明。没有明确日期的“当前”均指本次更新时间；历史实验会保留experiment date&#x2F;panel 身份。公开 main、私有 rolling baseline 与文中历史结果可能处在不同阶段，任何 promotion 结论都应回到对应的 config hash、code">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/maker-hot-path.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/data-lineage.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/quote-ladder.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/order-lifecycle.svg">
 <meta property="article:published_time" content="2026-06-19T08:50:48.000Z">
-<meta property="article:modified_time" content="2026-07-11T04:10:00.000Z">
+<meta property="article:modified_time" content="2026-07-17T10:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
@@ -336,7 +336,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          71k 字
+          74k 字
         
       </span>
     
@@ -348,7 +348,7 @@
         
         
           <!-- compatible with older versions-->
-          594 分钟
+          615 分钟
         
       </span>
     
@@ -393,7 +393,7 @@
               <div class="markdown-body">
                 
                 <h2 id="TL-DR：读者收益摘要"><a href="#TL-DR：读者收益摘要" class="headerlink" title="TL;DR：读者收益摘要"></a>TL;DR：读者收益摘要</h2><blockquote>
-<p><strong>版本边界（2026-07-11）</strong>：本文是一篇持续更新的研究记录，不是某个固定 commit<br>的永久说明。没有明确日期的“当前”均指本次更新时间；历史实验会保留<br>experiment date/panel 身份。公开 <code>main</code>、私有 rolling baseline 与文中历史结果<br>可能处在不同阶段，任何 promotion 结论都应回到对应的 config hash、code commit、<br>retained manifest 和 holdout 身份核对。</p>
+<p><strong>版本边界（2026-07-17）</strong>：本文是一篇持续更新的研究记录，不是某个固定 commit<br>的永久说明。没有明确日期的“当前”均指本次更新时间；历史实验会保留<br>experiment date/panel 身份。公开 <code>main</code>、私有 rolling baseline 与文中历史结果<br>可能处在不同阶段，任何 promotion 结论都应回到对应的 config hash、code commit、<br>retained manifest 和 holdout 身份核对。</p>
 </blockquote>
 <p><strong>NarrowGate</strong> 不是一个“做市策略已经跑通并盈利”的项目，而是一个用于验证 maker<br>成交选择、订单生命周期与库存 campaign 风险的研究框架。quote EV 是其中一条历史研究<br>路线，不是当前 active live policy 的代称。核心问题仍然是：一笔被动限价单被成交之后，<br>到底是在收取 spread，还是在替更快的信息交易者接风险。</p>
 <p>这篇文章只讲算法与证据框架；C++、pybind、x86 benchmark 和 live hot path 细节拆到另一篇：<a href="/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/">NarrowGate：C++ Tick Replay 与低延时工程边界</a>。</p>
@@ -613,7 +613,7 @@ order-level denominator + fill markout + campaign labels
         ▼
 fill-quality / risk / quote-EV shadow evidence + daily gates</code></pre></div>
 <p>这条链路很重要，因为 quote EV、fill-selection score 和 campaign-risk score 都不是从原始<br>行情直接训练出来的万能模型。它们依赖上游报价轨迹、成交路径、未来 markout 和<br>cross-market context；任何一层的数据边界或执行口径出错，最后得到的 AUC 和 PnL 都可能<br>只是被污染后的精确数字。旧的 direct quote-EV spread/pause/tighten 路径已经归档并<br>fail-fast；文中后续保留的 quote-EV 伪代码或实验，除非明确标为 active，否则都应理解为<br>历史抽象或 shadow calibration。</p>
-<p>这也是为什么数据源需要先分层，而不是全部丢进一个 dataframe。NarrowGate 里至少有四类数据：</p>
+<p>这也是为什么数据源需要先分层，而不是全部丢进一个 dataframe。NarrowGate 里至少有五类数据：</p>
 <p><img src="/images/narrowgate/data-lineage.svg" srcset="/img/loading.gif" lazyload alt="NarrowGate research data lineage"></p>
 <div class="table-container">
 <table>
@@ -640,9 +640,9 @@ fill-quality / risk / quote-EV shadow evidence + daily gates</code></pre></div>
 </tr>
 <tr>
 <td>slow market context</td>
-<td>Binance OI、long/short ratio、旧 <code>bookDepth</code> 百分比桶</td>
-<td>慢变量和历史 proxy；<code>bookDepth</code> 只保留为 legacy/archival 口径，不作为精确 L2 撮合依据</td>
-<td><code>bookDepth</code> 是百分比聚合桶，不等价于运行时 top-20 depth，也不能支持 event-level cancel 或 queue parity</td>
+<td>Binance OI、long/short ratio、funding/premium 等日度慢变量</td>
+<td>regime 与慢速风险上下文</td>
+<td>采样频率和 quote-time 动作尺度不同，不能直接当成毫秒级价格发现信号</td>
 </tr>
 <tr>
 <td>cross-market anchors</td>
@@ -1182,11 +1182,13 @@ r_t = S_t - q_t \gamma \sigma_t^2 (T-t)</script><script type="math/tex; mode=dis
 <script type="math/tex; mode=display">
 \text{toxicity} \rightarrow
 \kappa_{\text{eff}} \rightarrow \delta^\ast</script><p>这是一条明确的未完成边界。未来如果要真正“搞定 AS 坐标系”，需要让 toxicity、reference shock 和 live fill calibration 共同形变 <code>Lambda(delta)</code>，并要求变形后的曲线能通过 shadow fill probability calibration，而不只是让某个聚合窗口 A/B 的 raw PnL 变好。</p>
-<h3 id="1-6-第一场真正的麻烦来自数据，而不是模型"><a href="#1-6-第一场真正的麻烦来自数据，而不是模型" class="headerlink" title="1.6 第一场真正的麻烦来自数据，而不是模型"></a>1.6 第一场真正的麻烦来自数据，而不是模型</h3><p>项目的数据主要来自两类来源：</p>
+<h3 id="1-6-第一场真正的麻烦来自数据，而不是模型"><a href="#1-6-第一场真正的麻烦来自数据，而不是模型" class="headerlink" title="1.6 第一场真正的麻烦来自数据，而不是模型"></a>1.6 第一场真正的麻烦来自数据，而不是模型</h3><p>项目的数据主要来自三类来源：</p>
 <ul>
-<li>Binance Vision 的 aggTrades、bookDepth、metrics，以及后续补充的 spot 数据；</li>
+<li>Binance Vision 的 aggTrades/trades、metrics，以及后续补充的 spot 数据；</li>
 <li>CryptoHFTData 的原生 orderbook 数据，用于重建 BBO 和 top-N L2。</li>
+<li>Bitget、Bybit、OKX 的历史 trades 与 public WebSocket BBO/trades，用于独立 venue shadow。</li>
 </ul>
+<p>早期曾接入 Binance Vision 的 <code>bookDepth</code> 百分比桶，但它不是逐价 L2，也无法支持<br>queue 或 event-level replay。2026-07-17 已删除 downloader、preprocessor、feature<br>fallback、<code>--use-book-depth-proxy</code> 和对应 C++ proxy；它只作为历史踩坑被本文提及，<br>不再属于当前数据 manifest 或任何正式训练/回放入口。</p>
 <p>最开始很容易产生一种错觉：文件存在，就代表这一小时的数据可用。实际并不是这样。CryptoHFTData 中出现过两种更隐蔽的问题：</p>
 <ol>
 <li>某些小时文件直接缺失；</li>
@@ -1234,11 +1236,6 @@ r_t = S_t - q_t \gamma \sigma_t^2 (T-t)</script><script type="math/tex; mode=dis
 <td><code>features_YYYY-MM-DD.parquet</code></td>
 <td>训练 dataset 是日文件拼接结果，不再从月 feature 容器读取</td>
 </tr>
-<tr>
-<td>bookDepth proxy</td>
-<td><code>depth_1s/*-YYYY-MM-DD.parquet</code></td>
-<td>仅作 legacy proxy；主执行层仍用 CryptoHFT BBO/L2</td>
-</tr>
 </tbody>
 </table>
 </div>
@@ -1246,7 +1243,7 @@ r_t = S_t - q_t \gamma \sigma_t^2 (T-t)</script><script type="math/tex; mode=dis
 <p>这个结果也修正了“最小有限子集”的说法：物理层不应该保留坏日，也不应该保留跨坏日的非日度容器；但质量合格的日度好日仍然可以作为 OOS/research pool 保留，不需要裁成一个过小、固定、容易过拟合的子集。某一天是否进入训练、replay 或 promotion evidence，由 retained daily universe 和 <code>data_quality.py</code> 的逻辑过滤决定。</p>
 <p>2026-06-28 与 2026-07-01 的最终口径是：<code>$&#123;NARROWGATE_DATA_ROOT&#125;</code> 下策略相关行情容器按 UTC day 组织，坏日期物理残留为 0。2026-07-05 又做了一次更硬的边界收束：本地 2025 市场数据全部从当前研究面板删除，BTCUSDT raw trades 只保留与 BTCUSDC core layers 同时完备的 111 个 2026 good days，其余 reference-only 日期被删除。它看起来像清理磁盘，其实是清理研究边界：<strong>物理容器和策略结论都默认按 UTC day 组织，并且 reference 数据不能比 execution universe 更宽</strong>。</p>
 <p>这个清理还同步到了代码仓库边界：旧远端 <code>main</code> 曾经是 BTCUSDT 执行项目，当前维护分支只保留 BTCUSDC 执行研究；BTCUSDT 退回为 reference/source 数据，不再作为同仓库内的第二个执行交易对。这样做不是否定 BTCUSDT 的信息价值，而是避免“执行标的”和“参考标的”在代码、模型、数据 manifest 和文档里互相污染。</p>
-<p>这里还要区分“某一层数据已经到达”和“完整训练/回测链路已经可用”。2026-07-02 早上检查时，CryptoHFTData 的 2026-07-01 exact L2 已经可下载，但 Binance Vision 的 execution/reference 层还没有同时到达，因此当时只能说 <strong>exact L2 层可用</strong>。到 2026-07-10，<code>2026-07-04</code> 已按同一口径补齐 futures/spot trades、metrics、exact L2/BBO、1s bars、depth/metrics 与 enhanced features，并重新进入 parity/smoke 窗口。这个例子说明补数不能按“某个 URL 返回 200”判断完成：BTCUSDC execution、BTCUSDT reference、spot anchors、BBO/L2 和 features 必须一起通过 good-day manifest，否则整天排除。</p>
+<p>这里还要区分“某一层数据已经到达”和“完整训练/回测链路已经可用”。2026-07-02 早上检查时，CryptoHFTData 的 2026-07-01 exact L2 已经可下载，但 Binance Vision 的 execution/reference 层还没有同时到达，因此当时只能说 <strong>exact L2 层可用</strong>。到 2026-07-10，<code>2026-07-04</code> 已按同一口径补齐 futures/spot trades、metrics、exact L2/BBO、1s bars 与 enhanced features，并重新进入 parity/smoke 窗口。这个例子说明补数不能按“某个 URL 返回 200”判断完成：BTCUSDC execution、BTCUSDT reference、spot anchors、BBO/L2 和 features 必须一起通过 good-day manifest，否则整天排除。</p>
 <p>新的核心入口也因此改成：</p>
 <div class="code-wrapper"><pre><code class="hljs bash">python3 models/backtest_tick.py --symbol BTCUSDC --day 2026-05-15 --ml --engine python
 python3 models/tick_ab.py adaptive_ttl --symbol BTCUSDC --days 2026-05-15 2026-05-16 --engine python
@@ -1983,6 +1980,27 @@ trend_inventory_risk       # 大级别趋势是否正在放大库存风险</code
 <li><strong>late holdout 尾部层</strong>：新增的是 tail 次数还是单次损失，来自 BUY long、SELL short，还是 restart/继承库存等特殊路径。</li>
 </ul>
 <p>下一步应该针对 baseline 明显落后 executable null 的 tail days 建 side-specific quote-time label，再用 campaign terminal outcome 检查它是否真的改善了成交选择。</p>
+<h3 id="2-6-2026-07-15：旧-ML-精确数值失效后的正式重校准"><a href="#2-6-2026-07-15：旧-ML-精确数值失效后的正式重校准" class="headerlink" title="2.6 2026-07-15：旧 ML 精确数值失效后的正式重校准"></a>2.6 2026-07-15：旧 ML 精确数值失效后的正式重校准</h3><p>一次完整的时间与单位审计改变了本文中旧 ML 数字的证据等级。旧离线特征行以<br>10 秒桶左边界为索引，但行内包含 <code>[t,t+10s)</code> 的 close、volume 等信息；旧 tick<br>replay 又在 <code>t</code> 时刻直接使用该行。线上要等桶完成后才能预测，因此旧 ML 和旧<br>multi-market tick A/B 存在确定的约 10 秒可用时间错误。旧 replay 还主要由<br>execution trade 推进，稀疏成交期的 BBO/L2、TTL、cooldown 和 timer 也可能晚于<br>真实时间生效。</p>
+<p>从本次 checkpoint 起，旧 ML、多行情以及受 trade-clock 影响的精确 PnL 数值只<br>保留为研究历史，不再参与参数选择和 promotion。新的 formal replay 使用：</p>
+<ul>
+<li>bucket-end <code>feature_ready_ts</code> 与 7 日因果 warmup；</li>
+<li>trade、BBO/L2 和 timer 的合并事件时钟；</li>
+<li>明确的 price-variance/horizon 单位；</li>
+<li>数量加权 maker-signed markout；</li>
+<li>期末 MTM，不扣假想 taker close；</li>
+<li>strict P3、queue 和 REST-latency calibration identity。</li>
+</ul>
+<p>重新校准后的 10 秒 P3 主模型得到 <code>delta*=13.9991 USDC/BTC</code>、<br><code>effective_kappa=0.067438</code>；5 秒敏感性结果为 <code>10.9991</code> 与 <code>0.083114</code>。因此<br>effective kappa 必须与 horizon、fill definition 和数据版本绑定，旧 YAML 中的<br>固定 <code>kappa=0.073</code> 只能视为历史兼容字段，不能再描述成当前有效 κ。</p>
+<p>queue 校准也暴露了比单一倍率更深的问题。07-10/11 上，<br><code>queue_ahead_base_mult=0.70</code> 把 pooled replay fills 拟合到 live 的 <code>444 vs 441</code>；<br>冻结后用于 07-12..14，却变成 <code>1044 vs 1515</code>，少 31.1%。旧隐藏默认 0.15 在<br>未来三日碰巧接近 live，却在拟合日多 50%，不能事后选回。当前结论不是“0.70<br>最优”或“0.15 最优”，而是固定倍率没有识别跨日变化的 cancellation-ahead 与<br>book refresh。绝对 PnL 只能叫 calibration-conditional；正式报告必须绑定 queue<br>artifact 路径、SHA256、fit days、schema 和 replay 参数。</p>
+<p>在冻结 q0.70 identity 下，119 日 causal-v2 A/B 的 ML OFF raw 为 <code>-636.45</code>，<br>ML ON 为 <code>-653.54</code>，delta <code>-17.10</code>；tail 从 73 降到 62，但 BUY markout 变差约<br>0.177bps，整体 paired test 不显著。新增 07-12..14 三个 good days 上 ML delta<br>为 <code>+2.06</code> 且三日同号，但三日不能构成 promotion panel，且这些日期的 queue<br>仍明显 underfill。因此当前 formal comparison baseline 是 ML OFF，causal-v2 ML<br>ON 只保留为 research arm，没有据此修改 live。</p>
+<p>完整可复核口径见 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/docs/formal_recalibration_causal_v2_20260715.md">NarrowGateMaker formal recalibration report</a>。</p>
+<h3 id="2-7-2026-07-17：BUY-scorer-与-shared-side-policy-完成双引擎-parity"><a href="#2-7-2026-07-17：BUY-scorer-与-shared-side-policy-完成双引擎-parity" class="headerlink" title="2.7 2026-07-17：BUY scorer 与 shared side policy 完成双引擎 parity"></a>2.7 2026-07-17：BUY scorer 与 shared side policy 完成双引擎 parity</h3><p>7 月 15 日修复事件时钟与特征可用时间后，C++ formal replay 仍有两处完整窗口<br>偏移。它们后来都被定位为离散 policy 语义，而不是浮点累计：</p>
+<ol>
+<li>Python 在 post-policy-only 再次触发 spread cap 时，漏计了一次<br><code>final_cap_compress_rate</code>；C++ 会把 initial 与 post-policy compression 合并计数；</li>
+<li>C++ 仍走旧 shallow-depth multiplier，只看一个较浅的 depth 字段，可能在 exact L2<br>已显示深度充足时错误施加 <code>1.1</code> thin-depth multiplier。</li>
+</ol>
+<p>修复后，Python/live 的 <code>evaluate_common_side_policy()</code> 与 C++ 的<br><code>evaluate_common_side_policy_cpp()</code> 对 BUY/SELL 使用同一行为契约，spread、size、<br>hard pause 与 exposure-only allow 不再由两套漂移的旧 helper 各自解释。<br>BUY fill-selection 也补齐了<br>C++ ABI v3：Python adapter 先按 causal <code>feature_ready_ts</code> 将<br><code>Prediction.feature_dict</code> 中的静态 fold contribution 编译为数组，C++ 再与<br>quote-time distance、depth、toxicity、inventory 和 policy allow 字段合并，执行与<br>Python 相同的 shrink、fold average、missing gate 与 actionable gate。旧 ABI 或静态<br>payload 不完整时直接 fail fast。</p>
+<p>当前验证为全仓 <code>355 passed, 4 skipped</code>；May normal/high activity、Feb sparse 与<br>Jan A/B 四个 real-data golden 均通过 summary、PnL path、fills、inventory-time 与<br>trace 长度对照。这个 checkpoint 说明 BUY scorer 和 active common-policy surface<br>已经可以进入 C++ fast screening；它不表示 queue cancellation-ahead、逐请求 REST<br>latency、P3 artifact identity 或 live-only sync/user-stream 故障已经被历史 replay<br>完全识别。完整代码边界见<br><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/docs/live_replay_code_parity_20260717.md">live/replay parity report</a>。</p>
 <h2 id="结论：窄门不是参数，而是证据门槛"><a href="#结论：窄门不是参数，而是证据门槛" class="headerlink" title="结论：窄门不是参数，而是证据门槛"></a>结论：窄门不是参数，而是证据门槛</h2><p>NarrowGate 从一个 AS 公式实验，走到了数据审计、跨市场冲击归因、逐侧 quote EV、库存时间积分、opportunity/executable 两层 null baseline、order-level denominator 和 baseline-gated C++ 参数 racing。这个过程也不断推翻自己的旧答案：更多 reference 没有自动带来更好 policy；ask EV 的 raw 改善没有通过校准；连续长窗回测被日度 fresh-start 取代；局部 SELL bucket、toxic-risk 和 campaign 控制只能先做 shadow/replay evidence；1024 个参数组合也没有绕过 retained39 的 OOS 约束。</p>
 <p>最初的问题因此被越问越窄：不是“能不能预测 BTC”，而是“在这一侧、这个价格、这个盘口和这段库存暴露下，是否值得提供一次短暂的被动流动性”。两层 null baseline 让这句话更尖锐：opportunity null 检查 actual fills 是否被 adverse selection 选中，executable null 检查这种差距在完整订单生命周期里是否仍然存在。如果策略选择出来的 fills 和 campaign path 没有稳定优于随机被动路径，真正的 alpha 就不是多加一个防守开关，而是重新学习 fill selection。宽参数搜索则补上另一半警告：短窗口找到的 PnL winner，可能只是少成交、spread 更宽或 inventory-time 转移，必须解释完代价交换才算证据。</p>
 <p>这可能也是“窄门”最贴切的地方。一个研究系统的成熟，不在于它接入了多少模型和数据源，而在于它愿意用多少层约束拒绝一个看起来很诱人的结论。</p>

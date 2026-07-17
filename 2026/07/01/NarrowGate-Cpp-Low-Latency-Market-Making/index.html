@@ -27,7 +27,7 @@
 <meta property="og:description" content="TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV、Order-Level Evidence 与 Campaign Risk》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。  版本边界（">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-07-01T00:03:00.000Z">
-<meta property="article:modified_time" content="2026-07-11T04:10:00.000Z">
+<meta property="article:modified_time" content="2026-07-17T10:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="C++">
 <meta property="article:tag" content="低延时">
@@ -331,7 +331,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          86k 字
+          87k 字
         
       </span>
     
@@ -343,7 +343,7 @@
         
         
           <!-- compatible with older versions-->
-          713 分钟
+          729 分钟
         
       </span>
     
@@ -389,7 +389,7 @@
                 
                 <h2 id="TL-DR：读者收益摘要"><a href="#TL-DR：读者收益摘要" class="headerlink" title="TL;DR：读者收益摘要"></a>TL;DR：读者收益摘要</h2><p>这篇文章是 NarrowGate 的工程篇，接在算法篇 <a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/">《NarrowGate：Maker Quote EV、Order-Level Evidence 与 Campaign Risk》</a> 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。</p>
 <blockquote>
-<p><strong>版本边界（2026-07-11）</strong>：本文持续记录多代 replay/live 实现。benchmark、soak 与<br>1024-arm search 都只属于其对应代码、配置、机器和日期窗口；历史数字不是当前 <code>main</code><br>或私有 rolling baseline 的永久性能/策略结论。</p>
+<p><strong>版本边界（2026-07-17）</strong>：本文持续记录多代 replay/live 实现。benchmark、soak 与<br>1024-arm search 都只属于其对应代码、配置、机器和日期窗口；历史数字不是当前 <code>main</code><br>或私有 rolling baseline 的永久性能/策略结论。</p>
 </blockquote>
 <p>项目源码与构建入口：<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker">GitHub - xiao-nanbei/NarrowGateMaker</a>。公开配置是安全研究模板，不是当前私有 live 参数快照。</p>
 <p>离线侧的低延时，本质是把严格 replay 从“只能抽样验证”推进到“可以按日、按窗口、按参数臂系统验证”。它关注 wall time、rows/s、windows/hour、内存峰值、路径一致性和结果可重复性；单个函数调用的尾部延迟只有在暴露 fallback、分配、swap 或过度订阅时才有解释价值。</p>
@@ -397,6 +397,7 @@
 <p>这两个目标最终都服务同一件事：让 maker 策略的 spread、skew、TTL、cooldown 和库存风险控制，可以在足够多反例里被验证，也可以在 live 中按预期执行。低延时不是独立于 alpha 的炫技，它是策略工程化后必须面对的执行条件。</p>
 <p>到 2026-07-10，项目里的工程边界又收紧了一层：tracked <code>live/config.yaml</code> 只保留公开模板，私有 live 参数通过 <code>NARROWGATE_LIVE_CONFIG</code> 注入；仓库补了根级 <code>pyproject.toml</code>、<code>narrowgate</code> CLI、CI、Docker/devcontainer 和 5 分钟 quickstart。这个变化不是“文档好看一点”，而是把低延时研究从个人实验推进到可复现边界：别人应该能跑通 quote demo、smoke test 和 public replay skeleton，但不应该拿到私有基础设施、模型快照和实盘参数。</p>
 <p>同一时期，C++ replay 也从“小窗口 parity 工具”推进成 active-parameter fast screening engine。queue side/regime calibration、replace throttle/pending coalesce、reducing-side cooldown、adaptive add cooldown、campaign soft control 和 BUY fill-selection score 已经进入 native 参数结构与状态机；每次宽搜索仍必须先用当前 rolling baseline 过 Python/C++ parity gate。仍留在 Python/live-only 边界的，主要是 archived <code>xmarket_retreat</code>、逐样本 empirical REST latency 回放，以及 user-stream mismatch / sync-adjust 这类只有实盘才存在的故障闭环。</p>
+<p>2026-07-17 的最新 checkpoint 又补齐了两个关键边界：Python/live 的<br><code>evaluate_common_side_policy()</code> 与 C++ replay 的<br><code>evaluate_common_side_policy_cpp()</code> 对 BUY/SELL 使用同一输入/输出契约和行为测试；<br>BUY fill-selection 的 causal<br>静态特征通过 ABI v3 进入 native replay，不再只传 quote-time 动态字段。全仓测试为<br><code>355 passed, 4 skipped</code>，May normal/high、Feb sparse、Jan A/B 四个 real-data<br>golden 均通过。这个结果允许 C++ 承接已 parity 参数面的 fast screening，但不等于<br>queue cancellation-ahead、逐请求 REST latency 或 live-only 故障已经被历史数据识别。</p>
 <p>策略侧也在同一天继续收缩。lifecycle-risk、campaign soft control 和 reducing cooldown 都没有被直接推成新 live arm；新的重点变成两层 null baseline 与 order-level fill-selection：先用 submit-time opportunity null 检查 actual fills 是否被 adverse selection 选中，再用完整状态机里的 executable passive null 检查 baseline 是否真的优于随机化报价路径，最后才把稳定 quote-time 条件映射到 spread、skew、TTL 或 cooldown。这说明系统可以把验证跑得更快、更细，但不能替策略证据补票。</p>
 <p>本文只讨论工程实现，不讨论也不建议任何真实交易行为。所有 PnL、fill、markout、A/B 和 benchmark 都是研究指标或系统指标，不是收益承诺。</p>
 <div class="table-container">
@@ -518,6 +519,7 @@ Normalized NumPy arrays
 <li><strong>函数存在不等于 ABI 一致</strong>：一次 x86 部署中，旧 pybind 模块仍有 <code>compute_quote_core_live</code>，但返回的 <code>QuoteFlags</code> 缺少新字段 <code>cap_exposure_block</code>。只检查函数名会在第一轮 quote 才失败；当前启动 preflight 同时实例化 <code>QuoteFlags</code>/<code>SideQuoteContext</code> 并核对字段 contract，旧扩展会在连接行情和报单前被拒绝。</li>
 </ul>
 <p>所以双引擎 parity 的本质不是“我把 Python 翻译成 C++ 了”，而是建立一套制度：<strong>每次 C++ 多迁一个状态机，都必须先在小真实窗口里通过路径级和金额级审讯，然后才允许进入 sweep/A/B</strong>。</p>
+<p>截至 2026-07-17，完整窗口中最后两处 drift 也已关闭。第一处是 Python 漏计<br>post-policy-only spread-cap compression，导致 <code>final_cap_compress_rate</code> 与 C++<br>不一致；第二处是 C++ 旧 helper 只看 shallow depth，可能在 exact L2 深度充足时<br>错误施加 <code>1.1</code> thin-depth multiplier。修复不是放宽 tolerance，而是让 Python 与<br>C++ 的等价 evaluator 对 BUY/SELL 产出相同的 spread、size、hard-pause 和<br>exposure allow 语义。四个 real-data golden 现在同时核对 summary、PnL path、fills、<br>inventory-time 与 trace 长度；相关边界记录在<br><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/docs/live_replay_code_parity_20260717.md">live/replay parity report</a>。</p>
 <h3 id="1-3-Queue-Ahead：回测要保守，但它不是实时系统"><a href="#1-3-Queue-Ahead：回测要保守，但它不是实时系统" class="headerlink" title="1.3 Queue Ahead：回测要保守，但它不是实时系统"></a>1.3 Queue Ahead：回测要保守，但它不是实时系统</h3><p>bar 回测最容易自欺欺人的地方是：只要下一根 bar 的 low/high 碰到我的价格，就认为成交。maker 策略里这几乎一定会高估结果，因为真实世界里还有队列。</p>
 <p>NarrowGate 的 tick replay 更保守：价格碰到只是必要条件，不是充分条件。订单进入盘口后，需要估计自己前面的 queue ahead，然后用后续 aggressive trade 去消耗这个 queue。</p>
 <p>简化逻辑如下：</p>
@@ -1096,46 +1098,28 @@ trace rows</code></pre></div>
   -&gt; close gap/completed bars
   -&gt; update rolling state
   -&gt; emit compact feature snapshot</code></pre></div>
-<p>固定时间窗的基础统计用模板表达。每次 push 只追加新值并从 deque 左侧淘汰过期值，<code>mean/stddev</code> 直接使用累计的一阶、二阶矩，不再扫描整个窗口：</p>
-<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span> &lt;<span class="hljs-type">int</span> WindowSeconds&gt;
-<span class="hljs-keyword">class</span> <span class="hljs-title class_">RollingStats</span> &#123;
+<p>当前实现不再保留早期的 <code>RollingStats&lt;WindowSeconds&gt;</code> 首版模板。稳定的长历史统计<br>使用 <code>CircularBuffer&lt;T&gt;</code> 与 <code>CountRollingMoments</code>：ring buffer 覆盖最旧值，<br>rolling moments 用支持删除旧值的 Welford <code>mean/M2</code> 更新，避免低方差序列里的消差。<br>短窗口、仍在变化的实验特征可以继续扫描有限 history，不为了追求“全部 O(1)”过早固化：</p>
+<div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">CountRollingMoments</span> &#123;
 <span class="hljs-keyword">public</span>:
-    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">push</span><span class="hljs-params">(std::<span class="hljs-type">int64_t</span> ts_ms, <span class="hljs-type">double</span> value)</span> </span>&#123;
-        values_.<span class="hljs-built_in">push_back</span>(&#123;ts_ms, value&#125;);
-        sum_ += value;
-        sum_sq_ += value * value;
-        <span class="hljs-built_in">expire</span>(ts_ms);
-    &#125;
+    <span class="hljs-function"><span class="hljs-keyword">explicit</span> <span class="hljs-title">CountRollingMoments</span><span class="hljs-params">(std::<span class="hljs-type">size_t</span> capacity)</span></span>
+<span class="hljs-function">        : values_(capacity) &#123;</span>&#125;
 
-    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">expire</span><span class="hljs-params">(std::<span class="hljs-type">int64_t</span> now_ms)</span> </span>&#123;
-        <span class="hljs-type">const</span> <span class="hljs-keyword">auto</span> cutoff = now_ms - WindowSeconds * <span class="hljs-number">1000LL</span>;
-        <span class="hljs-keyword">while</span> (!values_.<span class="hljs-built_in">empty</span>() &amp;&amp; values_.<span class="hljs-built_in">front</span>().first &lt;= cutoff) &#123;
-            <span class="hljs-type">const</span> <span class="hljs-type">double</span> old = values_.<span class="hljs-built_in">front</span>().second;
-            sum_ -= old;
-            sum_sq_ -= old * old;
-            values_.<span class="hljs-built_in">pop_front</span>();
+    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">push</span><span class="hljs-params">(<span class="hljs-type">double</span> value)</span> </span>&#123;
+        <span class="hljs-keyword">if</span> (values_.<span class="hljs-built_in">size</span>() == values_.<span class="hljs-built_in">capacity</span>()) &#123;
+            <span class="hljs-built_in">remove_value</span>(values_[<span class="hljs-number">0</span>], values_.<span class="hljs-built_in">size</span>(), mean_, m2_);
         &#125;
+        values_.<span class="hljs-built_in">push_back</span>(value);
+        <span class="hljs-built_in">add_value</span>(value, values_.<span class="hljs-built_in">size</span>(), mean_, m2_);
     &#125;
 
-    <span class="hljs-function"><span class="hljs-type">double</span> <span class="hljs-title">mean</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123;
-        <span class="hljs-keyword">return</span> values_.<span class="hljs-built_in">empty</span>() ? <span class="hljs-number">0.0</span> : sum_ / values_.<span class="hljs-built_in">size</span>();
-    &#125;
-
-    <span class="hljs-function"><span class="hljs-type">double</span> <span class="hljs-title">variance</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123;
-        <span class="hljs-keyword">if</span> (values_.<span class="hljs-built_in">size</span>() &lt; <span class="hljs-number">2</span>) <span class="hljs-keyword">return</span> <span class="hljs-number">0.0</span>;
-        <span class="hljs-type">const</span> <span class="hljs-type">double</span> mu = <span class="hljs-built_in">mean</span>();
-        <span class="hljs-keyword">return</span> std::<span class="hljs-built_in">max</span>(<span class="hljs-number">0.0</span>, sum_sq_ / values_.<span class="hljs-built_in">size</span>() - mu * mu);
-    &#125;
+    <span class="hljs-function"><span class="hljs-type">double</span> <span class="hljs-title">mean</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> <span class="hljs-keyword">noexcept</span> </span>&#123; <span class="hljs-keyword">return</span> mean_; &#125;
+    <span class="hljs-function"><span class="hljs-type">double</span> <span class="hljs-title">stddev</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> <span class="hljs-keyword">noexcept</span></span>;
 
 <span class="hljs-keyword">private</span>:
-    std::deque&lt;std::pair&lt;std::<span class="hljs-type">int64_t</span>, <span class="hljs-type">double</span>&gt;&gt; values_;
-    <span class="hljs-type">double</span> sum_ = <span class="hljs-number">0.0</span>;
-    <span class="hljs-type">double</span> sum_sq_ = <span class="hljs-number">0.0</span>;
-&#125;;
-
-RollingStats&lt;<span class="hljs-number">3</span>&gt;  tick_sign_3s;
-RollingStats&lt;<span class="hljs-number">10</span>&gt; tick_sign_10s;
-RollingStats&lt;<span class="hljs-number">60</span>&gt; log_ret_60s;</code></pre></div>
+    CircularBuffer&lt;<span class="hljs-type">double</span>&gt; values_;
+    <span class="hljs-type">double</span> mean_ = <span class="hljs-number">0.0</span>;
+    <span class="hljs-type">double</span> m2_ = <span class="hljs-number">0.0</span>;
+&#125;;</code></pre></div>
 <p>更高层的 engine 只暴露增量接口：</p>
 <div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">SignalFeatureEngine</span> &#123;
 <span class="hljs-keyword">public</span>:
@@ -1189,22 +1173,10 @@ overlay = <span class="hljs-variable language_">self</span>._ensure_cpp_feature_
 &#125;;</code></pre></div>
 <p>行情状态维护则分两层：</p>
 <div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">TradeBarAggregator</span> &#123;
-    <span class="hljs-function">std::optional&lt;Bar1s&gt; <span class="hljs-title">update</span><span class="hljs-params">(ts_ms, price, qty, is_buyer_maker)</span></span>;
+    <span class="hljs-function">std::vector&lt;Bar1s&gt; <span class="hljs-title">update</span><span class="hljs-params">(ts_ms, price, qty, is_buyer_maker)</span></span>;
     Bar1s current_;
     <span class="hljs-type">int</span> last_trade_side_;
     <span class="hljs-type">int</span> last_trade_run_len_;
-&#125;;
-
-<span class="hljs-keyword">template</span> &lt;<span class="hljs-type">int</span> WindowSeconds&gt;
-<span class="hljs-keyword">class</span> <span class="hljs-title class_">RollingStats</span> &#123;
-    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">push</span><span class="hljs-params">(ts_ms, value)</span> </span>&#123;
-        values.<span class="hljs-built_in">push_back</span>(&#123;ts_ms, value&#125;);
-        sum += value;
-        sum_sq += value * value;
-        <span class="hljs-built_in">expire</span>(ts_ms);
-    &#125;
-    <span class="hljs-function"><span class="hljs-type">double</span> <span class="hljs-title">mean</span><span class="hljs-params">()</span> <span class="hljs-type">const</span></span>;
-    <span class="hljs-function"><span class="hljs-type">double</span> <span class="hljs-title">stddev</span><span class="hljs-params">()</span> <span class="hljs-type">const</span></span>;
 &#125;;
 
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">SignalFeatureEngine</span> &#123;
@@ -1591,9 +1563,9 @@ max_drawdown = std::<span class="hljs-built_in">max</span>(max_drawdown, peak_pn
 <td>shadow report / replay diagnostic</td>
 </tr>
 <tr>
-<td>archived</td>
-<td>direct quote EV live、SELL resiliency live、RL</td>
-<td>只作历史复盘，默认不进 sweep</td>
+<td>archived/removed</td>
+<td>direct quote EV live、SELL resiliency live、历史 RL</td>
+<td>direct policy 只作历史复盘；RL 入口、配置和 lazy-loader 已删除，不进 sweep</td>
 </tr>
 <tr>
 <td>live-static</td>
@@ -2548,13 +2520,10 @@ perf <span class="hljs-built_in">stat</span> -r 20 \
 L1-icache-loads,L1-icache-load-misses,\
 iTLB-loads,iTLB-load-misses \
   ./bench_hot_path</code></pre></div>
-<p>源码审计也需要给模板设预算。当前模板维度主要是 <code>Side</code>、<code>QueueAheadMode</code>、固定 rolling window 和容器 view：</p>
+<p>源码审计也需要给模板设预算。当前主要模板维度是 <code>Side</code> 与<br><code>QueueAheadMode</code>；rolling moments 已收敛为普通运行时容量类型，容器 view 也共享<br>非模板计算主体：</p>
 <div class="code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span> &lt;Side S, QueueAheadMode Mode&gt;
-<span class="hljs-function"><span class="hljs-type">double</span> <span class="hljs-title">visible_queue_ahead</span><span class="hljs-params">(...)</span></span>;
-
-<span class="hljs-keyword">template</span> &lt;<span class="hljs-type">int</span> WindowSeconds&gt;
-<span class="hljs-keyword">class</span> <span class="hljs-title class_">RollingStats</span>;</code></pre></div>
-<p><code>Side x QueueAheadMode</code> 只有四种 queue 实例，<code>RollingStats&lt;60&gt;</code> 即使有多个对象也只有同一种类型；quote core 的大主体本身不是模板。这里没有 <code>EnableAdverse x EnableDefense x EnableQuoteEV x ...</code> 这样的布尔笛卡尔积，因此目前不存在明显的模板组合爆炸。side-specific helper 展开后，<code>compute_quote_core()</code> 总体仍只有约 7.4 KiB。</p>
+<span class="hljs-function"><span class="hljs-type">double</span> <span class="hljs-title">visible_queue_ahead</span><span class="hljs-params">(...)</span></span>;</code></pre></div>
+<p><code>Side x QueueAheadMode</code> 只有四种 queue 实例；<code>CountRollingMoments</code> 用运行时 capacity<br>复用同一份机器码，quote core 的大主体本身也不是模板。这里没有<br><code>EnableAdverse x EnableDefense x EnableQuoteEV x ...</code> 这样的布尔笛卡尔积，<br>因此目前不存在明显的模板组合爆炸。side-specific helper 展开后，<br><code>compute_quote_core()</code> 总体仍只有约 7.4 KiB。</p>
 <p>审计发现的两个缺口随后都做了收敛：</p>
 <ol>
 <li>routing 改为固定 22 字段 input tuple、两个 5 字段 policy tuple 和 11 字段 result tuple；binding 只负责位置解包，业务数学进入普通 <code>LiveRoutingInput/Policy/Result</code> C++ 函数。place/replace 时为了审计日志执行的 <code>asdict()</code> 仍保留，因为它不属于每次 routing 计算。</li>
@@ -2758,6 +2727,14 @@ order gateway thread</code></pre></div>
 <li>如果某个策略证据没过 daily/campaign gate，C++ 不能把它“加速成可用”；如果某个系统优化降低 p99，也不能自动说明 alpha 更好。</li>
 </ul>
 </blockquote>
+<h3 id="2026-07-15：事件时钟-parity-与-queue-calibration-必须分开"><a href="#2026-07-15：事件时钟-parity-与-queue-calibration-必须分开" class="headerlink" title="2026-07-15：事件时钟 parity 与 queue calibration 必须分开"></a>2026-07-15：事件时钟 parity 与 queue calibration 必须分开</h3><p>最新 formal repair 把旧 tick replay 的 trade-only clock 改成了 trade、BBO/L2 与<br>timer 合并事件队列。ML 特征也只能在 bucket 完成后的 <code>feature_ready_ts</code> 被消费，<br>并通过 7 日因果 warmup 保持长周期特征与 live 分布一致。这个改动使 TTL、<br>cooldown、requote 和 book state 不再等待下一笔 execution trade 才推进。所有旧<br>ML、多行情和受旧时钟影响的精确 PnL 数值因此降级为历史诊断，不能与新结果直接<br>拼接。</p>
+<p>同一 queue identity 下，Python/C++ 的结果已经接近：例如 07-10 的 q0.70 为<br><code>293 vs 287 fills</code>，绝对 PnL 差约 <code>0.4810</code>；07-12 为 <code>174 vs 176 fills</code>，绝对<br>PnL 差约 <code>0.0616</code>。这说明剩余的主要偏差不是简单的浮点累计。</p>
+<p>但 parity 接近不等于 live calibration 已解决。07-10/11 拟合出的固定 q0.70 在<br>冻结后的 07-12..14 从 live <code>1515 fills</code> 低估到 replay <code>1044 fills</code>。旧 q0.15<br>在未来三日偶然接近，却在拟合日高估 50%，不能事后替换。真正缺失的是跨日、<br>side/regime 条件化的 cancellation-ahead 与 book-refresh 状态。C++ 可以更快地<br>重放已定义的队列模型，不能替代一个尚未被数据识别的队列机制。</p>
+<p>因此 queue artifact 现升级为 v3，并把 replay multipliers 纳入严格身份；正式<br>输出记录 artifact path、SHA256、schema、fit days 和参数来源。后续 C++ sweep<br>只能比较相同 calibration identity 下的 paired delta，绝对 PnL 必须同时给出<br>queue sensitivity。在 queue 跨日 gate 通过前，<code>7-8x</code> 加速提高的是研究吞吐，<br>不是结论置信度。</p>
+<p>完整数据与 ML A/B 见 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/docs/formal_recalibration_causal_v2_20260715.md">causal-v2 formal recalibration</a>。</p>
+<h3 id="2026-07-17：BUY-scorer-ABI-v3-与完整-golden-收口"><a href="#2026-07-17：BUY-scorer-ABI-v3-与完整-golden-收口" class="headerlink" title="2026-07-17：BUY scorer ABI v3 与完整 golden 收口"></a>2026-07-17：BUY scorer ABI v3 与完整 golden 收口</h3><p>事件时钟修复之后，C++ BUY fill-selection 仍缺少 live/Python scorer 使用的 causal<br><code>Prediction.feature_dict</code>。只把 quote distance、depth、inventory 等动态字段传入<br>native，会让同一模型在 C++ 中系统性降低 score，属于模型输入漂移，不是模型差异。</p>
+<p>当前 adapter 会在每个 feature-ready row 上预编译各 fold 的静态 logit contribution、<br>missing count 与 used count；C++ ABI v3 在 quote decision 时再合并动态字段，执行相同<br>的 contribution shrink、fold average、missing gate 与 actionable hard gate。旧 ABI<br>或不完整静态 payload 会 fail fast，不能静默把“能加载模型”冒充成“模型输入一致”。</p>
+<p>同一轮还修复了 <code>final_cap_compress_rate</code> 的 post-policy 计数差异，以及旧 shallow-depth<br>policy multiplier。最终本地 suite 为 <code>355 passed, 4 skipped</code>，四个 real-data golden<br>全部通过。这里的“通过”只说明当前 active common-policy 与 BUY scorer surface 可以由<br>C++ formal replay 执行；P3、queue、latency artifact 仍必须绑定自己的数据和版本身份，<br>不能由 golden 代替校准。</p>
 <h2 id="结论：低延时最终服务报价决策"><a href="#结论：低延时最终服务报价决策" class="headerlink" title="结论：低延时最终服务报价决策"></a>结论：低延时最终服务报价决策</h2><p>NarrowGate 的工程迁移不是从“我要写一个高速交易系统”开始的，而是从 maker 研究本身的压力长出来的：一旦需要真实 L2、queue ahead、latency、TTL、guard、inventory-time、quote EV labels 和多日多臂 A/B，Python orchestration 仍然合适，但 hot loop 和状态机必须收紧边界。</p>
 <p>这篇工程复盘里，最重要的结论不是某个 benchmark 数字，而是几条工程判断：</p>
 <ol>
@@ -2767,7 +2744,7 @@ order gateway thread</code></pre></div>
 <li>C++ 适合长期驻留的状态、高频低基数分支、完整窗口 replay 和稳定的 live hot path 小决策包；</li>
 <li>pybind 边界必须按数组、固定 tuple 或 compact context 设计，不能每 tick 传大 dict/dataclass；</li>
 <li>parity 比速度更重要，没有路径级和金额级一致性，sweep 越快越危险；</li>
-<li>当前 live 架构已经实现可持久化 native profile、shadow/perf telemetry、per-side latest-wins order gateway 和同步 safety bypass；下一步不是继续扩线程数，而是完成同口径长 soak，确认行为保持后再决定 replace threshold 与更深的网络/线程隔离。</li>
+<li>当前 live 架构已经实现可持久化 native profile、shadow/perf telemetry、per-side latest-wins order gateway 和同步 safety bypass；async gateway 已完成同口径 soak 并因 p99/p99.9 无稳定改善而回滚默认开关，下一步是继续收紧状态 snapshot、REST/order lifecycle 与真实延迟校准，而不是继续增加 Python worker。</li>
 </ol>
 <p>所以 C++ 在 NarrowGate 里的定位不是外置加速器，而是 maker 策略工程化的一部分：离线侧让严格 replay、反例搜索、null baseline、order-level evidence 和参数 racing 变得可负担；live 侧把稳定、高频、低基数的状态和决策边界收紧到更少动态对象、更少无意义 replace、更可控的尾延迟。低延时本身不是 alpha 结论，但它决定了一个 maker alpha 能否被真实验证、稳定执行，并在风险变坏时及时撤退。</p>
 <p>面向开源版本，C++ 还有另一层价值：它迫使项目把边界说清楚。哪些路径有 Python/C++ parity，哪些只能 fast screening，哪些仍必须由 Python replay 做正式证据，都应该在 public README、CI 和 examples 里体现出来。否则一个看起来很快的 extension 只会让陌生人更快踩进旧结论。</p>
