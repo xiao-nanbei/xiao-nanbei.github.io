@@ -27,12 +27,12 @@
 <meta property="og:description" content="TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-07-01T00:03:00.000Z">
-<meta property="article:modified_time" content="2026-07-20T10:30:00.000Z">
+<meta property="article:modified_time" content="2026-07-28T15:30:00.000Z">
 <meta property="article:author" content="Xuan Tan">
+<meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="C++">
 <meta property="article:tag" content="低延时">
 <meta property="article:tag" content="pybind11">
-<meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="系统工程">
 <meta name="twitter:card" content="summary_large_image">
   
@@ -331,7 +331,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          88k 字
+          94k 字
         
       </span>
     
@@ -343,7 +343,7 @@
         
         
           <!-- compatible with older versions-->
-          737 分钟
+          783 分钟
         
       </span>
     
@@ -389,16 +389,18 @@
                 
                 <h2 id="TL-DR：读者收益摘要"><a href="#TL-DR：读者收益摘要" class="headerlink" title="TL;DR：读者收益摘要"></a>TL;DR：读者收益摘要</h2><p>这篇文章是 NarrowGate 的工程篇，接在算法篇 <a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/">《NarrowGate：Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift》</a> 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。</p>
 <blockquote>
-<p><strong>版本边界（2026-07-20）</strong>：本文保留当前可复现的工程结构、parity 方法与系统<br>benchmark。2026-07-15 因果时间修复之前的参数排名、arm PnL、fill/tail 排名与<br>scorer 结论已经删除；它们不能代表当前 <code>main</code> 或私有 rolling baseline。</p>
+<p><strong>版本边界（2026-07-28）</strong>：本文保留当前可复现的工程结构、parity 方法与系统<br>benchmark。2026-07-15 因果时间修复之前的参数排名、arm PnL、fill/tail 排名与<br>scorer 结论已经删除；causal-v5 的 7 月 25 日部署也只保留为历史 trial，不能代表<br>当前 ML-OFF rolling baseline。</p>
 </blockquote>
 <p>项目源码与构建入口：<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker">GitHub - xiao-nanbei/NarrowGateMaker</a>。公开配置是安全研究模板，不是当前私有 live 参数快照。</p>
 <p>离线侧的低延时，本质是把严格 replay 从“只能抽样验证”推进到“可以按日、按窗口、按参数臂系统验证”。它关注 wall time、rows/s、windows/hour、内存峰值、路径一致性和结果可重复性；单个函数调用的尾部延迟只有在暴露 fallback、分配、swap 或过度订阅时才有解释价值。</p>
 <p>在线侧的低延时，是让报价、撤单和库存控制在真实事件循环里尽量少出现 stale quote、late cancel、跨语言 fallback 和偶发尖刺。这里必须看 mean、p99、p99.9、CPU migration、page fault、context switch、fallback 计数和长样本 soak。</p>
 <p>这两个目标最终都服务同一件事：让 maker 策略的 spread、skew、TTL、cooldown 和库存风险控制，可以在足够多反例里被验证，也可以在 live 中按预期执行。低延时不是独立于 alpha 的炫技，它是策略工程化后必须面对的执行条件。</p>
 <p>到 2026-07-10，项目里的工程边界又收紧了一层：tracked <code>live/config.yaml</code> 只保留公开模板，私有 live 参数通过 <code>NARROWGATE_LIVE_CONFIG</code> 注入；仓库补了根级 <code>pyproject.toml</code>、<code>narrowgate</code> CLI、CI、Docker/devcontainer 和 5 分钟 quickstart。这个变化不是“文档好看一点”，而是把低延时研究从个人实验推进到可复现边界：别人应该能跑通 quote demo、smoke test 和 public replay skeleton，但不应该拿到私有基础设施、模型快照和实盘参数。</p>
-<p>同一时期，C++ replay 也从“小窗口 parity 工具”推进成 active-parameter fast screening engine。queue side/regime calibration、replace throttle/pending coalesce、reducing-side cooldown、adaptive add cooldown、campaign soft control 和 BUY fill-selection score 已经进入 native 参数结构与状态机；这里的 active BUY scorer 指 2026-07-06 进入 rolling baseline 的旧代 soft-keep probe，不是 2026-07-18 重建的 causal-v4 scorers。每次宽搜索仍必须先用当前 rolling baseline 过 Python/C++ parity gate。<code>xmarket_retreat</code> 的执行入口已经物理删除，只剩 legacy audit reader 可以解释旧日志列；逐样本 empirical REST latency，以及 user-stream mismatch / sync-adjust 这类只有实盘才存在的故障闭环，仍不能由历史 C++ replay 凭空恢复。</p>
+<p>同一时期，C++ replay 也从“小窗口 parity 工具”推进成 active-parameter fast screening engine。queue side/regime calibration、replace throttle/pending coalesce、reducing-side cooldown、adaptive add cooldown、campaign soft control 和 BUY fill-selection score 已经进入 native 参数结构与状态机；这里 2026-07-06 的旧代 soft-keep probe 与 2026-07-25 的 causal-v5 都只是各自时点的 rolling baseline。每次宽搜索仍必须先用当前 ML-OFF + empirical-P3 baseline 过 Python/C++ parity gate。<code>xmarket_retreat</code> 的执行入口已经物理删除，只剩 legacy audit reader 可以解释旧日志列；逐样本 empirical REST latency，以及 user-stream mismatch / sync-adjust 这类只有实盘才存在的故障闭环，仍不能由历史 C++ replay 凭空恢复。</p>
 <p>2026-07-17 的 checkpoint 又补齐了两个关键边界：Python/live 的<br><code>evaluate_common_side_policy()</code> 与 C++ replay 的<br><code>evaluate_common_side_policy_cpp()</code> 对 BUY/SELL 使用同一输入/输出契约和行为测试；<br>旧代 BUY soft-keep scorer 的 causal<br>静态特征通过 ABI v3 进入 native replay，不再只传 quote-time 动态字段。全仓测试为<br><code>355 passed, 4 skipped</code>（该数字绑定 2026-07-17 当时的代码快照），May normal/high、<br>Feb sparse、Jan A/B 四个 real-data golden 均通过。这个结果允许 C++ 承接已 parity<br>参数面的 fast screening，但不等于<br>queue cancellation-ahead、逐请求 REST latency 或 live-only 故障已经被历史数据识别。</p>
 <p>2026-07-18 的研究 checkpoint 又把证据身份收紧了一层。causal-v4 使用完成后的<br>10 秒桶、merged event clock、empirical P3、显式 queue/REST-latency artifact，形成<br>122 日 order-level denominator；新 13-head bundle 与 causal-v4 <code>non_toxic</code> /<br><code>beats_opportunity</code> 两个 rebuilt BUY scorer 都只保留为 shadow，没有替换旧代 live<br>soft-keep probe。固定的 BUY widen、SELL re-center/skip 等 local action family<br>也没有通过冻结的 development/validation gate，sealed holdout 未读取。下一步改为使用<br>event-L2 研究 local shock/refill/recovery 与 state-conditioned queue-value，而不是继续扫<br>固定 tick/秒数。这说明系统可以把验证跑得更快、更细，但不能替策略证据补票。</p>
+<p>2026-07-25 又完成了一轮纵向重建。正式 L2 输入迁移到版本化的<br><code>normalized_l2_100ms_v2</code>，旧的约 1 秒与 100ms 混合目录退出 formal 默认路径；<br>2026-07-04 至 07-11 的 individual-trade maker-side 标志也完成修复。基于这一身份，<br>causal-v5 重新生成 128 日特征、重训 13-head bundle，并在严格 ML-ON/OFF replay 中<br>取得小幅正的 raw/terminal 中心值，但区间仍跨零、fills 下降约 7% 至 9%，inventory<br>time 没有改善。它随后按用户指定进入 live，promotion class 明确记录为<br><code>user_directed_trial</code>，不是通过研究 strict gate 的 alpha。</p>
+<p>随后 causal-v9 将数据延伸到 2026-07-25，并修复 mutable taker-tempo lineage。正式<br>Test3 中 ML-ON 相对 ML-OFF 的 raw/terminal 分别为 <code>-2.2308/-2.6268 USDC</code>，tail<br>增加 3 个，三个 formal days 的 raw delta 全部为负，因此没有部署；当前 live<br><code>ml.enabled=false</code>，empirical P3 保持不变。当前代码快照的全仓测试为<br><code>917 passed, 4 skipped</code>。这证明两套引擎能执行同一 corrected baseline，不把模型可加载、<br>一次历史部署或预测 ranking 包装成现役 alpha。</p>
 <p>本文只讨论工程实现，不讨论也不建议任何真实交易行为。所有 PnL、fill、markout、A/B 和 benchmark 都是研究指标或系统指标，不是收益承诺。</p>
 <div class="table-container">
 <table>
@@ -519,7 +521,7 @@ Normalized NumPy arrays
 <li><strong>函数存在不等于 ABI 一致</strong>：一次 x86 部署中，旧 pybind 模块仍有 <code>compute_quote_core_live</code>，但返回的 <code>QuoteFlags</code> 缺少新字段 <code>cap_exposure_block</code>。只检查函数名会在第一轮 quote 才失败；当前启动 preflight 同时实例化 <code>QuoteFlags</code>/<code>SideQuoteContext</code> 并核对字段 contract，旧扩展会在连接行情和报单前被拒绝。</li>
 </ul>
 <p>所以双引擎 parity 的本质不是“我把 Python 翻译成 C++ 了”，而是建立一套制度：<strong>每次 C++ 多迁一个状态机，都必须先在小真实窗口里通过路径级和金额级审讯，然后才允许进入 sweep/A/B</strong>。</p>
-<p>截至 2026-07-17，完整窗口中最后两处 drift 也已关闭。第一处是 Python 漏计<br>post-policy-only spread-cap compression，导致 <code>final_cap_compress_rate</code> 与 C++<br>不一致；第二处是 C++ 旧 helper 只看 shallow depth，可能在 exact L2 深度充足时<br>错误施加 <code>1.1</code> thin-depth multiplier。修复不是放宽 tolerance，而是让 Python 与<br>C++ 的等价 evaluator 对 BUY/SELL 产出相同的 spread、size、hard-pause 和<br>exposure allow 语义。四个 real-data golden 现在同时核对 summary、PnL path、fills、<br>inventory-time 与 trace 长度；相关边界记录在<br><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/docs/live_replay_code_parity_20260717.md">live/replay parity report</a>。</p>
+<p>截至 2026-07-17，完整窗口中最后两处 drift 也已关闭。第一处是 Python 漏计<br>post-policy-only spread-cap compression，导致 <code>final_cap_compress_rate</code> 与 C++<br>不一致；第二处是 C++ 旧 helper 只看 shallow depth，可能在 exact L2 深度充足时<br>错误施加 <code>1.1</code> thin-depth multiplier。修复不是放宽 tolerance，而是让 Python 与<br>C++ 的等价 evaluator 对 BUY/SELL 产出相同的 spread、size、hard-pause 和<br>exposure allow 语义。四个 real-data golden 现在同时核对 summary、PnL path、fills、<br>inventory-time 与 trace 长度；相关边界记录在<br><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research_10_live_replay_attribution/docs/live_replay_code_parity_20260717.md">live/replay parity report</a>。</p>
 <h3 id="1-3-Queue-Ahead：回测要保守，但它不是实时系统"><a href="#1-3-Queue-Ahead：回测要保守，但它不是实时系统" class="headerlink" title="1.3 Queue Ahead：回测要保守，但它不是实时系统"></a>1.3 Queue Ahead：回测要保守，但它不是实时系统</h3><p>bar 回测最容易自欺欺人的地方是：只要下一根 bar 的 low/high 碰到我的价格，就认为成交。maker 策略里这几乎一定会高估结果，因为真实世界里还有队列。</p>
 <p>NarrowGate 的 tick replay 更保守：价格碰到只是必要条件，不是充分条件。订单进入盘口后，需要估计自己前面的 queue ahead，然后用后续 aggressive trade 去消耗这个 queue。</p>
 <p>简化逻辑如下：</p>
@@ -1615,7 +1617,7 @@ max_drawdown = std::<span class="hljs-built_in">max</span>(max_drawdown, peak_pn
 <p><code>quick-smoke</code> 默认只跑一个上限约 30 个 arms 的 group-balanced 小面板；完整<br>60+ arm 主效应面必须显式使用 <code>--stage quick-full-main-effect</code>。宽 Sobol/search<br>先走 summary-only C++ smoke，只有 survivor 才进入 campaign replay。后者在每个<br>UTC day 完成后写 partial daily / rollup / campaign labels，长任务中断时不会把<br>整段计算全部丢掉。</p>
 <p>它不是“自动炼金器”。它只是把过去散落在多个 <code>*_sweep.py</code>、<code>stage_t_*</code> 和 bucket 脚本里的调参动作，收束成一个约束优先的实验设计：</p>
 <p>早期 sweep 的 winner 和排名已经删除，不能被重新包装成当前候选。当前参数研究必须从<br>严格绑定身份的 rolling live baseline 重新出发，先过 mechanism gate，再看 campaign outcome<br>和 order-level fill selection。</p>
-<p>C++ fast screening、fill-quality score 和 action-level OPE 也必须分开。C++ 的职责是更快生成经过 parity<br>约束的订单生命周期反事实；score 只负责排序状态；真正估计候选动作价值时，还需要完整 decision<br>denominator、behavior propensity、action overlap、action-specific reward 与 doubly robust evaluation。<br>项目新增的 <code>models.audit.offline_policy_evaluation</code> 会输出 DM、clipped IPS/SNIPS、DR、day-cluster<br>bootstrap、ESS 和 unsupported mass。若 <code>re-center/skip/widen</code> 从未被 behavior policy 尝试，它会 fail<br>overlap gate，而不是让 C++ 回放速度或回归外推替这个动作“补证据”。输入与边界见<br><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/docs/offline_policy_evaluation_20260712.md">GitHub OPE 文档</a>。<br>即使数值 gate 通过，结论仍以 consistency、conditional exchangeability、positivity、无跨 decision<br>干扰和正确 reward attribution 为条件；C++ parity 只提高反事实生成可信度，不会自动满足这些<br>因果识别假设。</p>
+<p>C++ fast screening、fill-quality score 和 action-level OPE 也必须分开。C++ 的职责是更快生成经过 parity<br>约束的订单生命周期反事实；score 只负责排序状态；真正估计候选动作价值时，还需要完整 decision<br>denominator、behavior propensity、action overlap、action-specific reward 与 doubly robust evaluation。<br>项目新增的 <code>models.audit.offline_policy_evaluation</code> 会输出 DM、clipped IPS/SNIPS、DR、day-cluster<br>bootstrap、ESS 和 unsupported mass。若 <code>re-center/skip/widen</code> 从未被 behavior policy 尝试，它会 fail<br>overlap gate，而不是让 C++ 回放速度或回归外推替这个动作“补证据”。输入与边界见<br><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research_09_campaign_action_uplift/docs/offline_policy_evaluation_20260712.md">GitHub OPE 文档</a>。<br>即使数值 gate 通过，结论仍以 consistency、conditional exchangeability、positivity、无跨 decision<br>干扰和正确 reward attribution 为条件；C++ parity 只提高反事实生成可信度，不会自动满足这些<br>因果识别假设。</p>
 <div class="code-wrapper"><pre><code class="hljs text">parameter coverage
   -&gt; one-factor / Sobol candidates
   -&gt; quick-smoke retained days
@@ -1888,7 +1890,7 @@ MKL_NUM_THREADS=1
 NUMEXPR_NUM_THREADS=1
 MALLOC_ARENA_MAX=1</code></pre></div>
 <p>第一版只把 <code>replace_min_price_change_ticks</code> 设成 1-2 tick，结果几乎没有减少 REST：BTCUSDC 报价每轮自然跳动经常是几十 tick，2 tick 门槛基本等于没设。后来改成非零的 adding/reducing 门槛，并保留减仓方向更敏捷的 interval。这个改动不是 alpha 参数，而是 order lifecycle coalescing：价格没有变到足够多时，不做 cancel+new；TTL、stale-data、pause 和库存安全撤单不被阻断。</p>
-<p>受控 soak 里，<code>cpp_routing_used</code> 覆盖率达到约 97%-99.6%，并出现 <code>REPLACE_THROTTLE</code>。但 2026-07-10 回查当前进程时发现了一个更值得记录的部署问题：进程通过 <code>live/run.sh</code> 重启时只从 <code>live/.env</code> 加载了 API 凭据，<code>NARROWGATE_CPP_QUOTE_CORE</code>、<code>NARROWGATE_CPP_SIGNAL_FEATURES</code>、<code>NARROWGATE_CPP_LIVE_ROUTING</code> 和 <code>NARROWGATE_CPP_STRICT</code> 都没有持久化。结果是当前约 24 小时 telemetry 中 <code>cpp_routing_used=0%</code>，signal/quote/routing 也都回到了 Python 路径。</p>
+<p>受控 soak 里，<code>cpp_routing_used</code> 覆盖率达到约 97%-99.6%，并出现 <code>REPLACE_THROTTLE</code>。但 2026-07-10 回查当时进程时发现了一个更值得记录的部署问题：进程通过 <code>live/run.sh</code> 重启时只从 <code>live/.env</code> 加载了 API 凭据，<code>NARROWGATE_CPP_QUOTE_CORE</code>、<code>NARROWGATE_CPP_SIGNAL_FEATURES</code>、<code>NARROWGATE_CPP_LIVE_ROUTING</code> 和 <code>NARROWGATE_CPP_STRICT</code> 都没有持久化。结果是当时约 24 小时 telemetry 中 <code>cpp_routing_used=0%</code>，signal/quote/routing 也都回到了 Python 路径。</p>
 <p>这不是 C++ 运行时退化，而是 <strong>opt-in feature flag 没有成为部署 profile</strong>。它暴露了一个低延时系统很实际的问题：benchmark 命令里的环境变量如果没有进入 <code>run.sh</code> 可审计的 profile，下一次策略参数重启就会静默丢失。以后 live soak 必须同时记录进程启动环境、extension 路径、strict flag 和 telemetry native-hit rate；只看“机器上可以 import <code>narrowgate_cpp</code>”远远不够。</p>
 <p>随后把这个部署缺口修成了显式 profile，而不是继续依赖运维人员记住一串 <code>export</code>：</p>
 <div class="code-wrapper"><pre><code class="hljs bash"><span class="hljs-comment"># 凭据仍来自不进 Git 的 live/.env；这里只选择非秘密计算 profile。</span>
@@ -2701,13 +2703,14 @@ order gateway thread</code></pre></div>
 </ol>
 <p>这个边界很重要：当前项目不是专用交易网关，也不是把所有网络和订单路径都 native 化的极限 HFT stack；它是一个把 maker 研究、tick replay、order-level evidence 和 live hot path 逐步接起来的低延时工程框架。</p>
 <h3 id="2-3-下一阶段：策略证据和系统执行分开推进"><a href="#2-3-下一阶段：策略证据和系统执行分开推进" class="headerlink" title="2.3 下一阶段：策略证据和系统执行分开推进"></a>2.3 下一阶段：策略证据和系统执行分开推进</h3><p>NarrowGate 后续工作需要分成两条轨道。它们会互相约束，但不能互相替代：策略侧回答“什么状态值得接单”，系统侧回答“这套状态机能否稳定、及时、可审计地执行”。</p>
-<p><strong>策略性质工作</strong>已经越过“先建一张 order table”的阶段。2026-07-18 causal-v4<br>identity 包含 122 个日度样本、2,219,633 个 placed orders 和 70,650 个 fills；<br>campaign terminal outcome、markout 与 quote-time state 已经进入统一 denominator。新的<br>13-head bundle 与 <code>non_toxic</code> / <code>beats_opportunity</code> 两个 BUY scorer 都只达到<br>shadow-only：局部 markout bucket 有排序，但 campaign outcome 没有给出可晋级证据。</p>
-<p>同日 frozen-split action uplift 也否证了固定动作族。BUY widen-one-tick、<br>SELL recenter-one-tick、prevent-over-widen，以及 short inventory 中跳过一次 SELL add，<br>都没有同时通过 chronological reward、campaign、downside 与 support gate；sealed<br>holdout 未读取，live/C++/config/baseline 均未改变。因此下一阶段不是继续扫固定<br>tick/秒数，而是：</p>
+<p><strong>策略性质工作</strong>已经越过“先建一张 order table”的阶段。2026-07-18 causal-v4<br>action panel 否证了固定 widen/re-center/skip；2026-07-25 又把正式数据面迁到<br><code>normalized_l2_100ms_v2</code>，修复分侧 individual trades，并重建 causal-v5、order-level、<br>lifecycle、null 与 spread-fill 证据。causal-v5 曾按用户指定进入 operational live，<br>但后续 causal-v9 在 corrected Test3 上 raw、terminal 与 tail 同时失败，当前 live 已回到<br>ML-OFF，empirical P3 不变。固定全局参数研究族也已正式关闭：固定数值仍可作为 baseline、<br>校准或安全边界，但不再通过扩大 grid 寻找 pooled winner。</p>
+<p>当前下一阶段也不再是继续扫固定 tick/秒数，而是：</p>
 <ol>
-<li><strong>event-L2 local state</strong>：以 individual trades、price-level snapshot/delta 和固定<br>timers 构造 merged causal clock；只在通过 24/24、freshness、schema 与 sequence gate<br>的日期研究 10-100ms shock/depletion/refill/recovery。</li>
-<li><strong>state-conditioned action family</strong>：预注册 local shock/refill/recovery eligibility，<br>冻结 action、propensity、reward、queue/P3/latency identity 后，再生成 randomized<br>replay 与 chronological OPE；不从 outcome 反向挑 bucket。</li>
-<li><strong><code>queue_value_keep_cancel_v1</code></strong>：v1 只比较 <code>K0=keep current order/queue position</code><br>与 <code>K1=cancel and block re-entry until adverse state exits</code>，同时承认 event top-20<br>不能识别 hidden liquidity 或深档真实排位。先由 Python authoritative path 生成证据；<br>只有 binary family 获得 support 后，replace/re-center 才能作为后续第三动作研究。</li>
-<li><strong>multi-venue 只作 moderator</strong>：receive-time global flow 与 stablecoin bridge 当前<br>继续 shadow；没有 action uplift 前，不把跨市场相关性直接翻译成报价动作。</li>
+<li><strong>formal 100ms local state</strong>：只有 <code>rebuilt / sequence_valid / warmup_valid /
+formal_eligible</code> 全部通过的日期，才能进入 queue、hazard、spread-fill 与 cancel<br>研究；旧混合 L2 仅保留历史复现身份。</li>
+<li><strong>先分解执行几何</strong>：固定 spread 实验分别估计 action-specific activation、pre-request<br>fill、pending-cancel fill 与 request-conditioned ACK；<code>P(fill | active touch)</code> 不是纯<br>queue conversion，不能把一个全局指数 κ 当作所有 side、role 和 queue 状态的真实成交曲线。</li>
+<li><strong>state-conditioned queue value</strong>：最新 ordered common-support prediction family 已在<br>Development 关闭；Value 与 Action identity 均未创建。未来 keep/cancel/re-entry 仍须<br>冻结 eligibility、propensity、reward、queue/P3/latency identity，并完整模拟 cancel<br>ACK 前 fill 与 queue reset。</li>
+<li><strong>multi-venue 只作 moderator</strong>：receive-time global flow 与 stablecoin bridge 当前<br>继续 shadow；没有 local M0 action uplift 前，不把跨市场相关性直接翻译成报价动作。</li>
 </ol>
 <p><strong>系统性质工作</strong>继续围绕真实 x86 live soak 与同步 order lifecycle：</p>
 <ol>
@@ -2736,6 +2739,52 @@ order gateway thread</code></pre></div>
 <p>同一 frozen identity 上的固定 local actions 也没有晋级。BUY widen、SELL re-center /<br>prevent-over-widen，以及 short inventory 中 skip 一次 SELL add，都没有同时通过<br>chronological reward、campaign/downside、support 与 interval gate；sealed holdout<br>未读取。这一结果关闭的是固定 tick/秒数 family，不是所有 state-conditioned action。</p>
 <p>研究分辨率也从旧的约 1Hz BBO/L2 容器推进到 retained event-L2。新路径使用 Binance<br>individual trades、CryptoHFTData price-level snapshot/delta 与 fixed timer events，<br>并保持 <code>state_timestamp &lt;= decision_timestamp</code>。<code>snapshot</code> 与<br><code>delta-converged + burn-in</code> 是两个不同的数据身份：后者可用于验证后的 top-20<br>shock/refill/recovery feature，不能冒充深档 exact queue truth。正式 event-L2 日必须<br>满足 24/24 raw hours、500ms freshness 下至少 99% coverage、完整 top-20 schema、<br>正 spread、有效 anchor，以及零 sequence gap/invalid/time reversal。</p>
 <p>因此下一代实验被收敛为预注册的 local shock/refill/recovery eligibility 与<br><code>queue_value_keep_cancel_v1</code>。Python 先生成 authoritative randomized replay、<br>propensity 与 chronological OPE；只有 action 定义冻结、support/LCB/campaign/tail gate<br>通过后，才把相同 contract 迁进 C++ parity 和 fast screening。event-L2 解决的是<br>10-100ms 状态分辨率，不解决 hidden liquidity、深档真实排位，也不自动证明 keep/cancel<br>有正 uplift。</p>
+<h3 id="2026-07-25：normalized-100ms、formal-parity-与-causal-v5-历史-baseline"><a href="#2026-07-25：normalized-100ms、formal-parity-与-causal-v5-历史-baseline" class="headerlink" title="2026-07-25：normalized-100ms、formal parity 与 causal-v5 历史 baseline"></a>2026-07-25：normalized-100ms、formal parity 与 causal-v5 历史 baseline</h3><p>7 月 18 日的 event-L2 还是一条正在收口的数据路径；7 月 25 日，它被固定为唯一版本化的<br>formal normalized 身份。<code>normalized_l2_100ms_v2</code> 从 CryptoHFTData 原生<br>snapshot/delta 重建，不原地覆盖旧 <code>bbo/</code>、<code>l2/</code>；每个 UTC 日都附带 rebuilt、<br>sequence、warmup 与 formal eligibility。当前 128 个 rebuilt days 中有 62 日通过<br>formal normalized gate、53 日具备有效前日上下文。旧约 1 秒与 100ms 混合面板仍可解释<br>历史实验，但不能再被 formal runner 默认 glob。</p>
+<p>这一轮还修复了 2026-07-04 至 07-11 的 futures individual-trade maker-side 标志，并<br>重新生成 causal feature、13-head 模型、order-level denominator、campaign lifecycle、<br>null 与 BUY scorer。因果时间、P3、queue、latency、model tree 和 config 都写入独立<br>manifest/hash；缺 feature、错误 schema 或旧 L2 identity 会 fail fast，而不是补零继续跑。</p>
+<p>双引擎随后使用同一 fresh-start、fixed/merged event clock 和固定随机延迟路径完成 formal<br>对拍。代表日的 ML-OFF、ML-ON 以及 executable passive null 中，Python/C++ 的 fills 完全<br>一致，PnL 误差约为浮点舍入量级；该 checkpoint 的全仓测试快照为<br><code>717 passed, 4 skipped</code>。这轮修复<br>覆盖 activation-time queue rank、pause/reducing precedence、Post-Only activation、<br>cancel ACK/fill race、IOC book semantics 与 tick rounding。它证明的是同一模拟契约，<br>不是公开行情能恢复真实交易所内部 queue priority。</p>
+<p>causal-v5 的严格 A/B 如下：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Panel</th>
+<th style="text-align:right">Raw delta</th>
+<th style="text-align:right">Terminal delta</th>
+<th style="text-align:right">Fills retention</th>
+<th style="text-align:right">Inventory time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Validation20</td>
+<td style="text-align:right">+3.56</td>
+<td style="text-align:right">-0.23</td>
+<td style="text-align:right">91.46%</td>
+<td style="text-align:right">+271.2 BTC-s</td>
+</tr>
+<tr>
+<td>Test17</td>
+<td style="text-align:right">+2.14</td>
+<td style="text-align:right">+0.47</td>
+<td style="text-align:right">92.64%</td>
+<td style="text-align:right">+131.4 BTC-s</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>raw 与 terminal interval 都跨零，因此研究 strict gate 没有通过。随后按用户明确指令，<br>该 bundle 通过 SIGHUP 热加载进入 live，并成为新的 operational baseline；部署身份标为<br><code>user_directed_trial</code>，旧 causal-v3 只作 rollback。文章故意保留这个区分：<strong>能由两套引擎<br>一致执行</strong>、<strong>被指定上线观察</strong>、<strong>已证明稳定正 uplift</strong> 是三件不同的事。</p>
+<p>这段只描述 7 月 25 日的历史状态。7 月 27 日 causal-v9 使用 133 个 good days 和修复后的<br>taker-tempo lineage 重训后，在三个 formal test days 上 raw 全部为负，terminal 更差且<br>tail 增加，因此没有晋级或部署。当前 operational baseline 已恢复为 ML-OFF，P3 artifact<br>不变；causal-v5 不再具有现役 live 权限。</p>
+<p>同一 formal scheduler 的第一版 fixed-spread 实验后来暴露出一个更重要的工程问题：<br>25 个距离分别运行在独立策略世界，fill 会反馈到库存和后续 activation；scalar matcher<br>又把 strictly-through trade 当成 exact-price quantity consumption。它制造了错误的<br>0→1 tick lifecycle 反转，因此旧 queue-discontinuity、local-kappa 和 lookup 结论全部<br>撤回。</p>
+<p>替代的 <code>paired_fixed_spread_monotonic_v2</code> 仍只写 6,400 行日度 sufficient statistics，<br>但每个 side/decision 在同一次 C++ replay 中生成全部 25 个距离，共享 ACK-time book、<br>new/cancel latency、TTL 和未来行情路径，且 counterfactual fill 不改变下一次决策。<br>exact-price trade 按数量与冻结 queue calibration 消耗 queue；strictly-through trade<br>强制 full fill。引擎对 filled/full-filled/quantity 以及 1s/5s/10s/lifecycle 指标逐订单<br>fail fast：任何“深价成交、浅价未成交”都会终止实验。</p>
+<p>128 日 descriptive 与 62 日 formal 最终均为零单调性违例。formal lifecycle fill 的<br>0→1 tick 变化是 BUY <code>51.08%→48.66%</code>、SELL <code>50.18%→48.96%</code>。<code>fill | touch</code><br>仍会上升到约 99%，但它是 deeper-through 条件样本选择，不是无条件 fill edge。80 tick<br>后 queue fallback 约 79%，100 tick 约 93%，140 tick 后超过 99%，因此远端曲线仍不能<br>冒充 native deep-book truth，也没有接入 live。这个修正比单纯缩短 runtime 更能说明<br>C++ replay 的价值：高吞吐只有和共享反事实路径、路径级 invariant 与可观测边界同时存在，<br>才会产生可信证据。</p>
+<p>paired v2 仍不是训练面板：它只有 <code>side x distance x day</code> 汇总，固定<br><code>initial_inventory=0</code>，也没有 current/<code>-1 tick</code>/<code>+1 tick</code> 的逐 decision activation、<br>queue、partial-fill、cancel request/ACK 与 censoring 路径。下一步先用 native<br>snapshot/delta 建一个单日流式 smoke，随后分开拟合 placement surface 与 active-order<br>KEEP surface；REPLACE/cancel-re-enter 会重置 queue，必须留在独立 lifecycle action<br>实验中。只有 prediction gate 通过后，才登记带已知 propensity 的<br><code>action_execution_v1</code>，不会从这张聚合曲线直接修改 live。</p>
+<p>2026-07-26 的单日 native-deep smoke 已经把这条接口真正接通。Python baseline pass<br>保留真实 inventory role、campaign-so-far 和 side-decision state；独立 sidecar 为每个<br>place/replace 生成 <code>closer/current/farther</code> 三个 child，并按 exchange-time<br>snapshot/delta 与 individual trades 做 k-way merge。1,000 个 cohort 中，三档 fills 为<br><code>42/40/39</code>，exact-queue fills 为 <code>4/6/10</code>，through fills 为 <code>38/34/29</code>，路径单调性<br>违例为 0。request→ACK 期间的 fill、partial fill、action-specific GTX 和 native queue<br>失效原因都进入宽表。</p>
+<p>这仍只是 mechanics smoke：shadow fill 不反馈库存，不能生成 campaign counterfactual；<br>当前 BUY q90 cancel/re-entry 没有 replay-equivalent state machine，因此作为独立 treatment<br>被哈希并排除。单 action 只有 39—42 fills，加上磁盘 reserve 限制，当前没有训练 surface、<br>读取 Validation/holdout 或创建 action。换句话说，新的 C++/Python 边界现在能生产正确的<br>训练行，但统计证据还没到可以训练策略的程度。</p>
+<h3 id="2026-07-28：Policy-clock、common-support-合同与仓库物理边界"><a href="#2026-07-28：Policy-clock、common-support-合同与仓库物理边界" class="headerlink" title="2026-07-28：Policy clock、common-support 合同与仓库物理边界"></a>2026-07-28：Policy clock、common-support 合同与仓库物理边界</h3><p>placement fill 研究随后证明，cancel ACK 不能被当成从订单激活时刻开始的平稳自然 hazard。<br>它应被拆成确定性的 baseline cancel request、request-to-ACK latency，以及 ACK 前仍可能<br>partial/full fill 的 pending race。request-state v2 因此让 pre-request fill 与条件 ACK<br>曲线在 Development 获得支持，但 pending fill 极稀疏，不能靠增加复杂 head 补足证据。</p>
+<p>最新 <code>ordered_common_support_fill_surface_v1</code> 又把 closer/current/farther 放进共享的<br>distance-ordered hazard。它的 action-specific pre-request curves 为 18/18 pass，保守<br>transport probability bound 也是 18/18 pass；但 activation calibration 只有 11/18、<br>all-three support calibration 只有 9/18，pending economic uncertainty 为 0/36 pass。<br>此外正式 evaluator 将 hazard 积分到 action-specific realized exposure，产生 1,042 行<br>apparent monotonicity violation，涉及 399 个 cohort，三 action 时钟 max-minus-min 中位差<br>3,713ms。这是 common-clock implementation-contract failure，不是 LightGBM distance<br>constraint 失效。</p>
+<p>所以该 family 在 Development 关闭，Validation/holdout 保持未读，Prediction、Transport、<br>Value、Action 与 Live 权限全部为 false；仓库中也没有创建<br><code>placement_action_value_surface_v1</code> 或 <code>placement_quote_action_uplift_v1</code>。未来 identity<br>必须由冻结 Spec 绑定 cohort-common、ex-ante、非 outcome-derived 的 scheduled clock，<br>并对缺任一 counterfactual action 的 cohort fail fast。</p>
+<p>同一天，仓库按研究所有权物理拆成 10 个策略/证据 family、1 条系统工程线和 D/R/S/G<br>四层共享基础设施，不保留旧路径 symlink。运行时目录也进一步收口：<code>data/</code> 只存离线<br>下载、导入与规范化代码，真实 payload 位于 <code>$&#123;NARROWGATE_DATA_ROOT&#125;</code>；Binance 执行市场的<br>REST snapshot + diff-depth 本地簿迁入 <code>live/orderbook/</code>；我方活动订单的 queue/path 状态<br>继续由 <code>execution/</code> 持有。这样仓库不再同时出现含义模糊的 <code>data/</code> 与 <code>market_data/</code><br>Python package。</p>
+<p>对应冻结边界见<br><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research_03_causal_13_head/docs/causal_v9_through_20260725_replay_20260727.md">causal-v9 replay</a>、<br><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research_06_placement_fill_cif/docs/ordered_common_support_fill_surface_v1_development_20260728.md">ordered common-support result</a><br>与<br><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research_06_placement_fill_cif/docs/ordered_common_support_fill_surface_v1_contract_errata_20260728.md">contract errata</a>。</p>
 <h2 id="结论：低延时最终服务报价决策"><a href="#结论：低延时最终服务报价决策" class="headerlink" title="结论：低延时最终服务报价决策"></a>结论：低延时最终服务报价决策</h2><p>NarrowGate 的工程迁移不是从“我要写一个高速交易系统”开始的，而是从 maker 研究本身的压力长出来的：一旦需要真实 L2、queue ahead、latency、TTL、guard、inventory-time、quote EV labels 和多日多臂 A/B，Python orchestration 仍然合适，但 hot loop 和状态机必须收紧边界。</p>
 <p>这篇工程复盘里，最重要的结论不是某个 benchmark 数字，而是几条工程判断：</p>
 <ol>
@@ -2746,8 +2795,10 @@ order gateway thread</code></pre></div>
 <li>pybind 边界必须按数组、固定 tuple 或 compact context 设计，不能每 tick 传大 dict/dataclass；</li>
 <li>parity 比速度更重要，没有路径级和金额级一致性，sweep 越快越危险；</li>
 <li>当前 live 架构使用可持久化 native profile、shadow/perf telemetry 与同步<br>normal-order adapter；历史 per-side latest-wins gateway 已完成 soak，并因<br>p99/p99.9 无稳定改善、coalesce 几乎未形成而于 2026-07-17 物理删除。下一步是<br>继续收紧状态 snapshot、WebSocket callback/lock ownership、REST/order lifecycle<br>与真实延迟校准，而不是复活旧开关或继续增加 Python worker。</li>
+<li>包名也必须表达生命周期：离线 ETL 在 <code>data/</code>，live 公共簿在 <code>live/orderbook/</code>，<br>我方订单状态在 <code>execution/</code>，大型行情文件只存在于仓库外数据根。</li>
 </ol>
 <p>所以 C++ 在 NarrowGate 里的定位不是外置加速器，而是 maker 策略工程化的一部分：离线侧让严格 replay、反例搜索、null baseline、order-level evidence 和参数 racing 变得可负担；live 侧把稳定、高频、低基数的状态和决策边界收紧到更少动态对象、更少无意义 replace、更可控的尾延迟。低延时本身不是 alpha 结论，但它决定了一个 maker alpha 能否被真实验证、稳定执行，并在风险变坏时及时撤退。</p>
+<p>截至 2026-07-28，13-head live inference 关闭，empirical P3 继续作为 corrected ML-OFF<br>baseline 的执行校准；最新 placement prediction family 也止于 Development 阴性结果。<br>这是工程系统应有的边界：生产代码可以继续变快、变清楚，但不能替未通过的 Value/Action<br>证据生成权限。</p>
 <p>面向开源版本，C++ 还有另一层价值：它迫使项目把边界说清楚。哪些路径有 Python/C++ parity，哪些只能 fast screening，哪些仍必须由 Python replay 做正式证据，都应该在 public README、CI 和 examples 里体现出来。否则一个看起来很快的 extension 只会让陌生人更快踩进旧结论。</p>
 <hr>
 <p>本文及 NarrowGate 项目仅用于 C++ 低延时系统、市场微观结构、价格行为学、做市模型和机器学习回测方法的学习交流与技术研究，不构成财务、投资、法律或合规建议。中国大陆关于 crypto 交易及相关业务活动的监管环境具有不确定性；任何人将相关代码用于连接交易平台、交易、商业展业或投资决策，其合规风险、资金损失、技术故障及其他后果均由使用者自行承担，与作者无关。</p>
@@ -2784,13 +2835,13 @@ order gateway thread</code></pre></div>
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
+      
         <a href="/tags/C/" class="print-no-link">#C++</a>
       
         <a href="/tags/%E4%BD%8E%E5%BB%B6%E6%97%B6/" class="print-no-link">#低延时</a>
       
         <a href="/tags/pybind11/" class="print-no-link">#pybind11</a>
-      
-        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
       
         <a href="/tags/%E7%B3%BB%E7%BB%9F%E5%B7%A5%E7%A8%8B/" class="print-no-link">#系统工程</a>
       
