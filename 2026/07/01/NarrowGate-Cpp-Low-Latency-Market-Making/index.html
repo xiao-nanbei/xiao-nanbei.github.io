@@ -19,20 +19,20 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Last materially modified: 2026-08-12 TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 r">
+    <meta name="description" content="Last materially modified: 2026-08-24 TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 r">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate：回测吞吐与 Live 尾延迟工程">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="Last materially modified: 2026-08-12 TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 r">
+<meta property="og:description" content="Last materially modified: 2026-08-24 TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 r">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-07-01T00:03:00.000Z">
-<meta property="article:modified_time" content="2026-08-11T18:53:00.000Z">
+<meta property="article:modified_time" content="2026-08-24T10:49:41.000Z">
 <meta property="article:author" content="Xuan Tan">
-<meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="C++">
 <meta property="article:tag" content="低延时">
 <meta property="article:tag" content="pybind11">
+<meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="系统工程">
 <meta name="twitter:card" content="summary_large_image">
   
@@ -331,7 +331,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          101k 字
+          104k 字
         
       </span>
     
@@ -343,7 +343,7 @@
         
         
           <!-- compatible with older versions-->
-          846 分钟
+          871 分钟
         
       </span>
     
@@ -387,23 +387,23 @@
             
               <div class="markdown-body">
                 
-                <p>Last materially modified: 2026-08-12</p>
+                <p>Last materially modified: 2026-08-24</p>
 <h2 id="TL-DR：读者收益摘要"><a href="#TL-DR：读者收益摘要" class="headerlink" title="TL;DR：读者收益摘要"></a>TL;DR：读者收益摘要</h2><p>这篇文章是 NarrowGate 的工程篇，接在算法篇 <a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/">《NarrowGate：Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift》</a> 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。</p>
 <blockquote>
-<p><strong>版本边界（2026-08-12）</strong>：本文保留可复现的工程结构、parity 方法与系统 benchmark，但所有数值必须按小节日期和执行身份阅读。当前 operational identity 是 v10、Python 3.12、causal-v12 semantics-v6、q90 shadow ON/action OFF、旧 BUY fill-selection shadow OFF/action OFF；历史 causal-v4/v5/v9、q90-ON、selector-ON 和旧部署主机结果都只代表各自冻结身份。尤其要区分 50 日 compatibility baseline、strict-native queue replay 与 live transport：三者不是同一种证据。</p>
+<p><strong>版本边界（2026-08-24）</strong>：本文保留可复现的工程结构、parity 方法与系统 benchmark，但所有数值必须按小节日期和执行身份阅读。公开仓库最后一个可审计 operational pointer 是 v12：Python 3.12、causal-v12 semantics-v6、q90 action OFF、旧 BUY fill-selection shadow/action OFF，并包含 owner-risk-accepted 的 SELL Boolean cooldown；owner-side 当前 authority 后续又叠加了 BUY E3 direct-v4 release-v2，只作用于 exposure-increasing BUY executed fill，SELL owner policy 与 reducing quotes 不变。BUY E3 是 outcome-informed owner override，<code>research_supported=false</code>，不能倒写成研究 hard gate 通过；其精确运行证据位于 private evidence store，不随公开仓库分发。公开 v12 因而只能称“最后一个公开基线快照”，不能再冒充当前 live 的字节级 parity。历史 causal-v4/v5/v9、v10、旧 q90/selector 与旧部署主机结果都只代表各自冻结身份。</p>
 </blockquote>
 <p>当前工程快照可以先压缩成八条：</p>
 <ol>
 <li>13-head causal-v12 在每个<strong>已完成的 10 秒桶</strong>刷新一次，桶间 sample-and-hold；它不是 100ms 订单生命周期模型。</li>
 <li><code>live_10s_signal_cutoff.v1</code> 已修复“下一桶第一根 1 秒 bar 进入上一桶特征”的因果越界；<code>features/feature_dag.py</code> 校验 graph、unit、clock、cadence 与 label namespace，但还不是自动生成所有 Python/C++ 特征实现的动态 DAG executor。</li>
-<li>正式 Python→C++ tick replay 只能走 <code>simulate_tick_arrays_ext_policy_v3</code>；较低层的 <code>simulate_tick_arrays</code> 和 <code>bench/</code> 脚本属于 binding、benchmark 与回归测试面，不能自行获得正式研究权限。</li>
-<li>当前 50 日 control 是 <code>native_derived_top20_100ms_cpp_daily_fresh_start_diagnostic</code>：它使用历史 trades、BBO 和规范化 top-20/100ms L2，但 native raw snapshot/delta queue scheduler、订单/撤单延迟和 receive-time visibility 都是关闭的，因此不是 strict-native queue、连续 live PnL 或 live transport 证据。</li>
+<li><code>simulate_tick_arrays_ext_policy_v3</code> 仍是基础 formal ABI，但当前 Python dispatcher 会按功能合同选择 v4、v5、v6 或 v7；较低层的 <code>simulate_tick_arrays</code> 和 <code>bench/</code> 脚本仍只属于 binding、benchmark 与回归测试面。研究权限来自调用方冻结的数据、时钟、参数和 family contract，不来自“版本号更大”本身。</li>
+<li>50 日 <code>native_derived_top20_100ms_cpp_daily_fresh_start_diagnostic</code> 是冻结 denominator 与 predecessor compatibility comparator，不是今天的完整 operational policy。它使用历史 trades、BBO 和规范化 top-20/100ms L2，但 native raw snapshot/delta queue scheduler、订单/撤单延迟和 receive-time visibility 都关闭；新研究必须把 exact current owner policy 作为 arm 的 paired control，不能把旧 50 日行为继续叫作 current live。</li>
 <li>strict-native + sampled-latency successor 已在 2026-06-29 完成一日机制验证，真实消费 raw snapshot/delta、执行 19,460 次 queue lookup 且 missing=0；完整 50 日尚未运行，一日差异不能外推成 50 日修正方向。</li>
 <li>native queue scheduler 在 exchange clock 上使用公开 MBP snapshot/delta、exact price-level seed、individual-trade consumption 与 cancel-ahead 模型；它不是交易所订单 ID/FIFO 真值。同毫秒 trade/book/activation/ACK 若没有共同序号，必须显式标记歧义或 fail closed，不能偷偷发明顺序。</li>
 <li>Binance BTCUSDC live 使用 <code>depth20@100ms</code>、<code>aggTrade</code> 与事件驱动 <code>bookTicker</code>，另有 REST snapshot + diff-depth 维护 active-order deep book；公开数据仍是 price-level L2/MBP，历史 individual trades 只能改善历史 queue consumption，不能补出真实逐单排队。</li>
-<li><code>continuous_replay_state.v1</code>、restart boundary、continuous accounting 与分层 cache DAG 已形成共享底座；UTC midnight 只作统计切片，不隐含平仓或重置，但 full-path runner、私有 ACK/user-stream 时钟、receive-time transport 与跨日 runtime state 必须逐身份接通后才能声称 live 对齐。</li>
+<li><code>continuous_replay_state.v1</code>、restart boundary、continuous accounting 与分层 cache DAG 已形成共享底座；共享 substrate 的 authoritative full-tick-runner binding 仍 fail-closed。F05 后来完成的 71 日 restart-aware modeled-queue replay 是 family-specific runner 的诊断结果，不能反向证明共享 substrate、strict queue 或 live transport 已统一接通。</li>
 </ol>
-<p>项目源码与构建入口：<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker">GitHub - xiao-nanbei/NarrowGateMaker</a>。公开配置是安全研究模板，不是当前私有 live 参数快照。</p>
+<p>项目源码与构建入口：<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker">GitHub - xiao-nanbei/NarrowGateMaker</a>。公开配置是安全研究模板，不是当前私有 live 参数快照。文中的 <code>blob/main</code> 链接只用于导航；复现某个冻结结果时必须使用该结果绑定的 commit/tag、run manifest 与 artifact identity，不能把会继续滚动的 <code>main</code> 当成证据快照。</p>
 <p>离线侧的低延时，本质是把严格 replay 从“只能抽样验证”推进到“可以按日、按窗口、按参数臂系统验证”。它关注 wall time、rows/s、windows/hour、内存峰值、路径一致性和结果可重复性；单个函数调用的尾部延迟只有在暴露 fallback、分配、swap 或过度订阅时才有解释价值。</p>
 <p>在线侧的低延时，是让报价、撤单和库存控制在真实事件循环里尽量少出现 stale quote、late cancel、跨语言 fallback 和偶发尖刺。这里必须看 mean、p99、p99.9、CPU migration、page fault、context switch、fallback 计数和长样本 soak。</p>
 <p>这两个目标最终都服务同一件事：让 maker 策略的 spread、skew、TTL、cooldown 和库存风险控制，可以在足够多反例里被验证，也可以在 live 中按预期执行。低延时不是独立于 alpha 的炫技，它是策略工程化后必须面对的执行条件。</p>
@@ -684,10 +684,16 @@ Python wrapper
   narrowgate_cpp/
     bindings.cpp
     common.hpp
+    dynamic_fill_hazard.hpp / dynamic_fill_hazard.cpp
     global_flow.hpp / global_flow.cpp
     quote_core.hpp / quote_core.cpp
     tick_replay.hpp / tick_replay.cpp
     streaming_features.hpp / streaming_features.cpp
+
+research/families/
+  f03_causal_13_head/cpp/
+  f06_placement_fill_cif/cpp/
+  f07_active_order_continuation/cpp/
 
 tests/
   test_cpp_quote_core_parity.py
@@ -715,8 +721,15 @@ bench/
 
 pybind11_add_module(narrowgate_cpp
     narrowgate_cpp/bindings.cpp
+    narrowgate_cpp/dynamic_fill_hazard.cpp
     narrowgate_cpp/global_flow.cpp
     narrowgate_cpp/quote_core.cpp
+    ../research/families/f06_placement_fill_cif/cpp/request_state_features.cpp
+    ../research/families/f06_placement_fill_cif/cpp/risk_set_expansion.cpp
+    ../research/families/f06_placement_fill_cif/cpp/sparse_order_lifecycle.cpp
+    ../research/families/f07_active_order_continuation/cpp/active_order_competing_risk_cif.cpp
+    ../research/families/f07_active_order_continuation/cpp/order_lifecycle_journal_v2_mirror.cpp
+    ../research/families/f03_causal_13_head/cpp/causal_v12_1s_features.cpp
     narrowgate_cpp/tick_replay.cpp
     narrowgate_cpp/streaming_features.cpp
 )
@@ -2194,7 +2207,7 @@ okx:spot:BTCUSDT</code></pre></div>
 + Binance cancel-or-replace latency
 + exchange acknowledgement / matching latency</code></pre></div>
 <p>一起与信号半衰期比较。只有 predictive horizon 在 p95/p99 端仍长于完整执行链路，cross-venue evidence 才可能进入 policy；否则它最多是 post-fill campaign moderator 或 risk diagnostic。</p>
-<p>第三类是研究机制边界。C++ 已能重放 queue-enabled fill-selection 及其周边 side/regime queue lookup、replace throttle、pending coalesce、reducing/adaptive cooldown 和 campaign soft control，因此它不再是“Python-only 缺口”。但当前 v10 control 已把旧 BUY fill-selection 的 action 与 shadow 都关闭；C++ 能执行某个历史 action，不等于该 action 仍属于现役 baseline。</p>
+<p>第三类是研究机制边界。C++ 已能重放 queue-enabled fill-selection 及其周边 side/regime queue lookup、replace throttle、pending coalesce、reducing/adaptive cooldown 和 campaign soft control，因此它不再是“Python-only 缺口”。2026-08-12 的 v10 checkpoint 已把旧 BUY fill-selection 的 action 与 shadow 都关闭，后续公开 v12 继续保持关闭；owner-side BUY E3 是另一套 fill 后 cooldown policy，不是旧 selector 复活。C++ 能执行某个历史 action，不等于该 action 仍属于现役 baseline。</p>
 <p>仍不能交给 C++ 历史 replay 裁决的，是三类本质不同的问题：已删除执行入口的 <code>xmarket_retreat</code> 只允许由 legacy audit reader 解释旧日志；empirical REST latency 目前还是分布/样本近似，而不是逐请求真实 ACK tape；user-stream mismatch、sync-adjust degrade、断线重连和交易所 reject 属于 live-only 故障闭环。后两类需要 Python diagnostic 或真实 live soak，不能靠给 C++ 多加几个字段就假装已经回放。</p>
 <p>这条边界很关键：C++ 现在适合两件事。第一，active baseline 以及已 parity 参数面的宽 arm / retained fast screening；第二，quote context、order-level denominator、shock/label 前处理这类批处理 tight loop。它不适合替还没过 evidence gate 的新机制背书。换句话说，C++ 可以让反例更便宜，但不能把一个未验证机制变成 alpha。</p>
 <p>这说明一件事：<strong>架构边界不是文档措辞，而是真的会改变工程结论。</strong> 在本机 ARM 上，早期 <code>SIGNAL_FEATURES=1</code> 曾经是负优化；经过 fixed-array/ring-state 改造后，在 x86 上它反而变成最明显的 live CPU 收益。相反，历史 <code>SIGNAL_STATE=1</code> 在这台 x86 上没有额外收益，其实现与开关已于 2026-07-17 删除。pin 到单个 vCPU 对均值帮助也不大，甚至可能放大 VM 上的尾部抖动。</p>
@@ -2889,10 +2902,10 @@ buy_q90_visibility_lifecycle_path_score.v3
 <p>fresh prospective recovery 也不再复用旧订单：cancel ACK 且剩余数量大于零时，才以当前价格、age=0、当前因果可见簿、queue-at-tail 和当前 GTX support 评估一张<strong>新候选单</strong>。绑定旧 v5 配置的冻结 v1.6 一日 ABI-v4 smoke 曾做到 Python/C++ transitions 零 mismatch；但 61 次 recovery evaluation 没有一个满足有效 transport 条件。当前 v7 config hash 与继续开发后的 <code>backtest_tick.py</code>、bindings/native module hash 已偏离该冻结身份，因此旧 v1.6 不能直接复跑或冒充 v7 parity；需要新 successor/linkage 后才能继续 40 日 run。这项修复仍是 historical local baseline-integrity evidence，不是 q90 action 恢复依据。</p>
 <p>最后，跨日研究不再把“连续 replay”理解成把坏日硬拼起来。新的 versioned substrate 有三种不同权限：native strict 只在原生 sequence 合格段声明 exact lifecycle；restart-aware 把数据缺口冻结为计划停机，停机前必须完成 cancel terminal，期间不报单但持仓继续 MTM；Tardis provider-normalized 只做预测/source sensitivity，永远不获得 native queue 权限。UTC midnight 仍可作为 bootstrap cluster，却不再意味着平仓、清库存或结束经济 campaign。</p>
 <p>这套 substrate 与三层 cache DAG 都比 F03/F05/F09/F10 更底层，但它们只统一 replay 语义，不统一各 family 的 action、reward 或 promotion gate。当前 full tick-runner binding 仍然 fail-closed；在第一条权威连续路径跑出来前，不能拿单元测试通过冒充新的连续 PnL baseline。</p>
-<p>相关当前合同见 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/docs/feature_dag_contract.md">Feature DAG</a>、<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/shared/replay_lifecycle/docs/versioned_continuous_replay_substrate_v1.md">continuous replay substrate</a>、<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/docs/replay_cache_dag_v2_governance_20260803.md">replay cache DAG governance</a> 与 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/operational_baseline_identity_20260803_v7.json">operational baseline v7</a>。</p>
-<h3 id="2026-08-12：benchmark、compatibility-baseline-与-strict-native-证据分层"><a href="#2026-08-12：benchmark、compatibility-baseline-与-strict-native-证据分层" class="headerlink" title="2026-08-12：benchmark、compatibility baseline 与 strict-native 证据分层"></a>2026-08-12：benchmark、compatibility baseline 与 strict-native 证据分层</h3><p><code>bench/</code> 目录确实主要用于测量 C++ 路径的性能，但“跑到了 C++”不等于“跑到了正式回测”。<code>bench_quote_core.py</code>、<code>bench_tick_replay.py</code> 和 live-routing benchmark 测的是绑定成本、吞吐、尾延迟或回归稳定性；正式 Python→C++ tick replay 只允许通过 <code>simulate_tick_arrays_ext_policy_v3</code> 进入，并继续由 Python 负责数据身份、因果时钟、参数合同和 fail-fast 校验。较低层的 <code>simulate_tick_arrays</code> 即使更快，也只是 benchmark/test surface。</p>
-<p>2026-08-11 起，现役 runtime 已切到新的 AWS Tokyo epoch，并在 Python 3.12 环境重新构建 x86 extension；此前旧 AWS 与短暂 Vultr epoch 都已退役，常规历史查询走本地归档。本文前面的 7 月 x86 benchmark、REST/WebSocket latency、dispatcher 与 global-flow soak 可以继续作为绑定原 provider/host/runtime 的历史工程证据或敏感度，但不能因为新主机同在 Tokyo 且 CPU/内存规格相近，就改名为当前新 AWS 的实测延迟。</p>
-<p>当前 50 日 control 也需要按这个边界重读。它完整复现了 40 日前缀并新增 10 日，但实际执行身份是规范化 top-20/100ms L2 的 C++ daily-fresh-start diagnostic，native raw snapshot/delta queue scheduler、订单/撤单延迟和 execution-book receive-time visibility 均未启用。</p>
+<p>相关公开合同见 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/docs/feature_dag_contract.md">Feature DAG</a>、<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/shared/replay_lifecycle/docs/versioned_continuous_replay_substrate_v1.md">continuous replay substrate</a>、<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/docs/replay_cache_dag_v2_governance_20260803.md">replay cache DAG governance</a> 与 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/operational_baseline_identity_20260820_v12.json">operational baseline v12</a>。v12 是最后一个公开 snapshot；owner-side 后续 overlay 的精确证据不随公开仓库分发。</p>
+<h3 id="2026-08-12-至-2026-08-24：benchmark、ABI、compatibility-baseline-与-strict-native-证据分层"><a href="#2026-08-12-至-2026-08-24：benchmark、ABI、compatibility-baseline-与-strict-native-证据分层" class="headerlink" title="2026-08-12 至 2026-08-24：benchmark、ABI、compatibility baseline 与 strict-native 证据分层"></a>2026-08-12 至 2026-08-24：benchmark、ABI、compatibility baseline 与 strict-native 证据分层</h3><p><code>bench/</code> 目录确实主要用于测量 C++ 路径的性能，但“跑到了 C++”不等于“跑到了正式回测”。<code>bench_quote_core.py</code>、<code>bench_tick_replay.py</code> 和 live-routing benchmark 测的是绑定成本、吞吐、尾延迟或回归稳定性；<code>simulate_tick_arrays_ext_policy_v3</code> 是基础 formal ABI，当前 <code>models/backtest_tick.py</code> 会按冻结功能合同分派到 v4、v5、v6 或 v7。Python 继续负责数据身份、因果时钟、参数合同和 fail-fast 校验；较低层的 <code>simulate_tick_arrays</code> 即使更快，也只是 benchmark/test surface。ABI 版本扩展表示更多输入/策略面被显式绑定，不自动提高 evidence class。</p>
+<p>2026-08-11 的 AWS runtime 后来已经成为历史 epoch；公开 v12 又在 2026-08-20 记录过一次 host-only successor，owner-side current authority 在 2026-08-24 继续前移。公开文章不发布主机地址、实例或私有证据路径；“当前主机”必须由 owner-side dynamic pointer 解析，不能从曾经复用的网络地址推断。本文前面的 7 月 x86 benchmark、REST/WebSocket latency、dispatcher 与 global-flow soak 仍只属于原 provider/host/runtime 的历史工程证据或敏感度，不能因为后继主机也位于 Tokyo、规格相近或复用地址就重标成 current-host 实测。</p>
+<p>冻结的 50 日 compatibility control 也需要按这个边界重读。它完整复现了 40 日前缀并新增 10 日，但实际执行身份是规范化 top-20/100ms L2 的 C++ daily-fresh-start diagnostic，native raw snapshot/delta queue scheduler、订单/撤单延迟和 execution-book receive-time visibility 均未启用。它仍是新 full-path 研究必须复现的历史 Development denominator，却不再等价于 active operational policy。</p>
 <div class="table-container">
 <table>
 <thead>
@@ -2925,11 +2938,14 @@ buy_q90_visibility_lifecycle_path_score.v3
 </tbody>
 </table>
 </div>
-<p>这些数字是当前 common-simulator control 的权威诊断分母，却不是 strict-native order-path PnL，更不是连续 live 账本。<code>daily_fresh_start</code> 会在每个 UTC 日重启进程态，公开 top-20/100ms L2 也没有驱动 native queue lookup；所以任何 cooldown、replace、cancel/re-entry 或 fill-selection 候选若要解释订单路径增量，必须在两臂共同升级到更严格的执行身份。</p>
+<p>这些数字是 predecessor common-simulator 的权威诊断分母，却不是 strict-native order-path PnL，更不是连续 live 账本。<code>daily_fresh_start</code> 会在每个 UTC 日重启进程态，公开 top-20/100ms L2 也没有驱动 native queue lookup；所以任何 cooldown、replace、cancel/re-entry 或 fill-selection 候选若要解释订单路径增量，必须在两臂共同升级到与主张匹配的执行身份。</p>
+<p>F05 随后在明确较弱的 modeled-queue lane 上完成了 SELL persistent policy 的 50 日 repeated full-path 与 corrected 71 日 restart-aware replay：点估计均改善，但 primary lower bounds 仍为负，research hard gates 没有通过。这里的“71 日连续”是 F05 family-specific restart-aware runner 的结果；共享 <code>continuous_replay_state.v1</code> 的 authoritative full-tick-runner binding 仍是另一条 fail-closed 合同，二者不能混称同一个 continuous authority。</p>
 <p>对应的 strict-native + sampled-latency successor 已完成 2026-06-29 一日机制验证：消费 5,086,247 个 native events，完成 19,460 次 queue lookup，其中 exact 9,797、known-zero 9,663、missing 0，并应用 14,825 次 visibility delay。该日 fills 从 compatibility 路径的 489 变为 921，terminal MTM 从 -7.878888 变为 -7.132700 USDC；这证明 raw queue 与 latency 输入真实改变路径，但只证明机制已接通，不能据此推断完整 50 日修正的符号或幅度。</p>
 <p>更严格也不意味着可以越过数据不可识别性。后续 F05 strict-native cooldown 标签执行发现，历史 public trade 只有毫秒时间，而 raw book 含同毫秒内更细事件；trade、book、activation 与 ACK 跨流没有共同序号时，哪个事件先可见无法从源数据恢复。正式路径因此保留歧义并 fail closed，没有用任意 tie-break 伪造 exact queue 标签。这是 source identifiability 边界，不是把一个 C++ 排序规则写得更复杂就能消失的问题。</p>
 <p>即便 strict native queue 可识别，它仍只重建公开 exchange-time MBP 与我方反事实订单：看不到交易所私有订单 ID/FIFO、hidden liquidity、真实 private ACK/user-stream receive clock、live 多线程调度、完整进程内 warm state 和市场对我方订单的反馈。工程文章里的“parity”因此必须总是带限定词：Python/C++ mechanics parity、historical strict queue evidence、empirical transport sensitivity 与 exact live reproduction 是四种不同主张。</p>
-<p>当前证据见 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/current_live_held_ber_replay_baseline_50d_20260810.json">50 日 compatibility baseline</a>、<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/current_live_held_ber_replay_baseline_50d_execution_scope_amendment_v1_20260810.md">execution-scope amendment</a>、<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/current_live_held_ber_strict_native_latency_baseline_50d_v1_one_day_mechanics_20260810.md">strict-native 一日机制结果</a> 与 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/cpp/README.md">C++ 当前权威边界</a>。</p>
+<p>当前证据见 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/current_live_held_ber_replay_baseline_50d_20260810.json">50 日 compatibility baseline</a>、<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/current_live_held_ber_replay_baseline_50d_execution_scope_amendment_v1_20260810.md">execution-scope amendment</a>、<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/current_live_held_ber_strict_native_latency_baseline_50d_v1_one_day_mechanics_20260810.md">strict-native 一日机制结果</a>、<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/models/backtest_tick.py">Python formal dispatcher</a> 与 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/cpp/narrowgate_cpp/bindings.cpp">pybind ABI</a>。</p>
+<h3 id="2026-08-24：BUY-E3-owner-runtime-的工程边界"><a href="#2026-08-24：BUY-E3-owner-runtime-的工程边界" class="headerlink" title="2026-08-24：BUY E3 owner runtime 的工程边界"></a>2026-08-24：BUY E3 owner runtime 的工程边界</h3><p>owner-side current authority 已把 hash-bound BUY E3 cooldown 接入 live hot path：receive-time EMA 在普通行情观察器中更新，只有 exposure-increasing BUY executed fill 会选择新的 cooldown duration；SELL owner policy、reducing quotes、hard safety 与 unsupported/warmup fallback 保持原合同。当前 direct-v4 release-v2 没有新建 candidate shadow、companion 或研究 writer，公开 <code>live/config.yaml</code> 仍只是默认关闭的安全模板。精确配置、运行 manifest 和 live receipt 属于 private evidence store，不随公开仓库分发。</p>
+<p>这个 release 是显式 owner operational exception，而不是 research promotion：BUY E3 在 Development 上有正 point signal，但 simultaneous lower bound 与 frozen feature hierarchy 失败，Validation 和 sealed holdout 未读。预激活的 1,000-sample resource gate 只证明 fresh disabled process 的冻结范围，不能改名成 active process 的持续性能证明；后续 active observation 又留下小样本 latency/overflow caveat。因此工程文章仍坚持 p99/p99.9、drop/overflow、fallback 与长样本 soak 必须按进程和 epoch 绑定，但也必须如实记录 owner 已接受未闭合证据，而不能把“规范上应完成”写成“事实上已经完成”。</p>
 <h2 id="结论：低延时最终服务报价决策"><a href="#结论：低延时最终服务报价决策" class="headerlink" title="结论：低延时最终服务报价决策"></a>结论：低延时最终服务报价决策</h2><p>NarrowGate 的工程迁移不是从“我要写一个高速交易系统”开始的，而是从 maker 研究本身的压力长出来的：一旦需要真实 L2、queue ahead、latency、TTL、guard、inventory-time、quote EV labels 和多日多臂 A/B，Python orchestration 仍然合适，但 hot loop 和状态机必须收紧边界。</p>
 <p>这篇工程复盘里，最重要的结论不是某个 benchmark 数字，而是几条工程判断：</p>
 <ol>
@@ -2939,11 +2955,11 @@ buy_q90_visibility_lifecycle_path_score.v3
 <li>C++ 适合长期驻留的状态、高频低基数分支、完整窗口 replay 和稳定的 live hot path 小决策包；</li>
 <li>pybind 边界必须按数组、固定 tuple 或 compact context 设计，不能每 tick 传大 dict/dataclass；</li>
 <li>parity 比速度更重要，没有路径级和金额级一致性，sweep 越快越危险；</li>
-<li>当前 live 架构使用可持久化 native profile、shadow/perf telemetry 与同步 normal-order adapter；历史 per-side latest-wins gateway 已完成 soak，并因 p99/p99.9 无稳定改善、coalesce 几乎未形成而于 2026-07-17 物理删除。下一步是继续收紧状态 snapshot、WebSocket callback/lock ownership、REST/order lifecycle 与真实延迟校准，而不是复活旧开关或继续增加 Python worker。</li>
+<li>当前 live 架构使用可持久化 native profile、canonical operational/perf telemetry、受治理的既有 q90 shadow 与同步 normal-order adapter；BUY E3 直接作用于执行后 cooldown，不依赖新 shadow/companion。历史 per-side latest-wins gateway 已完成 soak，并因 p99/p99.9 无稳定改善、coalesce 几乎未形成而于 2026-07-17 物理删除。下一步是继续收紧状态 snapshot、WebSocket callback/lock ownership、REST/order lifecycle 与真实延迟校准，而不是复活旧开关、增加 Python worker 或为研究候选新建旁路。</li>
 <li>包名也必须表达生命周期：离线 ETL 在 <code>data/</code>，live 公共簿在 <code>live/orderbook/</code>，我方订单状态在 <code>execution/</code>，大型行情文件只存在于仓库外数据根。</li>
 </ol>
 <p>所以 C++ 在 NarrowGate 里的定位不是外置加速器，而是 maker 策略工程化的一部分：离线侧让严格 replay、反例搜索、null baseline、order-level evidence 和参数 racing 变得可负担；live 侧把稳定、高频、低基数的状态和决策边界收紧到更少动态对象、更少无意义 replace、更可控的尾延迟。低延时本身不是 alpha 结论，但它决定了一个 maker alpha 能否被真实验证、稳定执行，并在风险变坏时及时撤退。</p>
-<p>截至 2026-08-12，13-head causal-v12 仍是 owner-promoted operational/backtest control，research prediction/live authority 仍为 false；q90 保持 shadow ON/action OFF，旧 BUY fill-selection 已连 shadow 一并关闭。50 日 compatibility control 已形成稳定诊断分母，但它明确禁用 raw native queue、latency 与 live transport；strict-native successor 只完成一日机制验证，而 F05 的正式 strict 标签又在同毫秒跨流顺序处正确 fail closed。这正是工程系统应有的边界：生产代码可以继续变快、变清楚，owner 可以做可回滚的运营选择，但 benchmark、单日 mechanics、诊断 PnL 和模型可加载都不能替未通过的 Prediction、Value、Action 与 Live 证据生成权限。</p>
+<p>截至 2026-08-24，causal-v12 semantics-v6 仍是共享模型语义；公开 v12 是最后一个可审计 operational snapshot，包含 owner-risk-accepted SELL Boolean cooldown，而 owner-side current authority 已在其上叠加 BUY E3 direct-v4 release-v2。两侧 owner policy 都不能重写为 research pass：50/71 日 SELL 与 BUY E3 Development 的 point estimates 有改善，但 lower-bound、feature-hierarchy、strict-queue/transport 或独立确认门槛仍未全部闭合。q90 action 保持 OFF，旧 BUY fill-selection shadow/action 保持 OFF；50 日 compatibility denominator 仍禁用 raw native queue、latency 与 live transport。生产代码可以继续变快、变清楚，owner 也可以做可回滚的运营选择，但 benchmark、单日 mechanics、诊断 PnL、preactivation resource gate 和模型可加载都不能替未通过的 Prediction、Value、Action 与 Live 研究权限。</p>
 <p>面向开源版本，C++ 还有另一层价值：它迫使项目把边界说清楚。哪些路径有 Python/C++ parity，哪些只能 fast screening，哪些仍必须由 Python replay 做正式证据，都应该在 public README、CI 和 examples 里体现出来。否则一个看起来很快的 extension 只会让陌生人更快踩进旧结论。</p>
 <hr>
 <p>本文及 NarrowGate 项目仅用于 C++ 低延时系统、市场微观结构、价格行为学、做市模型和机器学习回测方法的学习交流与技术研究，不构成财务、投资、法律或合规建议。中国大陆关于 crypto 交易及相关业务活动的监管环境具有不确定性；任何人将相关代码用于连接交易平台、交易、商业展业或投资决策，其合规风险、资金损失、技术故障及其他后果均由使用者自行承担，与作者无关。</p>
@@ -2980,13 +2996,13 @@ buy_q90_visibility_lifecycle_path_score.v3
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
-      
         <a href="/tags/C/" class="print-no-link">#C++</a>
       
         <a href="/tags/%E4%BD%8E%E5%BB%B6%E6%97%B6/" class="print-no-link">#低延时</a>
       
         <a href="/tags/pybind11/" class="print-no-link">#pybind11</a>
+      
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
       
         <a href="/tags/%E7%B3%BB%E7%BB%9F%E5%B7%A5%E7%A8%8B/" class="print-no-link">#系统工程</a>
       
