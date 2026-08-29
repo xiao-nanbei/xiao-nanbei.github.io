@@ -333,15 +333,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2021/11/27/Stanford-CS144-Lab-1-Stream-Reassembler/" target="_self">
-          Stanford CS144 Lab 1: Stream reassembler
+        <a href="/2022/02/24/MIT-6-S081-Lab-6-Copy-on-Write-Fork/" target="_self">
+          MIT 6.S081 Lab 6: Copy-on-write fork
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2021/11/27/Stanford-CS144-Lab-1-Stream-Reassembler/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/02/24/MIT-6-S081-Lab-6-Copy-on-Write-Fork/" target="_self">
         <div>
-          该lab要求我们实现一个流重组类，可以将Sender发来的带索引号的字节碎片重组成有序的字节写入到byte_stream。接收端从发送端读取数据，调用流重组器，流重组器对数据进行排序，排序好后写入byte_stream。 值得注意的是，无论是 lab0 中的 byte_stream，还是 lab1 中的重组器，都有 capacity 的概念。capacity 对应可用缓冲上限，它由“重组器中尚未拼
+          早期的fork()实现较为“简单粗暴”，会将父进程的物理内存完整拷贝一份，并映射到子进程的内存空间中，这种方式在很多情况下是不必要的，一部分虚拟内存是只读的，对他们进行拷贝是一种浪费，其次，由于进程有时会在调用fork函数之后立即调用exec以载入新的可执行文件，重置地址空间，之前的内存拷贝就完全失去了意义。因此可以用写时拷贝技术来对fork的实现进行优化。对于本来就是只读的虚拟页，父进程和子进
         </div>
       </a>
 
@@ -349,8 +349,313 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2021-11-27 15:42" pubdate>
-              2021-11-27
+            <time datetime="2022-02-24 22:58" pubdate>
+              2022-02-24
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">操作系统</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/MIT-6-S081-Lab/">#MIT 6.S081 Lab</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2022/02/15/CMU-15-445-Project-2-BPlusTree/" target="_self">
+          CMU 15-445 Project 2: B+Tree index
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/02/15/CMU-15-445-Project-2-BPlusTree/" target="_self">
+        <div>
+          这个实验2真的是折磨死我了。 Tree Index索引是一个排序的列表，在这个列表中存储着索引的值和包含这个值的数据所在行的物理地址，在数据十分庞大的时候，索引可以大大加快查询的速度，这是因为使用索引后可以不用扫描全表来定位某行的数据，而是先通过索引表找到该行数据对应的物理地址然后访问相应的数据。 hash table的时间复杂度是$O(1)$。在B+ Tree中，因为它是平衡的，所以它的时间复杂
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-02-15 04:08" pubdate>
+              2022-02-15
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" class="category-chain-item">数据库</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/CMU-15-445/">#CMU 15-445</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2022/02/03/CMU-15-445-Project-0-and-1/" target="_self">
+          CMU 15-445 Project 0 &amp; 1
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/02/03/CMU-15-445-Project-0-and-1/" target="_self">
+        <div>
+          写在前面正如CMU 15-445的主讲教授所说，这门课并不会教你如何使用数据库去构建应用程序或网站，也不是教你如何去部署和管理数据库的课，这门课的核心课程是有关数据库管理系统的设计与实现。 PROJECT #0 - C++ PRIMER这个热身实验只是让我们把项目文件下载到本地，配置好相关的git，检验一下自己的C++能力，因此对其简要说明。 在这个项目中，您将实现三个类模板：Matrix、Row
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-02-03 22:22" pubdate>
+              2022-02-03
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" class="category-chain-item">数据库</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/CMU-15-445/">#CMU 15-445</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2022/02/01/MIT-6-S081-Lab-4-Traps/" target="_self">
+          MIT 6.S081 Lab 4: Traps
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/02/01/MIT-6-S081-Lab-4-Traps/" target="_self">
+        <div>
+          先来说说trap我们知道，用户态切换到内核态的有两种情况：一种是系统调用（syscall），另一种是异常（trap）或中断（interruption），在前面的实验中我们学习了系统调用。我们先来回忆一下在lab1中做过的sleep任务。在进入内核后，会调用sys_sleep函数。关于用户态转到内核态我们在lab2中已经讲过了。 trap机制在x86中我们常常说中断，但是在xv6中我们都是使用tra
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-02-01 21:39" pubdate>
+              2022-02-01
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">操作系统</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/MIT-6-S081-Lab/">#MIT 6.S081 Lab</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2022/01/19/MIT-6-S081-Lab-3-Page-Tables/" target="_self">
+          MIT 6.S081 Lab 3: Page tables
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/01/19/MIT-6-S081-Lab-3-Page-Tables/" target="_self">
+        <div>
+          当我第一次学习它，还是一个学生的时候，我想它是很直接的，能有多难，就是一个表要将虚拟地址映射到物理地址。或许有点复杂，但不是那么复杂。只有当用它编程时，我才知道虚拟内存是巧妙的，迷人的，非常强大。  在本次实验中，您将探索页表并修改它们以简化将数据从用户空间复制到内核空间的函数。在讲解实验之前，我们先要了解页表结构。 页表（pagetable）是做地址翻译与权限控制的：把 Virtual Add
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-01-19 01:57" pubdate>
+              2022-01-19
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">操作系统</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/MIT-6-S081-Lab/">#MIT 6.S081 Lab</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2022/01/13/Stanford-CS144-Lab-4-TCP-Connection/" target="_self">
+          Stanford CS144 Lab 4: TCP connection
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/01/13/Stanford-CS144-Lab-4-TCP-Connection/" target="_self">
+        <div>
+          在这一关要求实现一个TCPConnection类，基于TCP的有限状态机，将 sender 和 receiver 封装起来。也就是说，作为一个TCP客户端，我们有自己的sender和receiver，现在要用这个客户端与其他主机进行联系，所以我们要实现TCP的各种FSM。 在tests文件夹中，我们可以看到很多关于fsm的测试文件，这些就是基于不同的有限状态机的测试，因此，我们掌握了TCP的有限状
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-01-13 08:39" pubdate>
+              2022-01-13
             </time>
           </div>
         
@@ -394,15 +699,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2021/11/23/Stanford-CS144-Lab-3-TCP-Sender/" target="_self">
-          Stanford CS144 Lab 3: TCP sender
+        <a href="/2022/01/10/MIT-6-S081-xv6-Book-Notes/" target="_self">
+          MIT 6.S081: xv6 实验参考书解析
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2021/11/23/Stanford-CS144-Lab-3-TCP-Sender/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/01/10/MIT-6-S081-xv6-Book-Notes/" target="_self">
         <div>
-          在这个实验中我们要完成tcp_sender的部分。由于我们实现的是简易的TCP，因此在测试集对于拥塞控制并没有太多要求，且计时器我们也只用实现重传计时器。 我们先来理解bytes_in_flight，bytes_in_flight是发送但还未确认的数据长度。根据概念，这段长度等于_next_seqno减去base。因此我们定义一个base用来维护基序号，同时也可以完成bytes_in_flight
+          第0章操作系统接口本书通过xv6操作系统来阐述操作系统的概念，它提供Unix操作系统中的基本接口，同时模仿Unix的内部设计。  xv6提供了传统的内核概念，即一个向其他运行的程序提供服务的特殊程序，每一个运行中的进程都有指令、数据、栈的内存空间。进程通过系统调用使用内核服务。系统调用会进入内核，让内核执行服务然后返回。所以进程总是在用户空间和内核空间之间交替运行。  我们看到上面加粗的那句话：
         </div>
       </a>
 
@@ -410,8 +715,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2021-11-23 17:33" pubdate>
-              2021-11-23
+            <time datetime="2022-01-10 21:19" pubdate>
+              2022-01-10
             </time>
           </div>
         
@@ -426,7 +731,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="category-chain-item">计算机网络</a>
+  <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">操作系统</a>
   
   
 
@@ -441,7 +746,7 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Stanford-CS144-Lab/">#Stanford CS144 Lab</a>
+              <a href="/tags/MIT-6-S081-Lab/">#MIT 6.S081 Lab</a>
             
           </div>
         
@@ -455,15 +760,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2021/11/20/Stanford-CS144-Lab-2-TCP-Receiver/" target="_self">
-          Stanford CS144 Lab 2: TCP receiver
+        <a href="/2022/01/10/MIT-6-S081-Lab-2-System-Calls/" target="_self">
+          MIT 6.S081 Lab 2: System calls
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2021/11/20/Stanford-CS144-Lab-2-TCP-Receiver/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2022/01/10/MIT-6-S081-Lab-2-System-Calls/" target="_self">
         <div>
-          CS144 这个实验并不是“在 UDP 之上封装 TCP”，而是让我们在用户态按 TCP 语义实现发送端与接收端组件（例如 sequence number、ACK、reassembly、window 等），以理解 TCP 协议机制本身。 Translating between 64-bit indexes and 32-bit seqnos《自顶向下》中，在讲到GBN协议时有这样一段话可能大家都忽
+          在上一个实验中我们使用系统调用编写了一些utilities，在这个实验中我们需要为xv6增加一些系统调用，以便我们理解系统调用是如何工作的，并向我们展示xv6内核的一些内部结构。 我们先来说说什么是系统调用，操作系统作为用户和计算机硬件之间的接口，需要向上提供一些简单易用的服务，主要包括命令接口和程序接口。其中，程序接口由一组系统调用组成。应用程序通过系统调用请求操作系统的服务。系统中的各种共享资
         </div>
       </a>
 
@@ -471,8 +776,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2021-11-20 15:29" pubdate>
-              2021-11-20
+            <time datetime="2022-01-10 21:07" pubdate>
+              2022-01-10
             </time>
           </div>
         
@@ -487,7 +792,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="category-chain-item">计算机网络</a>
+  <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">操作系统</a>
   
   
 
@@ -502,7 +807,7 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Stanford-CS144-Lab/">#Stanford CS144 Lab</a>
+              <a href="/tags/MIT-6-S081-Lab/">#MIT 6.S081 Lab</a>
             
           </div>
         
@@ -516,15 +821,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2021/11/20/Stanford-CS144-Lab-0-Networking-Warmup/" target="_self">
-          Stanford CS144 Lab 0: Networking warmup
+        <a href="/2021/12/17/Go-Goroutine-and-GMP-Scheduler/" target="_self">
+          Go Goroutine 与 GMP 调度器
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2021/11/20/Stanford-CS144-Lab-0-Networking-Warmup/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2021/12/17/Go-Goroutine-and-GMP-Scheduler/" target="_self">
         <div>
-          Stanford大学的CS144 lab要求我们实现一个TCP。CS144的课程我觉得可以配合《自顶向下》来学习，它是目前最好的中文的计算机网络书籍了。《自顶向下》中采用的是五层模型，当然在CS144中介绍了四层模型和七层模型。华科的计算机网络课程是根据《自顶向下》来备课的，如果有空的话，还可以听一听华科的计网mooc。既然都写到这里了，我们在前言来聊聊计算机网络模型：  四层网络模型链路层：定义
+          Goroutine 是由 Go runtime 管理的轻量级并发执行单元。它和操作系统线程不是一一对应关系：runtime 会把大量 goroutine 复用到少量线程上执行。goroutine 初始栈很小且可按需增长，因此单进程可以承载大量并发任务。 我在前面的文章MIT 6.S081: xv6 实验参考书解析中讲过进程/线程的切换方式，当切换的时候要从用户态-&gt;内核态-&gt;另一个进程
         </div>
       </a>
 
@@ -532,8 +837,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2021-11-20 05:57" pubdate>
-              2021-11-20
+            <time datetime="2021-12-17 16:44" pubdate>
+              2021-12-17
             </time>
           </div>
         
@@ -548,7 +853,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="category-chain-item">计算机网络</a>
+  <a href="/categories/Go%E8%AF%AD%E8%A8%80/" class="category-chain-item">Go语言</a>
   
   
 
@@ -563,7 +868,72 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Stanford-CS144-Lab/">#Stanford CS144 Lab</a>
+              <a href="/tags/Goroutine/">#Goroutine</a>
+            
+              <a href="/tags/Go-runtime/">#Go runtime</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2021/12/16/Go-Memory-Management-and-GC/" target="_self">
+          Go 内存管理与 GC：从逃逸分析到三色标记
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2021/12/16/Go-Memory-Management-and-GC/" target="_self">
+        <div>
+          Go 的自动内存管理并不是“程序员完全不用关心内存”。更准确地说，Go runtime 接管了对象生命周期判断和堆内存回收，程序员仍然需要理解对象何时逃逸、哪些分配会给 GC 制造压力，以及写屏障为什么会影响吞吐。 手动内存管理的问题C/C++ 这类语言把内存释放责任交给程序员，灵活性很高，但错误也很隐蔽。最典型的问题有两个：  悬空指针：内存已经释放，但还有指针指向原来的地址。 内存泄漏：对象已
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-12-16 15:20" pubdate>
+              2021-12-16
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Go%E8%AF%AD%E8%A8%80/" class="category-chain-item">Go语言</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Go-runtime/">#Go runtime</a>
+            
+              <a href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">#内存管理</a>
             
           </div>
         
@@ -575,7 +945,7 @@
 
   <nav aria-label="navigation">
     <span class="pagination" id="pagination">
-      <a class="extend prev" rel="prev" href="/page/2/#board"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/#board">2</a><span class="page-number current">3</span>
+      <a class="extend prev" rel="prev" href="/page/2/#board"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/#board">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/#board">4</a><a class="extend next" rel="next" href="/page/4/#board"><i class="iconfont icon-arrowright"></i></a>
     </span>
   </nav>
 

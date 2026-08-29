@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="620" viewBox="0 0 1040 620" role="img" aria-labelledby="title desc">
+  <title id="title">三值 Boolean policy 如何从条件组合映射到冷却时长</title>
+  <desc id="desc">多个 EMA 状态被离散为真、假或未观测。条件通过 AND、OR 和 NOT 组成按顺序匹配的规则，第一条为真的规则选择一个冻结时长；更早规则未观测时回退到精确基线。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#344054"/></marker>
+    <style>
+      .bg{fill:#fbfcfe}.pred{fill:#eff8ff;stroke:#175cd3;stroke-width:1.3}.clause{fill:#f4f3ff;stroke:#6941c6;stroke-width:1.3}.rule{fill:#fff7ed;stroke:#b45309;stroke-width:1.3}.action{fill:#ecfdf3;stroke:#027a48;stroke-width:1.3}.fallback{fill:#fef2f2;stroke:#b42318;stroke-width:1.3}.table{fill:#fff;stroke:#d0d5dd;stroke-width:1.2}.line{fill:none;stroke:#344054;stroke-width:1.6;marker-end:url(#arrow)}.title{font:500 23px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.text{font:500 15px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.small{font:400 12px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#475467}.mono{font:400 12px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#344054}.true{fill:#027a48}.false{fill:#b42318}.unknown{fill:#6941c6}
+    </style>
+  </defs>
+  <rect class="bg" width="1040" height="620"/>
+  <text class="title" x="36" y="42">“三值”说的是条件状态，不是三种动作</text>
+  <text class="small" x="36" y="68">每个 predicate 是 TRUE / FALSE / UNOBSERVED；policy 的动作仍来自 BUY 或 SELL 各自冻结的八档 duration。</text>
+
+  <rect class="pred" x="40" y="112" width="230" height="64" rx="8"/>
+  <text class="text" x="58" y="139">a₁：4s / 16s 刚交叉</text><text class="small" x="58" y="161">cross age ≤ 16s</text>
+  <rect class="pred" x="40" y="194" width="230" height="64" rx="8"/>
+  <text class="text" x="58" y="221">a₂：16s / 256s 扩张</text><text class="small" x="58" y="243">distance × velocity &gt; 0</text>
+  <rect class="pred" x="40" y="276" width="230" height="64" rx="8"/>
+  <text class="text" x="58" y="303">a₃：8s / 32s 已持续</text><text class="small" x="58" y="325">persistence ≥ 32s</text>
+
+  <rect class="clause" x="330" y="128" width="242" height="76" rx="8"/>
+  <text class="text" x="350" y="157">Clause A</text><text class="mono" x="350" y="184">a₁ AND a₂</text>
+  <rect class="clause" x="330" y="246" width="242" height="76" rx="8"/>
+  <text class="text" x="350" y="275">Clause B</text><text class="mono" x="350" y="302">a₃ AND NOT a₂</text>
+
+  <rect class="rule" x="630" y="164" width="194" height="116" rx="8"/>
+  <text class="text" x="650" y="194">Rule 1</text>
+  <text class="mono" x="650" y="222">A OR B</text>
+  <text class="small" x="650" y="250">只有结果为 TRUE</text><text class="small" x="650" y="269">才允许匹配</text>
+
+  <rect class="action" x="868" y="132" width="138" height="72" rx="8"/>
+  <text class="text" text-anchor="middle" x="937" y="161">TRUE</text><text class="small" text-anchor="middle" x="937" y="184">选择 τ₁</text>
+  <rect class="fallback" x="868" y="238" width="138" height="72" rx="8"/>
+  <text class="text" text-anchor="middle" x="937" y="267">UNOBSERVED</text><text class="small" text-anchor="middle" x="937" y="290">fail closed → B0</text>
+
+  <path class="line" d="M270 144H330"/><path class="line" d="M270 226C300 226 300 180 330 180"/><path class="line" d="M270 226C300 226 300 284 330 284"/><path class="line" d="M270 308H330"/>
+  <path class="line" d="M572 166H630"/><path class="line" d="M572 284C604 284 604 246 630 246"/><path class="line" d="M824 204C846 204 846 168 868 168"/><path class="line" d="M824 240C846 240 846 274 868 274"/>
+
+  <rect class="table" x="40" y="390" width="590" height="176" rx="8"/>
+  <text class="text" x="62" y="420">Kleene 三值逻辑的关键几格</text>
+  <text class="mono" x="62" y="454">NOT U = U</text><text class="small" x="250" y="454">缺失不能经取反变成证据</text>
+  <text class="mono" x="62" y="482">T AND U = U</text><text class="small" x="250" y="482">条件尚不可判定</text>
+  <text class="mono" x="62" y="510">F AND U = F</text><text class="small" x="250" y="510">已有一个假即可判假</text>
+  <text class="mono" x="62" y="538">T OR U = T</text><text class="small" x="250" y="538">已有一个真即可判真</text>
+
+  <rect class="table" x="670" y="390" width="336" height="176" rx="8"/>
+  <text class="text" x="692" y="420">Ordered first match</text>
+  <text class="small" x="692" y="451">Rule 1 为 TRUE → 用它的 duration</text>
+  <text class="small" x="692" y="479">Rule 1 为 FALSE → 才能看 Rule 2</text>
+  <text class="small" x="692" y="507">Rule 1 为 U → 不让后规则“补票”</text>
+  <text class="small" x="692" y="535">没有规则命中 → 精确 B0 baseline</text>
+  <text class="small" x="36" y="598">图中 Clause 仅用于解释结构，不是历史 BUY E3 私有规则的披露或重建。</text>
+</svg>

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="620" viewBox="0 0 1040 620" role="img" aria-labelledby="title desc">
+  <title id="title">一次性动作标签与重复顺序策略回放的区别</title>
+  <desc id="desc">上半部分说明把多个一次性时长效果直接相加会错误地保留后续机会。下半部分展示候选动作会改变成交、库存、下一次机会是否存在和最终路径，因此候选与基线必须分别顺序回放。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#344054"/></marker>
+    <style>
+      .bg{fill:#fbfcfe}.bad{fill:#fef2f2;stroke:#b42318;stroke-width:1.3}.event{fill:#eff8ff;stroke:#175cd3;stroke-width:1.3}.control{fill:#f2f4f7;stroke:#667085;stroke-width:1.3}.candidate{fill:#ecfdf3;stroke:#027a48;stroke-width:1.3}.terminal{fill:#fff7ed;stroke:#b54708;stroke-width:1.3}.line{fill:none;stroke:#344054;stroke-width:1.6;marker-end:url(#arrow)}.badline{fill:none;stroke:#b42318;stroke-width:1.6;stroke-dasharray:6 5;marker-end:url(#arrow)}.title{font:500 23px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.text{font:500 14px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.small{font:400 12px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#475467}.mono{font:400 12px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#344054}.red{fill:#b42318}.green{fill:#027a48}
+    </style>
+  </defs>
+  <rect class="bg" width="1040" height="620"/>
+  <text class="title" x="36" y="42">动作会改变后面的世界，所以 one-shot effect 不能直接求和</text>
+
+  <rect class="bad" x="40" y="88" width="960" height="166" rx="9"/>
+  <text class="text red" x="62" y="118">错误做法：把每个机会当成互不影响，再把局部效果相加</text>
+  <rect class="event" x="76" y="152" width="174" height="62" rx="7"/><text class="text" x="94" y="179">机会 1：改 duration</text><text class="small" x="94" y="200">得到 one-shot Δ₁</text>
+  <rect class="event" x="330" y="152" width="174" height="62" rx="7"/><text class="text" x="348" y="179">机会 2：仍假定存在</text><text class="small" x="348" y="200">得到 one-shot Δ₂</text>
+  <rect class="event" x="584" y="152" width="174" height="62" rx="7"/><text class="text" x="602" y="179">机会 3：仍假定存在</text><text class="small" x="602" y="200">得到 one-shot Δ₃</text>
+  <rect class="bad" x="828" y="152" width="136" height="62" rx="7"/><text class="mono" text-anchor="middle" x="896" y="180">Σ Δᵢ</text><text class="small" text-anchor="middle" x="896" y="201">≠ policy PnL</text>
+  <path class="badline" d="M250 183H330"/><path class="badline" d="M504 183H584"/><path class="badline" d="M758 183H828"/>
+
+  <text class="text green" x="40" y="302">正确做法：B0 与 candidate 各自从头跑完整顺序路径</text>
+  <text class="small" x="40" y="326">同一个起点之后，订单、成交、库存和下一次 eligibility 都可能分叉。</text>
+
+  <text class="text" x="40" y="390">B0</text>
+  <rect class="control" x="96" y="356" width="174" height="62" rx="7"/><text class="text" x="114" y="383">机会 1：B0 duration</text><text class="small" x="114" y="404">订单 A 成交</text>
+  <rect class="control" x="346" y="356" width="174" height="62" rx="7"/><text class="text" x="364" y="383">库存上升</text><text class="small" x="364" y="404">机会 2 出现</text>
+  <rect class="terminal" x="596" y="356" width="174" height="62" rx="7"/><text class="text" x="614" y="383">后续 campaign path</text><text class="small" x="614" y="404">得到 Y(B0)</text>
+  <path class="line" d="M270 387H346"/><path class="line" d="M520 387H596"/>
+
+  <text class="text green" x="40" y="494">π</text>
+  <rect class="candidate" x="96" y="460" width="174" height="62" rx="7"/><text class="text" x="114" y="487">机会 1：π duration</text><text class="small" x="114" y="508">订单 A 未成交</text>
+  <rect class="candidate" x="346" y="460" width="174" height="62" rx="7"/><text class="text" x="364" y="487">库存路径改变</text><text class="small" x="364" y="508">机会 2 可能消失</text>
+  <rect class="terminal" x="596" y="460" width="174" height="62" rx="7"/><text class="text" x="614" y="487">另一条 campaign path</text><text class="small" x="614" y="508">得到 Y(π)</text>
+  <path class="line" d="M270 491H346"/><path class="line" d="M520 491H596"/>
+
+  <rect class="terminal" x="828" y="400" width="156" height="86" rx="8"/>
+  <text class="text" text-anchor="middle" x="906" y="430">正式 estimand</text><text class="mono" text-anchor="middle" x="906" y="458">ΔY = Y(π) − Y(B0)</text>
+  <path class="line" d="M770 387C802 387 800 424 828 424"/><path class="line" d="M770 491C802 491 800 462 828 462"/>
+  <text class="small" x="40" y="578">one-shot labels 仍然有用：它们服务于 inner-train 的规则发现；正式外层经济评价必须使用 repeated sequential full-path replay。</text>
+</svg>

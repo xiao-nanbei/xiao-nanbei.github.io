@@ -1,0 +1,977 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Xuan Tan">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Last materially modified: 2026-08-29 TL;DR：BUY 与 SELL 不是同一机制的正负号副本这篇文章回答一个看似简单的问题：maker BUY 与 maker SELL 都是在盘口提供流动性，为什么不能把两侧样本放在一起训练、算一个 pooled 平均，再给同一套策略结论？ 因为两侧面对的库存变化、主动成交对手方、订单簿位置、cooldown action、">
+<meta property="og:type" content="article">
+<meta property="og:title" content="为什么做市研究不能把 BUY 与 SELL 混在一起">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Side-Specific-Inference-BUY-SELL/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：BUY 与 SELL 不是同一机制的正负号副本这篇文章回答一个看似简单的问题：maker BUY 与 maker SELL 都是在盘口提供流动性，为什么不能把两侧样本放在一起训练、算一个 pooled 平均，再给同一套策略结论？ 因为两侧面对的库存变化、主动成交对手方、订单簿位置、cooldown action、">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-buy-intervals.svg">
+<meta property="article:published_time" content="2026-08-29T07:10:00.000Z">
+<meta property="article:modified_time" content="2026-08-29T07:10:00.000Z">
+<meta property="article:author" content="Xuan Tan">
+<meta property="article:tag" content="Market Making">
+<meta property="article:tag" content="市场微观结构">
+<meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
+<meta property="article:tag" content="BUY SELL">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-buy-intervals.svg">
+  
+  
+  
+  <title>为什么做市研究不能把 BUY 与 SELL 混在一起 - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>xiaonanbei</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="为什么做市研究不能把 BUY 与 SELL 混在一起"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-29 15:10" pubdate>
+          2026年8月29日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          6.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          52 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">为什么做市研究不能把 BUY 与 SELL 混在一起</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Last materially modified: 2026-08-29</p>
+<h2 id="TL-DR：BUY-与-SELL-不是同一机制的正负号副本"><a href="#TL-DR：BUY-与-SELL-不是同一机制的正负号副本" class="headerlink" title="TL;DR：BUY 与 SELL 不是同一机制的正负号副本"></a>TL;DR：BUY 与 SELL 不是同一机制的正负号副本</h2><p>这篇文章回答一个看似简单的问题：maker BUY 与 maker SELL 都是在盘口提供流动性，为什么不能把两侧样本放在一起训练、算一个 pooled 平均，再给同一套策略结论？</p>
+<p>因为两侧面对的库存变化、主动成交对手方、订单簿位置、cooldown action、baseline 行为和经济风险并不相同。一个 maker BUY fill 是挂在 bid 上的被动买单被 aggressive SELL taker 打中；一个 maker SELL fill 则是挂在 ask 上的被动卖单被 aggressive BUY taker 吃掉。继续 BUY 会增加多头库存，继续 SELL 会增加空头库存。即使同一个指数移动平均（exponential moving average，EMA）condition 在几何上完全对称，它对应的 inventory risk、repair path 和 taker-flow 语义也未必对称。Cooldown 是一次增加同侧库存的成交以后，再次允许同侧加仓前的等待期；campaign 是库存进入某一方向以后，直到回到 flat（净库存归零）或到达冻结观察终点的一段完整库存路径。</p>
+<p>NarrowGate Full-Multiscale 因而按 side 分开训练、分开 replay、分开构造 simultaneous intervals 和 hard gates；reducing quote 不变，一侧不能用另一侧的结果“救活”。研究结果正好说明这个必要性：<code>E3_HIGHER_ORDER_BOOLEAN</code>（下文简称 E3，即高阶布尔规则候选）在 BUY 有 <code>+0.458577 USDC/day</code> 的正点信号，在 SELL 却为 <code>-0.009708 USDC/day</code>；两侧最终都没有通过完整 Development gate，<code>supported_sides=[]</code>。</p>
+<p>证据边界：这些结论来自 30 日、3,516 opportunities 的 historical Development，使用 exchange-time、modeled-queue 与同毫秒歧义 censor。它不是 final-artifact confirmation，也没有 final refit、Validation、sealed holdout、action 或 live authority。</p>
+<p>本文是 <a href="/2026/08/29/NarrowGate-Full-Multiscale-Boolean-Cooldown-Research/">Full-Multiscale 总览</a> 的 side-specific inference 篇。项目源码与公开材料见 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker">GitHub - xiao-nanbei/NarrowGateMaker</a>。</p>
+<h2 id="1-先把-maker-side-与-taker-side-映射正确"><a href="#1-先把-maker-side-与-taker-side-映射正确" class="headerlink" title="1. 先把 maker side 与 taker side 映射正确"></a>1. 先把 maker side 与 taker side 映射正确</h2><p>交易日志里的 <code>BUY</code> 到底指谁买，是最容易产生方向错误的地方。本文的 side 是 maker order side：</p>
+<script type="math/tex; mode=display">
+\text{maker BUY}\ \longleftarrow\ \text{aggressive SELL taker},</script><script type="math/tex; mode=display">
+\text{maker SELL}\ \longleftarrow\ \text{aggressive BUY taker}.</script><p>被动 BUY order 位于 bid，卖方主动打入 bid 后它才成交；被动 SELL order 位于 ask，买方主动抬走 ask 后它才成交。因此，当研究 maker BUY 的 fill toxicity 时，直接相关的 counterparty flow 是 aggressive SELL，而不是名称相同的 aggressive BUY。</p>
+<p>更稳妥的 feature schema 不是假设 <code>BUY_taker_feature</code> 永远对应 maker BUY，而是先保留两侧原始流，再按 maker side 派生：</p>
+<script type="math/tex; mode=display">
+\operatorname{counterparty}(s)=
+\begin{cases}
+\text{aggressive SELL}, & s=\mathrm{BUY},\\
+\text{aggressive BUY}, & s=\mathrm{SELL},
+\end{cases}</script><p>并同时保留 away-side flow。否则一个表面上完全“对称”的 feature transformation，可能实际把一侧的直接冲击与另一侧的远端流量放在同一列。</p>
+<h2 id="2-同样叫-exposure-increasing，库存方向却相反"><a href="#2-同样叫-exposure-increasing，库存方向却相反" class="headerlink" title="2. 同样叫 exposure-increasing，库存方向却相反"></a>2. 同样叫 exposure-increasing，库存方向却相反</h2><p>设成交数量为 $z&gt;0$，当前净库存为 $q_t$，maker fill 后的更新为：</p>
+<script type="math/tex; mode=display">
+q_{t+}=
+\begin{cases}
+q_t+z, & \text{maker BUY fill},\\
+q_t-z, & \text{maker SELL fill}.
+\end{cases}</script><p>当策略已经为多头时，再次 BUY 通常增加 long exposure；已经为空头时，再次 SELL 通常增加 short exposure。Cooldown 的任务不是抽象地“少成交”，而是在刚增加某一方向库存后，决定同侧下一次继续增加 exposure 需要等待多久。</p>
+<p>用统一的 maker-signed horizon value 表示，令 $\eta<em>{BUY}=+1$、$\eta</em>{SELL}=-1$，价格为 $P$、数量为 $z$，则最简单的方向对齐项是：</p>
+<script type="math/tex; mode=display">
+V_h^{(s)}=\eta_s\,z\,(P_{t+h}-P_t).</script><p>价格上升对 BUY inventory 有利，对 SELL inventory 不利。真实研究还会加入 campaign cost、queue、repair 和 terminal inventory，因此不能仅靠把标签乘以 $-1$ 就假设两侧可交换。</p>
+<h2 id="3-Action-与-baseline-本身就是-side-specific-的"><a href="#3-Action-与-baseline-本身就是-side-specific-的" class="headerlink" title="3. Action 与 baseline 本身就是 side-specific 的"></a>3. Action 与 baseline 本身就是 side-specific 的</h2><p>Full-Multiscale 的 action 不是 <code>BUY / HOLD / SELL</code>，而是一次 exposure-increasing fill 后选择 total cooldown duration。BUY 与 SELL 各自有八档冻结动作，并且 baseline 是逐行复现实验冻结时的 exact owner baseline，不是一列独立的固定 85 秒常数。</p>
+<p>候选策略对 target side 运行；另一侧继续委托 B0，reducing quote 始终不变。这个设计把问题限定为：只改变 BUY cooldown 时，BUY 侧的 sequential campaign economics 如何；只改变 SELL cooldown 时，SELL 侧如何。</p>
+<p>形式上，一侧的目标量是：</p>
+<script type="math/tex; mode=display">
+\theta_s=
+\mathbb E_d\left[
+Y_d\!\left(\pi_s, B0_{-s}\right)-Y_d(B0_s,B0_{-s})
+\right],
+\qquad s\in\{\mathrm{BUY},\mathrm{SELL}\}.</script><p>$\pi<em>s$ 只替换目标侧，$B0</em>{-s}$ 表示相反侧仍执行 baseline。这样既不会把 BUY learner 偷偷变成双侧 policy，也不会把相反侧路径变化误归因给当前候选。</p>
+<h2 id="4-Pooled-平均怎样隐藏一侧失败"><a href="#4-Pooled-平均怎样隐藏一侧失败" class="headerlink" title="4. Pooled 平均怎样隐藏一侧失败"></a>4. Pooled 平均怎样隐藏一侧失败</h2><p>如果把两侧结果合成一个数，pooled estimand 通常是：</p>
+<script type="math/tex; mode=display">
+\theta_{pool}=w_B\theta_{BUY}+w_S\theta_{SELL},
+\qquad w_B+w_S=1.</script><p>即使取最简单的等权，代入 Full-Multiscale E3 的点估计也得到：</p>
+<script type="math/tex; mode=display">
+\frac{0.458577+(-0.009708)}{2}
+=0.2244345\ \mathrm{USDC/day}.</script><p>这个 pooled 数为正，却会掩盖 SELL 没有正 non-baseline candidate 的事实。若使用机会数或 fill 数加权，占比更大的 side 还可能完全支配平均数；研究者甚至无法从一个正 pooled value 判断究竟是两侧都有效，还是一侧强正、一侧明确有害。</p>
+<p>反过来也一样：一个接近零的 pooled 平均可能由一侧强正与另一侧强负抵消。它不但不能授权统一动作，连机制诊断也很贫乏。</p>
+<p>因此 pooled table 最多是描述性汇总，不能替代 side-specific inference。正式支持集合应该按侧构造：</p>
+<script type="math/tex; mode=display">
+\mathcal S_{supported}=\left\{
+s:\operatorname{LCB}_s>0
+\land G_s^{hierarchy}
+\land G_s^{tail}
+\land G_s^{lifecycle}
+\land G_s^{support}
+\right\}.</script><p>这里 LCB 是 lower confidence bound，即置信下界；每个 $G$ 都是该侧预先冻结的 hard gate。任何一项失败，该侧就不能靠另一侧的均值补偿。</p>
+<h2 id="5-BUY-的点信号为什么仍不能授权-BUY"><a href="#5-BUY-的点信号为什么仍不能授权-BUY" class="headerlink" title="5. BUY 的点信号为什么仍不能授权 BUY"></a>5. BUY 的点信号为什么仍不能授权 BUY</h2><p>BUY E3 的 terminal value 从 B0 的 <code>-2.904117 USDC/day</code> 改善到 <code>-2.445540 USDC/day</code>，差值为 <code>+0.458577 USDC/day</code>；closed-campaign value 改善 <code>+0.604012 USDC/day</code>。Fills 从 8,565 变为 8,333，保留 97.29%，四个 outer fold 均值全部为正，20 个测试日中 13 日改善。</p>
+<p>这组数说明 BUY 侧存在值得保留的 hypothesis，但 primary day-level simultaneous interval 为 <code>[-0.348400, +1.265554] USDC/day</code>，仍覆盖负值。E3 相对 action-matched control 的 semantic increment 为 <code>+0.193888 USDC/day</code>，其 day interval <code>[-0.715169, +1.102945]</code> 同样跨零；feature hierarchy、tail 和 lifecycle gates 也失败。</p>
+<p><img src="/images/narrowgate/full-multiscale-buy-intervals.svg" srcset="/img/loading.gif" lazyload alt="BUY E3 gross 与 semantic uplift 的 simultaneous intervals"></p>
+<p><em>图 1：BUY 的 week-block interval 较乐观，但预先冻结的 primary day interval 与 semantic day interval 都跨零；side-specific 也不能选择性忽略本侧不利口径。</em></p>
+<p>所以 side-specific 的含义不只是“分别打印两行”。BUY 有自己的 positive point estimate，也必须独立通过自己的不确定性、层级与风险门槛；SELL 失败不能推翻 BUY 的信号，BUY 的信号也不能替它自己跳过 gate。</p>
+<h2 id="6-SELL-的-101-18-fill-retention-为什么不是好消息"><a href="#6-SELL-的-101-18-fill-retention-为什么不是好消息" class="headerlink" title="6. SELL 的 101.18% fill retention 为什么不是好消息"></a>6. SELL 的 101.18% fill retention 为什么不是好消息</h2><p>SELL E3 相对 B0 的 terminal increment 为 <code>-0.009708 USDC/day</code>，20 个测试日中 12 日改善，fill retention 为 101.18%。如果只看“活跃度没有下降”，101.18% 似乎比 BUY 的 97.29% 更好。</p>
+<p>但 fill retention 只回答成交数量保留了多少，不回答新增成交是否有价值。Candidate 可以产生更多 fills，同时带来更差的 adverse selection、库存时间或 campaign terminal。SELL 的 terminal point increment 已经为负，simultaneous lower bound、tail 与 lifecycle gates 也失败；E1、E2、M2、continuous comparator 与简单 campaign-age candidate 的 terminal point increment 同样为负。</p>
+<p>因此 SELL 没有 successor candidate。<code>12/20</code> 正日也不能改写整体结果，因为 daily sign rate 只是稳定性诊断之一，不替代 effect size、simultaneous uncertainty 和风险门槛。</p>
+<h2 id="7-Side-specific-应贯穿整条研究链"><a href="#7-Side-specific-应贯穿整条研究链" class="headerlink" title="7. Side-specific 应贯穿整条研究链"></a>7. Side-specific 应贯穿整条研究链</h2><p>只在最终报表拆 BUY/SELL 还不够。Side-specific identity 应从最早的 feature construction 一直延伸到最后的 permission：</p>
+<ol>
+<li><strong>信息语义</strong>：先冻结 maker/taker mapping，再构造 <code>counterparty_taker_*</code>、<code>away_taker_*</code>、depletion、refill 与 queue features。</li>
+<li><strong>动作语义</strong>：BUY 与 SELL 使用各自冻结的 duration vocabulary、exact B0 行为和 target-side evaluator；reducing role 不被 exposure-increasing action 改写。</li>
+<li><strong>学习与选择</strong>：feature support、Boolean rule、complexity profile 和 continuous comparator 都在 side 内选择，不能先 pooled selection 再事后拆表。</li>
+<li><strong>完整回放</strong>：candidate 只接管目标侧，另一侧执行 B0；两条 replay arm 保留独立 inventory 与 campaign state。</li>
+<li><strong>统计推断</strong>：simultaneous family、matched control、fill retention、tail、lifecycle 与 hierarchy gate 都分别报告。</li>
+<li><strong>权限</strong>：某侧通过只能支持该侧的下一证据阶段，不能自动授权另一侧，更不能由 pooled positive point estimate 生成统一 live policy。</li>
+</ol>
+<p>这套边界也避免另一个常见误解：BUY 与 SELL 的结果不同，并不自动证明某个单边市场规律。它可能来自真实 flow asymmetry，也可能来自 baseline action、机会组成、inventory state 或有限样本。Side separation 让这些差异可被检查，而不是提前给出因果解释。</p>
+<h2 id="8-公开实现与阅读顺序"><a href="#8-公开实现与阅读顺序" class="headerlink" title="8. 公开实现与阅读顺序"></a>8. 公开实现与阅读顺序</h2><p>建议继续阅读：</p>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f05_fill_quality_quote_ev/docs/causal_multichannel_window_boolean_cooldown_full_multiscale_successor_offline_v1_spec_20260813.md">Offline successor Spec</a>：side-specific ladder、八档动作、paired sequential replay 与权限边界。</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f05_fill_quality_quote_ev/docs/causal_multichannel_window_boolean_cooldown_duration_v2_design_20260810.md">Causal multichannel v2 design</a>：maker 可见 trade/depth 状态、aggressive flow 与 side-specific duration 语义。</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f05_fill_quality_quote_ev/audit/causal_multichannel_window_boolean_cooldown_full_multiscale_successor_repeated_policy_v1.py">Repeated-policy replay bridge</a>：target side 执行 candidate、opposite side 委托 B0 的合同。</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f05_fill_quality_quote_ev/audit/causal_multichannel_window_boolean_cooldown_full_multiscale_successor_nested_oof_v1.py">Nested OOF implementation</a>：拒绝 pooled side、分侧学习、分侧 candidate report 与 scorecard。</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f05_fill_quality_quote_ev/docs/causal_multichannel_window_boolean_cooldown_full_multiscale_successor_offline_formal_components_development_20260821.md">Formal Development component report</a>：BUY 与 SELL 的实际聚合结果。</li>
+</ol>
+<h2 id="结语：先问“哪一侧”，再问“平均有效吗”"><a href="#结语：先问“哪一侧”，再问“平均有效吗”" class="headerlink" title="结语：先问“哪一侧”，再问“平均有效吗”"></a>结语：先问“哪一侧”，再问“平均有效吗”</h2><p>把 BUY 与 SELL 合并，通常会得到一个更平滑、更容易展示的数字；代价是失去策略动作真正作用在哪一类库存路径上的信息。对做市研究来说，这不是报表风格问题，而是 estimand 是否明确的问题。</p>
+<p>Full-Multiscale 最终没有 supported side，但两侧到达这个结论的路径并不相同：BUY 有强正点信号却未排除不稳定与风险，SELL 连 non-baseline point candidate 都没有。只有把两侧从 feature、action、replay、statistics 到 permission 全程分开，这个差异才不会被一个看似漂亮的 pooled 平均抹掉。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Market-Making/" class="category-chain-item">Market Making</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
+      
+        <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
+      
+        <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
+      
+        <a href="/tags/BUY-SELL/" class="print-no-link">#BUY SELL</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>为什么做市研究不能把 BUY 与 SELL 混在一起</div>
+      <div>https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Side-Specific-Inference-BUY-SELL/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Xuan Tan</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-Multiscale-EMA-State-Space/" title="NarrowGate 多尺度 EMA 状态空间：十个 Half-Life、45 个配对到底在测什么">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">NarrowGate 多尺度 EMA 状态空间：十个 Half-Life、45 个配对到底在测什么</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-One-Shot-vs-Repeated-Policy-Replay/" title="One-Shot 反事实为什么不能相加：路径依赖做市策略的完整回放">
+                        <span class="hidden-mobile">One-Shot 反事实为什么不能相加：路径依赖做市策略的完整回放</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

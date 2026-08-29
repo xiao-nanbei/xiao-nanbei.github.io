@@ -1,0 +1,1005 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Xuan Tan">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Last materially modified: 2026-08-29 TL;DR：外层回答“算法能否泛化”，内层负责“在过去里选规则”这篇文章要回答的问题是：当一个做市研究同时搜索指数移动平均（exponential moving average，EMA）配对、Boolean（布尔逻辑）条件、规则复杂度和 cooldown duration 时，怎样避免先看完整历史中的赢家，再把同一段历史包装">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nested Chronological OOF：时间序列策略搜索怎样避免提前看答案">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Nested-Chronological-OOF/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：外层回答“算法能否泛化”，内层负责“在过去里选规则”这篇文章要回答的问题是：当一个做市研究同时搜索指数移动平均（exponential moving average，EMA）配对、Boolean（布尔逻辑）条件、规则复杂度和 cooldown duration 时，怎样避免先看完整历史中的赢家，再把同一段历史包装">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-nested-oof.svg">
+<meta property="article:published_time" content="2026-08-29T07:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-29T07:00:00.000Z">
+<meta property="article:author" content="Xuan Tan">
+<meta property="article:tag" content="Market Making">
+<meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
+<meta property="article:tag" content="时间序列">
+<meta property="article:tag" content="OOF">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-nested-oof.svg">
+  
+  
+  
+  <title>Nested Chronological OOF：时间序列策略搜索怎样避免提前看答案 - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>xiaonanbei</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Nested Chronological OOF：时间序列策略搜索怎样避免提前看答案"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-29 15:00" pubdate>
+          2026年8月29日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          1.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          11 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Nested Chronological OOF：时间序列策略搜索怎样避免提前看答案</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Last materially modified: 2026-08-29</p>
+<h2 id="TL-DR：外层回答“算法能否泛化”，内层负责“在过去里选规则”"><a href="#TL-DR：外层回答“算法能否泛化”，内层负责“在过去里选规则”" class="headerlink" title="TL;DR：外层回答“算法能否泛化”，内层负责“在过去里选规则”"></a>TL;DR：外层回答“算法能否泛化”，内层负责“在过去里选规则”</h2><p>这篇文章要回答的问题是：当一个做市研究同时搜索指数移动平均（exponential moving average，EMA）配对、Boolean（布尔逻辑）条件、规则复杂度和 cooldown duration 时，怎样避免先看完整历史中的赢家，再把同一段历史包装成“样本外”结果？Cooldown duration 是一次增加同侧库存的成交以后，再次允许同侧加仓前要等待的时间。</p>
+<p>NarrowGate Full-Multiscale 使用 nested chronological out-of-fold，中文可称“嵌套时间序列样本外”。30 个按时间排列的历史 Development 日期被切成四个 expanding outer fold：<code>10→5</code>、<code>15→5</code>、<code>20→5</code>、<code>25→5</code>，合计产生 20 个 untouched outer-test days。每个 outer-training block 内再建立三个 expanding inner fold；feature census 与 fold fitting 只能看 inner-train，复杂度和 profile 只能由 outer-train 内部的 inner OOF 选择，外层测试日只能执行已经冻结的 fold policy。</p>
+<p>结论边界也必须先说清楚：这套流程给出的是 <strong>fold-specific 学习算法的 Development OOF 证据</strong>，其中 Development 是研究开发集，OOF 是 out-of-fold（折外样本）。它没有给一个使用全部 30 日 refit 的固定 artifact 提供 OOF 证明，也没有创建 final refit、Validation、sealed holdout、action 或 live authority。Full-Multiscale 最终没有任何 supported side；BUY 的正点信号没有改变这个状态。本文所说的 campaign，是库存进入某一方向以后，直到回到 flat（净库存归零）或到达冻结观察终点的一段完整库存路径。</p>
+<p>本文是 <a href="/2026/08/29/NarrowGate-Full-Multiscale-Boolean-Cooldown-Research/">Full-Multiscale 总览</a> 的时间序列评价篇。项目源码与公开研究材料见 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker">GitHub - xiao-nanbei/NarrowGateMaker</a>。文中的 value、fill 和 uplift 都属于特定 modeled replay 的历史 Development 研究量，不是收益承诺。</p>
+<h2 id="1-为什么普通随机-K-fold-在这里不成立"><a href="#1-为什么普通随机-K-fold-在这里不成立" class="headerlink" title="1. 为什么普通随机 K-fold 在这里不成立"></a>1. 为什么普通随机 K-fold 在这里不成立</h2><p>标准随机 K-fold 会把样本打乱，再轮流拿一部分做测试。对独立同分布的静态样本，这通常很有用；对 maker 策略路径，它会同时破坏时间方向和状态依赖。</p>
+<p>设按日期排序的数据为 $D=(d<em>1,d_2,\ldots,d</em>{30})$，第 $i$ 日的策略状态不仅依赖当天行情，还可能依赖此前的特征归一化、规则选择与 campaign 结构。研究在时刻 $t$ 可使用的信息必须满足：</p>
+<script type="math/tex; mode=display">
+\mathcal I_t\subseteq\sigma(X_u,A_u,Y_u:u<t),</script><p>也就是当前决策只能由严格更早时刻已经可见的变量生成。随机打乱以后，训练集可能包含 $d_{25}$，测试集却包含 $d_8$；模型等于从未来市场状态回头解释过去，这不是一次可执行的历史决策。</p>
+<p>第二个问题更隐蔽：同一天的一条训练行可能拥有跨越测试边界的观察终点。例如某次 fill 的 cooldown、后代订单、库存修复或 campaign terminal 一直延伸到下一段。即使 feature timestamp 在训练窗内，它的 label 仍可能包含测试时段的信息。</p>
+<p>第三个问题是选择泄漏。假设研究有 $M$ 个候选规则，真实期望都等于零，但先在完整 30 日上取最大值：</p>
+<script type="math/tex; mode=display">
+\widehat m=\arg\max_{m\in\{1,\ldots,M\}}\widehat\Delta_m.</script><p>只要估计存在噪声，通常就有 $\mathbb E[\max_m\widehat\Delta_m]&gt;0$。这个正数可能只是“从很多噪声里挑最大值”的赢家偏差；随后再用相同日期计算置信区间，并不会把已经发生的选择还原成样本外证据。</p>
+<h2 id="2-30-日-outer-folds-到底怎样走"><a href="#2-30-日-outer-folds-到底怎样走" class="headerlink" title="2. 30 日 outer folds 到底怎样走"></a>2. 30 日 outer folds 到底怎样走</h2><p>Full-Multiscale 冻结了 30 个 family-specific historical Development 日期，共 3,516 个机会。日期按时间排序后，四个 outer fold 如下：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Outer fold</th>
+<th style="text-align:right">训练前缀</th>
+<th style="text-align:right">untouched 测试段</th>
+<th style="text-align:right">测试日数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td style="text-align:right">前 10 日</td>
+<td style="text-align:right">第 11–15 日</td>
+<td style="text-align:right">5</td>
+</tr>
+<tr>
+<td>2</td>
+<td style="text-align:right">前 15 日</td>
+<td style="text-align:right">第 16–20 日</td>
+<td style="text-align:right">5</td>
+</tr>
+<tr>
+<td>3</td>
+<td style="text-align:right">前 20 日</td>
+<td style="text-align:right">第 21–25 日</td>
+<td style="text-align:right">5</td>
+</tr>
+<tr>
+<td>4</td>
+<td style="text-align:right">前 25 日</td>
+<td style="text-align:right">第 26–30 日</td>
+<td style="text-align:right">5</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>写成集合就是：</p>
+<script type="math/tex; mode=display">
+T_k=\{d_1,\ldots,d_{10+5(k-1)}\},\qquad
+V_k=\{d_{11+5(k-1)},\ldots,d_{15+5(k-1)}\},</script><p>其中 $k\in{1,2,3,4}$。每个 $V_k$ 都只出现一次，四段并集正好是 20 个 outer-test days；训练窗则随着时间扩张，模拟“研究者每隔一段时间只使用当时已经发生的历史重新学习”。</p>
+<p><img src="/images/narrowgate/full-multiscale-nested-oof.svg" srcset="/img/loading.gif" lazyload alt="30 日 nested chronological out of fold 结构"></p>
+<p><em>图 1：外层四次向前滚动，每次训练只在测试之前；蓝色 outer-train 内部还要再做三次 chronological inner selection。</em></p>
+<p>这里的“untouched”不是说这些日期在全世界从未被任何研究看过，而是说它们没有参与当前 outer fold 的 feature ranking、profile selection、threshold selection 或 policy fit。30 日面板本身也只是对这个研究族未消费的历史 Development，不是 globally fresh evidence。</p>
+<h2 id="3-每个-outer-train-里面为什么还要三个-inner-folds"><a href="#3-每个-outer-train-里面为什么还要三个-inner-folds" class="headerlink" title="3. 每个 outer train 里面为什么还要三个 inner folds"></a>3. 每个 outer train 里面为什么还要三个 inner folds</h2><p>如果只做外层切分，却在 outer-test 上选择 EMA pair、tree depth 或规则条数，外层测试仍然被用于训练。Nested OOF 的核心，是把“选择模型”和“评价选择过程”拆成两层。</p>
+<p>对第 $k$ 个 outer fold，研究先只拿到 $T_k$。实现从训练前缀的第 6 个日期开始，把剩余位置按时间顺序分成三个 inner-test block；每个 inner-test block 的训练集都是它之前的前缀。以最短的 10 日 outer train 为例，三组测试大致覆盖第 6–7 日、第 8–9 日和第 10 日，而对应训练前缀依次扩张。</p>
+<p>对一个候选 profile $c$，inner 层得到三个严格向前的评价段，合成按日等权的分数：</p>
+<script type="math/tex; mode=display">
+\widehat Q_k(c)=\frac{1}{|I_k|}\sum_{d\in I_k}
+\left[Y_d\!\left(\pi_{k,c}^{\mathrm{repeated}}\right)-Y_d(B0)\right].</script><p>这里 $I_k$ 是第 $k$ 个 outer train 内的 inner-test 日期并集，$B0$ 是实验冻结时的 exact owner baseline。研究在 inner 层比较候选 profile；分数相同时优先较低复杂度，再用稳定名称打破完全平局。选定 profile 后，才在 purged outer train 上重新拟合一次 fold policy，并对 $V_k$ 执行一次外层评价。</p>
+<p>因此，对每个 outer fold，正确顺序是：</p>
+<ol>
+<li>只在 purged outer-train 行上物化 one-shot 训练标签，outer-test 行不得进入标签请求。</li>
+<li>三个 inner fold 分别完成 feature census、support 检查、经济筛选、复杂度比较和候选评价。</li>
+<li>用 inner OOF 结果选择 profile，不读取 outer-test 经济结果。</li>
+<li>在 purged outer train 上 refit 该 fold 的 policy。</li>
+<li>冻结以后，在五个 outer-test days 上运行 repeated sequential full-path replay；不再改 feature、threshold、duration 或复杂度。</li>
+</ol>
+<p>这评价的不是一条永远不变的规则，而是一个完整学习程序：如果研究者只拥有当时的历史，这个程序会选出什么 policy，它在接下来的五天表现如何。</p>
+<h2 id="4-Purge-与-washout：标签没有越界，才算真正的过去"><a href="#4-Purge-与-washout：标签没有越界，才算真正的过去" class="headerlink" title="4. Purge 与 washout：标签没有越界，才算真正的过去"></a>4. Purge 与 washout：标签没有越界，才算真正的过去</h2><p>仅仅要求 <code>train day &lt; test day</code> 还不够。一个训练机会 $i$ 有 assignment time $a_i$、observation end $e_i$ 和 campaign id $g_i$；测试段最早 assignment time 记为 $b_k$，测试 campaign 集合记为 $G_k^{test}$。实现保留训练行的条件是：</p>
+<script type="math/tex; mode=display">
+i\in T_k^{\mathrm{purged}}
+\iff
+e_i<b_k\ \land\ g_i\notin G_k^{test}.</script><p>如果 $e_i$ 未知、跨过测试边界，或同一 campaign 同时出现在训练与测试中，这条训练行就被移除。这样做不是为了让样本“更干净”，而是为了阻止未来订单、queue、inventory、cooldown 与 campaign terminal 通过 label 倒流进训练。</p>
+<p>这也是 purge 与一般日历 embargo 的差别：固定空出一天只是粗糙缓冲，washout-aware purge 直接检查每条机会的观察终点和 campaign 连续性。对路径很短的行，它不会无谓删除大量历史；对跨界的长尾路径，它也不会因为“日期已经换了”就误判为安全。</p>
+<h2 id="5-四种常见的“伪-OOF”"><a href="#5-四种常见的“伪-OOF”" class="headerlink" title="5. 四种常见的“伪 OOF”"></a>5. 四种常见的“伪 OOF”</h2><p>第一种，是在全部 30 日上挑出最强的 45 个 EMA pair 之一，再把选好的 pair 带进四个 outer fold。外层拟合可能没有直接看到测试 label，但 feature universe 已经由未来结果筛过。</p>
+<p>第二种，是用 outer-test 结果决定 tree depth、规则数量、阈值、duration 或是否换成连续模型，然后只报告最终赢家。此时 outer test 已经变成第二个 validation set。</p>
+<p>第三种，是训练时正确做了 nested split，最终却把 one-shot opportunity effects 相加作为外层 PnL。它解决了时间选择泄漏，却没有解决动作引起的路径变化。</p>
+<p>第四种，是在看到 day-level interval 跨零以后改用更有利的 week block、删除坏日或缩小 simultaneous family。Full-Multiscale 的 BUY E3 day band 为 <code>[-0.348400, +1.265554] USDC/day</code>，week-block band 为 <code>[+0.140288, +0.917819]</code>；冻结合同不允许因为后一条更漂亮，就把前一条从 primary gate 中移除。</p>
+<h2 id="6-OOF-估计的究竟是什么"><a href="#6-OOF-估计的究竟是什么" class="headerlink" title="6. OOF 估计的究竟是什么"></a>6. OOF 估计的究竟是什么</h2><p>令 $\mathcal A$ 表示完整学习算法，包括 feature screening、复杂度选择、Boolean rule fit 和 side-specific action mapping。第 $k$ 个外层策略为：</p>
+<script type="math/tex; mode=display">
+\pi_k=\mathcal A\!\left(T_k^{\mathrm{purged}}\right).</script><p>那么 outer OOF 估计针对的是“在不同历史时点重新运行 $\mathcal A$”的表现：</p>
+<script type="math/tex; mode=display">
+\widehat\theta_{\mathrm{alg}}=
+\frac{1}{20}\sum_{k=1}^{4}\sum_{d\in V_k}
+\left[Y_d(\pi_k)-Y_d(B0)\right].</script><p>虽然写法可进一步简化成 20 日均值，但保留 $\pi<em>k$ 很重要：四个 fold 的规则、阈值或复杂度可能不同。这个估计不能自动转写成某个最终固定 artifact $\pi</em>{30}=\mathcal A(D<em>{1:30})$ 的 OOF 表现，因为 $\pi</em>{30}$ 从未在那 20 个外层测试日上保持“未见”。</p>
+<p>所以证据链必须分三层：</p>
+<ul>
+<li><code>learning_algorithm_fold_specific_policies</code>：本文的 nested OOF 能够回答的层级。</li>
+<li><code>final_full_development_refit_artifact</code>：使用全部 Development refit 后产生的固定候选，只证明 artifact 已冻结，不证明它已被独立测试。</li>
+<li><code>exact-artifact confirmation</code>：需要在 artifact 冻结之后，用符合新证据合同的数据或另行授权的真实随机实验确认。</li>
+</ul>
+<p>把第一层写成第三层，会让“算法在过去多个切点能否重学”与“今天这一个固定策略是否有效”混为一谈。</p>
+<h2 id="7-Full-Multiscale-的结果怎样读"><a href="#7-Full-Multiscale-的结果怎样读" class="headerlink" title="7. Full-Multiscale 的结果怎样读"></a>7. Full-Multiscale 的结果怎样读</h2><p>BUY 的 <code>E3_HIGHER_ORDER_BOOLEAN</code>（下文简称 E3，即高阶布尔规则候选）在 20 个 outer-test days 上相对实验冻结时的 exact owner baseline 得到 <code>+0.458577 USDC/day</code> terminal uplift，四个 outer fold 的均值都为正，13/20 天改善，fills 从 8,565 变为 8,333，保留 97.29%。这些数字说明 nested OOF 发现了一个值得保留的 Development hypothesis。</p>
+<p>但 primary day-level simultaneous interval 跨零，feature hierarchy 第一层失败，tail 与 lifecycle gates 也没有通过。SELL E3 为 <code>-0.009708 USDC/day</code>，没有任何 supported non-baseline candidate。于是 <code>supported_sides=[]</code>，没有 final refit，也没有继续读取 Validation 或 sealed holdout。</p>
+<p>这恰好说明 nested OOF 的价值不是“保证找到好策略”，而是给研究者一个不能随意补票的评价边界。它允许发现信号，同时保留“不足以晋级”的正式结论。</p>
+<h2 id="8-公开实现与阅读顺序"><a href="#8-公开实现与阅读顺序" class="headerlink" title="8. 公开实现与阅读顺序"></a>8. 公开实现与阅读顺序</h2><p>建议从以下公开材料继续阅读：</p>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f05_fill_quality_quote_ev/docs/causal_multichannel_window_boolean_cooldown_full_multiscale_successor_offline_v1_spec_20260813.md">Offline successor Spec</a>：30 日 Development identity、四个 outer folds、inner discovery、权限和停止规则。</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f05_fill_quality_quote_ev/audit/causal_multichannel_window_boolean_cooldown_full_multiscale_successor_nested_oof_v1.py">Nested chronological OOF implementation</a>：fold validation、washout-aware purge、inner profile selection、outer evaluation 与 evidence-scope 检查。</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f05_fill_quality_quote_ev/docs/causal_multichannel_window_boolean_cooldown_full_multiscale_successor_offline_formal_components_development_20260821.md">Formal Development component report</a>：BUY/SELL 聚合 OOF 结果与最终 decision。</li>
+</ol>
+<h2 id="结语：真正的测试集，不只是“没有参加-fit”"><a href="#结语：真正的测试集，不只是“没有参加-fit”" class="headerlink" title="结语：真正的测试集，不只是“没有参加 fit”"></a>结语：真正的测试集，不只是“没有参加 fit”</h2><p>时间序列策略研究中的测试集必须同时满足三件事：它在时间上位于训练之后，没有通过跨界 label 回流到训练，也没有参与候选选择。只满足第一条，仍可能得到非常精致的泄漏。</p>
+<p>Nested chronological OOF 的代价是计算昂贵、每个 fold 可能产生不同策略、最后还不能直接宣称一个 final artifact 已被确认。但这正是它诚实的地方：它把“我找到了一个历史 winner”改写成一个更严格的问题——如果只能使用当时已发生的历史，同一个学习过程是否仍能在未来五天重复产生价值？</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Market-Making/" class="category-chain-item">Market Making</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
+      
+        <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
+      
+        <a href="/tags/%E6%97%B6%E9%97%B4%E5%BA%8F%E5%88%97/" class="print-no-link">#时间序列</a>
+      
+        <a href="/tags/OOF/" class="print-no-link">#OOF</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Nested Chronological OOF：时间序列策略搜索怎样避免提前看答案</div>
+      <div>https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Nested-Chronological-OOF/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Xuan Tan</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-One-Shot-vs-Repeated-Policy-Replay/" title="One-Shot 反事实为什么不能相加：路径依赖做市策略的完整回放">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">One-Shot 反事实为什么不能相加：路径依赖做市策略的完整回放</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-Full-Multiscale-Boolean-Cooldown-Research/" title="NarrowGate Full-Multiscale：从多尺度 EMA 到 Boolean Cooldown 的一次阴性研究">
+                        <span class="hidden-mobile">NarrowGate Full-Multiscale：从多尺度 EMA 到 Boolean Cooldown 的一次阴性研究</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

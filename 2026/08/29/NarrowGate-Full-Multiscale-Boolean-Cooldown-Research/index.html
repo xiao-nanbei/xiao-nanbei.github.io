@@ -1,0 +1,1153 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Xuan Tan">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Last materially modified: 2026-08-29 TL;DR：这是一个有正信号、但没有通过研究门槛的实验NarrowGate 的 Full-Multiscale 研究问了一个很具体的问题：在一次 maker 成交增加库存以后，能否根据从 0.5 秒到 256 秒的多尺度市场状态，动态决定下一次允许继续加仓前要等待多久，并且比实验冻结时的精确 owner baseline 获">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NarrowGate Full-Multiscale：从多尺度 EMA 到 Boolean Cooldown 的一次阴性研究">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Full-Multiscale-Boolean-Cooldown-Research/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：这是一个有正信号、但没有通过研究门槛的实验NarrowGate 的 Full-Multiscale 研究问了一个很具体的问题：在一次 maker 成交增加库存以后，能否根据从 0.5 秒到 256 秒的多尺度市场状态，动态决定下一次允许继续加仓前要等待多久，并且比实验冻结时的精确 owner baseline 获">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-research-loop.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-ema-bank.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-pair-state.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-boolean-policy.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-candidate-ladder.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-nested-oof.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-one-shot-vs-repeated.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-buy-intervals.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-evidence-boundary.svg">
+<meta property="article:published_time" content="2026-08-29T06:25:53.000Z">
+<meta property="article:modified_time" content="2026-08-29T08:45:00.000Z">
+<meta property="article:author" content="Xuan Tan">
+<meta property="article:tag" content="Market Making">
+<meta property="article:tag" content="市场微观结构">
+<meta property="article:tag" content="机器学习">
+<meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-research-loop.svg">
+  
+  
+  
+  <title>NarrowGate Full-Multiscale：从多尺度 EMA 到 Boolean Cooldown 的一次阴性研究 - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>xiaonanbei</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="NarrowGate Full-Multiscale：从多尺度 EMA 到 Boolean Cooldown 的一次阴性研究"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-29 14:25" pubdate>
+          2026年8月29日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          5.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          49 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">NarrowGate Full-Multiscale：从多尺度 EMA 到 Boolean Cooldown 的一次阴性研究</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Last materially modified: 2026-08-29</p>
+<h2 id="TL-DR：这是一个有正信号、但没有通过研究门槛的实验"><a href="#TL-DR：这是一个有正信号、但没有通过研究门槛的实验" class="headerlink" title="TL;DR：这是一个有正信号、但没有通过研究门槛的实验"></a>TL;DR：这是一个有正信号、但没有通过研究门槛的实验</h2><p>NarrowGate 的 Full-Multiscale 研究问了一个很具体的问题：<strong>在一次 maker 成交增加库存以后，能否根据从 0.5 秒到 256 秒的多尺度市场状态，动态决定下一次允许继续加仓前要等待多久，并且比实验冻结时的精确 owner baseline 获得更好的 campaign-terminal USDC value？</strong></p>
+<p>把它翻译成人话：研究让同一条价格同时经过十把“反应速度不同的尺子”——最快只记得最近约 0.5 秒，最慢保留约 256 秒的背景；任取一快一慢两把尺子，共有 45 种配对。程序不只问“快线在慢线上面吗”，还问“刚交叉多久、两线正在分开还是靠拢、这种排列持续了多久”，然后只用过去日期学习一组有长度上限的 AND / OR / NOT 规则，为当前成交选择一个预先冻结的冷却时长。</p>
+<p>这里的“三值”也不是三种动作，而是每个条件有 <code>true / false / unobserved</code> 三种状态：数据缺失不能被当成 <code>false</code>，取反以后也不能凭空变成证据。动作空间仍是 BUY 与 SELL 各自预先冻结的八档 duration。第 4 节会把 EMA、pair state 和 policy 分别写成式子。</p>
+<p>结果并不是“没有信号”。BUY 侧最强候选 <code>E3_HIGHER_ORDER_BOOLEAN</code> 相对精确 baseline 的 terminal value 改善 <code>+0.458577 USDC/day</code>，closed-campaign value 改善 <code>+0.604012 USDC/day</code>，保留 97.29% 的 fills，四个 outer-fold 平均值全部为正；在匹配 action rate 与 duration distribution 的控制组之上，仍有 <code>+0.193888 USDC/day</code> 的额外点估计。</p>
+<p>但它仍然没有通过研究门槛：day-level simultaneous interval 跨过零，语义增量的区间也跨过零，冻结的 feature hierarchy 第一层未通过，tail 与 lifecycle gates 同样失败。SELL 没有正的 non-baseline candidate。因此，正确结论是：<strong>这个冻结的 30 日 Development 研究族关闭，<code>supported_sides=[]</code>，没有 final refit、没有 Validation、没有 sealed holdout、没有 research-supported action 或 live authority。</strong></p>
+<p>这篇文章讲的不是一个“成功上线的策略”，而是一个更有代表性的研究结果：为什么看起来相当漂亮的点估计，仍然不足以证明一个做市动作具有可迁移的增量价值。</p>
+<p>项目源码：<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker">GitHub - xiao-nanbei/NarrowGateMaker</a>。完整的研究框架见 <a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/">Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift</a>，执行器与 C++ parity 背景见 <a href="/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/">回测吞吐与 Live 尾延迟工程</a>。</p>
+<p>本文只讨论研究方法和历史 Development 证据，不讨论或建议任何真实交易行为。文中的 PnL、value、fill 和 uplift 都是特定 replay identity 下的研究量，不是收益承诺。</p>
+<h2 id="系列导航：把一个大研究拆成十个可独立回答的问题"><a href="#系列导航：把一个大研究拆成十个可独立回答的问题" class="headerlink" title="系列导航：把一个大研究拆成十个可独立回答的问题"></a>系列导航：把一个大研究拆成十个可独立回答的问题</h2><p>这篇总览保留完整研究链；如果你只关心其中一个问题，可以直接读下面的专题文章。每篇都会重新交代自己的问题、公式、证据边界和结论，不要求先读总览。</p>
+<ol>
+<li><a href="/2026/08/29/NarrowGate-Multiscale-EMA-State-Space/">十个 Half-Life、45 个配对到底在测什么</a>：从不规则时钟 EMA 到 cross age、distance、slope、curvature、expansion 与 convergence。</li>
+<li><a href="/2026/08/29/NarrowGate-Three-Valued-Boolean-Cooldown-Policy/">三值 Boolean Cooldown：缺失不是 False</a>：Kleene 三值逻辑、DNF、有序 first-match、八档 duration 与 fail-closed 规则。</li>
+<li><a href="/2026/08/29/NarrowGate-Same-Millisecond-Causal-Ordering/">同一毫秒里谁先发生</a>：为什么 trade/book 无共同序列号时不能发明先后顺序，以及 censor 的证据代价。</li>
+<li><a href="/2026/08/29/NarrowGate-Nested-Chronological-OOF/">Nested Chronological OOF：怎样避免提前看答案</a>：四个 expanding outer folds、inner discovery、purge 与 selection leakage。</li>
+<li><a href="/2026/08/29/NarrowGate-One-Shot-vs-Repeated-Policy-Replay/">One-Shot 反事实为什么不能相加</a>：局部 duration label 与 repeated sequential full-path value 的差别。</li>
+<li><a href="/2026/08/29/NarrowGate-Side-Specific-Inference-BUY-SELL/">为什么 BUY 与 SELL 不能混在一起</a>：maker side、对手方 taker、库存语义和侧别晋级门。</li>
+<li><a href="/2026/08/29/NarrowGate-Feature-Hierarchy-Action-Matched-Control/">Feature Hierarchy 与 Action-Matched Control</a>：如何区分状态选择的价值、减量效应与高阶 winner bias。</li>
+<li><a href="/2026/08/29/NarrowGate-Positive-Estimate-Negative-Research-Result/">+0.458577 USDC/day 为什么仍是阴性结果</a>：点估计、同时区间、tail/lifecycle hard gates 与不晋级决定。</li>
+<li><a href="/2026/08/29/NarrowGate-Research-Identity-vs-Execution-Attempts/">研究版本还是执行失败</a>：为什么 <code>formal-v13</code> 到 <code>formal-v27</code> 是同一研究身份下的 execution attempts。</li>
+<li><a href="/2026/08/29/NarrowGate-Evidence-Authority-Ladder/">从 Development 到 Live：证据为什么不能越级授权</a>：Development、refit、Validation、sealed holdout、action 与 live 各自能证明什么。</li>
+</ol>
+<h2 id="1-问题不是“EMA-能不能预测价格”，而是“状态能不能改变动作价值”"><a href="#1-问题不是“EMA-能不能预测价格”，而是“状态能不能改变动作价值”" class="headerlink" title="1. 问题不是“EMA 能不能预测价格”，而是“状态能不能改变动作价值”"></a>1. 问题不是“EMA 能不能预测价格”，而是“状态能不能改变动作价值”</h2><p>maker 策略里的 cooldown，是一次 exposure-increasing fill 之后暂时不允许同侧继续增加库存的时间。最简单的实现是固定等待，例如按连续成交单位使用 <code>85 × N</code> 秒。它的好处是可解释、稳定、容易在 live 和 replay 之间保持一致；缺点是把所有市场状态都压缩成同一个时间常数。</p>
+<p>直觉上，固定 cooldown 很可能过于粗糙。一次短促的流动性冲击，可能在几十秒内完成 refill；一次持续性的单边 taker flow，则可能在几分钟后仍未恢复。快慢 EMA 的交叉方向、交叉发生多久、价差是否继续扩张、盘口深度是否恢复，看起来都可能帮助回答“现在恢复加仓是否太早”。</p>
+<p>但这不是普通的价格预测问题。即使某个状态能预测未来继续下跌，也不能直接推出“延长 cooldown 更好”。延长等待会同时删除一部分有毒成交和一部分自然修复成交，还会改变后续订单、库存、campaign 长度和终局价值。研究真正要估计的是动作反事实：</p>
+<script type="math/tex; mode=display">
+\Delta = Y(\text{candidate repeated policy}) - Y(\text{frozen exact baseline policy}).</script><p>这里的 $Y$ 不是下一秒方向，也不是 fill 后某个孤立 markout，而是完整顺序路径上的 terminal 或 closed-campaign USDC value。</p>
+<p>因此，Full-Multiscale 的研究映射是：</p>
+<div class="code-wrapper"><pre><code class="hljs text">因果可见的市场、订单与 campaign 状态
+-&gt; 只在 inner-train 内进行的有界 Boolean discovery
+-&gt; cooldown duration policy
+-&gt; untouched outer-test 上的 repeated sequential full-path replay
+-&gt; 相对冻结 exact baseline 的 campaign-terminal USDC increment</code></pre></div>
+<p><img src="/images/narrowgate/full-multiscale-research-loop.svg" srcset="/img/loading.gif" lazyload alt="Full-Multiscale 从状态到动作价值的研究链"></p>
+<p><em>图 1：one-shot label 只帮助训练；正式结论来自 candidate 与 B0 各自运行的重复顺序完整路径。</em></p>
+<p>这是整项研究最重要的边界：<strong>state ranking 不等于 action uplift，one-shot label 也不等于 repeated-policy PnL。</strong></p>
+<h2 id="2-为什么要做-Full-Multiscale-successor"><a href="#2-为什么要做-Full-Multiscale-successor" class="headerlink" title="2. 为什么要做 Full-Multiscale successor"></a>2. 为什么要做 Full-Multiscale successor</h2><p>这项研究之前，NarrowGate 已经测试过 ADD 与 WAIT、固定八档 cooldown、有限 Boolean predicate、modeled-queue persistent policy，以及 50/71 日 full-path diagnostics。它们暴露了几个不能靠“再加一个特征”解决的问题。</p>
+<p>第一，早期 Boolean 搜索并没有真正实现完整 feature hierarchy。部分大 feature block 被压缩成少数 outcome-blind predicates，外层 policy 也退化成很浅的一条规则，所以阴性结果只能关闭那个受限实现，不能证明高阶 multiscale structure 没有价值。</p>
+<p>第二，strict-native 历史标签遇到了不可恢复的跨流顺序问题。公开 individual trade 的时间戳精度与 book stream 的子毫秒顺序不足以判断同一毫秒内 trade 与 depth change 谁先发生；强行指定 tie-break 会改变 queue seed 和 fill。正确处理是 censor ambiguity，而不是制造一个看起来精确的顺序。</p>
+<p>第三，先前的一次性 duration label 不能直接相加成策略收益。只要一个动作改变订单是否成交，它就会进一步改变库存、后续 eligibility、cooldown lineage 和 campaign terminal。真正的外层检验必须让 candidate policy 在完整路径上反复触发。</p>
+<p>Full-Multiscale successor 因此没有只扩大一个 feature list，而是同时修正了四件事：完整的多尺度状态、interaction-capable Boolean policy、nested chronological discovery，以及 repeated sequential evaluation。</p>
+<h2 id="3-证据身份：30-日历史-Development，而不是-prospective-或-strict-live-evidence"><a href="#3-证据身份：30-日历史-Development，而不是-prospective-或-strict-live-evidence" class="headerlink" title="3. 证据身份：30 日历史 Development，而不是 prospective 或 strict-live evidence"></a>3. 证据身份：30 日历史 Development，而不是 prospective 或 strict-live evidence</h2><p>最早的设计曾考虑建立一个 prospective companion，从冻结时点以后收集 30 个新日期。但该 companion 在部署前被撤回，产生零行数据，也没有修改 live runtime。项目没有把“0/30”误写成历史数据不存在，而是转向纯离线、family-specific 的历史 Development identity。</p>
+<p>离线研究在 outcome-blind source audit 后冻结了 30 个按时间排列的历史日期，共有 3,516 个机会。用于此前精确 F05 cooldown-selection chain 的日期被排除为 target；它们最多只能作为 D−1 warmup 或 D+1 washout context。这些日期是“对本研究族未消费”，不是“全项目从未看过”。</p>
+<p>证据时钟是 exchange time，queue identity 是 <code>modeled_queue_with_same_millisecond_ambiguity_censoring</code>。这意味着同毫秒但没有共同 sequence 的 trade/book 事件会被 censor，而不是被赋予乐观顺序。它不是 receive-time authority、strict exchange-queue truth、current-host transport parity，也不是 exact live-lifecycle confirmation。</p>
+<p>研究没有创建 shadow、companion、observer、writer、feature dump 或 hypothetical-action log。公开仓库保留方法、Spec、聚合结果和 machine receipt；精确 OOF rows、cache、scorecard 和 owner-side artifacts 位于 private evidence store，不随公共仓库分发。</p>
+<h2 id="4-状态空间：十个-half-life、45-个-EMA-pair-和三值逻辑"><a href="#4-状态空间：十个-half-life、45-个-EMA-pair-和三值逻辑" class="headerlink" title="4. 状态空间：十个 half-life、45 个 EMA pair 和三值逻辑"></a>4. 状态空间：十个 half-life、45 个 EMA pair 和三值逻辑</h2><p>先把最容易把读者劝退的那句话拆开。设 $p_i$ 是时刻 $t_i$ 已经因果可见的本地 mid price，半衰期为 $h$ 的不规则时钟 EMA 按下面的式子更新：</p>
+<script type="math/tex; mode=display">
+\lambda_{i,h}=\exp\!\left(-\ln 2\,\frac{t_i-t_{i-1}}{h}\right)=2^{-\Delta t_i/h},
+\qquad
+E_h(t_i)=\lambda_{i,h}E_h(t_{i-1})+(1-\lambda_{i,h})p_i.</script><p>$h$ 的直观含义是：经过 $h$ 秒，旧状态在递推权重中的影响衰减一半。因此 $h=0.5s$ 的线会很快追随新价格，$h=256s$ 的线更像缓慢变化的背景。研究冻结的 half-life 集合是：</p>
+<script type="math/tex; mode=display">
+H=\{0.5,1,2,4,8,16,32,64,128,256\}\ \text{seconds}.</script><p>任取 $f&lt;s$ 作为 fast 与 slow，就得到 $\binom{10}{2}=45$ 个合法配对。这里不是先在全部 30 天中挑一对“历史赢家”，而是让每个 inner fold 只用自己的过去训练段决定哪些 pair 值得进入规则。</p>
+<p><img src="/images/narrowgate/full-multiscale-ema-bank.svg" srcset="/img/loading.gif" lazyload alt="十个 EMA half-life 与全部 45 个 fast slow 配对"></p>
+<p><em>图 2：十个二倍间隔的时间尺度形成 45 个 fast/slow pair；每个方格是一组候选状态，不是一条独立策略。</em></p>
+<p>对一个配对 $(f,s)$，先定义以 basis point 表示的两线距离与距离速度：</p>
+<script type="math/tex; mode=display">
+d_{f,s}(t)=10^4\frac{E_f(t)-E_s(t)}{p(t)},
+\qquad
+v_{f,s}(t)=10^4\frac{\dot E_f(t)-\dot E_s(t)}{p(t)}.</script><p>于是当前 ordering 由 $\operatorname{sign}(d_{f,s})$ 给出；last-cross direction 是该符号最近一次翻转后的新符号；cross age 与当前排列的 persistence 分别是：</p>
+<script type="math/tex; mode=display">
+a^{\text{cross}}_{f,s}(t)=t-t^{\text{last cross}}_{f,s},
+\qquad
+a^{\mathrm{persist}}_{f,s}(t)=t-t^{\text{current ordering start}}_{f,s}.</script><p>两线是否继续分开，可以不用主观命名，直接看乘积：</p>
+<script type="math/tex; mode=display">
+d_{f,s}(t)v_{f,s}(t)>0\Rightarrow\text{expanding},
+\qquad
+d_{f,s}(t)v_{f,s}(t)<0\Rightarrow\text{converging}.</script><p>单条 EMA 的 slope 是 $\dot E_h$，curvature 是 $\ddot E_h$；配对的 curvature 则来自快慢 acceleration 之差。实现还会按 maker side 统一“有利 / 不利”方向，并在相应特征上使用因果可见的波动尺度做 normalization；上面的式子刻意省略这些符号变换，只保留最容易理解的几何关系。</p>
+<p><img src="/images/narrowgate/full-multiscale-pair-state.svg" srcset="/img/loading.gif" lazyload alt="一个 EMA 配对如何产生 cross age distance 与 expansion"></p>
+<p><em>图 3：同一个交叉方向下，“刚交叉且继续扩张”与“交叉很久且正在收敛”是两种不同的市场状态。</em></p>
+<p>因此每个 pair 不只提供 golden/death cross，而是提供一组带方向和持续性的状态：</p>
+<ul>
+<li>当前 fast/slow 的方向与上一次 cross 方向；</li>
+<li>cross age 与 persistence；</li>
+<li>EMA distance 与 normalized distance；</li>
+<li>slope 与 curvature；</li>
+<li>convergence 与 expansion。</li>
+</ul>
+<p>后置的 M2 层才允许加入 aggressive trade flow、trade count/tempo、depth imbalance、depletion/refill、目标价 displayed quantity 和 queue state。这样可以回答一个更干净的问题：trade/depth 是否在已经有 campaign 与 EMA 表示以后仍提供增量价值，而不是把所有信息一次性混在一起。</p>
+<p>Boolean 层先把连续状态变成原子条件 $a_j(x_t)\in{T,F,U}$，其中 $U$ 表示 <code>unobserved</code>。它使用 Kleene 三值逻辑，例如 $\neg U=U$、$T\land U=U$、$F\land U=F$。因此缺失值不会被偷偷当作 <code>false</code>，<code>NOT unobserved</code> 也不会变成可用证据；source unavailable、warmup incomplete、feature stale、predicate unobserved 与 safety fallback 都有独立 coverage reason。</p>
+<p>第 $\ell$ 条规则是若干 AND clause 的 OR，写成：</p>
+<script type="math/tex; mode=display">
+R_\ell(x)=
+\bigvee_{c=1}^{m_\ell}
+\left(
+\bigwedge_{j\in P_{\ell c}}a_j(x)
+\land
+\bigwedge_{k\in N_{\ell c}}\neg a_k(x)
+\right).</script><p>多条规则按顺序 first-match。对 side $s$，动作不是 <code>+1 / 0 / -1</code>，而是从冻结的时长集合中选择；其中 $\tau_{B0,s}(x)$ 表示该行由 exact owner baseline 给出的时长：</p>
+<script type="math/tex; mode=display">
+\mathcal A_{\mathrm{BUY}}=\{\tau_{B0}(x),79,173,223,356,640,709,2048\}\text{s},</script><script type="math/tex; mode=display">
+\mathcal A_{\mathrm{SELL}}=\{\tau_{B0}(x),79,166,211,349,660,686,1748\}\text{s}.</script><p>最终 policy 可以简写成：</p>
+<script type="math/tex; mode=display">
+\tau_s(x)=
+\begin{cases}
+\tau_{\ell,s}, & R_1(x)=\cdots=R_{\ell-1}(x)=F,\ R_\ell(x)=T,\\
+\tau_{B0,s}(x), & \text{没有规则为真，或更早规则为 }U.
+\end{cases}</script><p><img src="/images/narrowgate/full-multiscale-boolean-policy.svg" srcset="/img/loading.gif" lazyload alt="三值 Boolean first match policy"></p>
+<p><em>图 4：三值属于 predicate；duration action 仍是八档。更早规则若不可观测，policy fail closed 回到 B0，而不会让后规则捡漏。</em></p>
+<p>搜索是有意限制的。每个 purged inner-training fold 最多经济筛选 1,024 个特征；per-action tree 深度最多 6、最多 32 个叶子，最终 policy 最多 7 条有序规则，每条规则最多 16 个 OR clause、每个 clause 最多 6 个 literal。这个约束减少了自由度，但也决定了结论边界：它是一个 bounded successor，不是对所有 Boolean architecture 的穷尽证明。</p>
+<h2 id="5-Candidate-ladder：从简单-campaign-状态逐层增加信息"><a href="#5-Candidate-ladder：从简单-campaign-状态逐层增加信息" class="headerlink" title="5. Candidate ladder：从简单 campaign 状态逐层增加信息"></a>5. Candidate ladder：从简单 campaign 状态逐层增加信息</h2><p>研究没有直接把 E3 与一个随意的 85 秒常数比较，而是冻结了逐层 candidate ladder。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>B0_CURRENT_EXACT</code></td>
+<td>实验冻结时逐行复现的 exact owner baseline；不是独立的固定 <code>CONTROL_85N</code> 列</td>
+</tr>
+<tr>
+<td><code>B1_CAMPAIGN_AGE_ONLY</code></td>
+<td>只根据 campaign age 学习 duration</td>
+</tr>
+<tr>
+<td><code>B2_CAMPAIGN_PLUS_H16_H256</code></td>
+<td>加入 16s/256s cross recency</td>
+</tr>
+<tr>
+<td><code>B3_CURRENT_SEMANTIC_EQUIVALENT</code></td>
+<td>用统一的三值与 readiness 语义复现现有规则</td>
+</tr>
+<tr>
+<td><code>E1_FULL_EMA_BANK</code></td>
+<td>让十个 half-life 与 45 个 pair 全部进入 inner-fold screening</td>
+</tr>
+<tr>
+<td><code>E2_DIRECTIONAL_EMA</code></td>
+<td>加入 cross direction、age、persistence、distance、slope、curvature 等方向信息</td>
+</tr>
+<tr>
+<td><code>E3_HIGHER_ORDER_BOOLEAN</code></td>
+<td>允许可达的有序多规则 AND/OR/NOT interaction</td>
+</tr>
+<tr>
+<td><code>M2_TRUE_INCREMENTAL</code></td>
+<td>在最佳 campaign/EMA representation 上再加入 trade 与 depth</td>
+</tr>
+<tr>
+<td><code>ACTION_MATCHED_CONTROLS</code></td>
+<td>为 E1/E2/E3/M2 分别构造 action-rate 与 duration-distribution 匹配控制</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>BUY 与 SELL 分开学习、分开报告、分开晋级；reducing quote 不变。duration vocabulary 也没有在看到结果后重选，BUY 与 SELL 各自继续使用既有的八档动作，包括 <code>CONTROL_85N</code> 和七个预先冻结的 fixed-duration arm。</p>
+<p>冻结 hierarchy 要求先回答 E1 相对 B0 是否成立，再回答 E2 相对 E1、E3 相对 E2，以及 M2 相对最佳 EMA representation 是否有增量价值。后层即使点估计更好，也不能绕过前层失败变成 confirmatory success。</p>
+<p><img src="/images/narrowgate/full-multiscale-candidate-ladder.svg" srcset="/img/loading.gif" lazyload alt="Full-Multiscale candidate ladder 与冻结晋级门"></p>
+<p><em>图 5：BUY E3 是后层最强点信号，但 E1→B0 的第一道确认门已经失败，所以 E3 不能跨级晋级。</em></p>
+<h2 id="6-为什么必须-nested-chronological-OOF"><a href="#6-为什么必须-nested-chronological-OOF" class="headerlink" title="6. 为什么必须 nested chronological OOF"></a>6. 为什么必须 nested chronological OOF</h2><p>30 个日期被组织成四个 expanding outer fold：前 10 日训练、接下来 5 日测试；前 15 日训练、接下来 5 日测试；然后是 20→5 和 25→5。最终共有 20 个 untouched outer-test days。</p>
+<p>每个 outer-training block 内还有三组 expanding inner fold。feature census、support calculation、economic screening、complexity selection 和 policy freeze 都只能发生在 purged inner-train。只要某个 assignment 的后代订单、queue、inventory、cooldown 或 campaign state 穿过测试边界，就必须从训练中 purge。</p>
+<p>这套结构是为了防止两种常见泄漏：一是先在全部 30 日里挑出“看起来最有效”的 EMA pair，再假装 outer fold 没看过；二是用未来 campaign 的 terminal outcome 帮助当前规则选择。</p>
+<p>外层测试只执行已经冻结的 fold policy，不再修改 feature、threshold、duration 或 complexity。因而它提供的是“学习算法在不同历史时点会产生什么 policy”的 OOF 证据，而不是一个最后 refit 出来的固定 artifact 的 OOF 证据。</p>
+<p><img src="/images/narrowgate/full-multiscale-nested-oof.svg" srcset="/img/loading.gif" lazyload alt="30 日 nested chronological out of fold 结构"></p>
+<p><em>图 6：四个 expanding outer folds 产生 20 个外层测试日；每个蓝色训练窗内部还要独立完成 inner-fold 搜索与 purge。</em></p>
+<h2 id="7-One-shot-label-只负责发现，repeated-replay-才负责经济结论"><a href="#7-One-shot-label-只负责发现，repeated-replay-才负责经济结论" class="headerlink" title="7. One-shot label 只负责发现，repeated replay 才负责经济结论"></a>7. One-shot label 只负责发现，repeated replay 才负责经济结论</h2><p>在 outer-training 内，为每个机会生成多个 duration arm 的 one-shot counterfactual label，是为了让 learner 看见“如果这里等待 79 秒、173 秒或更久，局部路径会怎样”。但这些 label 不能直接相加，因为前一个动作会改变下一个机会是否存在。</p>
+<p><img src="/images/narrowgate/full-multiscale-one-shot-vs-repeated.svg" srcset="/img/loading.gif" lazyload alt="One shot label 与 repeated sequential replay 的差别"></p>
+<p><em>图 7：候选 duration 会改变后续订单、fill、inventory 与 eligibility；把仍按 baseline 世界生成的局部效果相加，不等于 policy PnL。</em></p>
+<p>外层 evaluation 因此采用 repeated sequential full-path replay：每一次符合条件的 exposure-increasing fill 都调用该 fold 已冻结的 policy，candidate 与 B0 分别重建后续订单、fill、inventory 和 campaign path。</p>
+<p>这也是 action-matched control 的意义。它复制 candidate 的 action rate 与 duration distribution，但不复制其状态语义。如果 candidate 只是通过“少做一点”改善亏损，matched control 应该得到相近结果；只有超出 matched control 的部分，才可能来自状态选择本身。</p>
+<h2 id="8-BUY：一个值得保留、但不能晋级的-E3-点信号"><a href="#8-BUY：一个值得保留、但不能晋级的-E3-点信号" class="headerlink" title="8. BUY：一个值得保留、但不能晋级的 E3 点信号"></a>8. BUY：一个值得保留、但不能晋级的 E3 点信号</h2><p>BUY E3 是所有非 baseline 候选中最强的经济点结果。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th style="text-align:right">Exact B0</th>
+<th style="text-align:right">BUY E3</th>
+<th style="text-align:right">变化</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Terminal value</td>
+<td style="text-align:right">-2.904117 USDC/day</td>
+<td style="text-align:right">-2.445540 USDC/day</td>
+<td style="text-align:right">+0.458577 USDC/day</td>
+</tr>
+<tr>
+<td>Closed-campaign value</td>
+<td style="text-align:right">-3.018197 USDC/day</td>
+<td style="text-align:right">-2.414185 USDC/day</td>
+<td style="text-align:right">+0.604012 USDC/day</td>
+</tr>
+<tr>
+<td>Fills</td>
+<td style="text-align:right">8,565</td>
+<td style="text-align:right">8,333</td>
+<td style="text-align:right">-232，保留 97.29%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>按这个 modeled replay denominator 计算，terminal loss 降低 15.79%，closed-campaign loss 降低 20.01%。四个 outer fold 的平均 uplift 全部为正，20 个 OOF test days 中有 13 日改善。</p>
+<p>action-matched control 的 fills 从 8,565 降到 8,312，比 E3 还略少，但 terminal uplift 只有 <code>+0.264689 USDC/day</code>。E3 在它之上还有 <code>+0.193888 USDC/day</code> 的 semantic increment，因此这个结果并不能简单解释成“少成交，所以少亏”。</p>
+<p>这正是一个有研究价值的信号：它同时具有跨四个 fold 的正方向、有限的 fill sacrifice，以及超出 matched control 的正点估计。如果只看排行榜，E3 很容易被描述成 winner。</p>
+<h2 id="9-为什么它仍然失败"><a href="#9-为什么它仍然失败" class="headerlink" title="9. 为什么它仍然失败"></a>9. 为什么它仍然失败</h2><p>首先，primary day-level simultaneous band 没有排除伤害。E3 gross terminal uplift 的 simultaneous interval 是：</p>
+<script type="math/tex; mode=display">
+[-0.348400,\ +1.265554]\ \text{USDC/day}.</script><p>week-block simultaneous interval 为 <code>[+0.140288, +0.917819] USDC/day</code>，方向更乐观，但冻结合同并不允许在结果出来后只选择更有利的聚类方式。day-level family 仍跨零，所以 primary lower-bound gate 失败。</p>
+<p>其次，E3 相对 action-matched control 的 semantic increment 虽然点估计为正，但 day interval 是：</p>
+<script type="math/tex; mode=display">
+[-0.715169,\ +1.102945]\ \text{USDC/day}.</script><p>它仍然无法排除状态语义没有稳定增量，甚至在某些日期造成伤害。</p>
+<p><img src="/images/narrowgate/full-multiscale-buy-intervals.svg" srcset="/img/loading.gif" lazyload alt="BUY E3 gross 与 semantic uplift 的 simultaneous intervals"></p>
+<p><em>图 8：week-block interval 为正，但预先规定的 primary day interval 与 semantic day interval 都跨零；不能在看到结果后只挑绿色口径。</em></p>
+<p>第三，冻结 hierarchy 的第一层 <code>E1_FULL_EMA_BANK</code> 对 B0 没有通过。E3 位于 E1/E2 之后；如果最基础的 full EMA feature block 尚未建立 confirmatory increment，就不能用后层 winner 绕过前层门槛。这是在控制多层搜索带来的 winner bias，而不是否认 E3 点估计存在。</p>
+<p>第四，tail 与 lifecycle gates 没有被较好的均值补偿。scorecard 记录的失败包括 conditional net-value lower bound 非正、negative-terminal protection 和 q10 shortfall protection 下界为负，以及 repair-event、censoring-avoidance 等指标方向不满足要求。</p>
+<p>因此，<code>ranking_score</code> 必须保持 null，candidate class 是 <code>hard_gate_failed</code>。这不是“保守一点所以暂不部署”，而是正式的 Development failure。</p>
+<h2 id="10-SELL：没有可以保留为候选的-non-baseline-policy"><a href="#10-SELL：没有可以保留为候选的-non-baseline-policy" class="headerlink" title="10. SELL：没有可以保留为候选的 non-baseline policy"></a>10. SELL：没有可以保留为候选的 non-baseline policy</h2><p>SELL E3 是 enriched candidate 中最不差的一项，但相对 exact B0 的 terminal increment 仍为 <code>-0.009708 USDC/day</code>。它保留了 101.18% 的 fills，20 个 OOF test days 中 12 日改善，但 simultaneous lower bound、tail 与 lifecycle gates 都失败。</p>
+<p>E1、E2、M2、continuous comparator 和简单 campaign-age candidate 的 terminal point increment 也都是负数。SELL 因此没有 successor candidate，不能靠 pooled BUY/SELL 结果掩盖这一侧的失败。</p>
+<h2 id="11-formal-v13-到-formal-v27-不是十五代研究"><a href="#11-formal-v13-到-formal-v27-不是十五代研究" class="headerlink" title="11. formal-v13 到 formal-v27 不是十五代研究"></a>11. <code>formal-v13</code> 到 <code>formal-v27</code> 不是十五代研究</h2><p>这项研究的执行历史很长：scheduler、cache schema、C++ lockstep、mmap lifetime、resume identity 和跨执行 cache binding 都出现过失败。历史记录曾使用 <code>formal-v13</code> 到 <code>formal-v27</code> 等名字，看上去像连续迭代了十五个研究版本。</p>
+<p>更准确的身份模型是：它们是同一冻结研究身份下的 execution attempts。样本、B0、candidate ladder、fold、estimand 和 statistical contract 没变；普通运行时 bug 不会创造新的研究问题，也不能让失败 attempt 的部分经济结果继续使用。</p>
+<p>最终 BUY 与 SELL 分别完成 577 个 cache unit、四个 outer fold、260 个 OOF candidate-day row 和 13 张 scorecard。BUY 使用已经完成并验证的 immutable component，SELL 在修复 runtime 后独立完成；两者只通过 identity-only receipt 组合，没有 pooled retraining、economic re-estimation 或跨执行 strategy-cache reuse。</p>
+<p>这个过程留下了一个比性能优化更重要的教训：<strong>执行器应该在冻结正式 evidence 之前完成 single-day、all-fold zero-economic、并发、cache durability、parity 和 complete-output smoke。</strong> 否则，研究 lineage 会被普通软件故障淹没，外部读者也很难分清“模型变了”还是“程序终于跑完了”。</p>
+<h2 id="12-这个阴性结果究竟关闭了什么"><a href="#12-这个阴性结果究竟关闭了什么" class="headerlink" title="12. 这个阴性结果究竟关闭了什么"></a>12. 这个阴性结果究竟关闭了什么</h2><p>它关闭的是以下精确身份：</p>
+<div class="code-wrapper"><pre><code class="hljs text">30-day family-specific historical Development panel
++ exact B0 baseline
++ frozen B1/B2/B3/E1/E2/E3/M2 ladder
++ bounded three-valued Boolean search
++ nested chronological OOF
++ repeated sequential modeled-queue replay
++ frozen simultaneous hierarchy and scorecard gates</code></pre></div>
+<p>在这个身份下，BUY 与 SELL 都没有 supported side，不能进行 final refit，也不能打开 Validation 或 sealed holdout 来“救”候选。</p>
+<p><img src="/images/narrowgate/full-multiscale-evidence-boundary.svg" srcset="/img/loading.gif" lazyload alt="Full-Multiscale 的证据与权限边界"></p>
+<p><em>图 9：研究完成到 historical Development OOF，并在门槛处停止；final refit、Validation、holdout、action 与 live authority 都没有被创建。</em></p>
+<p>它没有证明多尺度状态毫无信息，也没有证明所有 state-to-duration policy 都无效。搜索本身是 bounded 的，queue 是 modeled 的，证据是 exchange-time Development，strict-native 同毫秒顺序、receive-time transport、exact lifecycle 和 final-artifact confirmation 都不在它的 authority 内。</p>
+<p>BUY E3 可以被保留为高优先级 hypothesis，但未来若确认，必须在读取新证据前冻结 E3 的 feature、rule、threshold、action 和 statistical contract，并建立新的 confirmation identity。不能回到这 30 日上修改 hierarchy、缩窄区间、挑选聚类方法或重调 action rate。</p>
+<p>任何后续 owner operational decision 也是独立权限。它可以显式接受未闭合风险，但不能倒写成本文的 research hard gates 已经通过。</p>
+<h2 id="13-从这项研究得到的五个方法论结论"><a href="#13-从这项研究得到的五个方法论结论" class="headerlink" title="13. 从这项研究得到的五个方法论结论"></a>13. 从这项研究得到的五个方法论结论</h2><p>第一，<strong>点估计与证据等级是两回事。</strong> <code>+0.458577 USDC/day</code>、4/4 正 fold、13/20 正 day 和 97.29% fill retention 足以产生 hypothesis，却不足以覆盖 simultaneous uncertainty、tail 和 lifecycle failure。</p>
+<p>第二，<strong>matched control 比单独报告 fill retention 更有解释力。</strong> E3 超出 action-matched control 的正点估计说明信号不完全来自减少参与，但区间跨零又说明这个语义增量尚不稳定。</p>
+<p>第三，<strong>feature hierarchy 必须在结果出来前冻结。</strong> 否则研究者总能跳过失败的基础层，直接展示最漂亮的高阶 winner。</p>
+<p>第四，<strong>one-shot value 不能冒充 sequential policy value。</strong> 在路径依赖的 maker 系统里，每一个订单动作都会改变后面的训练和评价样本。</p>
+<p>第五，<strong>软件修复不是研究创新。</strong> 新 scheduler、新 cache key 或 mmap bugfix 应产生新的 execution attempt，而不是新的研究版本；只有 sample、baseline/candidate、fold、estimand 或 statistics 改变，才应建立新的 research identity。</p>
+<h2 id="14-公开证据与阅读顺序"><a href="#14-公开证据与阅读顺序" class="headerlink" title="14. 公开证据与阅读顺序"></a>14. 公开证据与阅读顺序</h2><p>建议按下面的顺序阅读公共材料：</p>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f05_fill_quality_quote_ev/docs/causal_multichannel_window_boolean_cooldown_full_multiscale_successor_v1_spec_20260813.md">Full-Multiscale prospective design</a>：原始研究问题与 candidate ladder；该 prospective companion 已撤回。</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f05_fill_quality_quote_ev/docs/causal_multichannel_window_boolean_cooldown_full_multiscale_successor_prospective_v1_withdrawal_20260813.md">Prospective withdrawal</a>：说明零行 companion 不是历史数据缺失证明，也没有 live 改动。</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f05_fill_quality_quote_ev/docs/causal_multichannel_window_boolean_cooldown_full_multiscale_successor_offline_v1_spec_20260813.md">Offline successor Spec</a>：30 日历史 Development、source gate、nested OOF 与权限边界。</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f05_fill_quality_quote_ev/docs/causal_multichannel_window_boolean_cooldown_full_multiscale_successor_offline_formal_components_development_20260821.md">Formal Development component report</a>：BUY/SELL 聚合结果与最终决定。</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f05_fill_quality_quote_ev/docs/causal_multichannel_window_boolean_cooldown_full_multiscale_successor_offline_formal_components_development_20260821.json">Public machine receipt</a>：结构化 evidence boundary、指标、hard-gate failure 和 permission。</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f05_fill_quality_quote_ev/docs/causal_multichannel_window_boolean_cooldown_full_multiscale_successor_execution_attempt_normalization_20260821.md">Execution-attempt normalization</a>：解释为什么 <code>formal-v13</code> 到 <code>formal-v27</code> 是 attempts，而不是研究版本。</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f05_fill_quality_quote_ev/docs/causal_multichannel_window_boolean_cooldown_full_multiscale_successor_handoff_completion_audit_20260821.md">Handoff completion audit</a>：区分已完成的 offline Development 与未到达的 final-artifact/confirmation 阶段。</li>
+</ol>
+<h2 id="结语：最值得保留的不是-winner，而是没有给-winner-补票"><a href="#结语：最值得保留的不是-winner，而是没有给-winner-补票" class="headerlink" title="结语：最值得保留的不是 winner，而是没有给 winner 补票"></a>结语：最值得保留的不是 winner，而是没有给 winner 补票</h2><p>Full-Multiscale 给出了一个很容易被过度包装的结果：BUY E3 的均值更好，四个 fold 都为正，fill 几乎没有损失，而且胜过 matched control。如果目标只是写一张漂亮的研究图表，到这里已经足够。</p>
+<p>但真正困难的部分，是在看到这些数字以后仍然遵守预先冻结的门槛：day-level simultaneous lower bound 跨零，hierarchy 不成立，tail 与 lifecycle 不通过，所以不 refit、不读 Validation、不打开 holdout，也不把 owner decision 写成 research confirmation。</p>
+<p>对 maker 研究而言，这种克制本身就是结果。它没有给出一个可以宣布成功的通用 cooldown policy，却把“多尺度状态如何进入动作反事实、如何避免 one-shot aggregation、如何用 matched control 区分选择与减量、以及如何区分 research identity 与 execution attempt”讲得更清楚。</p>
+<p>这比再找到一个历史 winner 更接近一套可以长期使用的研究方法。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Market-Making/" class="category-chain-item">Market Making</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
+      
+        <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
+      
+        <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
+      
+        <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>NarrowGate Full-Multiscale：从多尺度 EMA 到 Boolean Cooldown 的一次阴性研究</div>
+      <div>https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Full-Multiscale-Boolean-Cooldown-Research/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Xuan Tan</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-Nested-Chronological-OOF/" title="Nested Chronological OOF：时间序列策略搜索怎样避免提前看答案">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Nested Chronological OOF：时间序列策略搜索怎样避免提前看答案</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/" title="NarrowGate：回测吞吐与 Live 尾延迟工程">
+                        <span class="hidden-mobile">NarrowGate：回测吞吐与 Live 尾延迟工程</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

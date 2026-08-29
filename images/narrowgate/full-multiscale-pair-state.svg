@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="570" viewBox="0 0 1040 570" role="img" aria-labelledby="title desc">
+  <title id="title">一个快慢 EMA 配对如何产生方向、年龄、距离和动力学状态</title>
+  <desc id="desc">快 EMA 与慢 EMA 在图中交叉。当前时点同时测量交叉方向、交叉年龄、当前排列持续时间、两线距离、距离速度及其扩张或收敛状态。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#344054"/></marker>
+    <style>
+      .bg{fill:#fbfcfe}.frame{fill:#fff;stroke:#d0d5dd;stroke-width:1.2}.axis{stroke:#98a2b3;stroke-width:1.2}.fast{fill:none;stroke:#175cd3;stroke-width:3}.slow{fill:none;stroke:#027a48;stroke-width:3}.cross{stroke:#b54708;stroke-width:1.6;stroke-dasharray:6 5}.age{stroke:#6941c6;stroke-width:2;marker-start:url(#arrow);marker-end:url(#arrow)}.dist{stroke:#b42318;stroke-width:2;marker-start:url(#arrow);marker-end:url(#arrow)}.box{fill:#fff;stroke:#d0d5dd;stroke-width:1.2}.title{font:500 23px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.text{font:500 15px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.small{font:400 12px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#475467}.mono{font:400 13px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#344054}.blue{fill:#175cd3}.green{fill:#027a48}.red{fill:#b42318}.purple{fill:#6941c6}
+    </style>
+  </defs>
+  <rect class="bg" width="1040" height="570"/>
+  <text class="title" x="36" y="42">一对 EMA 不是只给出“金叉 / 死叉”</text>
+  <text class="small" x="36" y="68">下面以 fast = 4s、slow = 16s 为示意；真实研究对全部 45 对重复同样的状态构造。</text>
+  <rect class="frame" x="46" y="98" width="680" height="330" rx="7"/>
+  <line class="axis" x1="82" y1="386" x2="698" y2="386"/><line class="axis" x1="82" y1="126" x2="82" y2="386"/>
+  <path class="fast" d="M86 332 C172 330 250 312 320 270 C352 250 375 219 392 204 C456 170 528 142 598 116 C638 101 668 94 694 98"/>
+  <path class="slow" d="M86 286 C172 280 240 266 300 244 C344 228 370 216 392 204 C462 190 538 184 608 170 C646 162 674 154 694 148"/>
+  <line class="cross" x1="392" y1="118" x2="392" y2="386"/>
+  <line class="cross" x1="694" y1="98" x2="694" y2="386"/>
+  <line class="age" x1="402" y1="352" x2="684" y2="352"/>
+  <line class="dist" x1="675" y1="100" x2="675" y2="147"/>
+  <text class="small" x="348" y="405">last cross</text><text class="small" x="667" y="405">now</text>
+  <text class="small purple" text-anchor="middle" x="543" y="340">cross age / persistence</text>
+  <text class="small red" text-anchor="end" x="662" y="126">distance d</text>
+  <line class="fast" x1="104" y1="118" x2="134" y2="118"/><text class="small blue" x="144" y="122">fast EMA</text>
+  <line class="slow" x1="234" y1="118" x2="264" y2="118"/><text class="small green" x="274" y="122">slow EMA</text>
+
+  <rect class="box" x="758" y="98" width="242" height="330" rx="7"/>
+  <text class="text" x="780" y="130">这一刻记录什么？</text>
+  <text class="small" x="780" y="163">1. ordering：fast 在上还是在下</text>
+  <text class="small" x="780" y="192">2. last-cross direction</text>
+  <text class="small" x="780" y="221">3. cross age：交叉过去多久</text>
+  <text class="small" x="780" y="250">4. persistence：当前排列多久</text>
+  <text class="small" x="780" y="279">5. distance：两线相隔多远</text>
+  <text class="small" x="780" y="308">6. slope / curvature</text>
+  <text class="small" x="780" y="337">7. expanding / converging</text>
+  <text class="mono" x="780" y="376">d · v &gt; 0  → expanding</text>
+  <text class="mono" x="780" y="402">d · v &lt; 0  → converging</text>
+
+  <rect class="box" x="46" y="462" width="954" height="72" rx="7"/>
+  <text class="text" x="68" y="491">关键直觉</text>
+  <text class="small" x="68" y="516">“刚交叉且仍在分开”与“交叉很久但正在靠拢”即使方向相同，也可能对应完全不同的继续加仓风险。</text>
+</svg>

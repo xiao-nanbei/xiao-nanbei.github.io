@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="610" viewBox="0 0 1040 610" role="img" aria-labelledby="title desc">
+  <title id="title">十个 EMA 半衰期形成四十五个快慢配对</title>
+  <desc id="desc">从 0.5 秒到 256 秒的十个指数移动平均按二倍间隔排列。右下三角矩阵的四十五个方格表示所有 fast 小于 slow 的合法配对，4 秒与 16 秒配对被高亮为例。</desc>
+  <defs>
+    <style>
+      .bg{fill:#fbfcfe}.axis{stroke:#98a2b3;stroke-width:1.4}.tick{stroke:#667085;stroke-width:1.2}.node{fill:#eff8ff;stroke:#175cd3;stroke-width:1.4}.pair{fill:#d1e9ff}.example{fill:#fedf89;stroke:#b54708;stroke-width:1.4}.guide{fill:#fff;stroke:#d0d5dd;stroke-width:1.2}.title{font:500 23px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.text{font:500 15px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.small{font:400 12px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#475467}.tiny{font:400 10px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#667085}.mono{font:400 13px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#344054}
+    </style>
+  </defs>
+  <rect class="bg" width="1040" height="610"/>
+  <text class="title" x="36" y="42">同一条价格，交给十把反应速度不同的“尺子”</text>
+  <text class="small" x="36" y="68">half-life 越短，越快追随新价格；越长，越强调背景趋势。相邻点相差一倍。</text>
+  <line class="axis" x1="72" y1="132" x2="968" y2="132"/>
+  <g>
+    <circle class="node" cx="74" cy="132" r="17"/><circle class="node" cx="173" cy="132" r="17"/><circle class="node" cx="272" cy="132" r="17"/><circle class="node" cx="371" cy="132" r="17"/><circle class="node" cx="470" cy="132" r="17"/><circle class="node" cx="569" cy="132" r="17"/><circle class="node" cx="668" cy="132" r="17"/><circle class="node" cx="767" cy="132" r="17"/><circle class="node" cx="866" cy="132" r="17"/><circle class="node" cx="965" cy="132" r="17"/>
+    <text class="small" text-anchor="middle" x="74" y="174">0.5s</text><text class="small" text-anchor="middle" x="173" y="174">1s</text><text class="small" text-anchor="middle" x="272" y="174">2s</text><text class="small" text-anchor="middle" x="371" y="174">4s</text><text class="small" text-anchor="middle" x="470" y="174">8s</text><text class="small" text-anchor="middle" x="569" y="174">16s</text><text class="small" text-anchor="middle" x="668" y="174">32s</text><text class="small" text-anchor="middle" x="767" y="174">64s</text><text class="small" text-anchor="middle" x="866" y="174">128s</text><text class="small" text-anchor="middle" x="965" y="174">256s</text>
+  </g>
+
+  <rect class="guide" x="36" y="226" width="302" height="304" rx="9"/>
+  <text class="text" x="60" y="260">为什么不是只选一对？</text>
+  <text class="small" x="60" y="291">0.5s / 1s：看极短冲击</text>
+  <text class="small" x="60" y="319">4s / 16s：看短期结构</text>
+  <text class="small" x="60" y="347">16s / 256s：看局部与背景</text>
+  <text class="small" x="60" y="389">任取 fast &lt; slow：</text>
+  <text class="mono" x="60" y="418">C(10, 2) = 45</text>
+  <text class="small" x="60" y="450">每个方格不是一个策略，</text>
+  <text class="small" x="60" y="474">而是一组可供 inner-fold</text>
+  <text class="small" x="60" y="498">筛选的状态描述。</text>
+
+  <text class="text" x="394" y="226">全部合法 fast / slow 配对</text>
+  <text class="small" x="394" y="250">列 = fast half-life；行 = slow half-life</text>
+  <text class="tiny" text-anchor="middle" x="445" y="278">0.5</text><text class="tiny" text-anchor="middle" x="497" y="278">1</text><text class="tiny" text-anchor="middle" x="549" y="278">2</text><text class="tiny" text-anchor="middle" x="601" y="278">4</text><text class="tiny" text-anchor="middle" x="653" y="278">8</text><text class="tiny" text-anchor="middle" x="705" y="278">16</text><text class="tiny" text-anchor="middle" x="757" y="278">32</text><text class="tiny" text-anchor="middle" x="809" y="278">64</text><text class="tiny" text-anchor="middle" x="861" y="278">128</text>
+  <text class="tiny" text-anchor="end" x="416" y="305">1</text><text class="tiny" text-anchor="end" x="416" y="335">2</text><text class="tiny" text-anchor="end" x="416" y="365">4</text><text class="tiny" text-anchor="end" x="416" y="395">8</text><text class="tiny" text-anchor="end" x="416" y="425">16</text><text class="tiny" text-anchor="end" x="416" y="455">32</text><text class="tiny" text-anchor="end" x="416" y="485">64</text><text class="tiny" text-anchor="end" x="416" y="515">128</text><text class="tiny" text-anchor="end" x="416" y="545">256</text>
+  <g>
+    <rect class="pair" x="430" y="290" width="30" height="18"/><rect class="pair" x="430" y="320" width="30" height="18"/><rect class="pair" x="482" y="320" width="30" height="18"/>
+    <rect class="pair" x="430" y="350" width="30" height="18"/><rect class="pair" x="482" y="350" width="30" height="18"/><rect class="pair" x="534" y="350" width="30" height="18"/>
+    <rect class="pair" x="430" y="380" width="30" height="18"/><rect class="pair" x="482" y="380" width="30" height="18"/><rect class="pair" x="534" y="380" width="30" height="18"/><rect class="pair" x="586" y="380" width="30" height="18"/>
+    <rect class="pair" x="430" y="410" width="30" height="18"/><rect class="pair" x="482" y="410" width="30" height="18"/><rect class="pair" x="534" y="410" width="30" height="18"/><rect class="example" x="586" y="410" width="30" height="18"/><rect class="pair" x="638" y="410" width="30" height="18"/>
+    <rect class="pair" x="430" y="440" width="30" height="18"/><rect class="pair" x="482" y="440" width="30" height="18"/><rect class="pair" x="534" y="440" width="30" height="18"/><rect class="pair" x="586" y="440" width="30" height="18"/><rect class="pair" x="638" y="440" width="30" height="18"/><rect class="pair" x="690" y="440" width="30" height="18"/>
+    <rect class="pair" x="430" y="470" width="30" height="18"/><rect class="pair" x="482" y="470" width="30" height="18"/><rect class="pair" x="534" y="470" width="30" height="18"/><rect class="pair" x="586" y="470" width="30" height="18"/><rect class="pair" x="638" y="470" width="30" height="18"/><rect class="pair" x="690" y="470" width="30" height="18"/><rect class="pair" x="742" y="470" width="30" height="18"/>
+    <rect class="pair" x="430" y="500" width="30" height="18"/><rect class="pair" x="482" y="500" width="30" height="18"/><rect class="pair" x="534" y="500" width="30" height="18"/><rect class="pair" x="586" y="500" width="30" height="18"/><rect class="pair" x="638" y="500" width="30" height="18"/><rect class="pair" x="690" y="500" width="30" height="18"/><rect class="pair" x="742" y="500" width="30" height="18"/><rect class="pair" x="794" y="500" width="30" height="18"/>
+    <rect class="pair" x="430" y="530" width="30" height="18"/><rect class="pair" x="482" y="530" width="30" height="18"/><rect class="pair" x="534" y="530" width="30" height="18"/><rect class="pair" x="586" y="530" width="30" height="18"/><rect class="pair" x="638" y="530" width="30" height="18"/><rect class="pair" x="690" y="530" width="30" height="18"/><rect class="pair" x="742" y="530" width="30" height="18"/><rect class="pair" x="794" y="530" width="30" height="18"/><rect class="pair" x="846" y="530" width="30" height="18"/>
+  </g>
+  <rect class="example" x="902" y="356" width="28" height="18"/><text class="small" x="940" y="371">示例：4s / 16s</text>
+  <rect class="pair" x="902" y="392" width="28" height="18"/><text class="small" x="940" y="407">一个合法 pair</text>
+  <text class="small" x="902" y="446">总计 45 个，</text><text class="small" x="902" y="468">不在全样本上</text><text class="small" x="902" y="490">先挑赢家。</text>
+</svg>
