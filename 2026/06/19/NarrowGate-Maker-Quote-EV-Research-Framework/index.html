@@ -19,12 +19,12 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Last materially modified: 2026-08-25 TL;DR：读者收益摘要 版本边界（2026-08-25）：本文是一篇持续更新的研究记录。2026-07-15 因果时间修复之前的参数赢家、arm PnL、fill&#x2F;tail 排名、旧 ML&#x2F;多行情 replay 数值与旧 scorer 结论已经删除。当前 live 只能由私有 current pointer 解析到 rel">
+    <meta name="description" content="Last materially modified: 2026-08-29 TL;DR：读者收益摘要 版本边界（2026-08-29）：本文是一篇持续更新的研究记录。2026-07-15 因果时间修复之前的参数赢家、arm PnL、fill&#x2F;tail 排名、旧 ML&#x2F;多行情 replay 数值与旧 scorer 结论已经删除。公开证据能确认的是：Full-Multiscale Development">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate：Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="Last materially modified: 2026-08-25 TL;DR：读者收益摘要 版本边界（2026-08-25）：本文是一篇持续更新的研究记录。2026-07-15 因果时间修复之前的参数赢家、arm PnL、fill&#x2F;tail 排名、旧 ML&#x2F;多行情 replay 数值与旧 scorer 结论已经删除。当前 live 只能由私有 current pointer 解析到 rel">
+<meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：读者收益摘要 版本边界（2026-08-29）：本文是一篇持续更新的研究记录。2026-07-15 因果时间修复之前的参数赢家、arm PnL、fill&#x2F;tail 排名、旧 ML&#x2F;多行情 replay 数值与旧 scorer 结论已经删除。公开证据能确认的是：Full-Multiscale Development">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/maker-hot-path.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/data-lineage.svg">
@@ -32,7 +32,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/order-lifecycle.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/paired-fixed-spread-curve-20260726.png">
 <meta property="article:published_time" content="2026-06-19T08:50:48.000Z">
-<meta property="article:modified_time" content="2026-08-25T03:52:00.000Z">
+<meta property="article:modified_time" content="2026-08-29T10:30:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
@@ -337,7 +337,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          86k 字
+          89k 字
         
       </span>
     
@@ -349,7 +349,7 @@
         
         
           <!-- compatible with older versions-->
-          718 分钟
+          741 分钟
         
       </span>
     
@@ -393,21 +393,64 @@
             
               <div class="markdown-body">
                 
-                <p>Last materially modified: 2026-08-25</p>
+                <p>Last materially modified: 2026-08-29</p>
 <h2 id="TL-DR：读者收益摘要"><a href="#TL-DR：读者收益摘要" class="headerlink" title="TL;DR：读者收益摘要"></a>TL;DR：读者收益摘要</h2><blockquote>
-<p><strong>版本边界（2026-08-25）</strong>：本文是一篇持续更新的研究记录。2026-07-15 因果时间修复之前的参数赢家、arm PnL、fill/tail 排名、旧 ML/多行情 replay 数值与旧 scorer 结论已经删除。当前 live 只能由私有 current pointer 解析到 release-v3/no-shadow：BUY E3 作用于 exposure-increasing BUY executed fill，E1、E2、SELL owner policy 与 reducing quotes 不变；external、Flow、Ref、全部 shadow 与 companion 均关闭。公开 v13 只完成 locator 前置治理，不授予策略、经济或研究权限；mechanics-safety successor 在 30 个 reduced-support Development days 上绑定 exact BUY E3、exact SELL B0 与 D+1 B0，并让两臂共同使用 <code>pause_exposure</code> 安全 overlay。它只证明指定模型假设下的 mechanics resolution，不证明最新存活、动作发生或经济效果，也不授予 research、action、live、occurrence、validation/holdout 或 promotion authority。冻结的 v12 50 日结果只保留为旧执行语义下的 stale historical comparator，而不是 current economic/control default 或 current live。BUY E3 的 live operational authority 只来自私有 pointer→release 链，且其冻结健康证据只说明采集时刻，不可冒充“现在仍存活”。2026-08-12 的 strict-native failure、后续 persistent-policy、50/71 日 full-path diagnostic 与 30 日 multiscale Development 都继续按各自历史身份阅读。</p>
+<p><strong>版本边界（2026-08-29）</strong>：本文是一篇持续更新的研究记录。2026-07-15 因果时间修复之前的参数赢家、arm PnL、fill/tail 排名、旧 ML/多行情 replay 数值与旧 scorer 结论已经删除。公开证据能确认的是：Full-Multiscale Development 的 <code>supported_sides=[]</code>，simultaneous lower bound 与 frozen feature hierarchy 未通过，Validation/holdout 未读，因此没有 research-supported action 或 live authority。精确现役配置、进程和 owner operational decision 属于未公开的部署边界；本文不再用无法由公开仓库复核的 private pointer 推断“当前某开关 ON/OFF”。历史 owner override 只按当时的运维记录阅读，不能倒写成研究通过，也不能冒充 latest-liveness。</p>
 </blockquote>
 <p><strong>NarrowGate</strong> 不是一个“做市策略已经跑通并盈利”的项目，而是一个用于验证 maker 成交选择、订单生命周期与库存 campaign 风险的研究框架。quote EV 是其中一条历史研究路线，不是当前 active live policy 的代称。核心问题仍然是：一笔被动限价单被成交之后，到底是在收取 spread，还是在替更快的信息交易者接风险。</p>
 <p>这篇文章只讲算法与证据框架；C++、pybind、x86 benchmark 和 live hot path 细节拆到另一篇：<a href="/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/">NarrowGate：回测吞吐与 Live 尾延迟工程</a>。</p>
 <p>项目源码与可复现实验入口：<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker">GitHub - xiao-nanbei/NarrowGateMaker</a>。公开仓库提供研究框架、示例配置和测试，不包含私有 live 参数、凭据或基础设施地址。文中的 <code>blob/main</code> 链接只用于导航；复现冻结结论时必须使用该结论绑定的 commit/tag、run manifest 与 artifact identity，不能把持续滚动的 <code>main</code> 当成证据快照。</p>
+<h3 id="2026-08-29-概念勘误：论文变量、代码代理与证据权限"><a href="#2026-08-29-概念勘误：论文变量、代码代理与证据权限" class="headerlink" title="2026-08-29 概念勘误：论文变量、代码代理与证据权限"></a>2026-08-29 概念勘误：论文变量、代码代理与证据权限</h3><p>早期版本把几个“数值形状相似”的量写得过于接近。这里先给出全文统一口径：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>正确定义</th>
+<th>NarrowGate 中应怎样称呼</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GLFT 距离衰减率</td>
+<td><code>lambda_exec(delta) = A exp(-k_exec * delta)</code> 中的 <code>k_exec</code>，描述<strong>成交订单到达强度</strong>随报价距离的衰减</td>
+<td>只有用 execution/fill-arrival 数据校准后才可称 <code>execution-intensity slope</code></td>
+</tr>
+<tr>
+<td>F02 P3</td>
+<td>`P_touch(delta,x) = P(tau_touch &lt;= 10s</td>
+<td>delta,x)`；不含 queue-ahead、最终 fill、cancel/replace 生命周期</td>
+<td><code>10s same-side-BBO touch probability</code>；其局部斜率 <code>k_touch = -d_delta log P_touch</code> <strong>不等于</strong> <code>k_exec</code></td>
+</tr>
+<tr>
+<td>depth “kappa”</td>
+<td>top-N 平均深度相对 baseline 的有界比例，再乘到旧 spread 参数上</td>
+<td><code>depth liquidity multiplier</code>，是流动性 heuristic，不是从 $\lambda(\delta)$ 估计出的 κ</td>
+</tr>
+<tr>
+<td><code>microprice</code> helper</td>
+<td><code>m_w = mid + ((Q_b-Q_a)/(Q_b+Q_a)) * spread/2</code></td>
+<td><code>weighted-mid proxy</code>；不是用状态转移估计 `E[S_(t+h)</td>
+<td>LOB state]` 的 Stoikov micro-price</td>
+</tr>
+<tr>
+<td>legacy <code>ber_*</code></td>
+<td>成交强度 fast/slow EMA 之比触发的保护</td>
+<td><code>trade-intensity acceleration guard</code>；没有 book-depletion quantity，不能称 Zhao–Linetsky Book Exhaustion Rate</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>这也修正了旧文中“P3 向 quote core 提供有效到达率”的说法。公共代码为了复现旧执行路径仍保留 <code>p3_kappa_eff</code>、<code>ber_*</code>、<code>microprice</code> 和 depth-kappa 这些兼容名称；<strong>兼容 ABI 不会把代理变量变成论文 estimand</strong>。F02 的历史 scalar adapter 已产生过直接反例：平均半价差由 24.58 缩到 13.49、fills 从 8,799 增到 21,597，但 terminal MTM 反而恶化 115.66 USDC。因此这组 touch scalars 只能解释冻结的历史 replay，不能作为当前策略正确性的理论依据。</p>
+<p>公开证据还有一条边界：聚合 scorecard、receipt 和代码足以审计“为什么没有晋级”，但精确 OOF rows、cache 与 owner artifacts 没有公开，所以第三方不能独立复算 Full-Multiscale 的 <code>+0.458577 USDC/day</code>。这叫<strong>公开可审计</strong>，不是<strong>端到端公开可复现</strong>；而 <code>+0.458577/day</code> 只是相对改善，candidate 自身仍约为 <code>-2.445540 USDC/day</code>，不能写成盈利。</p>
 <p>读完这篇文章，至少可以得到十三个结论：</p>
 <ol>
 <li>maker fill 不能简单等价于 spread 收益，必须用 fill 后 markout 和 inventory exposure 衡量；</li>
 <li>多市场 reference 有信息量，但不等于统一打开 <code>multi_market</code> 就有正 EV；</li>
 <li>tick replay、queue ahead、latency、TTL 和 maker fill gate 会显著改变 bar 回测结论；</li>
 <li>很多早期结果已经被后续审计推翻：连续跨日/月度 replay、坏日/gap 污染、markout EMA latch、fills/day 分母错误，都不能再当作 alpha 证据；</li>
-<li>current live 由私有 pointer→release-v3/no-shadow 解析：BUY E3 开启，E1、E2、SELL 与 reducing 行为不变，external、Flow、Ref、shadow 和 companion 全部关闭；这个 owner operational decision 不是独立研究确认；</li>
-<li>baseline 必须按主张分层：live paired control 使用实验开始时解析出的 exact current operational identity；30 日 mechanics-safety successor 只提供 exact BUY E3、exact SELL B0、D+1 B0 与共同 <code>pause_exposure</code> overlay 的 reduced-support mechanics default/paired arm；不可变 v12 50 日结果只保留为 stale historical comparator；三者不能互相冒充；</li>
+<li>公开 F05 研究结论是 <code>supported_sides=[]</code>，没有 research-supported action/live authority；私有 owner override 即使曾经运行，也只是另一个运维权限来源，本文不据此声明 latest live 状态；</li>
+<li>baseline 必须按主张分层：paired research control、mechanics-only comparator、owner operational baseline 和现役进程不是同一个对象；公开材料不能替未分发的 current release manifest 回答“现在 EC2 到底跑什么”；</li>
 <li>C++ 只降低 replay 成本，不提高证据等级；即使 score 能排序、动作点估计为正，也必须经过 chronological development、固定 validation、family-specific sealed holdout 和与问题匹配的执行身份，才能讨论 action uplift；</li>
 <li>spread 与成交概率必须在同一 activation/cancel/TTL 和行情路径上做配对比较；旧的独立重放曾制造 0→1 tick 反转，修正后无条件 1s/5s/10s/lifecycle fill 曲线保持单调，而 <code>fill | touch</code> 的上升只是条件样本选择；</li>
 <li>F06 不只关闭了 ordered placement surface：后续 paired 1/2/4-tick resolution 与 direct marginal-fill value 仍是 0/24 正式价值 cells 通过，当前结论是 placement-distance value 未识别，而不是“换一个 calibration intercept 就能继续”；</li>
@@ -528,19 +571,19 @@
 <td>2025 provider days可训练 causal features，不能获得 native sequence/exact queue 权限</td>
 </tr>
 <tr>
-<td><strong>current live operational resolver</strong></td>
-<td>私有 current pointer→release-v3/no-shadow；BUY E3 ON；E1/E2、SELL/reducing 不变；external/Flow/Ref、全部 shadow/companion OFF</td>
-<td>owner operational authority；冻结 health 只证明采集时刻，不证明 latest-liveness、动作发生或经济效果；私有定位符不随公开文章分发</td>
+<td><strong>owner operational record（私有边界）</strong></td>
+<td>精确 current release/config/process 未随公开仓库分发</td>
+<td>本文不声明某开关目前 ON/OFF；历史 owner override 不等于 research confirmation，冻结 health 也不证明 latest-liveness</td>
 </tr>
 <tr>
-<td><strong>公开 v13 locator prerequisite</strong></td>
-<td>只把 current-live locator 与回测控制身份分层</td>
-<td>不授予 research、economic、action-occurrence、live-action 或 promotion authority</td>
+<td><strong>公开 locator / mechanics artifacts</strong></td>
+<td>只把若干历史执行身份与回测控制分层</td>
+<td>不授予 research、economic、action-occurrence、live-action 或 promotion authority，也不能替代私有 current manifest</td>
 </tr>
 <tr>
-<td><strong>mechanics-safety successor</strong></td>
-<td>30 日 reduced-support exact BUY E3、exact SELL B0、D+1 B0 与共同 <code>pause_exposure</code> overlay</td>
-<td>只授予指定模型假设下的 mechanics resolution；不是经济 baseline，也不改变 current live 权限</td>
+<td><strong>Full-Multiscale research</strong></td>
+<td>30 日 Development、BUY E3 为最强 point candidate</td>
+<td><code>supported_sides=[]</code>；Validation/holdout 未读，没有 research-supported action/live authority</td>
 </tr>
 <tr>
 <td><strong>immutable v12 stale historical comparator</strong></td>
@@ -549,8 +592,8 @@
 </tr>
 <tr>
 <td><strong>固定参数研究族</strong></td>
-<td>gamma/kappa/cooldown/cap/max-inventory 与固定一档动作的 pooled winner search</td>
-<td>已作为完成的阴性研究族关闭；固定值只能是 baseline、经验校准或安全边界</td>
+<td>quote-controller 兼容系数（legacy gamma/kappa naming）、cooldown/cap/max-inventory 与固定一档动作的 pooled winner search</td>
+<td>已作为完成的阴性研究族关闭；固定值只能是 baseline、经验校准或安全边界，不因字段名就被视为论文估计量</td>
 </tr>
 <tr>
 <td><strong>F06 placement-distance closure</strong></td>
@@ -560,12 +603,12 @@
 <tr>
 <td><strong>BUY q90 baseline-integrity work</strong></td>
 <td>历史 100ms adverse-fill shadow、dual-clock exposure、terminal risk-set 与 fresh recovery</td>
-<td>40 日 exact-native mechanics 已完成；首次 prospective transport 因 duplicate activation 与缺 exact feature-ready companion fail closed；当时 action OFF/shadow ON，current no-shadow release 中 action 与 shadow 均 OFF</td>
+<td>40 日 exact-native mechanics 已完成；首次 prospective transport 因 duplicate activation 与缺 exact feature-ready companion fail closed；当时 action OFF/shadow ON，后来的冻结 no-shadow 快照中两者均关闭，但这不回答当前进程状态</td>
 </tr>
 <tr>
 <td><strong>BUY fill-selection</strong></td>
-<td>current-stack 40 日 ON-OFF 点估计 -16.7946 USDC，CI 跨零</td>
-<td><code>unsupported_negative_point_estimate</code>；action 与 shadow 均已运营停用，不能写成已证明普遍有害</td>
+<td>冻结 40 日 ON-OFF 点估计 -16.7946 USDC，CI 跨零</td>
+<td><code>unsupported_negative_point_estimate</code>；历史运维记录显示 action 与 shadow 后续停用，不能写成已证明普遍有害，也不由本文推断今日状态</td>
 </tr>
 <tr>
 <td><strong>spread-fill 新证据面</strong></td>
@@ -634,7 +677,7 @@ static Feature DAG + strict bucket cutoff + normalized L2 100ms
         ├──► causal-v12 13-head：10s completed-bucket prediction
         │
         ▼
-AS/GLFT quote core + explicit action permissions；current shadow disabled
+AS-shaped empirical quote core + explicit research/action permissions
         │
         ▼
 tick replay / live execution：dual clocks / queue / cancel-ACK / remaining qty
@@ -725,8 +768,8 @@ prediction -&gt; transport -&gt; economic resolution -&gt; randomized action gat
 <td><code>(best_bid + best_ask) / 2</code>，最简单的中间价</td>
 </tr>
 <tr>
-<td>microprice</td>
-<td>用买卖一深度加权后的中间价；它不是预测模型，只是表达盘口哪侧更薄</td>
+<td>weighted-mid proxy（代码旧名 <code>microprice</code>）</td>
+<td>用 top-N 数量与 BBO 构造的加权中价；它只表达当前盘口不平衡，不是 Stoikov 的未来价格条件期望估计器</td>
 </tr>
 <tr>
 <td>spread edge</td>
@@ -816,7 +859,7 @@ P(\operatorname{fill}\mid x)
         cfg=cfg.quote,
     )
 
-    <span class="hljs-comment"># 4. active side policy 只消费现役 guard、库存和 lifecycle 状态</span>
+    <span class="hljs-comment"># 4. 该冻结 identity 的 side policy 只消费 guard、库存和 lifecycle 状态</span>
     bid_policy = build_side_policy(
         side=<span class="hljs-string">&quot;bid&quot;</span>,
         quote_ctx=quote.bid_ctx,
@@ -851,9 +894,9 @@ P(\operatorname{fill}\mid x)
 r(s,q,t)=s-q\gamma\sigma^2(T-t)</script><script type="math/tex; mode=display">
 \delta
 =\gamma\sigma^2(T-t)
-+\frac{2}{\gamma}\ln\left(1+\frac{\gamma}{\kappa}\right)</script><script type="math/tex; mode=display">
++\frac{2}{\gamma}\ln\left(1+\frac{\gamma}{k_{\mathrm{exec}}}\right)</script><script type="math/tex; mode=display">
 \operatorname{bid}=r-\frac{\delta}{2},\qquad
-\operatorname{ask}=r+\frac{\delta}{2}</script><p>其中 <code>q</code> 是库存，<code>sigma</code> 是短期波动，<code>kappa</code> 描述成交概率随报价距离衰减的速度。直觉上，库存偏多时 reservation price 下移，报价会更愿意卖出、更不愿继续买入；波动上升时 spread 变宽，以补偿更高的逆向选择风险。</p>
+\operatorname{ask}=r+\frac{\delta}{2}</script><p>其中 $q$ 是库存，$\sigma$ 是短期波动，<code>k_exec</code> 描述<strong>成交订单到达强度</strong>随报价距离的衰减速度，不是固定 10 秒内的 touch probability 斜率。直觉上，库存偏多时 reservation price 下移，报价会更愿意卖出、更不愿继续买入；波动上升时 spread 变宽，以补偿更高的逆向选择风险。</p>
 <p>这几个式子背后的论文假设可以压缩成三步。</p>
 <p>第一步，Avellaneda-Stoikov 假设中间价近似服从扩散过程：</p>
 <script type="math/tex; mode=display">
@@ -866,42 +909,49 @@ U(x)=-\exp(-\gamma x)</script><p>在这个设定下，多持有一单位库存�
 <script type="math/tex; mode=display">
 r=s-q\gamma\sigma^2(T-t)</script><p>第二步，论文用一个很简洁的到达率假设描述“报价离中间价越远，越不容易成交”：</p>
 <script type="math/tex; mode=display">
-\lambda(\delta)=A\exp(-\kappa\delta)</script><p>在 CARA utility 下最大化一次被动成交的效用增量，会得到每一侧报价距离中的 log 项：</p>
+\lambda_{\mathrm{exec}}(\delta)=A\exp(-k_{\mathrm{exec}}\delta)</script><p>在 CARA utility 下最大化一次被动成交的效用增量，会得到每一侧报价距离中的 log 项：</p>
 <script type="math/tex; mode=display">
 \operatorname{edge\ term}
-=\frac{1}{\gamma}\ln\left(1+\frac{\gamma}{\kappa}\right)</script><p>再叠加库存持有风险，得到总 spread：</p>
+=\frac{1}{\gamma}\ln\left(1+\frac{\gamma}{k_{\mathrm{exec}}}\right)</script><p>再叠加库存持有风险，得到总 spread：</p>
 <script type="math/tex; mode=display">
 \operatorname{total\ spread}
 =\gamma\sigma^2(T-t)
-+\frac{2}{\gamma}\ln\left(1+\frac{\gamma}{\kappa}\right)</script><p>第三步，GLFT/Guéant 体系把“指数到达率”推广成更一般的强度函数 <code>Lambda(delta)</code>。这时不必假设所有市场都满足 <code>A exp(-kappa delta)</code>，而是通过 Hamiltonian 写成：</p>
++\frac{2}{\gamma}\ln\left(1+\frac{\gamma}{k_{\mathrm{exec}}}\right)</script><p>上式默认把每次成交数量规范化为 1。若订单量是 $z$（base asset），而库存 $q$ 也按 base asset 计量，数量感知的近似应把 $\gamma z$ 与距离衰减率配对：</p>
+<script type="math/tex; mode=display">
+\psi(z)
+\approx
+\gamma z\sigma^2\tau
++\frac{2}{\gamma z}
+\ln\left(1+\frac{\gamma z}{k_{\mathrm{exec}}}\right).</script><p>这里 $\gamma$ 的单位是 <code>1 / quote currency</code>，<code>k_exec</code> 的单位是 <code>1 / price</code>，所以 $\gamma z$ 才和 <code>k_exec</code> 同量纲。仓库的历史 quote core 没有在 log spread 项中显式写入 $z$；它以 <code>inventory_reference_qty</code>、<code>eta_inventory</code>、<code>a_spread</code> 和兼容 <code>gamma</code> 复现既有数值。因此它应称为 <strong>AS-shaped empirical controller</strong>，不能在尚无 BTC→mBTC、USDC→cent denomination-invariance 证明时写成任意订单量下的精确 AS/GLFT 实现。</p>
+<p>第三步，GLFT/Guéant 体系把“指数到达率”推广成更一般的强度函数 <code>Lambda(delta)</code>。这时不必假设所有市场都满足 <code>A exp(-kappa delta)</code>，而是通过 Hamiltonian 写成：</p>
 <script type="math/tex; mode=display">
 H(p)=
 \sup_{\delta}
 \Lambda(\delta)
-\left(1-\exp\left[-\gamma(\delta-p)\right]\right)</script><p>指数强度只是一个特例；如果真实 order arrival 对报价距离的衰减不是纯指数，就应该校准 <code>Lambda</code> 或等价的 <code>kappa_eff</code>，而不是迷信一个固定 <code>kappa</code>。NarrowGate 里保留 AS 的骨架，是因为它给出了稳定、可解释的库存坐标系；但具体的 <code>sigma</code>、<code>kappa</code>、depth half-spread、adverse widening 和 quote EV shadow score 都要由数据重新验证；direct Quote-EV executor 已删除。</p>
+\left(1-\exp\left[-\gamma(\delta-p)\right]\right)</script><p>指数强度只是一个特例；如果真实 execution arrival 对报价距离的衰减不是纯指数，就应该校准 <code>Lambda_exec</code>，而不是把任意单调下降的 touch 曲线改名为 <code>kappa_eff</code>。NarrowGate 保留 AS 骨架，是因为它给出了可解释的库存坐标系；但 P3 touch slope、execution-intensity slope 与 depth multiplier 必须保持不同类型。direct Quote-EV executor 已删除。</p>
 <p>实际系统里，AS 公式只是报价骨架。NarrowGate 的 quote core 更接近下面这个组合：</p>
 <p><img src="/images/narrowgate/quote-ladder.svg" srcset="/img/loading.gif" lazyload alt="NarrowGate quote ladder"></p>
 <script type="math/tex; mode=display">
 \operatorname{mid}=\frac{b_{\text{best}}+a_{\text{best}}}{2}</script><script type="math/tex; mode=display">
-\operatorname{microprice}
+ m_w
 =
 \frac{a_{\text{best}}Q_b+b_{\text{best}}Q_a}{Q_b+Q_a}</script><script type="math/tex; mode=display">
 \operatorname{fair}
 =\operatorname{mid}
-+\Delta_{\text{microprice}}
++\Delta_{\text{weighted-mid proxy}}
 +\Delta_{\text{model ret}}
 +\Delta_{\text{cross-market}}</script><script type="math/tex; mode=display">
 \operatorname{inventory\ cost}
-=q\gamma\sigma^2\tau,\qquad
+=\frac{q}{q_{\mathrm{ref}}}\eta_{\mathrm{inventory}}\sigma^2\tau,\qquad
 r=\operatorname{fair}-\operatorname{inventory\ cost}</script><script type="math/tex; mode=display">
-h_{\text{AS}}
+h_{\text{controller}}
 =\frac{1}{2}\left[
-\gamma\sigma^2\tau
-+\frac{2}{\gamma}\ln\left(1+\frac{\gamma}{\kappa}\right)
+a_{\mathrm{spread}}\sigma^2\tau
++\frac{2}{a_{\mathrm{spread}}}\ln\left(1+\frac{a_{\mathrm{spread}}}{k_{\mathrm{used}}}\right)
 \right]</script><script type="math/tex; mode=display">
 h
 =
-\max(h_{\text{AS}},h_{\text{depth}},h_{\text{fee floor}})
+\max(h_{\text{controller}},h_{\text{fee floor}})
 \cdot m_{\text{regime}}
 \cdot m_{\text{adverse/defense}}</script><script type="math/tex; mode=display">
 \begin{aligned}
@@ -915,10 +965,10 @@ h
 \operatorname{final\ ask}
 &=\operatorname{ceil\_to\_tick}
 \left(\max(\operatorname{ask}_{\text{candidate}},a_{\text{best}})\right).
-\end{aligned}</script><p>这里最容易误解的是 <code>microprice</code>。如果买一数量很厚、卖一很薄，<code>microprice</code> 会向卖一侧偏移，暗示向上打穿更容易；反过来则向买一侧偏移。它不是预测模型，而是盘口当前形状给出的局部压力。</p>
-<p>把 microprice 写成这个形式，也可以从“下一笔成交更可能打哪一侧”来理解。若 <code>bid_qty</code> 远大于 <code>ask_qty</code>，卖一更薄，价格向上移动的局部概率更高，于是 microprice 靠近 <code>best_ask</code>：</p>
+\end{aligned}</script><p>这里最容易误解的是代码旧名 <code>microprice</code>。仓库中的 helper 实际计算的是 weighted-mid proxy：如果买一数量很厚、卖一很薄，$m_w$ 会向卖一侧偏移；反过来则向买一侧偏移。它没有估计订单簿状态转移，也没有输出未来价格的条件期望，因此不是 Stoikov micro-price estimator。</p>
+<p>把 weighted-mid proxy 写成这个形式，只能把它理解为当前 top-N 数量不平衡的坐标。若 <code>bid_qty</code> 远大于 <code>ask_qty</code>，它靠近 <code>best_ask</code>；这本身不等于“下一笔成交方向概率”已经被估计：</p>
 <script type="math/tex; mode=display">
-\operatorname{microprice}-\operatorname{mid}
+m_w-\operatorname{mid}
 =
 \frac{1}{2}\operatorname{spread}
 \cdot
@@ -940,8 +990,8 @@ allow_ask =
 <p>当库存偏多时，bid 是增加风险的一侧，ask 是降低风险的一侧；库存偏空时反过来。因此同一个 adverse guard 对 bid/ask 的含义并不对称，这也是 quote EV 必须按 side 训练和评估的原因。</p>
 <p>但真实盘口不会只服从这几个变量。因此项目后来逐步加入：</p>
 <ul>
-<li>microprice 与盘口 imbalance；</li>
-<li>动态 kappa 和近端深度；</li>
+<li>weighted-mid proxy（代码旧名 <code>microprice</code>）与盘口 imbalance；</li>
+<li>legacy touch slope 与近端 depth liquidity multiplier；</li>
 <li>fee-aware spread floor；</li>
 <li>LightGBM 的波动率、收益和 toxicity 预测；</li>
 <li>CJP 风格库存偏移和库存衰减；</li>
@@ -984,7 +1034,7 @@ allow_ask =
 =\operatorname{mid}(t+h)-p_{\text{fill}}</script><script type="math/tex; mode=display">
 \operatorname{markout}_{\text{sell}}(h)
 =p_{\text{fill}}-\operatorname{mid}(t+h)</script><p>这个定义让“对 maker 有利”的成交质量统一为正值。比如买入后价格上涨是正 markout，卖出后价格下跌也是正 markout。quote EV 和 adverse guard 关心的不是成交本身，而是 <code>fill</code> 条件下未来 markout 是否补偿了库存和尾部风险。</p>
-<h3 id="1-3-参数映射：gamma-effective-kappa-sigma-不应该靠玄学拍脑袋"><a href="#1-3-参数映射：gamma-effective-kappa-sigma-不应该靠玄学拍脑袋" class="headerlink" title="1.3 参数映射：gamma / effective-kappa / sigma 不应该靠玄学拍脑袋"></a>1.3 参数映射：gamma / effective-kappa / sigma 不应该靠玄学拍脑袋</h3><p>AS 公式里的几个参数在代码里有非常具体的含义：</p>
+<h3 id="1-3-参数映射：量纲正确，不等于经济期限已经对齐"><a href="#1-3-参数映射：量纲正确，不等于经济期限已经对齐" class="headerlink" title="1.3 参数映射：量纲正确，不等于经济期限已经对齐"></a>1.3 参数映射：量纲正确，不等于经济期限已经对齐</h3><p>AS 公式里的几个参数在代码里有非常具体的含义：</p>
 <div class="table-container">
 <table>
 <thead>
@@ -997,22 +1047,28 @@ allow_ask =
 </thead>
 <tbody>
 <tr>
-<td><code>gamma</code></td>
-<td><code>strategy.gamma</code>，也会被库存比例和方向信号调整成 <code>g_eff</code></td>
-<td>库存 reservation price 偏移、基础 spread 项</td>
-<td><code>abs_inventory_time_s</code>、InvAdj、max inventory hit</td>
+<td><code>gamma</code> / <code>eta_inventory</code> / <code>a_spread</code></td>
+<td>历史兼容值与后来拆开的经验系数</td>
+<td>分别参与库存中心偏移与基础 spread；没有显式 $z$ 映射时不应统称可移植 CARA $\gamma$</td>
+<td><code>abs_inventory_time_s</code>、denomination-invariance、max inventory hit</td>
 </tr>
 <tr>
 <td><code>sigma_sq</code></td>
-<td>tick replay / live rolling one-second absolute-price variance；可与 LightGBM <code>vol_10s</code> 按 <code>vol_blend</code> 混合</td>
-<td>先乘显式 <code>quote_horizon_s</code>，再进入 <code>gamma * sigma_sq_horizon</code> 与库存 reservation shift</td>
-<td>spread&lt;100、cap hit、波动窗口下 markout</td>
+<td>60 个已完成 1s bar 的绝对价格变化方差，单位为 <code>(USDC/BTC)^2/s</code>；可与同单位的 <code>vol_10s</code> 输出混合</td>
+<td>乘 <code>quote_horizon_s</code> 后进入 reservation/spread</td>
+<td>lookback × horizon × coefficient 的配对 replay</td>
 </tr>
 <tr>
-<td>effective kappa</td>
-<td>运行时优先使用 <code>p3_kappa_eff_override</code> 或模型的 <code>p3_kappa_eff</code>，再由 depth-kappa 根据近端深度调整；<code>strategy.kappa</code> 只作缺模型时的内部 fallback</td>
-<td><code>log(1 + gamma / kappa_eff)</code> spread 项；<code>kappa_eff</code> 越小 spread 越宽</td>
-<td>fills/day、fills/order、queue calibration</td>
+<td>P3 <code>p3_kappa_eff</code>（legacy 名）</td>
+<td>10s same-side-BBO <code>P_touch</code> 曲线在 $\delta^*$ 附近的 log slope</td>
+<td>历史 adapter 曾把它送入旧 spread ABI；它不是 execution arrival κ</td>
+<td>touch calibration 与真实 fill/queue/lifecycle 分开报告</td>
+</tr>
+<tr>
+<td>depth-kappa（legacy 名）</td>
+<td>top-N 平均深度 / baseline 的有界乘数</td>
+<td>对旧 spread 距离参数做 heuristic 缩放</td>
+<td>depth bucket sensitivity；不能声称校准了 $\lambda(\delta)$</td>
 </tr>
 <tr>
 <td><code>dir_10s</code></td>
@@ -1041,14 +1097,61 @@ allow_ask =
 </tbody>
 </table>
 </div>
-<p>简化后的 quote mapping 可以这样理解：</p>
+<p>先把本文经常混在一起的时钟拆开：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>时钟</th>
+<th style="text-align:right">当前/历史口径</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>variance lookback</td>
+<td style="text-align:right"><code>60 × 1s</code> completed bars</td>
+<td>估计每秒绝对价格方差；这个计算在量纲上成立</td>
+</tr>
+<tr>
+<td>variance risk integration</td>
+<td style="text-align:right"><code>quote_horizon_s = 1s</code> 的公开/历史口径</td>
+<td>把每秒方差积分进一次报价公式的工程 horizon</td>
+</tr>
+<tr>
+<td>quote refresh / lifespan</td>
+<td style="text-align:right">通常约 <code>5–10s</code></td>
+<td>报价可能暴露到下一次 replace/cancel 的时间，不等于 1s risk horizon</td>
+</tr>
+<tr>
+<td>F02 P3 label</td>
+<td style="text-align:right">固定 <code>10s</code></td>
+<td>touch opportunity 的标签期限，不是订单 TTL 或 fill horizon</td>
+</tr>
+<tr>
+<td>order TTL / cancel-ACK exposure</td>
+<td style="text-align:right">action/lifecycle-specific</td>
+<td>撤单请求后到 ACK 前仍可能成交，必须单独建模</td>
+</tr>
+<tr>
+<td>inventory campaign horizon</td>
+<td style="text-align:right">可跨多次 requote、甚至跨 UTC 日</td>
+<td>库存风险与 closed-campaign value 的经济期限</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>所以结论不是“60×1s 方差算错了”，而是：<strong>60×1s 方差的实践量纲正确，但固定 1s risk horizon 与 5–10s 报价寿命、10s P3 仍有经济期限错位。</strong> 在 <code>lookback × risk horizon × gamma/eta/a_spread</code> 配对 replay 完成前，1s 只能叫工程近似，不能直接等同论文的 $T-t$。</p>
+<p>下面代码只用于复现历史 quote ABI，注释明确标出代理关系：</p>
 <div class="code-wrapper"><pre><code class="hljs python">sigma_sq = rolling_sigma_sq
 <span class="hljs-keyword">if</span> ml_enabled <span class="hljs-keyword">and</span> vol_blend &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> pred_vol &gt; <span class="hljs-number">0</span>:
     sigma_sq = (<span class="hljs-number">1</span> - vol_blend) * rolling_sigma_sq + vol_blend * pred_vol
 sigma_sq_horizon = sigma_sq * quote_horizon_s
 
-kappa_base = p3_kappa_eff <span class="hljs-keyword">if</span> p3_kappa_eff &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> INTERNAL_FALLBACK_KAPPA
-kappa_used = depth_kappa(kappa_base, depth) <span class="hljs-keyword">if</span> use_depth_kappa <span class="hljs-keyword">else</span> kappa_base
+touch_log_slope = p3_kappa_eff  <span class="hljs-comment"># legacy field: slope of P_touch, not k_exec</span>
+kappa_base = touch_log_slope <span class="hljs-keyword">if</span> touch_log_slope &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> INTERNAL_FALLBACK_KAPPA
+depth_mult = clipped_top_n_depth_ratio(depth)
+kappa_used = kappa_base * depth_mult  <span class="hljs-comment"># historical liquidity heuristic</span>
 
 g_eff = gamma
 <span class="hljs-keyword">if</span> <span class="hljs-built_in">abs</span>(inventory) &gt; <span class="hljs-number">0</span>:
@@ -1057,7 +1160,7 @@ g_eff = gamma
 reservation = fair_price - inventory * g_eff * sigma_sq_horizon
 
 kappa_spread = <span class="hljs-built_in">max</span>(kappa_used * kappa_ratio, <span class="hljs-number">1e-12</span>)
-spread = gamma * sigma_sq_horizon + (<span class="hljs-number">2.0</span> / gamma) * log(<span class="hljs-number">1.0</span> + gamma / kappa_spread)
+spread = a_spread * sigma_sq_horizon + (<span class="hljs-number">2.0</span> / a_spread) * log(<span class="hljs-number">1.0</span> + a_spread / kappa_spread)
 spread *= regime_spread_scale
 
 <span class="hljs-keyword">if</span> ret_skew &gt; <span class="hljs-number">0</span>:
@@ -1081,7 +1184,7 @@ ask = ceil_tick(reservation + spread / <span class="hljs-number">2</span> * (<sp
 <p>所以机器学习不是直接“预测价格然后下单”。它有三类入口：</p>
 <ol>
 <li><strong>改变物理 quote</strong>：<code>vol_10s</code>、<code>ret_10s</code>、<code>dir_10s</code> 影响 reservation、spread、asymmetry；</li>
-<li><strong>改变 policy gate</strong>：<code>tox_bid/ask</code>、markout EMA、microprice shift 影响 widen/shrink/pause；</li>
+<li><strong>改变 policy gate</strong>：<code>tox_bid/ask</code>、markout EMA、weighted-mid proxy shift 影响 widen/shrink/pause；</li>
 <li><strong>改变风险读法</strong>：quote EV 与 offline/historical-shadow calibration 不直接替代 AS，而是判断某一侧 quote 是否值得继续提供流动性。</li>
 </ol>
 <p>实操调参时，不应该先问“哪个 <code>gamma</code> PnL 最高”，而应该按顺序看：</p>
@@ -1189,22 +1292,28 @@ c_t=m_t-z_t\left(I_t+\frac{A_t}{2}\right),
 <p>对 long campaign，<code>BUY add distance = h + I + A</code>，<code>SELL reduce distance = h - I</code>；short campaign 镜像。这样“保持总 spread、整体偏移”和“只算这一侧 spread 并放大”不再是互斥的口头方案，而是同一个可审计分解中的两个不同经济机制。第一轮只应比较 current cooldown、shift-only、add-widen-only、hybrid 四类小 arm，并保持 order size 与 inventory limit 不变。</p>
 <p>修复前的 Q1、Q4、fitted-A、fixed-rearm 与 safe-rearm 数值已经删除。它们使用旧 feature-ready 时间、event clock、P3/queue identity 或被反复查看的验证面板，不能继续判断 cooldown、inventory shift 或 post-fill widening 的价值。上面的 $I_t/A_t$ 分解仅保留为可检验的机制假设；任何新 action 必须在当前 causal replay 中以已知 propensity、完整 queue/latency/campaign path 和 family-specific sealed holdout 重新识别。</p>
 <p>理论来源：<a target="_blank" rel="noopener" href="https://people.orie.cornell.edu/sfs33/LimitOrderBook.pdf">Avellaneda-Stoikov, <em>High-frequency trading in a limit order book</em></a>、<a target="_blank" rel="noopener" href="https://arxiv.org/abs/1105.3115">Guéant-Lehalle-Fernandez-Tapia, <em>Dealing with the Inventory Risk. A solution to the market making problem</em></a>、<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2003.05958">Jusselin, <em>Optimal market making with persistent order flow</em></a>。</p>
-<p>这里还有两条必须写清的引用边界。项目使用的 size-weighted BBO 更应关联 <a target="_blank" rel="noopener" href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2970694">Stoikov 的 <em>The Micro-Price: A High Frequency Estimator of Future Prices</em></a>，而且当前 helper 只是简化 proxy，不是完整 estimator。Gatheral-Oomen 2010 的正确题名是 <a target="_blank" rel="noopener" href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=970358"><em>Zero-intelligence realized variance estimation</em></a>；它研究 realized-variance estimation，不是该 helper 的直接来源。<a target="_blank" rel="noopener" href="https://www.hbs.edu/ris/Publication%20Files/The%20Price%20of%20Immediacy_79d652de-afcd-41cb-b574-cd5f4d59a565.pdf"><em>The Price of Immediacy</em></a> 是 Chacko、Jurek、Stafford 的另一篇论文，不能混写。BER 的正确来源是 Zhao-Linetsky 2021 的 <a target="_blank" rel="noopener" href="https://doi.org/10.1145/3490354.3494398"><em>High Frequency Automated Market Making Algorithms with Adverse Selection Risk Control via Reinforcement Learning</em></a>。另外，Milionis 等人的 <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2208.06046"><em>Automated Market Making and Loss-Versus-Rebalancing</em></a> 研究对象是 CFMM/AMM 的 stale-price loss；它最多启发“应检查波动敏感性”，并不推出 CLOB 的 <code>vol_power=1.5</code>，更不证明任何 exponent 最优。</p>
+<p>这里还有几条必须写清的引用边界。仓库中的 size-weighted BBO 只是 weighted-mid proxy；<a target="_blank" rel="noopener" href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2970694">Stoikov 的 <em>The Micro-Price: A High Frequency Estimator of Future Prices</em></a> 用状态转移来估计未来价格的条件期望，不能用来把这个加权中价直接命名为 micro-price estimator。Gatheral-Oomen 2010 的正确题名是 <a target="_blank" rel="noopener" href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=970358"><em>Zero-intelligence realized variance estimation</em></a>；它研究 realized-variance estimation，不是该 helper 的直接来源。<a target="_blank" rel="noopener" href="https://www.hbs.edu/ris/Publication%20Files/The%20Price%20of%20Immediacy_79d652de-afcd-41cb-b574-cd5f4d59a565.pdf"><em>The Price of Immediacy</em></a> 是 Chacko、Jurek、Stafford 的另一篇论文，不能混写。Zhao-Linetsky 2021 的 <a target="_blank" rel="noopener" href="https://doi.org/10.1145/3490354.3494398"><em>High Frequency Automated Market Making Algorithms with Adverse Selection Risk Control via Reinforcement Learning</em></a> 中，BER 指 book-exhaustion rate；项目现有 <code>ber_*</code> 状态没有计算订单簿耗尽，它实际是 trade-intensity acceleration guard，因此 BER 论文只能作为对照，不是该特征的理论证明。另外，Milionis 等人的 <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2208.06046"><em>Automated Market Making and Loss-Versus-Rebalancing</em></a> 研究对象是 CFMM/AMM 的 stale-price loss；它最多启发“应检查波动敏感性”，并不推出 CLOB 的 <code>vol_power=1.5</code>，更不证明任何 exponent 最优。</p>
 <p>旧 gamma 网格、PnL-first Sobol 排名与旧模型目录 A/B 的数值已经删除。<code>gamma</code> 仍是有效报价参数，但本文不再保留任何修复前固定值的“最优”叙述；它只能在当前 P3、cap、guard、cooldown、queue、latency 与模型 identity 下重新验证。</p>
-<h3 id="1-5-动态-kappa：AS-是坐标系，不是答案"><a href="#1-5-动态-kappa：AS-是坐标系，不是答案" class="headerlink" title="1.5 动态 kappa：AS 是坐标系，不是答案"></a>1.5 动态 kappa：AS 是坐标系，不是答案</h3><p>Avellaneda-Stoikov 给了一个非常有用的坐标系：</p>
+<h3 id="1-5-三种“斜率”不能合并：execution、touch-与-depth"><a href="#1-5-三种“斜率”不能合并：execution、touch-与-depth" class="headerlink" title="1.5 三种“斜率”不能合并：execution、touch 与 depth"></a>1.5 三种“斜率”不能合并：execution、touch 与 depth</h3><p>Avellaneda-Stoikov 给了一个非常有用的坐标系：</p>
 <script type="math/tex; mode=display">
 r_t = S_t - q_t \gamma \sigma_t^2 (T-t)</script><script type="math/tex; mode=display">
-\delta^\ast \approx \frac{1}{\gamma}\log(1+\gamma/\kappa)</script><p>但真正困难的是右边这些变量如何变成实时市场状态，而不是公式本身。</p>
-<p>当前 NarrowGate 对 <code>kappa</code> 的处理已经从“固定配置值”收束成三层：</p>
-<ol>
-<li>live/tick 路径优先使用 <code>p3_kappa_eff</code>，也就是从历史 fill probability / intensity 里得到的有效到达率；</li>
-<li>depth-kappa 用 quote-time 近端盘口深度把 <code>kappa_eff</code> 做有限比例调整；</li>
-<li><code>StrategyConfig.kappa</code> 仍保留为缺少 fill-prob 模型时的内部 fallback；公开 YAML 不把它列成 active 调参项，旧私有快照里即使残留该字段，也不代表它覆盖了有效 <code>p3_kappa_eff</code>。</li>
-</ol>
-<p>这还不等于“动态到达率已经被完全校准”。真正金融上更尖锐的问题是：</p>
+\lambda_{\mathrm{exec}}(\delta)=A e^{-k_{\mathrm{exec}}\delta},
+\qquad
+\delta^\ast \approx \frac{1}{\gamma}\log\!\left(1+\frac{\gamma}{k_{\mathrm{exec}}}\right).</script><p>但真正困难的是右边这些变量如何变成实时市场状态，而不是公式本身。</p>
+<p>这个式子里的 <code>k_exec</code> 是“成交订单到达强度随报价距离的衰减斜率”。而 F02 估计的是固定 10 秒标签窗口内的 touch probability：</p>
 <script type="math/tex; mode=display">
-\kappa_{\text{eff}}
-= f(\text{depth}, \text{vol}, \text{toxicity}, \text{reference shock}, \text{latency floor})</script><p>当市场发生信息冲击时，远端 quote 的成交概率可能不是指数衰减，而是突然变成“深价位也会被扫”。这时 <code>kappa</code> 不是简单变大或变小，而是整条 <code>Lambda(delta)</code> 曲线形状改变。当前系统里 toxicity 更多是进入逐侧 policy：</p>
+P_{\mathrm{touch}}(\delta,x)
+=P(\tau_{\mathrm{touch}}\le 10\mathrm{s}\mid\delta,x),
+\qquad
+k_{\mathrm{touch}}=-\partial_\delta\log P_{\mathrm{touch}}(\delta,x).</script><p><code>k_touch</code> 不包含 queue conversion、最终 fill、cancel/replace 或 TTL lifecycle，所以不能写成 <code>k_exec</code>。depth-kappa 又是另一件事：它根据近端平均深度相对 baseline 缩放一个旧参数，本质是无量纲的 liquidity multiplier，不是从 <code>lambda_exec(delta)</code> 标定出的斜率。</p>
+<p>因此，历史兼容路径可以如实写成：</p>
+<script type="math/tex; mode=display">
+k_{\mathrm{touch}}
+\xrightarrow{\text{legacy ABI}}
+\texttt{p3\_kappa\_eff},
+\qquad
+k_{\mathrm{used}}
+=\texttt{p3\_kappa\_eff}\times m_{\mathrm{depth}}.</script><p>但这只是代码兼容关系，不是模型识别结论。一个叫 <code>kappa_eff</code> 的字段，不会自动变成 GLFT 的 execution-intensity slope。当市场发生信息冲击时，远端 quote 的 touch/fill 关系还可能不再是单一指数曲线。仓库中 toxicity 更多进入逐侧 policy：</p>
 <div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-keyword">if</span> toxicity &gt;= toxicity_threshold:
     side_policy.spread_mult = <span class="hljs-built_in">max</span>(side_policy.spread_mult, widen_mult)
     side_policy.size_mult = <span class="hljs-built_in">min</span>(side_policy.size_mult, shrink_mult)
@@ -1212,13 +1321,13 @@ r_t = S_t - q_t \gamma \sigma_t^2 (T-t)</script><script type="math/tex; mode=dis
 
 <span class="hljs-keyword">if</span> side_adverse_pause:
     side_policy.allow_post = <span class="hljs-literal">False</span></code></pre></div>
-<p>也就是说，当前实现更像：</p>
+<p>也就是说，这条实现更像：</p>
 <script type="math/tex; mode=display">
 \text{toxicity} \rightarrow
 \{\text{widen}, \text{shrink}, \text{pause}\}</script><p>而不是：</p>
 <script type="math/tex; mode=display">
 \text{toxicity} \rightarrow
-\kappa_{\text{eff}} \rightarrow \delta^\ast</script><p>这是一条明确的未完成边界。未来如果要真正“搞定 AS 坐标系”，需要让 toxicity、reference shock 和 live fill calibration 共同形变 <code>Lambda(delta)</code>，并要求变形后的曲线能通过 shadow fill probability calibration，而不只是让某个聚合窗口 A/B 的 raw PnL 变好。</p>
+\kappa_{\text{eff}} \rightarrow \delta^\ast</script><p>这是一条明确的未完成边界。若要真正校准 AS/GLFT 坐标系，应在离线数据中直接估计 distance–execution-arrival/fill-lifecycle surface，显式纳入 queue、cancel/replace、TTL、toxicity、reference shock 与 latency，再经 chronological replay 和 action-value gate 验证。这个未完成问题不授权默认新建 live shadow 或将历史 ABI 更名为科学估计量。</p>
 <h3 id="1-6-第一场真正的麻烦来自数据，而不是模型"><a href="#1-6-第一场真正的麻烦来自数据，而不是模型" class="headerlink" title="1.6 第一场真正的麻烦来自数据，而不是模型"></a>1.6 第一场真正的麻烦来自数据，而不是模型</h3><p>项目的数据主要来自三类来源：</p>
 <ul>
 <li>Binance Vision 的 aggTrades/trades、metrics，以及后续补充的 spot 数据；</li>
@@ -1261,7 +1370,7 @@ r_t = S_t - q_t \gamma \sigma_t^2 (T-t)</script><script type="math/tex; mode=dis
 <tr>
 <td>CryptoHFTData 重放后的 BBO/L2</td>
 <td>daily parquet</td>
-<td>tick replay、queue ahead、microprice 的主执行口径</td>
+<td>tick replay、queue ahead、weighted-mid proxy 的主执行口径</td>
 </tr>
 <tr>
 <td>raw metrics / 5m metrics</td>
@@ -1392,10 +1501,10 @@ cv_ref_spot_*</code></pre></div>
 <li><strong>risk label / calibration feature</strong>：让 reference/spot 帮助模型识别 toxic fill、repair probability 和 terminal campaign risk。</li>
 </ol>
 <p>换句话说，新增数据提高的是可分辨性，不是自动提供一条单调收益规则。</p>
-<h3 id="1-8-多市场-reference：历史-receive-time-诊断层与当前关闭边界"><a href="#1-8-多市场-reference：历史-receive-time-诊断层与当前关闭边界" class="headerlink" title="1.8 多市场 reference：历史 receive-time 诊断层与当前关闭边界"></a>1.8 多市场 reference：历史 receive-time 诊断层与当前关闭边界</h3><p>历史运行曾将 Binance 本地 bridge 与 Bitget、Bybit、OKX 的 spot/perpetual public WebSocket 接入 venue-aware 状态层，并记录 <code>exchange_event_ts</code>、<code>local_receive_ts</code> 与 <code>feature_ready_ts</code>。那一身份中的外部源只参与只读 reference tape 和 global-flow state，不拥有交易权限，也不会绕过 Binance 本地风险门控；current release-v3/no-shadow 已把 external、Flow、Ref 与全部 shadow 关闭，保留 tape 只可用于离线历史复盘。</p>
+<h3 id="1-8-多市场-reference：历史-receive-time-诊断层与权限边界"><a href="#1-8-多市场-reference：历史-receive-time-诊断层与权限边界" class="headerlink" title="1.8 多市场 reference：历史 receive-time 诊断层与权限边界"></a>1.8 多市场 reference：历史 receive-time 诊断层与权限边界</h3><p>历史运行曾将 Binance 本地 bridge 与 Bitget、Bybit、OKX 的 spot/perpetual public WebSocket 接入 venue-aware 状态层，并记录 <code>exchange_event_ts</code>、<code>local_receive_ts</code> 与 <code>feature_ready_ts</code>。那一身份中的外部源只参与只读 reference tape 和 global-flow state，不拥有交易权限，也不会绕过 Binance 本地风险门控。后来某个冻结 no-shadow 运维快照关闭了 external、Flow、Ref 与全部 shadow；这是带时间戳的历史事实，不是对当前 EC2 进程的公开声明。</p>
 <p>修复前基于 trades-derived causal 1s state 的单 venue、双 venue、spot/perp 与 hierarchical Stage 0 数值已经删除。那批结果无法识别亚秒 lead-lag，也不能在修复前 feature/replay identity 下证明 re-center、cancel、stop-add 或 campaign moderator 的 action value。</p>
-<p>若未来重开这类离线研究，边界仍是按 <code>feature_ready_ts &lt;= decision_ts</code> 合并已冻结的 receive-time BBO/trade tape，构造 10/25/50/100/250/500ms 的 aggressive flow、agreement、OFI/depletion/refill 与 freshness；先比较 local-only M0 和 external M1 对 fill toxicity、queue value 与 campaign outcome 的增量。只有增量通过 chronological split、leave-one-venue-out、latency stress 和 family-specific sealed holdout，并获得新的显式授权，才允许创建有界 action family；当前关闭状态本身不构成新研究结论。</p>
-<p>因此，多市场数据在这些历史实验中只是诊断输入，不是 quote alpha；在 current live 中连诊断输入也处于关闭状态。接入更多 venue 曾提高 shock attribution 和反证能力，但不会自动产生一条可执行的价格平均规则。</p>
+<p>若未来重开这类离线研究，边界仍是按 <code>feature_ready_ts &lt;= decision_ts</code> 合并已冻结的 receive-time BBO/trade tape，构造 10/25/50/100/250/500ms 的 aggressive flow、agreement、OFI/depletion/refill 与 freshness；先比较 local-only M0 和 external M1 对 fill toxicity、queue value 与 campaign outcome 的增量。只有增量通过 chronological split、leave-one-venue-out、latency stress 和 family-specific sealed holdout，并获得新的显式授权，才允许创建有界 action family；某个历史快照中的开关状态本身不构成新研究结论。</p>
+<p>因此，多市场数据在这些历史实验中只是诊断输入，不是 quote alpha。接入更多 venue 曾提高 shock attribution 和反证能力，但不会自动产生一条可执行的价格平均规则；它们此刻是否进入私有运行进程，不在公开证据的可回答范围内。</p>
 <h3 id="1-9-quote-EV：方向看起来对，但统计还不允许下结论"><a href="#1-9-quote-EV：方向看起来对，但统计还不允许下结论" class="headerlink" title="1.9 quote EV：方向看起来对，但统计还不允许下结论"></a>1.9 quote EV：方向看起来对，但统计还不允许下结论</h3><p>为了避免把 cross-market 信息硬编码成一个布尔开关，项目又训练了逐侧 quote EV 模型。它不直接预测 BTC 下一秒涨跌，而是分别估计：</p>
 <ul>
 <li><code>P(fill)</code>；</li>
@@ -1416,8 +1525,8 @@ cv_ref_spot_*</code></pre></div>
 <p>这里最容易误解的是样本量。quote rows 可以有几十万甚至上百万，但能监督 <code>E(markout | fill)</code> 的只有真实 filled rows。未成交报价能帮助校准 fill probability，却不能直接告诉我们 fill 后的 markout、campaign terminal PnL 或 repair rate。因此 quote EV 的 promotion gate 必须看 filled-row support、calibration、按日隔离验证、side markout、tail loss、inventory time 和 campaign outcome，而不能只看一次 raw PnL 改善。</p>
 <p>2026-07 之后，quote EV 的方向已经和 campaign/order-level evidence 合流：每一笔 placed order 都带 quote-time state、fill outcome、markout、campaign label 和 explainable scores。只有这些连续 score 在日级稳定解释 fill quality 与 campaign outcome，才有资格注册一个新的 offline action family；是否进入真实 randomized canary 或 owner deployment 是另一项显式授权，不能用 candidate-specific shadow 代替。</p>
 <p>SELL resiliency 这类旧 direct arm 也已经退出运行路径：live/shadow producer 与 direct executor 均已删除，当前只保留 audit reader 对历史日志的兼容解释。旧 denominator 仍可用于复盘机制线索，但不会再由当前 live 进程产出，也不能直接 cap spread 或绕过 replay/live parity。bucket 不是策略本身，它只是解释 score 在什么市场结构下有效或失效。</p>
-<h3 id="1-10-Shadow-概念与当前“不得默认新建研究-shadow”边界"><a href="#1-10-Shadow-概念与当前“不得默认新建研究-shadow”边界" class="headerlink" title="1.10 Shadow 概念与当前“不得默认新建研究 shadow”边界"></a>1.10 Shadow 概念与当前“不得默认新建研究 shadow”边界</h3><p>NarrowGate 不应该把 quote EV 直接从回测 A/B 推到 live。下面保留的是 shadow calibration 的历史方法说明：实盘收行情并记录 quote-time state、quote、policy 与 would-place；未来 L2/trades 到达后，再生成 <strong>delayed shadow replay label / delayed would-fill counterfactual</strong>。后者不是决策时刻已知的 live truth，也不是实际订单的交易所 ACK/fill。</p>
-<p>截至 2026-08-25，这不再是新研究候选的默认流程，而且 current release-v3/no-shadow 中所有 shadow 与 companion 均已关闭。当前治理要求先审计未被该 family 消耗的 retained good days、普通 executed-order telemetry、既有 receive-time tapes 与 canonical market data，再用 offline replay 回答 Development 问题；不得为了候选 scorer、counterfactual policy 或缺失字段，默认向 live runtime 新增 observer、companion、sidecar、writer、feature dump 或 hypothetical-action log。既有 q90 shadow 与历史日志只按过去合同解释，不是可复制的模板。只有 owner 对一个精确命名机制重新作出显式授权，才可以另行冻结资源、字段、期限、回滚与 retirement gate。</p>
+<h3 id="1-10-Shadow-概念与“不得默认新建研究-shadow”边界"><a href="#1-10-Shadow-概念与“不得默认新建研究-shadow”边界" class="headerlink" title="1.10 Shadow 概念与“不得默认新建研究 shadow”边界"></a>1.10 Shadow 概念与“不得默认新建研究 shadow”边界</h3><p>NarrowGate 不应该把 quote EV 直接从回测 A/B 推到 live。下面保留的是 shadow calibration 的历史方法说明：实盘收行情并记录 quote-time state、quote、policy 与 would-place；未来 L2/trades 到达后，再生成 <strong>delayed shadow replay label / delayed would-fill counterfactual</strong>。后者不是决策时刻已知的 live truth，也不是实际订单的交易所 ACK/fill。</p>
+<p>截至 2026-08-25 的公开治理记录里，这已不再是新研究候选的默认流程。应先审计未被该 family 消耗的 retained good days、普通 executed-order telemetry、既有 receive-time tapes 与 canonical market data，再用 offline replay 回答 Development 问题；不得为了候选 scorer、counterfactual policy 或缺失字段，默认向 live runtime 新增 observer、companion、sidecar、writer、feature dump 或 hypothetical-action log。既有 q90 shadow 与历史日志只按过去合同解释，不是可复制的模板。只有 owner 对一个精确命名机制重新作出显式授权，才可以另行冻结资源、字段、期限、回滚与 retirement gate。公开文章不用该治理规则反推私有进程的此刻开关。</p>
 <p>shadow mode 的核心问题不是“预测收益是多少”，而是：</p>
 <script type="math/tex; mode=display">
 P_{\text{model}}(\text{fill} \mid \text{quote context})
@@ -1560,20 +1669,20 @@ E[\text{realized markout}\mid \text{same bucket}]</script><p>实操上我会把 
         <span class="hljs-keyword">and</span> summary.daily_rollup_stability_ok
     )</code></pre></div>
 <p>这不是说阈值永远不变，而是说必须有硬门槛。没有门槛的 shadow mode，很容易退化成“我又看了一张更漂亮的图”。</p>
-<h4 id="1-10-2-Shadow-Replay-与-Shadow-Simulation-不是同一种证据"><a href="#1-10-2-Shadow-Replay-与-Shadow-Simulation-不是同一种证据" class="headerlink" title="1.10.2 Shadow Replay 与 Shadow Simulation 不是同一种证据"></a>1.10.2 Shadow Replay 与 Shadow Simulation 不是同一种证据</h4><p>项目里现在会刻意区分 shadow replay 和 shadow simulation。</p>
+<h4 id="1-10-2-Shadow-Replay-与-Shadow-Simulation-不是同一种证据"><a href="#1-10-2-Shadow-Replay-与-Shadow-Simulation-不是同一种证据" class="headerlink" title="1.10.2 Shadow Replay 与 Shadow Simulation 不是同一种证据"></a>1.10.2 Shadow Replay 与 Shadow Simulation 不是同一种证据</h4><p>本文在方法上刻意区分 shadow replay 和 shadow simulation。</p>
 <p><strong>Shadow Replay</strong> 更接近“把候选规则接到真实 retained-day / quote trace 上重放”。它要求使用同一套 replay 状态、同一套 placed-order denominator、同一套 fill/markout 口径，只是候选规则不改变 live 配置。比如 campaign stop-add 的 replay shadow arm 会问：如果当时 <code>abs_inventory &gt;= 0.006 BTC</code> 或 campaign age 超过 60 分钟时停止继续加仓，placed/day、fills/day、pause、raw、InvAdj、inventory-time 和 side markout 会怎样变化。它的证据等级高于孤立 bucket，因为它真的经过了 replay 里的订单生命周期和 daily hard gate。</p>
 <p><strong>Shadow Simulation</strong> 则更宽泛：它可以是 paper path、what-if counterfactual、或者对某个标签的离线 proxy 估算。它适合快速问“这个想法有没有方向”，但如果没有接入真实 placed-order denominator、queue/fill 逻辑、daily stability 和 false-block/tail accounting，就不能直接叫候选 policy。</p>
-<p><code>toxic-risk</code> 只能作为 shadow ranking / quote-EV calibration 输入，不能直接变成 hard veto。它必须先通过 order-level denominator、tail capture、positive false-block、inventory-time、side markout 与 action-uplift gate，才能讨论极小 live arm。</p>
-<h4 id="1-10-3-Rolling-baseline：live、mechanics-与-economic-control-必须分层"><a href="#1-10-3-Rolling-baseline：live、mechanics-与-economic-control-必须分层" class="headerlink" title="1.10.3 Rolling baseline：live、mechanics 与 economic control 必须分层"></a>1.10.3 Rolling baseline：live、mechanics 与 economic control 必须分层</h4><p>后期复盘里另一个容易混淆的问题是“baseline 到底是哪一版”。NarrowGate 的 baseline 不是某个永久固定的历史 bundle，而是<strong>实验冻结时 exact current operational code、config、active owner policies 与数据口径共同产生的策略行为</strong>。一个 GitHub pointer、公开 config 或旧 replay panel 只有在身份完全对齐时才可以代表它。</p>
-<p>开源仓库里的 <code>live/config.yaml</code> 现在是可运行的安全示例，不包含当前实盘参数。live paired control 只能从私有 current pointer→release-v3/no-shadow 解析；若拿不到该 owner identity，就必须明确标记 <code>public_baseline_not_current_live_parity</code>。公开 v13 只是 locator prerequisite；30 日 mechanics-safety successor 把 exact BUY E3、exact SELL B0、D+1 B0 与共同 <code>pause_exposure</code> overlay 定义为 reduced-support mechanics default/paired arm；冻结 v12 50 日结果只作为 stale historical comparator。公开示例、v13、30 日 mechanics 与 v12 历史结果都不能替代 current live，也不能互相替代。</p>
+<p><code>toxic-risk</code> 只能作为 ranking / quote-EV calibration 输入，不能直接变成 hard veto。它必须先通过 order-level denominator、tail capture、positive false-block、inventory-time、side markout 与 action-uplift gate，之后是否进入任何运行 arm 仍需单独的明确授权。</p>
+<h4 id="1-10-3-Rolling-baseline：live、mechanics-与-economic-control-必须分层"><a href="#1-10-3-Rolling-baseline：live、mechanics-与-economic-control-必须分层" class="headerlink" title="1.10.3 Rolling baseline：live、mechanics 与 economic control 必须分层"></a>1.10.3 Rolling baseline：live、mechanics 与 economic control 必须分层</h4><p>后期复盘里另一个容易混淆的问题是“baseline 到底是哪一版”。NarrowGate 的 baseline 不是某个永久固定的历史 bundle，而是<strong>实验冻结时精确的 code、config、owner-policy 身份与数据口径共同产生的策略行为</strong>。一个 GitHub pointer、公开 config 或旧 replay panel 只有在身份完全对齐时才可以代表该次冻结对照。</p>
+<p>开源仓库里的 <code>live/config.yaml</code> 是可运行的安全示例，不包含私有现役参数。若拿不到一次实验所对应的 exact owner manifest，就必须明确标记 <code>public_baseline_not_current_live_parity</code>。公开 v13 只是历史 locator prerequisite；30 日 mechanics-safety successor 定义的 exact BUY E3、exact SELL B0、D+1 B0 与共同 <code>pause_exposure</code> overlay 只是 reduced-support mechanics default/paired arm；冻结 v12 50 日结果只作为 stale historical comparator。这些对象都不能代替未公开的当前运维身份，也不能互相替代。</p>
 <p>因此每一轮实验都按下面这个定义推进：</p>
-<div class="code-wrapper"><pre><code class="hljs text">private current pointer -&gt; release-v3/no-shadow = exact live operational baseline
-mechanics-safety successor = 30-day reduced-support mechanics default / paired arm
+<div class="code-wrapper"><pre><code class="hljs text">exact frozen owner manifest = operational paired-control identity for that experiment
+mechanics-safety successor = 30-day reduced-support mechanics comparator
 immutable v12 50-day identity = stale historical comparator under old mechanics
-public v13 = locator prerequisite only
+public v13 = historical locator prerequisite only
 new mechanism or parameter = arm within its declared authority layer
 
-baseline 先和 live 机制量对齐
+baseline 先和所声称的运行机制量对齐
     -&gt; placed/day
     -&gt; fills/day
     -&gt; fill/placed
@@ -1582,7 +1691,7 @@ baseline 先和 live 机制量对齐
     -&gt; spread p50/p90
     -&gt; bid/ask fill split
 
-arm 再相对 current baseline 评估
+arm 再相对该次冻结 baseline 评估
     -&gt; daily/campaign gate
     -&gt; side markout
     -&gt; inventory time
@@ -1807,7 +1916,7 @@ V(x,a_{candidate})-V(x,a_{baseline})>0</script><p>因为后一个问题还需要
 <p>development 有 5,746 个 intervention campaigns，validation 有 1,508 个。development 中的 BUY <code>widen_1tick</code> DR uplift 为 <code>+0.01783 USDC/intervention</code>，95% day-clustered interval <code>[-0.01233,+0.04682]</code>；SELL <code>recenter_1tick</code> 为 <code>+0.01318</code>，<code>[-0.01481,+0.04277]</code>。两者区间都跨零，只被冻结成 diagnostic candidate。固定 development-to-validation 后，BUY widen 收缩到 <code>+0.00394</code>，区间 <code>[-0.04063,+0.05211]</code>，正向日率只有 45%；SELL recenter 反号为 <code>-0.00905</code>。validation 的表面 winner 变成 development 为负的 SELL prevent-over-widen，属于 winner rotation，不是稳定 action alpha。candidate action 在 <code>terminal_campaign_pnl &lt;= -5 USDC</code> 上又没有足够事件，tail gate 因 support 不足失败。因此这组固定 local add actions 已正式关闭，20 日 family-specific holdout 保持未读，live/C++/config/baseline 均未改变。</p>
 <p>随后两个更窄、使用独立 identity 的 family 也没有通过 Development。BUY <code>buy_add_conditional_widen_causal_v4_v1</code> 在 28 个未来 evaluation days 上为 <code>-0.00742 USDC/decision</code>，区间 <code>[-0.02657,+0.01304]</code>；SELL <code>sell_add_repair_trend_skip_causal_v4_v1</code> 的 chronological policy 只选择 4 次 skip，reward interval 跨零，repair/trend-through competing-risk utilities 全部为负。两个 family 的 validation 与 sealed holdout 都未读取。负结果或区间穿零不是“继续等新日期”的理由；若要继续，必须定义新的 state-conditioned family 和新的冻结 evidence allocation。</p>
 <h3 id="2-3-2026-07-28-时点最诚实的结论"><a href="#2-3-2026-07-28-时点最诚实的结论" class="headerlink" title="2.3 2026-07-28 时点最诚实的结论"></a>2.3 2026-07-28 时点最诚实的结论</h3><p>修复前的 enhanced spot、quote EV、xmarket、calendar/local-flow、SELL resiliency、toxicity 与 lifecycle 方向结论均已删除。当前只能说这些状态通道仍可被重新研究，不能说它们已经提供正向线索。2026-07-18 的 causal-v4 action panel 已证明固定一 tick或一次报价周期的 local add action 没有通过 development/validation；2026-07-25 的 normalized-100ms 重建进一步确认，换一套更干净的 L2、特征与模型身份，并不会自动把状态预测转化为动作价值。</p>
-<p>causal-v5 在 Validation20/Test17 的 raw 中心曾分别改善约 3.56/2.14 USDC，但 interval 跨零、参与度下降且 inventory time 增加；它只是一段历史 <code>user_directed_trial</code>。随后 causal-v9 使用 133 个 good days 和修复后的 taker-tempo lineage 重训，正式 Test3 的 raw/terminal 分别落后 <code>2.2308/2.6268 USDC</code>，tail 增加 3 个，因此没有部署。7 月 27 日时 operational baseline 是 ML-OFF + empirical P3，8 月 3 日滚动到 causal-v12 v7，8 月 12 日指针是 v10，8 月 20 日公开快照前移到 v12；8 月 24 日 owner-side authority 又叠加 BUY E3，8 月 25 日则由私有 pointer→release-v3/no-shadow 成为 current live locator。direct quote EV 与 SELL resiliency executor 仍已删除；任何受限 cancel/re-entry 也只是独立 action treatment，不是 scorer 排序通过后自然获得的因果结论。</p>
+<p>causal-v5 在 Validation20/Test17 的 raw 中心曾分别改善约 3.56/2.14 USDC，但 interval 跨零、参与度下降且 inventory time 增加；它只是一段历史 <code>user_directed_trial</code>。随后 causal-v9 使用 133 个 good days 和修复后的 taker-tempo lineage 重训，正式 Test3 的 raw/terminal 分别落后 <code>2.2308/2.6268 USDC</code>，tail 增加 3 个，因此没有部署。可公开审计的历史时序是：7 月 27 日冻结 baseline 为 ML-OFF + empirical P3，8 月 3 日的快照滚动到 causal-v12 v7，8 月 12 日为 v10，8 月 20 日公开快照为 v12，后续还有单独标记的 owner-side override 记录。这条历史不用来推断今日私有进程。direct quote EV 与 SELL resiliency executor 的公开代码入口已删除；任何受限 cancel/re-entry 也只是独立 action treatment，不是 scorer 排序通过后自然获得的因果结论。</p>
 <p>宽参数网格现在已经能跑，但它不能替代 order-level / campaign-level score sanity，更不能替代 action value。下面这些 score 仍用于解释状态，不再被直接当成“下一步上线规则”：</p>
 <div class="code-wrapper"><pre><code class="hljs text">fill_probability_score     # 只解释会不会成交
 fill_quality_score         # 解释成交后 markout 是否不坏
@@ -1843,7 +1952,7 @@ trend_inventory_risk       # 大级别趋势是否正在放大库存风险</code
 <li>empirical P3、queue 与 REST latency 都绑定 artifact 路径和 SHA；</li>
 <li>构造 order-level retraining denominator 时关闭旧 BUY live scorer。</li>
 </ul>
-<p>新的 feature split 是 <code>80 train + 1 embargo + 20 validation + 1 embargo + 20 test</code>；order-level denominator 共 122 日、2,219,633 个 placed orders 和 70,650 个 fills。10 秒 empirical P3 保持 <code>delta*=13.9990859817 USDC/BTC</code>、<code>kappa_eff=0.0674381136</code>。13-head causal-v4 bundle 的 test 指标为：</p>
+<p>新的 feature split 是 <code>80 train + 1 embargo + 20 validation + 1 embargo + 20 test</code>；order-level denominator 共 122 日、2,219,633 个 placed orders 和 70,650 个 fills。10 秒 empirical P3 在该历史 identity 中使用 <code>delta*=13.9990859817 USDC/BTC</code>、legacy <code>kappa_eff=0.0674381136</code>；后者是 <code>P_touch</code> 局部 log slope 的兼容字段，不是 execution-intensity slope。13-head causal-v4 bundle 的 test 指标为：</p>
 <div class="table-container">
 <table>
 <thead>
@@ -1998,8 +2107,8 @@ trend_inventory_risk       # 大级别趋势是否正在放大库存风险</code
 <li>operationally，它已成为下一轮 arm 必须比较的 rolling baseline；</li>
 <li>statistically，它没有通过 strict promotion gate，不能被称为稳定 alpha。</li>
 </ul>
-<p>这两条描述绑定 7 月 25 日当时的历史状态。7 月 27 日 causal-v9 将训练身份延伸到 2026-07-25，并排除 side-corrupted taker-tempo lineage；正式 Test3 中 raw delta 三日全部为负，terminal 更差且 tail 增加，因此 candidate 未部署。当时 rolling baseline 恢复为 ML-OFF，empirical P3 保持有效；以下 causal-v5 数字只用于解释 normalized-100ms 重建过程，不再代表 live 权限。该 baseline 先被 causal-v12 v7 取代，2026-08-12 前移到 v10，2026-08-20 的最后公开 snapshot 是 v12；current live 的 BUY E3/no-shadow 边界见本文 2026-08-24 至 08-25 successor 小节。</p>
-<p>对应的可复现边界见 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/docs/causal_v5_normalized100ms_revalidation_20260725.md">causal-v5 revalidation</a> 与 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/operational_baseline_identity_20260725.json">operational baseline identity</a>。当前模型决策见 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/docs/causal_v9_through_20260725_replay_20260727.md">causal-v9 replay</a>。</p>
+<p>这两条描述绑定 7 月 25 日当时的历史状态。7 月 27 日 causal-v9 将训练身份延伸到 2026-07-25，并排除 side-corrupted taker-tempo lineage；正式 Test3 中 raw delta 三日全部为负，terminal 更差且 tail 增加，因此 candidate 未部署。当时 rolling baseline 恢复为 ML-OFF，empirical P3 保持该次冻结身份；以下 causal-v5 数字只用于解释 normalized-100ms 重建过程，不再代表 live 权限。该 baseline 先被 causal-v12 v7 取代，2026-08-12 前移到 v10，2026-08-20 的最后公开 snapshot 是 v12；后续 owner override 只是历史 operational record，当前状态仍需私有 manifest 才能确认。</p>
+<p>对应的可复现边界见 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/docs/causal_v5_normalized100ms_revalidation_20260725.md">causal-v5 revalidation</a> 与 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/operational_baseline_identity_20260725.json">operational baseline identity</a>。后续的 causal-v9 决策见 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/docs/causal_v9_through_20260725_replay_20260727.md">causal-v9 replay</a>。</p>
 <h3 id="2-11-Fixed-spread-与成交概率：先拆-touch，再谈-fill"><a href="#2-11-Fixed-spread-与成交概率：先拆-touch，再谈-fill" class="headerlink" title="2.11 Fixed spread 与成交概率：先拆 touch，再谈 fill"></a>2.11 Fixed spread 与成交概率：先拆 touch，再谈 fill</h3><p>这一轮没有直接优化 live spread，而是先问一个更基础的问题：<strong>同一个决策、同一段未来行情和同一个订单生命周期里，报价离同侧 BBO 越远，成交概率应当怎样变化？</strong></p>
 <p>第一版实验把 25 个距离分别放进独立策略世界。某个距离成交后会改变库存、cooldown 和下一次 activation denominator；更关键的是，scalar matcher 把 strictly-through trade 当成 exact-price trade，只消耗当前 print quantity。这样会出现“深价订单成交、同路径浅价订单未成交”，因此旧表中的 0→1 tick lifecycle 反转不再解释为 queue discontinuity，旧概率、local kappa 和 lookup 全部撤回。</p>
 <p>替代实验 <code>paired_fixed_spread_monotonic_v2</code> 对每个 side/decision 一次性生成全部 25 个距离，共享 new/cancel latency、activation book、TTL、cancel ACK 和未来行情路径；counterfactual fill 不反馈库存或后续订单。exact-price trade 按数量消耗 queue，strictly-through trade 强制 full fill；如果深价成交而浅价未成交，C++ replay 直接 fail fast。</p>
@@ -2070,7 +2179,7 @@ P(\mathrm{fill}\mid\mathrm{active\ touch},\mathrm{lifecycle}).</script><p>第二
 <p>修正后，BUY 0→1 tick lifecycle fill 是 <code>51.08%→48.66%</code>，SELL 是 <code>50.18%→48.96%</code>，不再反常上升。右下角的 <code>fill | touch</code> 仍从约 76%–79% 上升到 98%–99%，但这不是无条件成交概率：能 strictly through 更深价格的市场路径本来就是更强的条件子集，而且 through 发生时更优价 passive order 必须已经成交。<strong>条件 conversion 上升与无条件 fill 单调下降可以同时成立。</strong></p>
 <p>0/1 tick 的 queue fallback 都约 0.02%，所以近端单调结果主要来自可见盘口；但 80 tick fallback 已约 79%，100 tick 约 93%，140 tick 后超过 99%。因此远端尾部仍只能解释冻结的 calibrated matching-model geometry，不能称为 native deep exchange queue truth，更不能直接生成 live lookup。旧 observational spline 的 NLL 也不会因本次配对重放而自动恢复；它必须在新的 paired denominator 上重建。</p>
 <p>完整说明见 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f06_placement_fill_cif/docs/paired_fixed_spread_monotonic_v2_20260726.md">paired fixed-spread report</a>。旧 v1 runner、数值报告、nonlinearity lookup、图和数据产物已经删除；失败机制只在 paired v2 报告中保留，防止同一错误再次进入研究链。本轮没有修改 live。</p>
-<h4 id="成交概率怎样进入报价"><a href="#成交概率怎样进入报价" class="headerlink" title="成交概率怎样进入报价"></a>成交概率怎样进入报价</h4><p>当前项目并非没有成交相关模型，但它们回答的是不同问题：empirical P3 是 10 秒 touch/opportunity 曲线，只向 quote core 提供 <code>delta_star</code> 与 <code>kappa_eff</code>；历史 dynamic fill hazard 与 BUY fill-selection scorer 分别研究短时 fill risk 和成交质量排序；causal-v9 的 13 个 head 预测 return、direction、volatility 与 toxicity，但当前只保留为 offline artifact。它们都不是完整的 <code>P(fill before cancel/replace/TTL | distance, state)</code>。</p>
+<h4 id="Touch-概率历史上怎样被压入报价"><a href="#Touch-概率历史上怎样被压入报价" class="headerlink" title="Touch 概率历史上怎样被压入报价"></a>Touch 概率历史上怎样被压入报价</h4><p>项目并非没有成交相关模型，但它们回答的是不同问题。empirical P3 是 10 秒 touch/opportunity 曲线；历史 scalar adapter 曾把它投影成 <code>delta_star</code> 与名为 <code>kappa_eff</code> 的兼容字段，但 F02 当前的科学结论已明确拒绝将它解释为 fill probability、execution intensity 或 GLFT <code>k_exec</code>。历史 dynamic fill hazard 与 BUY fill-selection scorer 分别研究短时 fill risk 和成交质量排序；causal-v9 的 13 个 head 预测 return、direction、volatility 与 toxicity。它们都不是完整的 <code>P(fill before cancel/replace/TTL | distance, state)</code>，公开仓库保留旧 adapter 也只是为了复现历史路径，不授予新的 research/action 权限。</p>
 <p>下一步不是直接拟合一张 surface，而是先建立逐 side-decision 的 lifecycle panel。每行同时保存 current、-1 tick、+1 tick 的 action-specific activation、queue、exact/through touch、partial/full fill、cancel request/ACK 与固定期限结果。</p>
 <p>新提交订单与活动订单必须拆成两个 estimand：placement 模型从 decision time 开始，并对 ACK 后 queue 分布积分；active-order continuation 模型可以使用当前 queue、age 和 refill/recovery path。KEEP 保留 queue，REPLACE 重置 queue，二者不能被当成同一距离 surface，也不能强制满足距离单调性。</p>
 <p>活动订单的总 fill CIF 写成：</p>
@@ -2088,7 +2197,7 @@ t_{\mathrm{scheduled\ request}}(a)-t_0
 z
 =
 \frac{d_{\mathrm{price}}}
-{\sqrt{\sigma^2_{\mathrm{price},1s}H_{\mathrm{sched}}(a)}}.</script><p>同样的 20 ticks 在低波动与高波动下不是同一个执行距离。不过模型仍须保留 raw distance、fast/slow volatility ratio、queue、microprice、flow、refill/recovery、side 与 inventory role，并对无条件 fill probability 施加“距离越远不增加”的单调约束。</p>
+{\sqrt{\sigma^2_{\mathrm{price},1s}H_{\mathrm{sched}}(a)}}.</script><p>同样的 20 ticks 在低波动与高波动下不是同一个执行距离。不过模型仍须保留 raw distance、fast/slow volatility ratio、queue、weighted-mid proxy、flow、refill/recovery、side 与 inventory role，并对无条件 fill probability 施加“距离越远不增加”的单调约束。</p>
 <p>策略也不能选择成交概率最高的报价，因为高波动往往同时提高 touch 和 toxic-fill 风险。真正比较的是：</p>
 <script type="math/tex; mode=display">
 V(a\mid x)
@@ -2219,20 +2328,20 @@ automatic action promotion = false</code></pre></div>
 \mathrm{realized}_d
 +q_{d,end}m_{d,end}
 -q_{d,start}m_{d,start}.</script><p>如果一个结果声明 continuous accounting，现金、库存和 campaign 就必须跨午夜延续，daily rows 只用于 dependence clustering；但冻结的 predecessor 50 日 compatibility control 明确采用 <code>daily_fresh_start</code>，不声称 continuous-live PnL。无论哪种身份，都不允许用平均收益补偿路径风险：campaign q10/CVaR、terminal protection、MAE、最大库存与 inventory-time 继续是不可补偿 hard gates，日末浮亏降权和多档库存风险降权是两件完全不同的事。</p>
-<h4 id="一个历史-q90-shadow-与一个退役-selector-为什么都没有研究-action-权限"><a href="#一个历史-q90-shadow-与一个退役-selector-为什么都没有研究-action-权限" class="headerlink" title="一个历史 q90 shadow 与一个退役 selector 为什么都没有研究 action 权限"></a>一个历史 q90 shadow 与一个退役 selector 为什么都没有研究 action 权限</h4><p>旧 BUY fill-selection 在 current-stack 40 日精确 A/B 中，唯一切换的是 quote permission：</p>
+<h4 id="一个历史-q90-shadow-与一个退役-selector-为什么都没有研究-action-权限"><a href="#一个历史-q90-shadow-与一个退役-selector-为什么都没有研究-action-权限" class="headerlink" title="一个历史 q90 shadow 与一个退役 selector 为什么都没有研究 action 权限"></a>一个历史 q90 shadow 与一个退役 selector 为什么都没有研究 action 权限</h4><p>旧 BUY fill-selection 在冻结 40 日精确 A/B 中，唯一切换的是 quote permission：</p>
 <div class="code-wrapper"><pre><code class="hljs text">PnL:  -159.1323 -&gt; -175.9269 USDC
 delta: -16.7946 USDC = -0.4199 USDC/day
 95% day-cluster interval: [-1.3041,+0.2950]
 fills: +0.573%
 multi-level SHORT terminal value: -13.5910 USDC</code></pre></div>
 <p>区间跨零，所以不能声称已经证明所有状态甚至平均意义下必然有害；但一个 overlay 的责任是先证明正增量，而不是让生产继续承担负点估计直到“普遍有害”被证明。因此 action 先被关闭，随后旧 scorer shadow 也在 observation-stream retirement 中关闭；科学分类仍是 <code>unsupported_negative_point_estimate</code>，不是“普遍有害已证实”。</p>
-<p>q90 的问题不同。旧 replay 把 exchange clock 与 provider receive clock 混用，后续又发现 cancel ACK 后 terminal order 仍进入 active hazard risk set。v1.6 40 日 mechanics 曾在 665,831 个 exact-native eligible lifecycle spells 上完成，Python/C++ transition mismatch 与 post-terminal reuse 都为零；但首次 prospective live/AWS transport 因 330/589 lifecycles 出现 REST ACK + WebSocket <code>NEW</code> duplicate activation，且缺少 exact feature-ready companion 而 fail closed。修复代码不能改写这次失败证据；在那个历史身份中 q90 是 shadow ON/action OFF 且未读独立经济 outcome，current no-shadow release 中 q90 action 与 shadow 均 OFF。这与 BUY selector 的负经济点估计不是同一种关闭原因。</p>
-<h4 id="当前各研究族真正停在哪里"><a href="#当前各研究族真正停在哪里" class="headerlink" title="当前各研究族真正停在哪里"></a>当前各研究族真正停在哪里</h4><div class="table-container">
+<p>q90 的问题不同。旧 replay 把 exchange clock 与 provider receive clock 混用，后续又发现 cancel ACK 后 terminal order 仍进入 active hazard risk set。v1.6 40 日 mechanics 曾在 665,831 个 exact-native eligible lifecycle spells 上完成，Python/C++ transition mismatch 与 post-terminal reuse 都为零；但首次 prospective live/AWS transport 因 330/589 lifecycles 出现 REST ACK + WebSocket <code>NEW</code> duplicate activation，且缺少 exact feature-ready companion 而 fail closed。修复代码不能改写这次失败证据；在那个历史身份中 q90 是 shadow ON/action OFF 且未读独立经济 outcome，后来的某个冻结 no-shadow 快照则记录两者关闭。这与 BUY selector 的负经济点估计不是同一种关闭原因；两条历史都不用来声称当前私有运行状态。</p>
+<h4 id="各研究族的公开证据停在哪里"><a href="#各研究族的公开证据停在哪里" class="headerlink" title="各研究族的公开证据停在哪里"></a>各研究族的公开证据停在哪里</h4><div class="table-container">
 <table>
 <thead>
 <tr>
 <th>family / route</th>
-<th>当前结论</th>
+<th>公开结论</th>
 <th>下一权限边界</th>
 </tr>
 </thead>
@@ -2248,14 +2357,14 @@ multi-level SHORT terminal value: -13.5910 USDC</code></pre></div>
 <td>关闭这些精确 action；不能外推成整个 temporal permission、inventory suppression 或 passive-repair 函数空间耗尽</td>
 </tr>
 <tr>
-<td>F09 role-safe BER add-only</td>
-<td>current-stack 40 日改变 14.96% side decisions；terminal MTM -11.666288、closed-campaign -9.384488 USDC，fills +13.85%</td>
-<td>primary value gate 失败；保留 current global BER，不晋级 directional successor</td>
+<td>F09 legacy-<code>ber</code>-named trade-intensity acceleration add-only</td>
+<td>冻结 40 日改变 14.96% side decisions；terminal MTM -11.666288、closed-campaign -9.384488 USDC，fills +13.85%</td>
+<td>primary value gate 失败；当时对照中的 global guard 保持不变，不晋级 directional successor；不声称它是 book-exhaustion BER</td>
 </tr>
 <tr>
 <td>F04 BABEL-P1</td>
 <td>source-bound program 已完成 31 个 valid full windows、覆盖 30 个 distinct UTC days；collection automation 已删除</td>
-<td>count gate 已关闭，但 exact unknown-submit-ACK lifecycle successor 与其余 chronological/side/source-transport gates 仍未通过；current host 没有继承 capture authority</td>
+<td>count gate 已关闭，但 exact unknown-submit-ACK lifecycle successor 与其余 chronological/side/source-transport gates 仍未通过；该历史记录不授予新的 capture authority</td>
 </tr>
 <tr>
 <td>F04 BABEL-P2</td>
@@ -2282,13 +2391,13 @@ multi-level SHORT terminal value: -13.5910 USDC</code></pre></div>
 <p>训练/测试没有发现直接 outcome leakage：outer fold 只使用过去的 purged train rows，所有 train-arm washout end 都严格早于当前 test assignment，Validation 与 sealed holdout 未读。但分布并不均匀。M2 的 33 日是从 40 日中按 source completeness 选出的 common-support subset，不是连续的前 33 日；它有 6,991 个 opportunities、2.26% censoring，被排除的 7 日有 1,609 个、0.81% censoring，所以 M2 与 M1 只有在同一 Prefix33 denominator 上才可比较。171 个 censored opportunities 也明显集中于 BUY：BUY <code>142/4,499=3.16%</code>、SELL <code>29/4,101=0.71%</code>，其中 BUY add 为 <code>115/1,871=6.15%</code>；2026-06-13 一日占 36 个。完整连续特征 SMD/PSI 与 predicate prevalence audit 尚未完成，所以不能声称 train/test feature distribution 已经稳定。</p>
 <p>在这个 2026-08-12 predecessor identity 的冻结晋级合同下，<code>supported_sides=[]</code> 使统一 policy、repeated-policy ABI、40/10/50 full-path、restart-aware 与 transport 阶段结构性停止，Validation/holdout 也保持未读；这不是漏跑一个当时已经合法晋级的 candidate。这个结论只描述该 predecessor identity，不能继续用现在时概括后来新建的 persistent-policy 与 full-multiscale successor。</p>
 <p>权威来源与边界见 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/causal_multichannel_window_boolean_cooldown_duration_v2_strict_native_formal_execution_failure_20260811.md">strict-native failure</a>、<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/causal_multichannel_window_boolean_cooldown_duration_v2_owner_modeled_queue_v1_development_20260812.md">owner modeled-queue Development closure</a> 与 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/README.md">F05 current ledger</a>。</p>
-<h3 id="2026-08-24-至-2026-08-25-successor：Development、owner-live-与-mechanics-分层"><a href="#2026-08-24-至-2026-08-25-successor：Development、owner-live-与-mechanics-分层" class="headerlink" title="2026-08-24 至 2026-08-25 successor：Development、owner live 与 mechanics 分层"></a>2026-08-24 至 2026-08-25 successor：Development、owner live 与 mechanics 分层</h3><p>后续 <code>persistent-policy v3</code> 是新的 research identity，不是对 2026-08-12 predecessor 结果的补写。它实现 paired M0/M1/M2 hierarchy、更宽的 ordered rules、fold-distribution audit 与 shared UTC-day wild-max-t inference；两侧都未通过 M0 research gate，但 owner 另行冻结了一个 non-research-supported SELL M2 diagnostic policy，在 modeled-queue full-path 上继续做经济检查。</p>
-<p>50 日 repeated-policy replay 相对 predecessor control 的 terminal MTM 改善 <code>+11.372165 USDC</code>、closed-campaign value 改善 <code>+9.747065 USDC</code>，fill retention 为 96.04%；但两个 primary intervals 都跨零，只有 24/50 日改善。corrected 71 日 restart-aware replay 的 terminal MTM 改善 <code>+16.877254 USDC</code>、closed-campaign value 改善 <code>+16.895254 USDC</code>，fill retention 为 97.66%，q10/CVaR 与最大库存 point metrics 也更好；但两个 lower bounds 仍为负，只有 26/71 日改善。这些是正 point estimates 与有效 diagnostic，不是 research hard-gate pass。owner 随后显式接受 statistical、strict-queue 与 transport 风险，把 unchanged SELL policy 作为 <code>owner_risk_accepted_promotion</code> 上线。</p>
-<p>更晚的 full-multiscale offline successor 使用 30 个历史 Development days、3,516 个 opportunities 完成 nested chronological search。BUY E3 是最强 point candidate：terminal value <code>+0.458577 USDC/day</code>、closed-campaign value <code>+0.604012 USDC/day</code>，fills 下降 2.71%，四个 outer-fold means 全为正，相对 action-matched control 的 extra increment 为 <code>+0.193888 USDC/day</code>。但 simultaneous day lower bounds 与 frozen feature hierarchy 失败；SELL 没有正 non-baseline candidate。研究结论因此仍是 <code>research_supported=false</code>，Validation 与 sealed holdout 未读，不能从这些 Development 数值生成 research-supported action/live authority。</p>
-<p>owner-side authority 随后以 outcome-informed override 把 BUY E3 用于 exposure-increasing BUY executed fill；2026-08-25 的 current live 由私有 pointer 解析到 release-v3/no-shadow，E1、E2、SELL owner policy、reducing quotes、hard safety 与 fallback 不变，external、Flow、Ref、全部 shadow 与 companion 关闭。这个 operational decision 必须永久标记为 owner-risk exception，不能倒写成上段 scorecard 通过。公开 v13 只提供 locator prerequisite；mechanics-safety successor 只授予 30 日 reduced-support exact BUY E3、exact SELL B0、D+1 B0 与共同 <code>pause_exposure</code> overlay 的 mechanics resolution；冻结 v12 50 日结果只作为旧 mechanics 下的 stale historical comparator。上述公开治理都不证明 latest-liveness、动作发生或经济效果，也不授予 research、live-action 或 promotion authority；current BUY E3 的运营权限只来自私有 pointer→release 链。</p>
+<h3 id="2026-08-24-至-2026-08-25-successor：Development、历史-owner-override-与-mechanics-分层"><a href="#2026-08-24-至-2026-08-25-successor：Development、历史-owner-override-与-mechanics-分层" class="headerlink" title="2026-08-24 至 2026-08-25 successor：Development、历史 owner override 与 mechanics 分层"></a>2026-08-24 至 2026-08-25 successor：Development、历史 owner override 与 mechanics 分层</h3><p>后续 <code>persistent-policy v3</code> 是新的 research identity，不是对 2026-08-12 predecessor 结果的补写。它实现 paired M0/M1/M2 hierarchy、更宽的 ordered rules、fold-distribution audit 与 shared UTC-day wild-max-t inference；两侧都未通过 M0 research gate，但 owner 另行冻结了一个 non-research-supported SELL M2 diagnostic policy，在 modeled-queue full-path 上继续做经济检查。</p>
+<p>50 日 repeated-policy replay 相对 predecessor control 的 terminal MTM 改善 <code>+11.372165 USDC</code>、closed-campaign value 改善 <code>+9.747065 USDC</code>，fill retention 为 96.04%；但两个 primary intervals 都跨零，只有 24/50 日改善。corrected 71 日 restart-aware replay 的 terminal MTM 改善 <code>+16.877254 USDC</code>、closed-campaign value 改善 <code>+16.895254 USDC</code>，fill retention 为 97.66%，q10/CVaR 与最大库存 point metrics 也更好；但两个 lower bounds 仍为负，只有 26/71 日改善。这些是正 point estimates 与有效 diagnostic，不是 research hard-gate pass。历史 operational record 随后记录了 owner 显式接受 statistical、strict-queue 与 transport 风险，将 unchanged SELL policy 标成 <code>owner_risk_accepted_promotion</code>；这只说明当时的权限来源。</p>
+<p>更晚的 full-multiscale offline successor 使用 30 个历史 Development days、3,516 个 opportunities 完成 nested chronological search。BUY E3 是最强 point candidate：相对 baseline 的 terminal value 差为 <code>+0.458577 USDC/day</code>、closed-campaign value 差为 <code>+0.604012 USDC/day</code>，fills 下降 2.71%，四个 outer-fold means 全为正。但 candidate 自身的 terminal value 仍约为 <code>-2.445540 USDC/day</code>；<code>+0.458577</code> 是“少亏”的相对差，不是盈利。相对 action-matched control 的 extra increment 为 <code>+0.193888 USDC/day</code>，这可以排除“仅因为少成交”的纯数量解释；但 semantic interval 仍跨零，所以不是因果确认。simultaneous day lower bounds 与 frozen feature hierarchy 也失败；SELL 没有正 non-baseline candidate。研究结论因此仍是 <code>research_supported=false</code>，Validation 与 sealed holdout 未读，不能从这些 Development 数值生成 research-supported action/live authority。</p>
+<p>随后的历史 operational record 记录，owner 以 outcome-informed override 把 BUY E3 用于 exposure-increasing BUY executed fill。这个决定必须标记为 owner-risk exception，不能倒写成上段 scorecard 通过。公开 v13 只提供历史 locator prerequisite；mechanics-safety successor 只提供 30 日 reduced-support exact BUY E3、exact SELL B0、D+1 B0 与共同 <code>pause_exposure</code> overlay 的 mechanics resolution；冻结 v12 50 日结果只作为旧 mechanics 下的 stale historical comparator。上述公开材料都不证明 latest-liveness、动作发生或经济效果，也不授予 research、live-action 或 promotion authority。精确现役 owner policy、配置和 EC2 进程依赖必须从私有 release manifest 与实际主机状态确认，不由本文公开。</p>
 <h2 id="结论：窄门不是参数，而是证据门槛"><a href="#结论：窄门不是参数，而是证据门槛" class="headerlink" title="结论：窄门不是参数，而是证据门槛"></a>结论：窄门不是参数，而是证据门槛</h2><p>NarrowGate 从一个 AS 公式实验，走到了数据审计、跨市场冲击归因、逐侧 quote EV、库存时间积分、opportunity/executable 两层 null baseline、order-level denominator、版本化 100ms L2、causal artifact lineage 和 randomized action uplift。这个过程不断推翻自己的旧答案：更多 reference 不会自动带来更好 policy，严格的时钟与 lifecycle 会改变结论，score 能排序部分 markout、模型 A/B 中心为正，也都不代表固定 widen/recenter/skip/cancel action 已有正 value。</p>
 <p>最初的问题因此被越问越窄：不是“能不能预测 BTC”，而是“在这一侧、这个价格、这个盘口和这段库存暴露下，采取某个明确 action 是否比当前 baseline 更好”。两层 null baseline 检查 selection gap 是否存在，side-specific scorer 检查 decision-visible state 能否排序，randomized 或严格 paired action panel 才检查改变报价后、经过 queue 和后续库存路径的增量 value；三者不能互相替代。</p>
-<p>截至 2026-08-25，direct Quote-EV executor 仍已删除；current live 是私有 pointer→release-v3/no-shadow，BUY E3 ON，E1/E2、SELL/reducing 不变，external/Flow/Ref、q90、旧 BUY fill-selection 与其余全部 shadow/companion OFF。active SELL cooldown 与 BUY E3 都是明确标记的 owner-risk decisions，不是 research confirmation。30 日 mechanics-safety successor 只定义 exact BUY E3、exact SELL B0、D+1 B0 与共同 <code>pause_exposure</code> overlay 的 reduced-support mechanics default/paired arm；v12 50 日 compatibility identity 是 daily-fresh-start、queue-disabled 且在本轮账本/费用/campaign/spread/fill-order 修复后已经 stale 的历史 comparator，其 absolute PnL 为负，不应被写成当前 economic/control default、continuous-live、strict order-path 或 current-live authority。F06 已走到 direct marginal terminal value 后关闭；F09 的 role-safe BER add-only、若干 cooldown、库存压制、被动 repair 与 symmetric fair-center 等<strong>精确动作</strong>也已关闭，但这些阴性结果不能扩大成整个库存控制、recovery 或 state-to-duration 函数空间已耗尽。</p>
+<p>公开代码能确认 direct Quote-EV executor 入口已删除，公开 F05 能确认 Full-Multiscale 的 <code>supported_sides=[]</code>；但本文不再声明私有 current live 中 BUY/SELL、external/Flow/Ref、q90 或 shadow/companion 的 ON/OFF。历史 SELL/BUY owner overrides 都只能说明当时的 owner-risk decision，不是 research confirmation，更不是 latest-liveness。30 日 mechanics-safety successor 只定义 reduced-support mechanics comparator；v12 50 日 compatibility identity 是 daily-fresh-start、queue-disabled 且在账本/费用/campaign/spread/fill-order 修复后已经 stale 的历史 comparator，其 absolute PnL 为负，不应被写成 current economic/control default、continuous-live、strict order-path 或 live authority。F06 已走到 direct marginal terminal value 后关闭；F09 中那个以 legacy <code>ber</code> 命名的 trade-intensity acceleration add-only action、若干 cooldown、库存压制、被动 repair 与 symmetric fair-center 等<strong>精确动作</strong>也已关闭，但这些阴性结果不能扩大成整个库存控制、recovery 或 state-to-duration 函数空间已耗尽。</p>
 <p>multichannel Boolean cooldown 现在提供了更完整、但仍有限的答案。strict-native 历史标签仍因 same-millisecond ordering 不可识别而停止；2026-08-12 的受限 one-shot selector 没有晋级。后续 persistent SELL policy 在 modeled-queue 50/71 日 full-path 上得到正 point estimates，却没有正 lower bound；full-multiscale Development 的 BUY E3 也有跨四 fold 的正 point signal，却未通过 simultaneous lower-bound 与 feature-hierarchy gates。owner 可以显式接受这些未闭合风险并部署，但研究文章必须继续把 prediction、diagnostic economics、research-supported promotion 与 owner operational authority 分开。</p>
 <p>下一扇窄门不是预设某个模型名字，而是要求同一个问题同时具备：decision-visible state、与主张匹配的 lifecycle/queue authority、当前 baseline 的 full-path counterfactual、assignment 后的 closed-campaign USDC value、明确的 state carry/restart 语义和不可补偿 tail gate。预测排序、低 candidate rate、更快减仓、较小库存或更漂亮的 day-end MTM，都不能单独替代这条因果链。</p>
 <p>这可能也是“窄门”最贴切的地方。一个研究系统的成熟，不在于它接入了多少模型和数据源，而在于它愿意用多少层约束拒绝一个看起来很诱人的结论。</p>
