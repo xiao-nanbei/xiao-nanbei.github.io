@@ -27,6 +27,7 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：1 秒更新减少了 fills，却增加库存时间并恶化 campaign tails把 13-head cadence 从 10 秒缩短到 1 秒，看起来应该更快吸收市场变化。NarrowGate 没有把这个直觉当作结论，而是冻结完整 1-second full-schema model&#x2F;policy，与当时的 v9">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/causal-v12-one-second-vs-ten-second-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f03-thirteen-head-evidence-pipeline.svg">
 <meta property="article:published_time" content="2026-08-29T12:41:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:41:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -333,7 +334,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          5.3k 字
+          8.5k 字
         
       </span>
     
@@ -345,7 +346,7 @@
         
         
           <!-- compatible with older versions-->
-          45 分钟
+          71 分钟
         
       </span>
     
@@ -519,6 +520,31 @@
 <h2 id="9-关闭、未关闭与权限"><a href="#9-关闭、未关闭与权限" class="headerlink" title="9. 关闭、未关闭与权限"></a>9. 关闭、未关闭与权限</h2><p>关闭：当前 1-second full-schema model/policy successor 相对 v9 10s control 的 40-day Development identity。</p>
 <p>未关闭：具有不同 labels、regularization、state representation 或 action semantics 的未来 sub-10-second model。它必须解释自己怎样避免相邻样本、输出 jitter 与 lifecycle feedback，而不能沿用本项目 panels 调参。</p>
 <p>没有获得：Validation、sealed holdout、71-day confirmation、action、model replacement、shadow 或 live authority。10s baseline 保持不变。</p>
+<h2 id="深入推导：更快-cadence-同时改变控制频率与订单年龄"><a href="#深入推导：更快-cadence-同时改变控制频率与订单年龄" class="headerlink" title="深入推导：更快 cadence 同时改变控制频率与订单年龄"></a>深入推导：更快 cadence 同时改变控制频率与订单年龄</h2><p>把 inference 从十秒改成一秒，不只是每十秒多算九次分数。每次 decision 可能触发 place、replace 或 cancel，重置 queue priority，并改变订单在市场上的年龄分布。若 $u_t$ 是模型信号，$a_t$ 是实际订单动作，策略可以写成：</p>
+<script type="math/tex; mode=display">
+a_t=\Gamma(u_t,O_{t^-},I_t,C_t),</script><p>其中 $O_{t^-}$ 是当前 active order，$I_t$ 是库存，$C_t$ 是 cooldown/campaign state。增加 $u_t$ 的更新频率只有在 $\Gamma$ 真正改变订单且新增信息超过 queue reset 成本时才有价值。</p>
+<p><img src="/images/narrowgate/f03-thirteen-head-evidence-pipeline.svg" srcset="/img/loading.gif" lazyload alt="1 秒 inference 必须穿过冻结 mapping 与完整路径门"></p>
+<p><em>图 2：cadence 属于 inference identity；更快更新会改变 queue、fill、inventory 和 campaign，而不仅是 prediction rows。</em></p>
+<h2 id="一个路径例子：及时撤单为何可能延长库存"><a href="#一个路径例子：及时撤单为何可能延长库存" class="headerlink" title="一个路径例子：及时撤单为何可能延长库存"></a>一个路径例子：及时撤单为何可能延长库存</h2><p>假设 BUY add 刚成交，策略持有长库存，同时 SELL reducing quote 正在 queue 前部等待修复。新的一秒信号轻微恶化，快 cadence 触发 replace，把 reducing SELL 外移并失去原 queue position；市场随后小幅反弹，但新单来不及成交。十秒 baseline 没有在这次噪声上动作，旧 reducing order 反而完成 flat。</p>
+<p>在另一个单边下跌路径中，一秒 cadence 及时撤掉新的 BUY add，确实避免 adverse fill。两条路径展示典型 trade-off：更快控制降低某些 exposure-increasing fills，却也更频繁干扰 reducing queue。最终结果必须同时看 fills、库存时间、campaign duration 与 tail。</p>
+<p>这也是为什么“fills 更少”不能单独判为好或坏。若减少的是 toxic add fills，terminal value 应相对改善；若减少的是 repair fills，库存时间和 tail 可能恶化。冻结结果中 fills 下降而 inventory time 与 campaign tail 更差，说明至少在该 mapping 下，第二种机制不可忽略。</p>
+<h2 id="Cadence-研究需要的三个对照"><a href="#Cadence-研究需要的三个对照" class="headerlink" title="Cadence 研究需要的三个对照"></a>Cadence 研究需要的三个对照</h2><p>第一是 score-only parity：在共同 decision timestamps 上，1 秒与 10 秒模型是否产生预期分数，排除实现错位。第二是 action-count decomposition：新增九次计算中多少是 no-op、多少 replace、多少 cancel，分别作用于 add 与 reducing。第三是 full-path paired replay：保持 market data、latency seed 与非 cadence 机制相同，比较 terminal economics。</p>
+<p>若只做第三步而不做前两步，经济差异难以解释；若只做前两步，又不能推导 value。当前研究的价值在于三者都能对齐，并给出明确阴性：执行完整、动作真实发生，但更快 cadence 没有形成经济晋级。</p>
+<h2 id="Cadence-是一个控制系统参数，不只是计算频率"><a href="#Cadence-是一个控制系统参数，不只是计算频率" class="headerlink" title="Cadence 是一个控制系统参数，不只是计算频率"></a>Cadence 是一个控制系统参数，不只是计算频率</h2><p>把更新间隔从十秒缩到一秒，至少同时改变四件事：特征刷新延迟、订单平均年龄、cancel/re-entry次数、以及库存反馈被重新写入报价的速度。若旧单在两次decision之间仍active，cadence还改变每个score对实际exchange exposure覆盖的比例。因此“更快模型”不是同一policy跑得更勤，而是一项新的动态控制律。</p>
+<p>可以把状态递归写成</p>
+<script type="math/tex; mode=display">
+S_{k+1}=F(S_k,M_{k:k+1},A_k),
+\qquad
+A_k=\pi(X_{t_k},S_k;\Delta t),</script><p>其中$\Delta t$显式进入policy identity。改变$\Delta t$会改变决策网格$t<em>k$、每段市场路径$M</em>{k:k+1}$和后续状态$S_{k+1}$。因此不能把十秒结果按十倍线性缩放，也不能在一秒arm里沿用按十秒寿命校准的touch probability而不说明期限错配。</p>
+<h2 id="需要同时观测的四个控制代价"><a href="#需要同时观测的四个控制代价" class="headerlink" title="需要同时观测的四个控制代价"></a>需要同时观测的四个控制代价</h2><p>第一是staleness：行情变化到下一次合法决策的等待时间。第二是churn：每小时cancel、ACK、re-entry与queue reset。第三是exposure：active quantity-time与inventory-time。第四是terminal path：campaign value、tail与窗口末端库存。更快cadence通常降低第一项，却可能提高第二项，并通过失去queue priority或删掉repair fills恶化后三项。</p>
+<p>一个有说服力的cadence实验不应只比较1s与10s两个端点。它应在结果前冻结少量工程可行档位，保持feature horizon、order TTL与risk horizon语义明确；对每个arm记录真实decision opportunity、action change率与full-path outcome。若1s只是在十次检查中九次重复keep，它与真正每秒撤换不是同一个treatment。</p>
+<p>本研究观察到fills减少、inventory time增加与tail恶化，说明更快控制确实改变了路径，却没有带来净价值。最合理的后继不是继续缩到100ms，而是先分离“更早看到风险”和“更频繁重置订单”两种机制，例如允许高频监测、低频常规requote，只在预注册风险事件上越级cancel。</p>
+<h2 id="Cadence-与-feature-horizon-的-aliasing"><a href="#Cadence-与-feature-horizon-的-aliasing" class="headerlink" title="Cadence 与 feature horizon 的 aliasing"></a>Cadence 与 feature horizon 的 aliasing</h2><p>每秒decision不等于每秒获得独立信息。若核心features来自10秒完成bucket，连续十次decision可能消费同一个vector，只是order age与book变化。此时效应主要来自execution cadence，而不是model refresh。反过来，若book feature每100ms更新而policy十秒一次，短时信号会被采样alias掉。</p>
+<p>报告应区分<code>decision count</code>、<code>unique feature versions</code>和<code>quote-changed count</code>。三者之比能判断更快cadence究竟增加信息、重复评估还是增加churn。只看CPU loop次数会夸大treatment strength。</p>
+<h2 id="TTL、requote-与-cancel-ACK-的时钟耦合"><a href="#TTL、requote-与-cancel-ACK-的时钟耦合" class="headerlink" title="TTL、requote 与 cancel ACK 的时钟耦合"></a>TTL、requote 与 cancel ACK 的时钟耦合</h2><p>若requote每1秒、cancel ACK延迟数百毫秒，系统可能长期处于pending cancel；下一次decision不能假设旧单已消失。新的quote是否允许submit、旧单是否仍可fill与queue cursor如何终止，都属于cadence treatment。</p>
+<p>因此paired replay要共享deterministic latency，并允许两arms因action次数不同而产生不同pending states，但不能让一个arm多抽随机数后移动另一个arm延迟序列。keyed latency按order/event identity取样，可保持反事实可比。</p>
+<h2 id="如何设计“高频监测、低频动作”的后继"><a href="#如何设计“高频监测、低频动作”的后继" class="headerlink" title="如何设计“高频监测、低频动作”的后继"></a>如何设计“高频监测、低频动作”的后继</h2><p>把score每秒更新，但常规quote仍按较慢cadence；只有预注册hard-risk event允许提前cancel。这样可以单独检验低staleness是否有价值，而不把每次新score都变成queue reset。</p>
+<p>实验至少有三臂：低频监测/低频动作、 高频监测/低频动作、高频监测/高频动作。第一与第二识别information timing，第二与第三识别execution churn。若只比较两个端点，无法知道fills减少和inventory增加来自哪一层。</p>
 <h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/docs/causal_v12_1s_native_40day_full_path_ml_ab_v3_development_20260808.md">Causal-v12 1s Native 40-Day Full-Path ML A/B</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/README.md">F03 README</a></li>

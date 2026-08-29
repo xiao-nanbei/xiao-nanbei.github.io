@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">Active order 的状态、竞争风险与 KEEP/CANCEL 反事实路径</title>
+  <desc id="desc">图示订单从 active 到 partial fill、cancel pending、full fill、cancel ACK 等状态，价格跳动和 queue recovery 是状态转移而非都为终点，并比较保持队列与撤单等待再入场的两条完整路径。</desc>
+  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 Z" fill="#7dd3fc"/></marker><style>.bg{fill:#071525}.box{fill:#102a43;stroke:#315873;stroke-width:2}.state{fill:#17304a;stroke:#60a5fa;stroke-width:2}.term{fill:#3b2536;stroke:#fb7185;stroke-width:2}.keep{fill:#123b38;stroke:#34d399;stroke-width:2}.t{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;fill:#eef7ff}.m{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;fill:#9eb4c8}.h{font-size:28px;font-weight:700}.b{font-size:18px;font-weight:650}.s{font-size:14px}.arrow{stroke:#7dd3fc;stroke-width:3;fill:none;marker-end:url(#a)}.dash{stroke-dasharray:7 6}</style></defs>
+  <rect class="bg" width="1200" height="720" rx="24"/>
+  <text class="t h" x="48" y="57">Active order 不是一行快照：动作发生在会继续演化的风险集上</text>
+  <text class="m s" x="48" y="85">cancel request 不终止 exchange risk；jump、repair 与 queue recovery 也不能随意改成 first cause</text>
+  <g transform="translate(48 126)">
+    <rect class="state" x="0" y="44" width="184" height="88" rx="12"/><text class="t b" x="44" y="82">ACTIVE</text><text class="m s" x="24" y="110">remaining qty &gt; 0</text>
+    <path class="arrow" d="M198 88H248"/>
+    <rect class="state" x="262" y="0" width="210" height="88" rx="12"/><text class="t b" x="300" y="38">PARTIAL FILL</text><text class="m s" x="282" y="66">仍 active，remaining ↓</text>
+    <path class="arrow" d="M198 106C228 160 238 184 262 196"/>
+    <rect class="term" x="262" y="152" width="210" height="88" rx="12"/><text class="t b" x="296" y="190">CANCEL PENDING</text><text class="m s" x="282" y="218">request 已发，ACK 未到</text>
+    <path class="arrow" d="M486 44H542"/><rect class="term" x="556" y="0" width="188" height="88" rx="12"/><text class="t b" x="604" y="38">FULL FILL</text><text class="m s" x="584" y="66">absorbing terminal</text>
+    <path class="arrow" d="M486 196H542"/><rect class="term" x="556" y="152" width="188" height="88" rx="12"/><text class="t b" x="598" y="190">CANCEL ACK</text><text class="m s" x="582" y="218">exchange terminal</text>
+    <rect class="box" x="794" y="20" width="310" height="200" rx="14"/><text class="t b" x="816" y="58">Non-absorbing transitions</text><text class="m s" x="816" y="96">adverse / favorable price jump</text><text class="m s" x="816" y="126">queue consumption / recovery</text><text class="m s" x="816" y="156">state exit / re-entry eligibility</text><text class="t s" x="816" y="190">只能更新 hazard state，不能伪装 terminal</text>
+  </g>
+  <g transform="translate(48 430)">
+    <rect class="keep" x="0" y="0" width="480" height="150" rx="14"/><text class="t b" x="24" y="38">K0 KEEP</text><text class="m s" x="24" y="74">保留 queue priority → favorable / adverse fill 或自然 terminal</text><text class="t s" x="24" y="112">价值包含继续成交机会与 adverse exposure</text>
+    <rect class="term" x="624" y="0" width="480" height="150" rx="14"/><text class="t b" x="648" y="38">K1 CANCEL → ACK → EXIT → RE-ENTER</text><text class="m s" x="648" y="74">等待 ACK，期间仍可能 fill；退出后绑定第一张 baseline re-entry</text><text class="t s" x="648" y="112">价值包含删除成交、queue reset 与 repair opportunity</text>
+    <path class="arrow dash" d="M500 75H608"/>
+  </g>
+  <text class="m s" x="48" y="642">两臂必须同 campaign 一次 assignment、known propensity，并追踪到 terminal reward；CIF mechanics 不能替代 randomized action value。</text>
+  <text class="m s" x="48" y="675">机制示意 · 非真实订单或当前 live 状态</text>
+</svg>

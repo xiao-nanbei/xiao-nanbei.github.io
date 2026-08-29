@@ -27,6 +27,7 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：更多数据不等于更好的同一条曲线P3 source-aware expanded v3 把 93 个 provider-normalized 2025 日加入 69 个 2026 current-train 日，希望得到一条更稳健的统一 10 秒 touch curve。数据本身通过了 source admissi">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/p3-source-aware-static-quote-path.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f02-p3-estimand-ladder.svg">
 <meta property="article:published_time" content="2026-08-29T12:32:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:32:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -332,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          4.6k 字
+          8.4k 字
         
       </span>
     
@@ -344,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          39 分钟
+          70 分钟
         
       </span>
     
@@ -431,6 +432,41 @@ IBS=\frac1{|D|}\sum_{d\in D}\frac1N\sum_i\bigl(Z_i(d)-\hat P_i(d)\bigr)^2.</scri
 <p>未关闭：volatility-conditioned、side-specific 或 reach-time surface。研究后继应更接近：</p>
 <script type="math/tex; mode=display">
 P_{touch}\left(d,\frac{d}{\sigma_{price}\sqrt H},side,spread,regime\right).</script><p>本项目没有 artifact replacement、quote/action、Validation 晋级、shadow 或 live 权限。</p>
+<h2 id="深入推导：扩样本为什么会制造-Simpson-型错觉"><a href="#深入推导：扩样本为什么会制造-Simpson-型错觉" class="headerlink" title="深入推导：扩样本为什么会制造 Simpson 型错觉"></a>深入推导：扩样本为什么会制造 Simpson 型错觉</h2><p>静态 pooled 曲线隐含一个很强的假设：所有来源和日期共享同一个距离—触达关系。若来源 $s$、日期状态 $z$ 下的真实曲线为 $p(\delta\mid s,z)$，pooled 估计实际是：</p>
+<script type="math/tex; mode=display">
+p_{pool}(\delta)=\sum_{s,z}w_{s,z}(\delta)\,p(\delta\mid s,z).</script><p>关键在于权重 $w_{s,z}(\delta)$ 也可能随距离变化。高波动日会产生更多远距离可观测样本，稀疏来源可能只在某些时段完整；于是近端和远端不是同一组 regime 的平均。即使每个来源内部都满足稳定单调关系，混合后的斜率仍可能改变，甚至让旧样本上的最佳参数在扩样本后反转。</p>
+<p>这不是“更多数据把信号冲淡”这么简单。更多数据提高了对目标混合分布的精度，但如果目标本身被错误地定义为一个无条件 pooled population，估计会更精确地回答错误问题。source-aware v3 的价值在于让这种异质性显性化，并要求任何 replacement 都在冻结的 common rows 上与旧模型比较。</p>
+<p><img src="/images/narrowgate/f02-p3-estimand-ladder.svg" srcset="/img/loading.gif" lazyload alt="P3 的 estimand 阶梯与双时钟边界"></p>
+<p><em>图 2：扩充来源只扩大第一级 <code>P(touch)</code> 的支持；它不会跨过 queue、fill value 与 action value 的边界。</em></p>
+<h2 id="一个合成例子：两类日期如何改变静态曲线"><a href="#一个合成例子：两类日期如何改变静态曲线" class="headerlink" title="一个合成例子：两类日期如何改变静态曲线"></a>一个合成例子：两类日期如何改变静态曲线</h2><p>假设 quiet days 占旧面板 80%，离 mid 1 USDC 的十秒触达率为 10%；volatile days 占 20%，同距离触达率为 60%。旧 pooled 值是 20%。扩样本以后，volatile days 因来源覆盖改善占到 50%，pooled 值变成 35%。模型没有“坏掉”，它只是面对了不同的日期混合。</p>
+<p>若训练时把这种变化解释为全局 $\kappa$ 下降，报价会在所有日期一起向内收；quiet days 于是被过度激进地报价，volatile days 又可能仍然没有正确反映尾部。正确做法不是再找一个折中的静态常数，而是把 source、volatility、age 或其他决策时可见状态放进条件曲面，并在完全相同的日期权重下比较增量。</p>
+<p>同一原则也适用于训练和评价。逐行 pooled log loss 会让高频、完整、活跃日期支配结果；逐日配对指标则把每个 UTC day 作为 cluster。若研究目标是跨日迁移，后者更接近问题本身：</p>
+<script type="math/tex; mode=display">
+\Delta=\frac1D\sum_{d=1}^D\left[L_d(M_0)-L_d(M_1)\right],</script><p>而不是把所有 rows 混在一起后计算一个看似精确的小数。</p>
+<h2 id="从预测-replacement-到报价-replacement-还缺哪座桥"><a href="#从预测-replacement-到报价-replacement-还缺哪座桥" class="headerlink" title="从预测 replacement 到报价 replacement 还缺哪座桥"></a>从预测 replacement 到报价 replacement 还缺哪座桥</h2><p>v3 的静态 replacement 失败，不能被表述成“P3 没用”。它只说明新的 pooled static curve 没有在冻结 prediction 与完整报价路径上成为更好的替代。若条件模型改善 log loss，还需要单独回答三件事：第一，改善发生在哪些 distance/horizon cells，是否位于实际报价支持内；第二，queue conversion 与 fill value 是否同向；第三，把曲面映射为报价动作时是否保留了这些异质性。</p>
+<p>因此后继研究分成 volatility-conditioned surface、policy-visible transport、reach-time hazard 与 quote mapping，并不是把一个失败项目拆碎；它们分别补不同缺口。source-aware static v3 关闭的是“扩大数据以后仍用一条全局曲线替换 v2”的路径。</p>
+<h2 id="Source-aware-不应只是在模型里加一个来源类别"><a href="#Source-aware-不应只是在模型里加一个来源类别" class="headerlink" title="Source-aware 不应只是在模型里加一个来源类别"></a>Source-aware 不应只是在模型里加一个来源类别</h2><p>把<code>source</code>作为一个categorical feature，仍可能掩盖transport问题。若来源A只覆盖早期年份、来源B只覆盖后期年份，source与regime、spread、volatility和market design几乎共线；模型可以在样本内识别source，却无法知道未来目标环境属于哪种结构。真正的source-aware设计至少要区分三个问题：同一日期重叠区间的measurement parity、不同日期上的distribution shift，以及目标策略decision surface上的economic transport。</p>
+<p>重叠日可以估计同一市场路径被两套采集系统观测后的差异。非重叠日只能描述来源与时期的联合变化，不能把差异单独归因给provider。即使prediction transport通过，报价replacement仍需要在共同full-path denominator上比较，因为两条曲线会通过不同fill路径改变后续库存。</p>
+<p>一个更安全的层级模型写法是</p>
+<script type="math/tex; mode=display">
+\operatorname{logit}p_{d,s}(\delta)
+=
+\alpha_d+\beta_s+f(\delta)+g_s(\delta)+h(X_d,\delta),</script><p>其中$\alpha_d$吸收日级regime，$\beta_s$只表示来源层偏移，$g_s$允许来源与距离交互，$h$处理决策时可见状态。模型还必须在source-overlap与future-source panels上分别报告calibration；如果只在pooled rows上优化，较大来源会通过样本量支配曲线。</p>
+<h2 id="一个-successor-应怎样避免再次得到“更精确的错误平均”"><a href="#一个-successor-应怎样避免再次得到“更精确的错误平均”" class="headerlink" title="一个 successor 应怎样避免再次得到“更精确的错误平均”"></a>一个 successor 应怎样避免再次得到“更精确的错误平均”</h2><p>下一代问题不应是“怎样给2025和2026找到最佳混合权重”，因为在已读结果上调权重会形成新的winner’s curse。更好的做法是先冻结目标部署分布：目标年份、side、decision cadence、spread/volatility support与source availability；再把来源只当作measurement layer，要求模型在共同状态上transport。</p>
+<p>若目标环境没有source A，A可以帮助估计共享shape，却不能通过训练占比决定目标先验。可以用chronological folds让每个fold只由更早日期训练，并在target-source日期上评分；同时报告按日等权和按决策频率加权的两个estimand。前者回答跨日稳健性，后者回答目标运行中平均一次决策的误差，两者不能混成一个分数。</p>
+<p>最后，只有当conditional curve在实际报价支持内改善、queue/fill转换可识别且full-path paired value通过，才有replacement问题。v3的阴性结果把“静态池化”关掉，留下的是更清晰的设计空间，而不是一项等待换权重救活的旧候选。</p>
+<h2 id="曲线差异可拆成-mixture-shift-与-within-state-shift"><a href="#曲线差异可拆成-mixture-shift-与-within-state-shift" class="headerlink" title="曲线差异可拆成 mixture shift 与 within-state shift"></a>曲线差异可拆成 mixture shift 与 within-state shift</h2><p>令$Z$表示波动、spread和时段等状态，来源/时期为$S$。两个面板的无条件曲线差可以写成</p>
+<script type="math/tex; mode=display">
+p_A(\delta)-p_B(\delta)
+=
+\sum_z\{w_A(z)-w_B(z)\}p_B(\delta\mid z)
++\sum_z w_A(z)\{p_A(\delta\mid z)-p_B(\delta\mid z)\}.</script><p>第一项是状态混合比例变化，第二项才是相同状态下的条件关系变化。pooled static v3把两项压成一个参数，所以无法判断斜率差来自更多高波动日，还是market microstructure本身改变。后继conditional surface正是要把这两类变化拆开。</p>
+<h2 id="Overlap-day-parity-与跨年-transport-的实验顺序"><a href="#Overlap-day-parity-与跨年-transport-的实验顺序" class="headerlink" title="Overlap-day parity 与跨年 transport 的实验顺序"></a>Overlap-day parity 与跨年 transport 的实验顺序</h2><p>先在同一日期、同一100ms grid、同一BBO freshness mask上比较两来源，检查价格、touch labels和curve predictions；这一步隔离measurement差异。通过后，再用早期来源训练、后期native日期测试，评估时间transport；最后才在policy-visible decisions和full-path quotes上看经济效果。</p>
+<p>若第一步失败，跨年差异无法解释；若第一步通过、第二步失败，问题更像regime shift；若前两步都通过、经济层失败，问题位于curve-to-action mapping。把三步混在一个pooled PnL中，会失去定位能力。</p>
+<h2 id="为什么“给旧数据较小权重”仍不是自动答案"><a href="#为什么“给旧数据较小权重”仍不是自动答案" class="headerlink" title="为什么“给旧数据较小权重”仍不是自动答案"></a>为什么“给旧数据较小权重”仍不是自动答案</h2><p>任何权重$w$都会定义新的目标总体</p>
+<script type="math/tex; mode=display">
+p_w(\delta)=w p_{old}(\delta)+(1-w)p_{new}(\delta).</script><p>在已读Development上寻找最优$w$，等同增加连续超参数；由于full-path response非线性，可能找到一个偶然兼顾若干日期的权重，却没有未来解释。权重应来自目标部署频率、measurement reliability或预先冻结的时间衰减，而不是回测收益。</p>
+<p>如果目标明确是当前native market，最自然的主估计应以native日期为target，旧provider数据只通过层级先验或representation training提供信息，并让新数据主导calibration。这样扩样本是在减少方差，而不是改变目标分布。</p>
 <h2 id="8-公共证据"><a href="#8-公共证据" class="headerlink" title="8. 公共证据"></a>8. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/docs/p3_touch_source_aware_expanded_v3_development_20260803.md">Source-Aware Expanded v3 Development 报告</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/docs/p3_touch_source_aware_expanded_v3_spec_20260803.json">冻结 Spec</a></li>

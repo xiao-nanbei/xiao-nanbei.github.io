@@ -27,13 +27,14 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：固定值可以做基线，不能因为赢过一次 grid 就被叫作 alphaNarrowGate 的 F01 固定参数竞速研究问过一个很诱人的问题：如果把 gamma、kappa、cooldown、maximum inventory、spread cap、guard threshold 和固定一档报价动作放进一个足够大的搜">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/fixed-parameter-racing-regime-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f01-fixed-parameter-identification-stack.svg">
 <meta property="article:published_time" content="2026-08-29T12:30:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:30:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
-<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/fixed-parameter-racing-regime-kline.svg">
   
@@ -332,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          5k 字
+          9.1k 字
         
       </span>
     
@@ -344,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          42 分钟
+          76 分钟
         
       </span>
     
@@ -441,6 +442,77 @@ S_L=d_L-d_F.</script><p>$S_L\le 0$ 意味着损失下降没有快于活动下降
 <h2 id="7-后继研究应怎样提出问题"><a href="#7-后继研究应怎样提出问题" class="headerlink" title="7. 后继研究应怎样提出问题"></a>7. 后继研究应怎样提出问题</h2><p>新的研究应把问题从“再找一组常数”改写为：在一个明确 decision surface 上，KEEP、CANCEL、REENTER、ADD、NO-ADD、WIDEN 或 RECENTER 哪个动作相对 baseline 有更高的条件净价值？</p>
 <p>这要求冻结 side/role eligibility、known propensity、完整 campaign reward、overlap/ESS、day-cluster uncertainty、tail 与 participation gates。unsupported state 回退 baseline，而不是依靠回归外推。</p>
 <p>固定参数竞速最有价值的产物并不是一个 winner，而是一条研究纪律：<strong>参数可以被冻结，证据不能被混用；screening 可以排序，排序不能越级变成策略权限。</strong></p>
+<h2 id="深入推导：为什么历史冠军天然带有乐观偏差"><a href="#深入推导：为什么历史冠军天然带有乐观偏差" class="headerlink" title="深入推导：为什么历史冠军天然带有乐观偏差"></a>深入推导：为什么历史冠军天然带有乐观偏差</h2><p>设每个 arm 的真实条件价值为 $J(\theta)$，历史估计为 $\widehat J(\theta)=J(\theta)+\varepsilon_\theta$。即便所有 arm 的真实价值完全相同，只要研究者从 $K$ 个含噪估计中选择最大者，就通常有：</p>
+<script type="math/tex; mode=display">
+E\left[\max_{1\le k\le K}\varepsilon_k\right]>0.</script><p>这就是 grid winner 最基本的选择偏差。扩大 grid 会增加找到“漂亮数字”的机会，却不会自动增加可迁移信息。若不同参数还会改变 fills 数量、库存方向与 campaign 长度，误差项之间也不再是同方差、相互独立的；交易活跃的 arm 可能承受更大的 PnL 波动，保守 arm 则可能靠少参与获得更窄的表面尾部。此时只按最大 pooled PnL 排名，相当于同时选择参数、参与度和风险暴露。</p>
+<p>市场状态混合又增加第二层偏差。设日期状态为 $Z_d\in{\text{quiet},\text{trend},\text{repair}}$，则全样本价值其实是：</p>
+<script type="math/tex; mode=display">
+J_{pool}(\theta)=\sum_z P(Z=z)J(\theta\mid Z=z).</script><p>一个 arm 可以只在样本中占比最大的 quiet regime 获利，同时在短而剧烈的 trend regime 造成主要尾部损失。只要换一个月份，$P(Z=z)$ 改变，winner 就可能旋转。可迁移结论需要同时报告条件差值、逐日符号、leave-one-regime-out 稳定性，以及最坏状态下的 no-harm，而不是把 regime 权重隐藏在一个总数里。</p>
+<p><img src="/images/narrowgate/f01-fixed-parameter-identification-stack.svg" srcset="/img/loading.gif" lazyload alt="固定参数从历史冠军到动作价值的识别阶梯"></p>
+<p><em>图 2：固定参数要从 pooled grid 走到可识别动作价值，至少需要同日配对、side/role overlap、完整路径以及参与度—尾部共同门。任何一层失败，都不能由更高的历史 PnL 排名补偿。</em></p>
+<h2 id="一条完整路径：同一个-spread-常数为何会产生相反效果"><a href="#一条完整路径：同一个-spread-常数为何会产生相反效果" class="headerlink" title="一条完整路径：同一个 spread 常数为何会产生相反效果"></a>一条完整路径：同一个 spread 常数为何会产生相反效果</h2><p>考虑一段合成行情。时刻 $t_0$，mid 为 100,000 USDC，maker 当前持有 $+0.002$ BTC。Arm A 使用较窄的固定半价差，Arm B 比它外移一 tick；其他订单大小、安全限制、随机延迟与 reducing quote 完全相同。</p>
+<p>在 quiet regime 中，A 的 BUY add 可能先成交，随后 SELL reducing 在数秒内完成，额外捕获价差；B 没有成交，因此少赚一段正常往返。若只看“坏 fill 比例”，B 可能显得更安全，但 terminal value 更低。</p>
+<p>在下跌冲击中，A 的 BUY add 同样先成交，却让长库存暴露在连续 aggressive SELL flow 下；reducing SELL 离市场越来越远，campaign 在 30 秒 markout 以后仍未结束。B 因为外移而没有成交，这一次确实避开了 adverse fill。两段路径使用同一个参数差，却有相反动作价值。</p>
+<p>真正的 paired replay 必须从报价分叉点继续推进两条世界：订单是否进入 queue、何时部分成交、库存怎样改变下一次 reservation price、cooldown 是否启动、reducing quote 是否出现、最终何时 flat。把第二条路径的“未成交”直接记作避免了一笔负 markout，会漏掉第一条 quiet 路径中的修复收益，也会把后续库存反馈删掉。</p>
+<p>这也解释了为什么 <code>gamma</code>、<code>kappa</code>、spread cap 与 cooldown 不能只按单笔 fill label 调参。它们控制的是一个递归系统：</p>
+<script type="math/tex; mode=display">
+S_t\rightarrow Q_t(\theta)\rightarrow O_t(\theta)\rightarrow F_t(\theta)
+\rightarrow I_{t+1}(\theta)\rightarrow S_{t+1}^{policy}(\theta).</script><p>一旦 $F_t$ 不同，后面的 policy state 就已经不是共同样本。完整路径 A/B 才能保留这种反馈。</p>
+<h2 id="固定常数的三种合法身份"><a href="#固定常数的三种合法身份" class="headerlink" title="固定常数的三种合法身份"></a>固定常数的三种合法身份</h2><p>同一个数值出现在配置里，不代表它拥有同一种科学含义。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>身份</th>
+<th>例子</th>
+<th>需要什么证据</th>
+<th>可以宣称什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>交易所/工程常数</td>
+<td>tick、lot、fee、最小名义金额</td>
+<td>交易所合同与实现 parity</td>
+<td>精确执行坐标</td>
+</tr>
+<tr>
+<td>安全与风险预算</td>
+<td>hard inventory limit、circuit breaker</td>
+<td>owner 风险约束与 fail-closed 测试</td>
+<td>最坏情况下不越界</td>
+</tr>
+<tr>
+<td>经验校准</td>
+<td>latency profile、queue sensitivity、波动尺度</td>
+<td>source-matched calibration</td>
+<td>给冻结模型提供量纲</td>
+</tr>
+<tr>
+<td>Alpha 参数</td>
+<td>state-conditioned widen/skip/rearm</td>
+<td>paired full-path uplift、尾部与 transfer gates</td>
+<td>相对 baseline 的条件净价值</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>F01 关闭的是最后一行中“一个全局固定 winner 可以跨状态充当 alpha”的主张，不是否定前三行。把这些身份分开以后，仓库仍然可以有稳定默认值，却不会再用一次历史冠军榜为它们补上不存在的市场规律。</p>
+<h2 id="参数搜索的-effective-trials-远大于表面-grid"><a href="#参数搜索的-effective-trials-远大于表面-grid" class="headerlink" title="参数搜索的 effective trials 远大于表面 grid"></a>参数搜索的 effective trials 远大于表面 grid</h2><p>如果研究不仅试了$K$组参数，还试了多个日期切法、PnL定义、queue假设、图表窗口与停止时点，实际选择次数远大于$K$。即使每个单次估计都无偏，winner的最大值仍有正向选择偏差：</p>
+<script type="math/tex; mode=display">
+E\left[\max_{k\le K}\hat\mu_k\right]
+\ge
+\max_{k\le K}E[\hat\mu_k].</script><p>参数之间相关会降低但不会消除偏差。更隐蔽的是researcher degrees of freedom：一个不利winner可以通过换queue quantile、删异常日或改terminal mark继续比赛。只要这些选择发生在看过结果之后，它们就属于同一搜索账本，不能按“新版本”重置multiplicity。</p>
+<p>因此固定参数研究需要search ledger：所有尝试过的arms、输入身份、读过的panels、scorecard与淘汰原因都留在同一研究家族。Formal successor应先冻结极小候选集，再在chronologically later panel上比较；不是把旧top-N带到另一套有缺陷的replay里继续赛。</p>
+<h2 id="Denomination-invariance-是报价参数的最低物理检查"><a href="#Denomination-invariance-是报价参数的最低物理检查" class="headerlink" title="Denomination invariance 是报价参数的最低物理检查"></a>Denomination invariance 是报价参数的最低物理检查</h2><p>如果inventory从BTC改写成mBTC，或者价格从USDC改成cent，经济上同一状态不应产生不同quote。设数量单位缩放$q’=cq$，price unit缩放$p’=dp$；公式中的risk coefficient、variance与order size必须按对应维度变换，使最终quote在还原单位后相同。</p>
+<p>这类测试能暴露“参数在一次回测里看起来好，却依赖隐含单位”的问题。尤其AS/GLFT近似中，inventory、order size、risk aversion、absolute-price variance和distance elasticity必须闭合。若订单量$z$被归一化为1，文档应明确$\gamma$或$q$使用的是order units；若$q$仍是BTC，就应显式保留$z$并做BTC→mBTC不变性测试。</p>
+<p>同理，risk horizon、requote interval、order TTL与campaign horizon不是一个时钟。固定$\gamma$只能在固定的variance定义与horizon下解释；把60×1s variance与1s horizon、10s P3、5–10s订单寿命混在一起，可能让“最佳gamma”只是吸收期限错配。固定参数继续作为工程baseline的前提，是它的语义和单位已被锁定，而不是它曾经赢过一张表。</p>
+<h2 id="固定参数与-regime-interaction-的可视化方式"><a href="#固定参数与-regime-interaction-的可视化方式" class="headerlink" title="固定参数与 regime interaction 的可视化方式"></a>固定参数与 regime interaction 的可视化方式</h2><p>与其画一条总PnL冠军线，更有信息的是按日期把候选相对baseline的差值与volatility、spread、activity和initial inventory并列。若参数A只在高波动日好、B只在平静日好，总平均winner可能仅由样本regime占比决定。逐日paired scatter与累积差值能显示winner rotation和尾部集中。</p>
+<p>但这些图只能生成后继假说，不能在同一数据上定义regime selector再宣称通过。selector需在inner folds训练、outer chronology评价；否则“按图分段”只是把全局参数搜索变成更大conditional search。</p>
+<h2 id="基线参数为什么也需要持续审计"><a href="#基线参数为什么也需要持续审计" class="headerlink" title="基线参数为什么也需要持续审计"></a>基线参数为什么也需要持续审计</h2><p>把常数作为baseline不等于证明其最优。它的合法身份是稳定对照、运行兼容值或owner明确接受的工程配置；研究应监控其量纲、action binding率、risk horizon与市场tick/lot变化。若交易所规则或数据contract变化，baseline也可能需要新identity。</p>
+<p>审计与重新优化要分开。发现quote horizon和TTL错位，可以先做paired sensitivity，不能直接以“理论更正确”为理由改live；发现denomination不变性失败，则属于correctness bug，需要修复后撤回旧evidence。两类变化的权限路径不同。</p>
+<h2 id="一个可证伪的参数后继"><a href="#一个可证伪的参数后继" class="headerlink" title="一个可证伪的参数后继"></a>一个可证伪的参数后继</h2><p>先选择单一机制，例如risk horizon与inventory skew，不再同时搜索gamma、kappa、cap、guard和cooldown。冻结两三个量纲闭合的候选，在完整corrected baseline、共同queue与chronological days上做paired full-path；primary看terminal value，辅以fills、BTC-hours和tail。</p>
+<p>若候选效果只在某regime出现，先把它当探索线索；新日期再检验固定selector。这样参数研究从“谁赢排行榜”转变为“哪条机制在什么状态改变动作价值”，也与后来的action-uplift路线一致。</p>
 <h2 id="8-公共证据"><a href="#8-公共证据" class="headerlink" title="8. 公共证据"></a>8. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/README.md">F01 Fixed Parameter Racing README</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/docs/fixed_parameter_strategy_family_closed.md">固定参数策略研究族关闭报告</a></li>
@@ -484,9 +556,9 @@ S_L=d_L-d_F.</script><p>$S_L\le 0$ 意味着损失下降没有快于活动下降
       
         <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
       
-        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
-      
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
     </div>
   

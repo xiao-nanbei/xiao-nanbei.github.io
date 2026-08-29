@@ -27,6 +27,7 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：机制能动，支持度太低；v2 修正 denominator，但没有采集正式 tapeExternal Adverse Quote Edge Guard 是一个 outcome-blind mechanics 项目：当三交易所 fair-price 的全来源与所有 leave-one-venue-out（LOO）版本">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/external-adverse-edge-guard-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f04-external-signal-to-action-clock.svg">
 <meta property="article:published_time" content="2026-08-29T13:05:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T13:05:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -532,6 +533,18 @@ E[N_{changed}]=26\times0.5=13.</script><p>这不足以估计 day-cluster campaig
 <p>关闭：用 v1 denominator 进入 randomized action；把 0.334% candidate rate 当成足够 support；把 18/8 个 survival 样本当 side transport 结论；把 projected replace/reset 当权威 lifecycle。</p>
 <p>待证：v2 exact-opener side rates、正式 receive-time transport、真实 place/replace/activation/cancel/fill lineage，以及任何 reward uplift。prospective v2 tape 未收集，所以没有“改进后的 rate”。</p>
 <p>没有获得：prediction、PnL/reward/markout read、Validation、sealed holdout、F09 action registration、prospective collection、quote mutation、shadow deployment 或 live authority。</p>
+<h2 id="深入推导：adverse-quote-edge-应怎样定义"><a href="#深入推导：adverse-quote-edge-应怎样定义" class="headerlink" title="深入推导：adverse quote edge 应怎样定义"></a>深入推导：adverse quote edge 应怎样定义</h2><p>对 BUY quote，外部 causal fair 低于本地 placement price 时可能存在 adverse edge；SELL 则方向相反。一个 side-signed 定义可以写成：</p>
+<script type="math/tex; mode=display">
+E^{adv}_{s,t}=\operatorname{sign}(s)\,[p^{quote}_{s,t}-f^{causal}_t],</script><p>其中符号约定必须让正值统一表示“当前 exposure-increasing quote 相对外部 fair 过于激进”。guard 的候选动作可以是外移、停止 add 或保持 baseline，但必须在结果前冻结；不能看到哪种动作 PnL 好再解释 edge。</p>
+<p>edge 还需要净掉 fee、tick rounding 与最小可执行移动。若 $E^{adv}$ 小于一 tick 或小于端到端误差带，理论方向正确也不会产生不同订单。机制门首先要证明：eligible rows 足够、candidate 真正改变 final quote、GTX 与 safety 没有把动作压回 baseline。</p>
+<p><img src="/images/narrowgate/f04-external-signal-to-action-clock.svg" srcset="/img/loading.gif" lazyload alt="External adverse edge 从 fair coordinate 到 exact opener action"></p>
+<p><em>图 2：外部 fair、edge guard 与 campaign action 分属三层；v2 exact-opener 解决动作定位，但 formal action-value 仍未产生。</em></p>
+<h2 id="延迟存活不是一个固定毫秒阈值"><a href="#延迟存活不是一个固定毫秒阈值" class="headerlink" title="延迟存活不是一个固定毫秒阈值"></a>延迟存活不是一个固定毫秒阈值</h2><p>外部 innovation 在 feature-ready 后还要经过本地 decision、submit 与 ACK。设信号强度随延迟 $\ell$ 衰减为 $g(\ell)$，一次 guard 的有效 edge 近似为：</p>
+<script type="math/tex; mode=display">
+E^{net}=g(\ell)E^{adv}-C_{tick}-C_{queue\ reset}.</script><p>若用平均 latency 代替分布，高延迟尾部会被掩盖。应使用与 source、host、runtime epoch 匹配的 latency profile，至少检查 p50/p90/p99 sensitivity。历史 transport 测量只能作为其原 host/epoch 的 prior，不能标成当前 live 精确延迟。</p>
+<p>即使 $E^{net}&gt;0$，也只说明动作有几何空间；完整价值还取决于 guard 是否优先删除 toxic fills，还是按比例删除所有 fills。需要 fill retention、toxic reduction surplus、inventory time 与 campaign tail 的共同门。</p>
+<h2 id="Exact-opener-为什么改变识别而不改变研究主题"><a href="#Exact-opener-为什么改变识别而不改变研究主题" class="headerlink" title="Exact-opener 为什么改变识别而不改变研究主题"></a>Exact-opener 为什么改变识别而不改变研究主题</h2><p>v1 在较宽 surface 上统计 guard 支持，可能把 opener、add、reducing 或实际未进入交易所风险集的请求混在一起。v2 把 intervention 锚定到 exact opener lifecycle：从 baseline eligibility、submit、activation 到 terminal 都有明确 identity。这样 denominator 不会由候选路径事后重建。</p>
+<p>这是同一研究的执行语义修复，因为问题仍是“外部 adverse edge 能否安全改变首个风险增加报价”。v2.1/v2.2 的 plumbing 和冻结合同不产生新的经济假设。最后没有 formal tape，不应把 mechanics completion 写成 action failure，更不能写成成功；准确状态是 support 太低/证据未到达经济层。</p>
 <h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f04_external_market_alpha/docs/external_adverse_quote_edge_guard_mechanics_v1_development_20260802.md">External Adverse Quote Edge Guard Mechanics v1 Development</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f04_external_market_alpha/docs/external_adverse_quote_edge_guard_exact_opener_mechanics_v2_registration_20260802.md">Exact-Opener Mechanics v2 Registration</a></li>

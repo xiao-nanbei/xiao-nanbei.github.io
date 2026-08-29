@@ -27,6 +27,7 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：模型质量全过，原研究仍然失败；事后改门槛必须留下痕迹静态 P3 把所有波动环境压成一条 P(touch|distance) 曲线。volatility-conditioned v4 改问：同样的 14 USDC&#x2F;BTC 距离，在平静与剧烈市场里显然不是同一个问题，能否让 probability 同时依赖 raw">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/p3-volatility-conditioned-kline-surface.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f02-p3-estimand-ladder.svg">
 <meta property="article:published_time" content="2026-08-29T12:33:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:33:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -470,6 +471,40 @@ G_c=\mathbf 1\left\{\min_d coverage_d\ge c\right\}.</script><p>同一组 predict
 <h2 id="7-支持边界与没有获得的权限"><a href="#7-支持边界与没有获得的权限" class="headerlink" title="7. 支持边界与没有获得的权限"></a>7. 支持边界与没有获得的权限</h2><p>支持：conditional P3 structure 在已读历史 panels 上显著优于 static v2；distance monotonicity、calibration 和 aggregate source transport 均强。</p>
 <p>不支持：exact receive-time transport、fill probability、maker value 或 quote action。v4.1 的通过不能自动替换 current v2 artifact，也不能把 conditional curve 压成一个 scalar kappa 后直接输入 AS/GLFT。</p>
 <p>本项目没有 artifact replacement、quote mapping、action experiment、Validation、sealed holdout、shadow 或 live authority。经济使用必须另行冻结 curve-to-quote mapping，并用完整 maker path 检验 fills、campaign value 与 tail。</p>
+<h2 id="深入推导：从一条曲线到条件概率曲面"><a href="#深入推导：从一条曲线到条件概率曲面" class="headerlink" title="深入推导：从一条曲线到条件概率曲面"></a>深入推导：从一条曲线到条件概率曲面</h2><p>静态 P3 估计 $p(\delta)$，条件版本估计：</p>
+<script type="math/tex; mode=display">
+p(\delta,h\mid v,x)=P(T_\delta\le h\mid V_t=v,X_t=x),</script><p>其中 $v$ 是决策时可见的波动状态，$x$ 可以包含 side、spread、盘口 age 等冻结协变量。一个可用曲面至少要同时满足三类结构：随距离增大不应系统性上升；随 horizon 增大不应下降；相邻 volatility bins 不应因为样本稀疏出现无法解释的锯齿。模型质量门不只是总 log loss，还要检查 calibration、ranking、support 与 shape violations。</p>
+<p>条件化的价值在于区分“同样远”的不同市场。离 mid 1 USDC 在低波动时可能是极远报价，在高波动时却接近下一秒可达范围。若仍用一条静态曲线，模型只能把两种状态平均，既低估高波动触达，也高估低波动触达。</p>
+<p><img src="/images/narrowgate/f02-p3-estimand-ladder.svg" srcset="/img/loading.gif" lazyload alt="P3 条件曲面仍位于动作价值阶梯的第一层"></p>
+<p><em>图 2：增加 volatility 条件提高了 <code>P(touch)</code> 的状态分辨率，但没有自动增加 queue、fill value 或 campaign 反事实。</em></p>
+<h2 id="一个曲面单元格怎样影响报价，又为何不能直接决定报价"><a href="#一个曲面单元格怎样影响报价，又为何不能直接决定报价" class="headerlink" title="一个曲面单元格怎样影响报价，又为何不能直接决定报价"></a>一个曲面单元格怎样影响报价，又为何不能直接决定报价</h2><p>考虑 BUY 侧两个状态。低波动 cell 中，$P(touch\le10s\mid\delta=1)=0.08$；高波动 cell 中为 0.32。若目标只是保持某个触达率，报价器可能在高波动时外移。但这仍有两种相反的经济解释。</p>
+<p>第一，高波动状态下触达更容易，同时 adverse continuation 更强，外移可能减少负价值成交；第二，高波动状态也可能伴随更快 repair 与更厚回补，外移反而错过有利成交。P3 只给出路径到达概率，不能判断哪一种占主导。需要把触达概率与条件 fill value 联合起来：</p>
+<script type="math/tex; mode=display">
+Q(\delta,X)=p_{touch}(\delta,X)\times p_{fill\mid touch}(\delta,X)
+\times E[V_{terminal}\mid fill,\delta,X].</script><p>实际完整价值还要减去 cancel/re-entry、queue reset 与库存机会成本。任何直接从第一项推出 widen/recenter 的规则，都把未估计部分默认为常数。</p>
+<h2 id="为什么-v4-1-不能抹掉-v4-的失败"><a href="#为什么-v4-1-不能抹掉-v4-的失败" class="headerlink" title="为什么 v4.1 不能抹掉 v4 的失败"></a>为什么 v4.1 不能抹掉 v4 的失败</h2><p>v4 的预注册 gate 包含结果出来前冻结的门槛。结果显示 prediction structure 有价值，但完整 identity 未通过。看到结果以后调整阈值，可以形成一个新的、明确标注 outcome-informed 的 screening contract；它不能把原失败重写成“原来就通过”。</p>
+<p>这是多重选择问题。若研究者可以在看到 20 个指标以后任选门槛 $c$，则事件“至少有一个指标超过某个看起来合理的门槛”的概率远高于单个指标的 nominal level。治理上保留 v4 与 v4.1 的关系，是为了让读者知道哪一部分是 prospective、哪一部分是看过结果后的工程判断。</p>
+<p>v4.1 因而可以支持 prediction artifact 继续被研究，却不授予 action、Validation 或 live 权限。下一步必须冻结映射和新的证据面板，而不是继续在同一曲面上寻找更好看的阈值。</p>
+<h2 id="条件曲面的-support-geometry"><a href="#条件曲面的-support-geometry" class="headerlink" title="条件曲面的 support geometry"></a>条件曲面的 support geometry</h2><p>条件模型最容易被总样本量误导。假设总共有数百万rows，但高波动、远距离、SELL侧、长horizon这一cell只出现在两天；它的标准误和regime依赖仍然很大。有效支持应至少同时记录row count、distinct days、日期集中度与相对baseline的overlap。只报全局coverage会让密集的普通状态遮住真正影响报价的稀疏角落。</p>
+<p>可以用一个归一化距离帮助理解状态迁移：</p>
+<script type="math/tex; mode=display">
+z=\frac{\delta}{\sigma_p\sqrt H}.</script><p>若价格增量近似尺度稳定，许多波动状态在$z$坐标上会更接近；但maker市场并不保证高斯或独立增量，spread、jump、trade intensity与venue state仍会改变曲面。因此$z$适合作为结构特征或诊断，不应强制所有state collapse成一条universal curve。</p>
+<p>shape constraint同样有经济边界。距离单调与horizon单调是路径概率的逻辑约束；volatility单调却不一定成立，因为volatility measure、mean reversion与spread会共同作用。若强行规定“vol越高touch越高”，模型可能在某些regime把真实交互抹平。冻结研究正确地把可证明的distance结构与需要数据识别的state关系分开。</p>
+<h2 id="从-prediction-surface-到-action-surface-的最小实验"><a href="#从-prediction-surface-到-action-surface-的最小实验" class="headerlink" title="从 prediction surface 到 action surface 的最小实验"></a>从 prediction surface 到 action surface 的最小实验</h2><p>一个可解释的后继不需要立刻优化连续报价。可以先冻结几个离散quote actions，例如baseline、向外一tick、向内一tick；对每个decision row记录完整P3局部截面、queue state、inventory role与candidate可执行性，再进行paired或有overlap保证的action-value估计。</p>
+<p>其目标不是最大化$P_{touch}$，而是比较</p>
+<script type="math/tex; mode=display">
+\Delta V(a,X)
+=
+E[Y_T(a)-Y_T(a_0)\mid X],</script><p>并检查P3提供的异质性是否真的排序$\Delta V$。若高P3状态中widen改善terminal value、低P3状态中keep更好，才说明曲面具有动作意义；若P3只改善预测却无法排序action uplift，它仍可用于风险描述，却不应进入报价控制。</p>
+<p>实验还必须锁定coverage rule。v4与v4.1已经表明，一个看似微小的95%/98%选择会改变pass标签。successor应在新面板结果出现前冻结minimum coverage、missing-state fallback与哪些cells允许动作，避免再次通过事后门槛获得权限。</p>
+<h2 id="Calibration-不等于只画一条-reliability-curve"><a href="#Calibration-不等于只画一条-reliability-curve" class="headerlink" title="Calibration 不等于只画一条 reliability curve"></a>Calibration 不等于只画一条 reliability curve</h2><p>条件surface同时跨distance、horizon、side与volatility。若把所有cells合并，低概率远端rows会主导reliability plot；实际quote附近的系统性低估可能被平均掉。至少应报告按经济支持分层的observed/expected、proper score、slope/intercept与日期分布。</p>
+<p>对cell $c$，可以检查</p>
+<script type="math/tex; mode=display">
+CE_c=\left|\frac1{n_c}\sum_{i\in c}y_i-\frac1{n_c}\sum_{i\in c}\hat p_i\right|,</script><p>并把$n_c$、distinct days和quote occupancy一并展示。一个小$CE_c$但只有一天，不具有transport；一个总score改善但near-distance $CE_c$恶化，也不应进入报价。</p>
+<h2 id="Coverage-缺口可能不是随机缺失"><a href="#Coverage-缺口可能不是随机缺失" class="headerlink" title="Coverage 缺口可能不是随机缺失"></a>Coverage 缺口可能不是随机缺失</h2><p>三天连续BBO interruption恰好可能发生在高负载、高波动或venue异常时。如果这些时段更容易触达，complete-case calibration会偏向平静状态。v4.1把门从98%降到95%，只改变允许缺多少，不证明missing at random。</p>
+<p>合理sensitivity包括：按缺口前后regime比较；把缺失窗口的outcome界定在最有利/最不利范围内做bounds；检查source-overlap是否在同类负载下也缺失。若结果只能在假定缺失与touch无关时成立，文章应明确依赖。</p>
+<h2 id="State-feature-自己也必须有-horizon-contract"><a href="#State-feature-自己也必须有-horizon-contract" class="headerlink" title="State feature 自己也必须有 horizon contract"></a>State feature 自己也必须有 horizon contract</h2><p>若volatility用过去60秒估计，它的lookback是60秒；P3预测horizon可能是10秒；订单TTL又可能5秒。三者不是同一个“短期”。状态必须完全由$t$前数据计算，且其尺度只描述当前regime；不能用未来10秒realized volatility作为conditioner，否则P3会得到明显但非法的分层。</p>
+<p>报告应写明variance/volatility是absolute price还是return、sampling cadence、lookback、annualization与ready time。否则一张二维surface看似直观，读者却无法复算坐标。条件模型的深度首先来自状态语义闭合，而不是增加更多bins。</p>
 <h2 id="8-公共证据"><a href="#8-公共证据" class="headerlink" title="8. 公共证据"></a>8. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/docs/p3_touch_volatility_conditioned_v4_development_20260803.md">v4 Development 报告</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/docs/p3_touch_volatility_conditioned_v4_1_development_20260803.md">v4.1 coverage-override 报告</a></li>

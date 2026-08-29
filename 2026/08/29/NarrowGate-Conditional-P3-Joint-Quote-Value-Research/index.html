@@ -27,14 +27,15 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：概率曲面能排序，不代表它能选出有经济价值的报价Conditional P3 是一张条件触达概率曲面：给定决策时已经可见的状态 $x$、maker side $s$ 与报价距离 $d$，估计未来十秒内主动成交是否到达该价格。F05 的问题不是重新证明这张概率曲面有没有预测信息，而是更往前走一步：能否把 side-s">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/conditional-p3-joint-quote-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f05-fill-value-action-ladder.svg">
 <meta property="article:published_time" content="2026-08-28T16:00:00.000Z">
 <meta property="article:modified_time" content="2026-08-28T16:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
-<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="机器学习">
 <meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/conditional-p3-joint-quote-kline.svg">
   
@@ -333,7 +334,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          5.1k 字
+          8.9k 字
         
       </span>
     
@@ -345,7 +346,7 @@
         
         
           <!-- compatible with older versions-->
-          43 分钟
+          75 分钟
         
       </span>
     
@@ -442,6 +443,65 @@ V(\Delta BUY,0)+V(0,\Delta SELL).</script><p>换句话说，单侧 overlay 只�
 </ul>
 <p>这个十秒 cadence 是决策采样合同，不代表订单一定活十秒，也不是任意 markout horizon。订单的 activation、fill 与 cancel ACK 仍由 lifecycle 路径决定。</p>
 <p>证据来自 F06 已经冻结的 paired placement 分母。它是机制 informed Development successor，而不是独立 confirmation。公共报告同时明确：历史 owner-side 机器结果不随仓库分发，公开文档只提供研究边界与聚合数字。</p>
+<p><img src="/images/narrowgate/f05-fill-value-action-ladder.svg" srcset="/img/loading.gif" lazyload alt="P3、报价价值与动作价值的层级关系"></p>
+<p><em>图 2：P3 位于“价格是否被触达”的概率层；联合报价 selector 位于“候选报价的终局价值”层；真正的策略变更还要经过 full-path action uplift。概率排序成立，只能为下一层提供输入，不能替下一层给出结论。</em></p>
+<h3 id="3-1-从触达到终局价值，缺了哪些随机变量"><a href="#3-1-从触达到终局价值，缺了哪些随机变量" class="headerlink" title="3.1 从触达到终局价值，缺了哪些随机变量"></a>3.1 从触达到终局价值，缺了哪些随机变量</h3><p>对一个 maker BUY 候选 $a$，可以把价值链写得更完整：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+Q(x,a)
+={}&\Pr(A=1\mid x,a)\\
+&\times\Pr(F=1\mid A=1,x,a)\\
+&\times\mathbb E[V^{fill}\mid F=1,A=1,x,a]\\
+&+\Pr(F=0\mid x,a)\,\mathbb E[V^{no\ fill}\mid F=0,x,a]\\
+&-C^{replace}(x,a).
+\end{aligned}</script><p>$A$ 表示订单通过 GTX 并激活，$F$ 表示生命周期内成交。P3 更靠近“未来 aggressive flow 是否到达价格”的分量，却没有自动给出 activation、queue-to-fill conversion、partial fill、cancel race、成交后的 markout 或 inventory terminal。尤其是：价格被触达时，排在前面的队列可能已经吸收全部流量；价格没有被触达时，远离市场的订单也可能通过后续 reprice 改变 campaign。</p>
+<p>所以把 $P_3$ 直接乘一个历史平均 fill value，只在非常强的可分离假设下才成立：</p>
+<script type="math/tex; mode=display">
+V^{fill}\perp a\mid P_3,x,</script><p>且 queue、activation 与未来策略路径都不随 $a$ 变化。真实 maker 系统恰恰违反这些假设。</p>
+<h3 id="3-2-一个-13-臂决策的具体数值例子"><a href="#3-2-一个-13-臂决策的具体数值例子" class="headerlink" title="3.2 一个 13 臂决策的具体数值例子"></a>3.2 一个 13 臂决策的具体数值例子</h3><p>假设当前 BUY 报价距参考价 4 ticks，SELL 距离 5 ticks。P3 给出 BUY 在 10 秒内的触达概率：向内 2 ticks 为 0.62、baseline 为 0.41、向外 2 ticks 为 0.23。只看概率，向内报价似乎最有吸引力。</p>
+<p>但若将后续量写进来，三臂可能呈现：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>BUY 动作</th>
+<th style="text-align:right">触达概率</th>
+<th style="text-align:right">条件成交价值</th>
+<th style="text-align:right">no-fill/后续路径价值</th>
+<th style="text-align:right">粗略总价值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>closer 2</td>
+<td style="text-align:right">0.62</td>
+<td style="text-align:right">-0.0030</td>
+<td style="text-align:right">-0.0002</td>
+<td style="text-align:right">-0.0021</td>
+</tr>
+<tr>
+<td>baseline</td>
+<td style="text-align:right">0.41</td>
+<td style="text-align:right">-0.0010</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">-0.0004</td>
+</tr>
+<tr>
+<td>farther 2</td>
+<td style="text-align:right">0.23</td>
+<td style="text-align:right">+0.0005</td>
+<td style="text-align:right">-0.0008</td>
+<td style="text-align:right">-0.0005</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>这只是合成演算，不是历史结果，却展示了关键非单调性：更高触达概率可以对应更差价值；更远报价即使改善成交价，也可能因丢失修复而变差。SELL 侧的变化还会通过库存角色影响 BUY 的未来价值，因此 13 臂不是两条独立的一维曲线。</p>
+<h3 id="3-3-“bucket-value”为什么只是一个受限代理"><a href="#3-3-“bucket-value”为什么只是一个受限代理" class="headerlink" title="3.3 “bucket value”为什么只是一个受限代理"></a>3.3 “bucket value”为什么只是一个受限代理</h3><p>continuation 使用 terminal overlay bucket，是为了在不读取完整未来策略反事实的情况下先做低成本筛选。它把同一个 canonical decision 下的候选映射到已冻结 lifecycle 结果，适合回答“在有共同覆盖的局部事件里，这个报价移动有没有足够大的价值迹象”。</p>
+<p>但 overlay 不会重新执行下面的递归：</p>
+<script type="math/tex; mode=display">
+S_{t+1}=g(S_t,a_t,M_{t:t+1},F_{t:t+1}),</script><script type="math/tex; mode=display">
+a_{t+1}=\pi_0(S_{t+1}).</script><p>一旦 $a<em>t$ 改变 fill，下一时刻状态 $S</em>{t+1}$、库存角色、cooldown 与下一张报价都会改变。overlay 仍沿用 baseline 的后续容器，因此只能当筛选器，不能当 full-path 策略 PnL。正因如此，本项目把“没有 proxy candidate”作为停止理由；如果 proxy 已通过，也仍不能直接晋级 live。</p>
 <h2 id="4-第一阶段：结果未读前，支持门已经失败"><a href="#4-第一阶段：结果未读前，支持门已经失败" class="headerlink" title="4. 第一阶段：结果未读前，支持门已经失败"></a>4. 第一阶段：结果未读前，支持门已经失败</h2><p>标准 preflight 的冻结要求与观察值是：</p>
 <div class="table-container">
 <table>
@@ -569,6 +629,19 @@ Y_i^{full\ path}(a)-Y_i^{full\ path}(a_0).</script><p>即使 proxy 结果为正�
 3.7\times 10^{-5}\ \text{USDC/bucket}.</script><p>其早期 simultaneous lower bound 约为 $1.6\times10^{-5}$，看起来高于零，却仍低于冻结经济阈值：</p>
 <script type="math/tex; mode=display">
 \theta_{econ}=10^{-4}\ \text{USDC/bucket}.</script><p>后两个 folds 的 lower bounds 又跨过零。一个只在早期出现、随后失去方向，而且经济量级不到阈值一半的 proxy，不足以支付十三臂 full-path 回放的研究成本，更不足以进入 action gate。</p>
+<h3 id="6-1-为什么-0-126-baseline-fallback-是结果，不是“模型没有工作”"><a href="#6-1-为什么-0-126-baseline-fallback-是结果，不是“模型没有工作”" class="headerlink" title="6.1 为什么 0/126 baseline fallback 是结果，不是“模型没有工作”"></a>6.1 为什么 0/126 baseline fallback 是结果，不是“模型没有工作”</h3><p>每个 OOF bucket 的 selector 先在过去训练区间检查某个非 baseline action 是否同时满足支持、方向和经济阈值。没有动作通过时，预注册行为就是返回 $a_0$。因此 126 次全部 fallback 并不是程序没有生成候选，而是候选生成、估计与筛选都执行后，没有一臂取得足够证据。</p>
+<p>这个区别很重要。若 selector 被迫每次选一个非 baseline winner，十三臂里总会有一个样本均值最大；在纯噪声下也一样。允许 baseline 作为“拒绝行动”类别，才让研究能够诚实地输出“当前不知道”。</p>
+<p>多臂 winner’s curse 可以粗略写成：</p>
+<script type="math/tex; mode=display">
+\mathbb E\left[\max_{a\in\mathcal A}\widehat\epsilon_a\right]>0,</script><p>即便所有真实 $\Delta V_a=0$，最大观测噪声仍倾向为正。十三臂、多个 role 和多个 fold 叠在一起时，单看最佳 point estimate 几乎必然过度乐观；同时区间与经济阈值正是对这类选择偏差的约束。</p>
+<h3 id="6-2-支持不足不是“少几天”这么简单"><a href="#6-2-支持不足不是“少几天”这么简单" class="headerlink" title="6.2 支持不足不是“少几天”这么简单"></a>6.2 支持不足不是“少几天”这么简单</h3><p>28 天比 30 天少两天只是最醒目的表面失败。更严重的是最小 side-role-action cell 只有 1 个 fill。经济信息量由 lifecycle outcome 决定，而不是由 decision row 数决定：十万个 no-fill rows 不能替代远距 SELL add 的一条 terminal path。</p>
+<p>可以把有效分辨率理解为：</p>
+<script type="math/tex; mode=display">
+n_{eff}(a,r,s)
+\approx
+\frac{\left(\sum_i w_i\right)^2}{\sum_i w_i^2},</script><p>其中权重反映同日相关和覆盖。若一臂的事件集中在一两个日期，名义 fill 数即便增加，$n_{eff}$ 仍可能很低。这里既有日数不足，也有 cell coverage 与时间运输不足，不能靠池化 BUY/SELL 或 opener/add 来掩盖。</p>
+<h3 id="6-3-读者应怎样复算这项结论"><a href="#6-3-读者应怎样复算这项结论" class="headerlink" title="6.3 读者应怎样复算这项结论"></a>6.3 读者应怎样复算这项结论</h3><p>在不接触私有 OOF rows 的公共边界内，读者仍可核对逻辑闭合性：候选集合是否确为 13 臂；一 tick 是否仅作 negative control；标准门是否在结果未读时关闭；owner continuation 是否保留原失败；269/282 coverage 是否排除了大规模 label 缺失；0/126 是否来自同时 screen 而非执行错误；最佳量级是否低于冻结经济阈值。</p>
+<p>若未来公开可复现数据，最关键的复算不是重训一个更复杂模型，而是按日期重新构造 outer folds，在每折 train 内完成所有标准化、模型拟合、阈值与 action screening，再在未来日期评估。任何用全样本选择 action 后再做交叉验证的流程，都会把未来 bucket 的信息漏进候选选择。</p>
 <h2 id="7-为什么“概率模型通过”不能救这个价值-selector"><a href="#7-为什么“概率模型通过”不能救这个价值-selector" class="headerlink" title="7. 为什么“概率模型通过”不能救这个价值 selector"></a>7. 为什么“概率模型通过”不能救这个价值 selector</h2><p>F02 的后续 policy-visible audit 支持 Conditional P3 的 side-specific 概率排序与有序性。这是 P3 自己的预测证据。</p>
 <p>它不能补齐 F05 的三个缺口：</p>
 <ul>
@@ -598,6 +671,21 @@ C(a,x),</script><p>其中 $O_j$ 不只有触达，还包括 activation、exact/t
 <li>action experiment、shadow 或 live：未创建、未授权。</li>
 </ul>
 <p>研究没有证明“移动报价没有价值”，也没有证明“P3 无用”。它证明在这套冻结 overlap、candidate set、overlay estimand 与经济阈值下，没有可执行的联合报价候选。</p>
+<h2 id="十三臂问题里的-winner’s-curse"><a href="#十三臂问题里的-winner’s-curse" class="headerlink" title="十三臂问题里的 winner’s curse"></a>十三臂问题里的 winner’s curse</h2><p>即使每个候选的真实价值都等于baseline，有限样本中13个估计量也会有一个最大值。若再按side、state、日期和多个value proxy查看，隐含选择次数更大。选中的arm点估计天然乐观，必须通过nested chronological OOF或同时置信下界控制。</p>
+<p>对每个decision $i$，内层只能用过去fold选择$\hat a_i$；外层才评价$Y_i(\hat a_i)-Y_i(a_0)$。若先在全部Development找winner再对同一rows计算value，所谓OOF outcome model也不能消除action selection bias。</p>
+<h2 id="Activation、fill-与-no-fill-共同构成-quote-value"><a href="#Activation、fill-与-no-fill-共同构成-quote-value" class="headerlink" title="Activation、fill 与 no-fill 共同构成 quote value"></a>Activation、fill 与 no-fill 共同构成 quote value</h2><p>候选报价$a$的完整价值可以写成</p>
+<script type="math/tex; mode=display">
+V(a,X)
+=
+P(ACT\mid a,X)
+\left[
+P(F\mid ACT,a,X)E[Y_F\mid F,a,X]
++P(\bar F\mid ACT,a,X)E[Y_{NF}\mid\bar F,a,X]
+\right]
++P(\overline{ACT}\mid a,X)E[Y_{NA}],</script><p>其中activation、fill与未成交路径都是action-dependent。只在filled rows拟合$Y_F$会忽略候选无法激活、等待后取消、失去queue与库存机会成本。P3又只接近activation/touch的一部分，不包含其它项。</p>
+<p>这也是0/126 selector fallback的重要性：模型有rows、有候选，却无法在冻结外层fold稳定选择非baseline arm，说明表面价值差没有可运输分辨率。强行选择每fold最大点估计只会把噪声变成动作。</p>
+<h2 id="一个可复算的-support-scorecard"><a href="#一个可复算的-support-scorecard" class="headerlink" title="一个可复算的 support scorecard"></a>一个可复算的 support scorecard</h2><p>每个arm至少应报告eligible decisions、合法candidate prices、quote-changed fraction、activation、touch、fill、terminal-complete rows、distinct days与最大单日占比。importance weights下再给$n_{eff}$和overlap tails。只有从decision到terminal每层都不坍塌，value比较才有解释力。</p>
+<p>此外应给baseline fallback率与winner rotation。若inner folds不断选不同arm、outer folds全部回退baseline，它本身就是时间不稳定证据，而不是“模型太保守”。后继可缩小arms或使用连续value surface，但必须创建新合同与新面板。</p>
 <h2 id="9-公共证据"><a href="#9-公共证据" class="headerlink" title="9. 公共证据"></a>9. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/conditional_p3_joint_quote_value_preflight_v1_development_20260803.md">Conditional P3 Joint Quote Value Preflight</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/conditional_p3_joint_quote_sparse_value_diagnostic_v1_development_20260804.md">Conditional P3 Joint Quote Sparse Value Diagnostic</a></li>
@@ -642,11 +730,11 @@ C(a,x),</script><p>其中 $O_j$ 不只有触达，还包括 activation、exact/t
       
         <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
       
-        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
-      
         <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
       
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
     </div>
   
@@ -713,8 +801,8 @@ C(a,x),</script><p>其中 $O_j$ 不只有触达，还包括 activation、exact/t
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Dynamic-Campaign-Mechanism-Attribution-Research/" title="NarrowGate Dynamic Campaign Attribution：Add Toxicity、Repair Failure 与动态控制器">
-                        <span class="hidden-mobile">NarrowGate Dynamic Campaign Attribution：Add Toxicity、Repair Failure 与动态控制器</span>
+                      <a href="/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/" title="NarrowGate Fill Quality：决策时可见状态能否识别负价值成交">
+                        <span class="hidden-mobile">NarrowGate Fill Quality：决策时可见状态能否识别负价值成交</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

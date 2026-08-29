@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">外部市场信号从 venue innovation 到 maker action 的因果时钟</title>
+  <desc id="desc">展示多个外部交易所的价格创新先经过各自数据到达与 freshness 检查，形成稳健 reference 和衰减预测，再经过本地决策时钟、报价映射、订单生命周期与 campaign terminal，区分 prediction、mechanics 和 action value。</desc>
+  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 Z" fill="#67e8f9"/></marker><style>.bg{fill:#071525}.box{fill:#102a43;stroke:#315873;stroke-width:2}.venue{fill:#172e4a;stroke:#60a5fa;stroke-width:1.5}.warn{fill:#3b2536;stroke:#fb7185;stroke-width:2}.ok{fill:#123b38;stroke:#34d399;stroke-width:2}.t{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;fill:#eef7ff}.m{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;fill:#9eb4c8}.h{font-size:27px;font-weight:700}.b{font-size:18px;font-weight:650}.s{font-size:14px}.arrow{stroke:#67e8f9;stroke-width:3;fill:none;marker-end:url(#a)}.clock{stroke:#fbbf24;stroke-width:3}.ready{stroke:#34d399;stroke-width:3}</style></defs>
+  <rect class="bg" width="1200" height="720" rx="24"/>
+  <text class="t h" x="48" y="56">外部价格先动 ≠ 本地 maker 此刻拥有一个可执行 Alpha</text>
+  <text class="m s" x="48" y="85">跨 venue 信息必须依次通过 source time、feature-ready、freshness、稳健融合、动作与完整库存路径</text>
+  <g transform="translate(48 124)">
+    <rect class="venue" x="0" y="0" width="174" height="74" rx="11"/><text class="t b" x="22" y="32">Binance</text><text class="m s" x="22" y="56">spot / perp state</text>
+    <rect class="venue" x="0" y="88" width="174" height="74" rx="11"/><text class="t b" x="22" y="120">Bitget</text><text class="m s" x="22" y="144">price / flow / age</text>
+    <rect class="venue" x="0" y="176" width="174" height="74" rx="11"/><text class="t b" x="22" y="208">Bybit / OKX</text><text class="m s" x="22" y="232">独立 source clocks</text>
+    <path class="arrow" d="M190 126H244"/>
+    <rect class="box" x="258" y="28" width="230" height="194" rx="14"/><text class="t b" x="280" y="64">Past-only 标准化</text><text class="m s" x="280" y="98">basis / gain 不读当前 outcome</text><text class="m s" x="280" y="126">stale / missing 不能填 fresh</text><text class="m s" x="280" y="154">venue 内 spot/perp 融合</text><text class="t s" x="280" y="190">跨 venue weighted median</text>
+    <path class="arrow" d="M504 126H556"/>
+    <rect class="ok" x="570" y="28" width="230" height="194" rx="14"/><text class="t b" x="592" y="64">Prediction / coordinate</text><text class="m s" x="592" y="98">1–18s decay curve</text><text class="m s" x="592" y="126">causal fair center</text><text class="m s" x="592" y="154">M1 − M0 incremental value</text><text class="t s" x="592" y="190">只到预测或价格坐标</text>
+    <path class="arrow" d="M816 126H868"/>
+    <rect class="warn" x="882" y="28" width="270" height="194" rx="14"/><text class="t b" x="904" y="64">Maker action value</text><text class="m s" x="904" y="98">center shift / widen / guard</text><text class="m s" x="904" y="126">queue、fill、inventory feedback</text><text class="m s" x="904" y="154">campaign terminal + tail</text><text class="t s" x="904" y="190">必须 randomized / paired replay</text>
+  </g>
+  <g transform="translate(48 430)">
+    <rect class="box" width="1104" height="188" rx="15"/>
+    <text class="t b" x="22" y="36">两只时钟与一条不可逆边界</text>
+    <line class="clock" x1="36" y1="86" x2="1048" y2="86"/><text class="t s" x="36" y="70">source / exchange time</text>
+    <circle cx="244" cy="86" r="7" fill="#fbbf24"/><circle cx="518" cy="86" r="7" fill="#fbbf24"/><circle cx="802" cy="86" r="7" fill="#fbbf24"/>
+    <text class="m s" x="200" y="112">外部创新</text><text class="m s" x="476" y="112">本地反应</text><text class="m s" x="756" y="112">未来终局</text>
+    <line class="ready" x1="36" y1="150" x2="1048" y2="150"/><text class="t s" x="36" y="136">feature-ready / decision time</text>
+    <text class="m s" x="235" y="176">网络到达 + bucket 关闭后才可用</text><text class="m s" x="698" y="176">终局只能做 label，不能反写当前 fair</text>
+  </g>
+  <text class="m s" x="48" y="674">机制示意 · 不包含私有 venue 凭证、实时延迟、当前 live 状态或交易建议</text>
+</svg>

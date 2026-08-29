@@ -27,6 +27,7 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：动作每次都发生、保留 97% fills，却依赖单一 venue 且主区间跨零这项研究不用外部价格决定 BUY 或 SELL，而是把 NarrowGate 的整对 bid&#x2F;ask 按 causal cross-venue fair-price adjustment 连续平移，同时保持 pair spread、si">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/cross-venue-fair-center-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f09-campaign-action-causal-path.svg">
 <meta property="article:published_time" content="2026-08-29T12:20:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:20:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -332,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          5k 字
+          9k 字
         
       </span>
     
@@ -344,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          42 分钟
+          75 分钟
         
       </span>
     
@@ -394,6 +395,8 @@
 <p>BUY 点估计 +0.003324，SELL -0.000429；Grade-B sensitivity 为正且 interval 过零上方，但不能救援 primary。更关键的是 leave-Bybit-out 后 Grade-A uplift 反转为 -0.000632，而 leave Bitget/OKX 仍正，违反预注册 leave-one-venue-out direction gate。因此它是有希望的描述性线索，不是 transport-stable three-venue alpha。Validation 与 sealed holdout 未读。</p>
 <p><img src="/images/narrowgate/cross-venue-fair-center-kline.svg" srcset="/img/loading.gif" lazyload alt="Cross-venue fair center 对整对报价的平移机制"></p>
 <p><em>图 1：机制示意。三个外部 venue 的 causal trade bars 形成 fair adjustment，candidate 同量平移 bid/ask；spread 不变。leave-one-out 是依赖性检验，不是事后挑 venue。</em></p>
+<p><img src="/images/narrowgate/f09-campaign-action-causal-path.svg" srcset="/img/loading.gif" lazyload alt="Cross-venue center shift 的完整 maker action path"></p>
+<p><em>图 2：外部 fair adjustment 只定义动作起点；整对报价平移仍会改变两侧 queue、fill mix、inventory 与 terminal。100% action-change 与 97% fill retention 证明杠杆适中，但不能替代价值和运输门。</em></p>
 <h2 id="1-研究问题：外部价格领先能否变成-maker-action-value？"><a href="#1-研究问题：外部价格领先能否变成-maker-action-value？" class="headerlink" title="1. 研究问题：外部价格领先能否变成 maker action value？"></a>1. 研究问题：外部价格领先能否变成 maker action value？</h2><p>跨 venue signal 可能预测本地 mid，但 maker 行动面临 queue reset、fill selection 与双边报价风险。预测 IC 正不代表把 quote center 平移会赚钱。本项目直接随机化完整行动路径：</p>
 <script type="math/tex; mode=display">
 \tau=E[Y(\text{local center}+g\hat\delta^{XV})-Y(\text{local center})].</script><p>$\hat\delta^{XV}$ 由 Bitget、Bybit、OKX 的 past-only one-second individual-trade bars 在共同支持上构成，$g$ 与 basis/eligibility 在 outcome 前冻结。主要 $Y$ 是 assignment-to-campaign-terminal USDC。</p>
@@ -446,6 +449,13 @@ p^{cand}_{ask}-p^{cand}_{bid}=p^{base}_{ask}-p^{base}_{bid}.</script><div class=
 <h2 id="3-双时钟与-K-线例子"><a href="#3-双时钟与-K-线例子" class="headerlink" title="3. 双时钟与 K 线例子"></a>3. 双时钟与 K 线例子</h2><p>外部 individual trades 先按 exchange time 归入 completed one-second bars，再经过 ready delay 成为可用 feature。本地 decision 只能读取 $t<em>{ready}\le t</em>{decision}$ 的 bar。若在 bar 未完成时使用 close，等于偷看未来数百毫秒。</p>
 <p>例子：local bid/ask 为 100,000.0/100,000.2，外部 fair adjustment 为 +0.1，则 candidate 为 100,000.1/100,000.3，spread 仍 0.2。BUY quote 更容易成交、SELL 更难成交；若本地随后上涨，平移可能改善 selection，若信号短暂反转则 queue reset 与错过 fills 造成损失。必须重放两条 quote/cancel/queue/fill/campaign path。</p>
 <p>BUY 与 SELL contribution 分开检查，因为同一个正 center shift 对两侧作用相反。pooled 正点估计不能隐藏 SELL 伤害。</p>
+<h3 id="3-1-整对平移保留了什么，又改变了什么"><a href="#3-1-整对平移保留了什么，又改变了什么" class="headerlink" title="3.1 整对平移保留了什么，又改变了什么"></a>3.1 整对平移保留了什么，又改变了什么</h3><p>同量平移保持 nominal pair spread：</p>
+<script type="math/tex; mode=display">
+\Delta spread=(p_{ask}+\delta)-(p_{bid}+\delta)-(p_{ask}-p_{bid})=0.</script><p>但它不保持相对本地 BBO 的距离。正 $\delta$ 使 bid 更积极、ask 更消极；负 $\delta$ 相反。因此 pair 的 quoted width不变，side-specific fill hazard、queue position和inventory drift仍会改变。</p>
+<p>这也是为何 center shift比“按 signal 只关一侧”更对称，却仍不能 pooled解释。若外部 fair长期偏上，BUY可能更早成交并有利，SELL则失去 fills；终局是否改善取决于两侧 value与当前 inventory role。</p>
+<h3 id="3-2-Historical-completed-bar-与-live-transport-是两道时钟"><a href="#3-2-Historical-completed-bar-与-live-transport-是两道时钟" class="headerlink" title="3.2 Historical completed bar 与 live transport 是两道时钟"></a>3.2 Historical completed bar 与 live transport 是两道时钟</h3><p>研究可保证一秒 bar 只在结束且 frozen delay后进入 replay，但 historical exchange-time bar并不包含真实 receive order、venue-specific网络尾部与 clock skew。三 venue signal的 live ready time应是：</p>
+<script type="math/tex; mode=display">
+t_{ready}=\max_v(t_{bar,end}^{v}+L_{receive}^{v}+L_{feature}^{v}).</script><p>若为了等三 venue共同支持而延迟，signal可能衰减；若不等，缺失 venue又改变 estimator。Development action证据即便通过，也仍需独立 receive-time transport；这里 action本身已经失败，更没有理由越过该门。</p>
 <h2 id="4-Development-支持与动作强度"><a href="#4-Development-支持与动作强度" class="headerlink" title="4. Development 支持与动作强度"></a>4. Development 支持与动作强度</h2><p>面板沿用 F09 40 日 identity：24 Grade-A primary、16 Grade-B sensitivity only。Grade A 9,164 rows，candidate 4,542、control 4,622，assignment rate 49.56%。</p>
 <p>candidate action-change 100%，activity retention 92.35%，fill retention 97.00%。这排除了两个简单解释：动作不是 no-op，也没有靠 broad participation shutdown 产生点估计。common support overall 89.65%，单日最低 66.73%；其余区域安全回 baseline。</p>
 <h2 id="5-Primary-结果"><a href="#5-Primary-结果" class="headerlink" title="5. Primary 结果"></a>5. Primary 结果</h2><div class="table-container">
@@ -531,10 +541,24 @@ p^{cand}_{ask}-p^{cand}_{bid}=p^{base}_{ask}-p^{base}_{bid}.</script><div class=
 </table>
 </div>
 <p>Bybit leave-out reversal 表明结果 materially depends on one venue，违反冻结 direction gate。LOO 的意义不是让研究者选择“保留 Bybit 的最佳组合”，而是检验三 venue fair center 是否有运输稳定性。看到依赖后重调 venue weights、basis window 或 gain 会是 post-selection。</p>
+<h3 id="6-1-LOO-检验的不是“哪个-venue-最好”"><a href="#6-1-LOO-检验的不是“哪个-venue-最好”" class="headerlink" title="6.1 LOO 检验的不是“哪个 venue 最好”"></a>6.1 LOO 检验的不是“哪个 venue 最好”</h3><p>三 venue组合若代表广义外部共识，删除任一来源后方向应至少不反转。LOO 不是要求数值完全相同，而是要求信号不靠单一 venue撑住符号。否则 estimator更像 Bybit signal加两个旁观者，而不是三市场 consensus。</p>
+<p>形式上，冻结门近似要求：</p>
+<script type="math/tex; mode=display">
+\operatorname{sign}(\widehat\tau_{-v})
+=
+\operatorname{sign}(\widehat\tau_{all})</script><p>对每个 $v$ 成立，并结合不确定性。leave-Bybit-out 反号直接失败。结果后选择“那就必须保留 Bybit”会把稳健性测试变成 venue-selection算法，需要新数据确认。</p>
+<h3 id="6-2-Grade-B-为正为何不能改变-primary"><a href="#6-2-Grade-B-为正为何不能改变-primary" class="headerlink" title="6.2 Grade B 为正为何不能改变 primary"></a>6.2 Grade B 为正为何不能改变 primary</h3><p>Grade A/B在 source、质量或可审计性上预先分层。若 primary失败后把 Grade B池入，研究者实际上根据 outcome改变样本定义。Grade B 正结果可以说明方向值得未来新研究，却不能补 Grade A 的日间区间和 LOO失败。</p>
+<p>两个 panel差异本身也是 transport warning：若相同动作只在 sensitivity层稳定为正，需要解释是 market regime、source identity还是 sample composition，而不能简单说“更多天以后显著”。</p>
+<h3 id="6-3-54-17-与-55-的门槛为何不能四舍五入"><a href="#6-3-54-17-与-55-的门槛为何不能四舍五入" class="headerlink" title="6.3 54.17% 与 55% 的门槛为何不能四舍五入"></a>6.3 54.17% 与 55% 的门槛为何不能四舍五入</h3><p>24 天中 54.17% 对应 13 个正日，55%要求至少更高的离散计数。门槛不是对真实 probability的精确估计，而是预先声明“方向不能只由少数大日贡献”的辅助条件。</p>
+<p>即使把它视为 near miss，primary interval仍跨零、SELL偏负、LOO反转。四个失败不是同一项四舍五入误差。称为 near pass 会忽略证据链中其它独立门。</p>
 <h2 id="7-为什么这不是-near-pass"><a href="#7-为什么这不是-near-pass" class="headerlink" title="7. 为什么这不是 near pass"></a>7. 为什么这不是 near pass</h2><p>primary interval 跨零、positive days 未过门、SELL 偏负、LOO 反转，是四个相互独立的警告。Grade B 与 BUY point estimate 提供后续研究动机，但不能合成 deployment authority。</p>
 <p>HT estimator 将 campaign assignment 推到 full-policy value：</p>
 <script type="math/tex; mode=display">
 \widehat V_{HT}=\sum_i\left(\frac{A_iY_i}{p_i}-\frac{(1-A_i)Y_i}{1-p_i}\right)/D,</script><p>其中 $D$ 按 UTC days 归一。其区间很宽，显示有限日 regime uncertainty；不能只引用 +0.6351 点估计。</p>
+<h3 id="7-1-HT-日价值为何比每-assignment-更不稳定"><a href="#7-1-HT-日价值为何比每-assignment-更不稳定" class="headerlink" title="7.1 HT 日价值为何比每 assignment 更不稳定"></a>7.1 HT 日价值为何比每 assignment 更不稳定</h3><p>HT 将每条 assignment按 propensity扩展到政策总量，再按日归一。campaign数量、值的尾部与当日市场 regime共同进入估计，所以 +0.6351 USDC/day 的区间跨约 3.4 USDC，远宽于点估计。</p>
+<p>这个量更接近“如果整天采用 candidate会怎样”，也更暴露 capacity与日间风险。每 assignment微小正值若来自极少高活动日，HT区间会如实放大不确定性；不能只选尺度看起来更大的 USDC/day进行宣传。</p>
+<h3 id="7-2-一个未来-cross-venue-successor-应先解决什么"><a href="#7-2-一个未来-cross-venue-successor-应先解决什么" class="headerlink" title="7.2 一个未来 cross-venue successor 应先解决什么"></a>7.2 一个未来 cross-venue successor 应先解决什么</h3><p>先在 receive-time 数据上冻结每个 venue 的 ready clock、staleness 与 missing rule，再用 leave-one-venue-out检查预测和 action方向；之后才决定 center gain。若先在 historical bars上优化 gain，再做 live transport，latency decay可能使最优点失效。</p>
+<p>新 action也可改为 side-specific，但这会放弃“整对平移保持 spread”的原 treatment，必须重新约束库存漂移与双侧参与。不能从本结果中只保留正 BUY contribution，称为同一 candidate 的修正。</p>
 <h2 id="8-研究演进与关闭边界"><a href="#8-研究演进与关闭边界" class="headerlink" title="8. 研究演进与关闭边界"></a>8. 研究演进与关闭边界</h2><p>v1 implementation failure 与 v1.1 正式 run 共享 action/estimand；前者是执行修复，不拆文。live-shadow code 即使存在也只是 code-only，并未激活，也不改变 Development-closed 状态。</p>
 <p>关闭的是这个 historical one-second, three-venue, frozen gain 的 continuous pair-center shift。它不证明 cross-venue information 没用；新研究可探索真正 receive-time causal prediction、side-specific action 或不同经济杠杆，但必须新 identity，不能在此面板上调 weights/basis/gain/eligibility。</p>
 <h2 id="9-没有获得的权限"><a href="#9-没有获得的权限" class="headerlink" title="9. 没有获得的权限"></a>9. 没有获得的权限</h2><ul>
@@ -544,6 +568,18 @@ p^{cand}_{ask}-p^{cand}_{bid}=p^{base}_{ask}-p^{base}_{bid}.</script><div class=
 <li>没有用 Grade B、BUY point estimate 或保留 Bybit 的组合救援 primary；</li>
 <li>没有在已读结果后重调 venue weights、window、gain 或 side scaling。</li>
 </ul>
+<h2 id="Pair-translation-的局部几何"><a href="#Pair-translation-的局部几何" class="headerlink" title="Pair translation 的局部几何"></a>Pair translation 的局部几何</h2><p>若baseline quotes为$(b,a)$、candidate center shift为$g_t$，理想pair translation给出$(b+g_t,a+g_t)$，spread$a-b$保持不变。但相对本地best bid/ask的距离分别改变；经过tick rounding、post-only clamp和inventory skew后，两侧实际位移也未必相等。</p>
+<p>因此“97% fills保留”只说明参与度相近，不能证明同一订单被更好定价。candidate可能删除一部分BUY fills又增加SELL fills，campaign path仍会分叉。完整mechanics要报告理论shift、round后shift、clamp rate、side fill变化和role composition。</p>
+<h2 id="单一-venue-依赖为何是-transport-failure"><a href="#单一-venue-依赖为何是-transport-failure" class="headerlink" title="单一 venue 依赖为何是 transport failure"></a>单一 venue 依赖为何是 transport failure</h2><p>如果leave-one-venue-out去掉某一家后效应消失，可能是该venue真的拥有独特lead，也可能是它在当前时期承担了时钟、liquidity或stablecoin regime proxy。现有数据不能把这两种解释分开。部署时该venue延迟、symbol规则或basis变化，signal就可能失效。</p>
+<p>LOO不是从三家里选PnL最高者，而是stress test。一个可推广global signal应在主要dropout scenarios下保持方向，或预先声明“仅在venue V健康时有效”并有source-health gate。结果出现后把模型缩成表现最好的单venue，会创建新的候选和新的multiplicity。</p>
+<h2 id="54-17-为什么不是“实质上等于55-”"><a href="#54-17-为什么不是“实质上等于55-”" class="headerlink" title="54.17% 为什么不是“实质上等于55%”"></a>54.17% 为什么不是“实质上等于55%”</h2><p>阈值是研究合同的一部分。若预注册要求至少55%的日方向一致，54.17%就是失败；四舍五入或强调只差一天等价于根据结果放宽门。更重要的是primary interval也跨零、LOO又失败，所以这不是单一机械阈值阻止了一个全面通过的候选。</p>
+<p>一个新successor可以根据当前结果提出更窄机制，例如只在basis稳定、信号fresh且多venue一致时recenter，但必须先冻结这些状态并用新日期评价。当前证据支持cross-venue center能频繁改变quote并大致保留activity，不支持稳定terminal action value。</p>
+<h2 id="Signal-age-应进入-action-contract"><a href="#Signal-age-应进入-action-contract" class="headerlink" title="Signal age 应进入 action contract"></a>Signal age 应进入 action contract</h2><p>同一个fair shift在ready后100ms与5秒消费，不是同一信号。候选应记录source age并在预注册上限内才recenter；过期回baseline。若只在结果后发现年轻signal更好并筛选，属于新subgroup。</p>
+<p>source health还应包含venue count、basis jump、staleness与disagreement。多venue方向不一致时，median center可能仍有限，但动作confidence下降；fallback必须由mechanics定义，不能由PnL挑。</p>
+<h2 id="Pair-recenter-与-inventory-skew-的组合顺序"><a href="#Pair-recenter-与-inventory-skew-的组合顺序" class="headerlink" title="Pair recenter 与 inventory skew 的组合顺序"></a>Pair recenter 与 inventory skew 的组合顺序</h2><p>先recenter再加inventory skew，与先skew再对整对平移在clamp/tick rounding下可能不同。implementation parity必须锁定顺序，并报告哪一层最终绑定。否则Python与C++即使raw fair shift相同，也会产生不同orders。</p>
+<p>这也说明fair-center action不是一个单float插入：它改变quote pipeline中的坐标，必须与floor、post-only与inventory guard一起接受full-path测试。</p>
+<h2 id="未来证据的最小门"><a href="#未来证据的最小门" class="headerlink" title="未来证据的最小门"></a>未来证据的最小门</h2><p>至少要求Grade-A primary区间、positive-day rate、LOO source robustness、action/fill retention与terminal tail同时满足预注册标准。任何Grade-B或单venuediagnostic只能解释，不能覆盖primary。</p>
+<p>当前候选在多个独立门失败，所以“near pass”叙事不成立。新机制需要新days，而不是把54.17%改写成55%。</p>
 <h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/cross_venue_fair_center_shift_randomized_replay_v1_1_development_20260801.md"><code>cross_venue_fair_center_shift_randomized_replay_v1_1_development_20260801.md</code></a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/cross_venue_fair_center_shift_randomized_replay_v1_implementation_failure_20260801.md"><code>cross_venue_fair_center_shift_randomized_replay_v1_implementation_failure_20260801.md</code></a></li>

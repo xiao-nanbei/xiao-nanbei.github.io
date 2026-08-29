@@ -27,14 +27,15 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：一次严肃的重建，也可能因为三天时钟错误失去 test authorityCausal-v4 是 NarrowGate 在修复 10 秒 feature-ready、价格方差量纲、merged event clock 和经验 P3 后，对 13-head model 做的一次完整重训与严格 replay。它不是只重">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/causal-v4-clock-lineage.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f03-thirteen-head-evidence-pipeline.svg">
 <meta property="article:published_time" content="2026-08-29T12:37:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:37:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
-<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="机器学习">
 <meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/causal-v4-clock-lineage.svg">
   
@@ -333,7 +334,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          4.9k 字
+          8.3k 字
         
       </span>
     
@@ -345,7 +346,7 @@
         
         
           <!-- compatible with older versions-->
-          41 分钟
+          70 分钟
         
       </span>
     
@@ -468,6 +469,39 @@ R=\sqrt{\sigma^2H}\,|q|.</script><p>它不应再乘一次 mid，否则会重复�
 <h2 id="8-关闭与支持边界"><a href="#8-关闭与支持边界" class="headerlink" title="8. 关闭与支持边界"></a>8. 关闭与支持边界</h2><p>保留：empirical P3 研究方向、completed-bucket causal timing、merged clock、dimensionally closed risk/accounting，以及 artifact validation/parity discipline。</p>
 <p>撤回：v4 test prediction metrics、test/all ML A/B、BUY scorer bucket values 和任何基于它们的 promotion claim。</p>
 <p>没有获得：model replacement、BUY scorer action、queue retuning、Validation/holdout 晋级、shadow 或 live authority。历史上某些 model bytes 曾作为 owner-directed operational trial，与统计 promotion 是两件事，也不描述当前 runtime。</p>
+<h2 id="深入推导：一个泄漏-head-怎样污染共享模型"><a href="#深入推导：一个泄漏-head-怎样污染共享模型" class="headerlink" title="深入推导：一个泄漏 head 怎样污染共享模型"></a>深入推导：一个泄漏 head 怎样污染共享模型</h2><p>多任务模型常写成共享表示 $z<em>t=f</em>\phi(X<em>t)$ 与十三个输出头 $\hat y</em>{j,t}=g_{\psi_j}(z_t)$，训练目标是：</p>
+<script type="math/tex; mode=display">
+\mathcal L(\phi,\psi)=\sum_{j=1}^{13}w_j\mathcal L_j(y_{j,t},g_{\psi_j}(f_\phi(X_t))).</script><p>如果某个输入列或 label construction 提前看见未来，问题不只停留在对应 head。它的梯度会更新共享参数 $\phi$，其他十二个头也可能从被污染的表示中获益。于是“删掉泄漏 head 的结果列”并不能恢复模型；必须从特征物化、训练、artifact 到 full-path replay 全部重建。</p>
+<p>v4 中三天 timing error 的严重性正来自这里。哪怕多数日期和多数 heads 合法，只要 formal test 的一部分 rows 使用了决策时尚未可见的 future metric，报告中的 prediction ranking、阈值、quote path 与经济差值就不再绑定同一个因果信息集。</p>
+<p><img src="/images/narrowgate/f03-thirteen-head-evidence-pipeline.svg" srcset="/img/loading.gif" lazyload alt="13-head 从共享输入到经济门的证据流水线"></p>
+<p><em>图 2：共享 encoder 会传播时钟错误；prediction joint gate 与 economics joint gate 都必须重跑，不能只删除一列结果。</em></p>
+<h2 id="为什么三天错误不能按比例“打折”"><a href="#为什么三天错误不能按比例“打折”" class="headerlink" title="为什么三天错误不能按比例“打折”"></a>为什么三天错误不能按比例“打折”</h2><p>直觉上，人们可能想把错误三天从总 PnL 中减掉，保留其他天。但 maker replay 有路径和选择反馈。模型阈值可能由含错误日期的训练或 calibration 决定；错误 rows 也可能改变模型在哪些状态开启、改变 fills 与库存，从而影响整个日期的后续订单。即使单日结果可以删除，训练 artifact 与 candidate selection 已经读过这些日期，剩余天也不再是原先声明的 untouched test。</p>
+<p>统计上，删除不合法日期还改变 denominator 与不确定性。若 formal test 原本只有少数日期，去掉三天会显著改变日级 cluster 数、regime 构成和 simultaneous gate。正确标签是“经济数字撤回、原不晋级决定保守保留”，而不是重新计算一个看似精确的折扣 PnL。</p>
+<h2 id="一个反事实例子：提前五分钟可见为何会显得异常强"><a href="#一个反事实例子：提前五分钟可见为何会显得异常强" class="headerlink" title="一个反事实例子：提前五分钟可见为何会显得异常强"></a>一个反事实例子：提前五分钟可见为何会显得异常强</h2><p>假设特征声称在 $t$ 时刻给出未来五分钟 realized volatility。市场即将单边下跌时，这个量已经升高，模型因而在跌势开始前扩大 BUY quote；历史回放会显示更少 adverse BUY fills。可是 live 在 $t$ 时刻不知道未来五分钟路径，真正可用的只能是过去窗口估计或延迟发布值。</p>
+<p>错误特征等价于让动作读取 $X_{t:t+5m}$：</p>
+<script type="math/tex; mode=display">
+A_t=\pi(X_{\le t},X_{t:t+5m}),</script><p>而可执行策略必须满足 $A<em>t=\pi(X</em>{\le t_{ready}})$。两者不是同一个噪声水平下的近似，而是不同的信息结构。后续 normalized-100ms 与 source-aware successor 的意义，就是重新限定 $\sigma$、P3、trade 与 L2 何时 ready，而不是简单换一批训练文件。</p>
+<h2 id="泄漏为何会穿过-cross-fitting，而不是只污染三天"><a href="#泄漏为何会穿过-cross-fitting，而不是只污染三天" class="headerlink" title="泄漏为何会穿过 cross-fitting，而不是只污染三天"></a>泄漏为何会穿过 cross-fitting，而不是只污染三天</h2><p>blocked cross-fitting的每个OOF prediction看似来自“不含本行”的模型，但这不等于不含任何非法时间信息。若某些训练日的five-minute feature在bucket start就暴露完整区间，模型会学到一个现实决策时不可获得的关系；它随后在其它合法日期上生成的predictions也继承了这个错误函数。受影响对象因此是整个fold model identity，不只是三天rows。</p>
+<p>阈值与head selection还会扩大传播。若研究者根据validation metric选择某个toxicity head、bucket或action threshold，少量高泄漏rows可能改变winner；即使最终test rows本身没有直接lookahead，测试的已经是被非法validation选择过的候选。故障路径可以写成</p>
+<script type="math/tex; mode=display">
+\text{premature feature}
+\rightarrow
+\text{fitted function}
+\rightarrow
+\text{validation ranking}
+\rightarrow
+\text{selected action}
+\rightarrow
+\text{test path}.</script><p>这也是为什么不能通过“把三天从最终表里删掉”来修复。必须从ready-time feature generation开始重建所有受影响folds，再用新的manifest、cache与model identity执行一次完整的chronological evaluation。</p>
+<h2 id="一个真正-successor-的最小验收面"><a href="#一个真正-successor-的最小验收面" class="headerlink" title="一个真正 successor 的最小验收面"></a>一个真正 successor 的最小验收面</h2><p>第一，逐列声明index、source与ready timestamp，并用边界例子证明左标bucket只有在右端点后可见。第二，训练fold的每一天都必须早于其validation/test decision time，且跨日warmup只能从连续过去读取。第三，13个heads的prediction gate要和action gate分开：AUC/IC/calibration通过只允许进入策略实验，不允许直接报价。</p>
+<p>第四，full-path A/B必须只改变冻结的ML treatment；baseline/candidate共享market stream、queue、latency、initial state和随机种子。第五，用day-cluster interval、activity与inventory/tail gates同时判断，避免一个小的mean PnL正值覆盖路径风险。最后，旧v4文件保留为failure receipt，新结果使用新的名字，不能把历史页面原地改成pass。</p>
+<p>这些要求使本篇不仅是一份“发现lookahead”的事故记录，也是一份时间序列模型怎样重新获得研究资格的验收协议。</p>
+<h2 id="Feature-lineage-ledger-应写到什么粒度"><a href="#Feature-lineage-ledger-应写到什么粒度" class="headerlink" title="Feature lineage ledger 应写到什么粒度"></a>Feature lineage ledger 应写到什么粒度</h2><p>每列至少需要：原始source、event object、aggregation window、index convention、ready offset、lookback warmup、missing policy、单位与允许消费它的runtime。对组合feature还要递归列出parents；例如一个五分钟ratio若依赖两个一分钟EMA，它的ready time是所有parents完整后再加计算延迟，而不是沿用输出index。</p>
+<p>模型artifact也要绑定ordered feature names与semantics hash。仅检查列数相同无法发现同名字段从left-label改成right-label、秒改毫秒或BUY/SELL符号变化。runtime在任一字段缺失、过期或identity不符时fail closed，不能静默填零后继续给action。</p>
+<h2 id="一个-leakage-sentinel-的设计"><a href="#一个-leakage-sentinel-的设计" class="headerlink" title="一个 leakage sentinel 的设计"></a>一个 leakage sentinel 的设计</h2><p>可以构造边界合成路径：在bucket最后一毫秒注入只影响未来label的价格跳变。合法feature在bucket结束前不应变化；若$t$时decision已经看到跳变，测试立即失败。对每种window和外部join都应有类似sentinel。</p>
+<p>另一个经验检查是把feature整体延迟一个完整window后重新评分。若原模型表现异常高、延迟后骤降，不构成lookahead证明，却是需要审计ready semantics的信号。最终authority仍来自lineage与event-order contract，不是靠相关性猜测。</p>
+<h2 id="Withdrawn-metrics-怎样继续服务研究史"><a href="#Withdrawn-metrics-怎样继续服务研究史" class="headerlink" title="Withdrawn metrics 怎样继续服务研究史"></a>Withdrawn metrics 怎样继续服务研究史</h2><p>旧v4 prediction和PnL数字不再用于current comparison，但failure cause、测试路径与当时权限决定应保留。删除它们会让后人重复同一时钟错误；继续把它们放winner table又会污染选择。</p>
+<p>最合适的状态是<code>withdrawn for current evidence, retained as historical receipt</code>：正文解释哪些字段失效、哪些correctness lessons仍成立，并指向successor新identity。这样研究透明度与证据卫生可以同时满足。</p>
 <h2 id="9-公共证据"><a href="#9-公共证据" class="headerlink" title="9. 公共证据"></a>9. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/docs/causal_v4_empirical_p3_retrain_replay_20260718.md">Causal-v4 Empirical-P3 Retrain and Strict Replay</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/README.md">F03 Causal 13-Head README</a></li>
@@ -511,11 +545,11 @@ R=\sqrt{\sigma^2H}\,|q|.</script><p>它不应再乘一次 mid，否则会重复�
       
         <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
       
-        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
-      
         <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
       
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
     </div>
   

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 710" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">回放中的单位、可见性与生命周期修复栈</title>
+  <desc id="desc">从物理单位、交易所事件时钟、接收与特征可见时钟、订单生命周期、经济记账到证据身份的六层修复；任何底层变化都使旧数值与排名需要重新验证。</desc>
+  <defs><linearGradient id="bgs" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#091425"/><stop offset="1" stop-color="#172a43"/></linearGradient><marker id="as" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#8ca6c7"/></marker><style>.hs{font:700 28px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#f2f6ff}.ts{font:600 17px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#edf3ff}.ss{font:14px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#b5c7dd}.bs{fill:#142d49;stroke:#5478a3;stroke-width:2}.gs{fill:#153c38;stroke:#3bc6a4;stroke-width:2}.ws{fill:#49351e;stroke:#efae4e;stroke-width:2}.ps{fill:#3c2947;stroke:#b582db;stroke-width:2}.ls{stroke:#8ca6c7;stroke-width:2;marker-end:url(#as)}</style></defs>
+  <rect width="1200" height="710" rx="24" fill="url(#bgs)"/>
+  <text x="50" y="55" class="hs">回放正确性是一座依赖栈：底层修复会改变上层整条策略路径</text>
+  <text x="50" y="88" class="ss">不是“重算同一个 PnL”，而是可能换了风险集、动作时刻、成交与证据身份</text>
+  <g transform="translate(80 135)"><rect width="1040" height="65" rx="14" class="bs"/><text x="28" y="39" class="ts">1 · Physical units</text><text x="255" y="39" class="ss">price variance · seconds · quantity · bps · wall-time exposure</text></g>
+  <g transform="translate(110 215)"><rect width="980" height="65" rx="14" class="gs"/><text x="28" y="39" class="ts">2 · Exchange event identity</text><text x="310" y="39" class="ss">trade · book delta · activation · fill · cancel ACK</text></g>
+  <g transform="translate(140 295)"><rect width="920" height="65" rx="14" class="ws"/><text x="28" y="39" class="ts">3 · Feature-ready clock</text><text x="280" y="39" class="ss">receive delay · completed bucket · no future leakage</text></g>
+  <g transform="translate(170 375)"><rect width="860" height="65" rx="14" class="ps"/><text x="28" y="39" class="ts">4 · Lifecycle state</text><text x="248" y="39" class="ss">partial fill · pending · terminal · re-entry · carryover</text></g>
+  <g transform="translate(200 455)"><rect width="800" height="65" rx="14" class="bs"/><text x="28" y="39" class="ts">5 · Economic accounting</text><text x="300" y="39" class="ss">decision-to-terminal · fees · MTM · tails</text></g>
+  <g transform="translate(230 535)"><rect width="740" height="65" rx="14" class="gs"/><text x="28" y="39" class="ts">6 · Evidence identity</text><text x="255" y="39" class="ss">data · code · config · split · result · authority</text></g>
+  <path d="M600 200V210M600 280V290M600 360V370M600 440V450M600 520V530" class="ls"/>
+  <rect x="280" y="640" width="640" height="42" rx="12" fill="#52263b" stroke="#ef6f9e" stroke-width="2"/><text x="343" y="668" class="ts">底层 identity 改变 ⇒ 旧精确 PnL、winner 与参数排名全部失效</text>
+</svg>

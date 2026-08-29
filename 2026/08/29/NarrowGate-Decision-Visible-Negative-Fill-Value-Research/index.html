@@ -27,14 +27,15 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：坏成交确实存在，但当时可见的局部状态没有把它们挑出来这项研究问的不是“成交以后平均会不会亏”，而是一个更严格的问题：在被动订单真正成为一笔增加风险暴露的成交之前，仅凭当时已经可见的订单、盘口与 campaign 状态，能否稳定识别出价值特别差、因而可能值得未来动作研究回避的那一小群决策？ F05 用两个互补的冻结">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/decision-visible-negative-fill-value-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f05-fill-value-action-ladder.svg">
 <meta property="article:published_time" content="2026-08-28T16:00:00.000Z">
 <meta property="article:modified_time" content="2026-08-28T16:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
-<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="机器学习">
 <meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/decision-visible-negative-fill-value-kline.svg">
   
@@ -333,7 +334,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          5.3k 字
+          8.8k 字
         
       </span>
     
@@ -345,7 +346,7 @@
         
         
           <!-- compatible with older versions-->
-          45 分钟
+          74 分钟
         
       </span>
     
@@ -466,6 +467,57 @@ Y_i(\text{submit baseline opener})
 <p>exact order/campaign identity → decision-time causal feature snapshot → direct decision-to-terminal USDC label → past-only campaign-state M0 → campaign + local-microstructure M1 → chronological OOF loss and high-risk group → day/campaign clustered simultaneous intervals → prediction gate，而不是 action gate。</p>
 </blockquote>
 <p>这个顺序很重要。如果连 direct terminal label 都不能精确绑定，后面的模型再复杂也只是拟合错位标签。如果局部模型没有超过 campaign-state baseline，就不能因为某些成交平均为负而跳过预测证据，直接注册“阻止这些成交”的动作。</p>
+<p><img src="/images/narrowgate/f05-fill-value-action-ladder.svg" srcset="/img/loading.gif" lazyload alt="从负价值标签到动作价值的证据阶梯"></p>
+<p><em>图 2：一笔成交的 realized label、决策前可预测性、某张报价的条件价值与改变报价的动作 uplift 是四个不同命题。前一层可以为真而后一层失败；越过任何一层，都会把观察性相关误写成可执行因果结论。</em></p>
+<h3 id="4-1-四个容易混在一起的-estimand"><a href="#4-1-四个容易混在一起的-estimand" class="headerlink" title="4.1 四个容易混在一起的 estimand"></a>4.1 四个容易混在一起的 estimand</h3><p>把四层分别写成式子，会比“预测坏成交”这句口号清楚得多。第一层是成交后才能完整观察的 realized label：</p>
+<script type="math/tex; mode=display">
+Y_i^{fill}=E_i^{terminal}-E_i^{decision}.</script><p>第二层是在 baseline policy 下、并且条件于这笔订单最终成交后的预测问题：</p>
+<script type="math/tex; mode=display">
+m(x)=\mathbb E[Y_i^{fill}\mid X_i=x,F_i=1,\pi_0].</script><p>第三层是某个报价动作 $a$ 本身的条件价值：</p>
+<script type="math/tex; mode=display">
+Q^{\pi_0}(x,a)=\mathbb E[Y_i(a,\pi_0^{future})\mid X_i=x].</script><p>第四层才是动作研究真正关心的 uplift：</p>
+<script type="math/tex; mode=display">
+\tau(x,a)=Q^{\pi_0}(x,a)-Q^{\pi_0}(x,a_0).</script><p>$m(x)$ 的分母已经经过 $F=1$ 选择，而 $Q$ 与 $\tau$ 必须同时容纳“不成交、成交变晚、成交量改变、库存路径改变”这些结果。即使 $m(x)$ 准确地指出某类已成交订单平均亏损，也完全可能出现 $\tau(x,\text{cancel})&lt;0$：取消它以后，策略也许丢掉了更便宜的减仓机会，或者稍后在更差价格重新进入。</p>
+<p>这也是为什么本文不把 AUC、rank correlation 或 high-risk bucket 的均值直接称为“可省下的 PnL”。它们最多回答第二层；动作权限至少要穿过第四层。</p>
+<h3 id="4-2-一条完整的合成路径：同一个坏标签可以对应相反动作价值"><a href="#4-2-一条完整的合成路径：同一个坏标签可以对应相反动作价值" class="headerlink" title="4.2 一条完整的合成路径：同一个坏标签可以对应相反动作价值"></a>4.2 一条完整的合成路径：同一个坏标签可以对应相反动作价值</h3><p>考虑一个纯示意的 BUY first-add 决策。决策前策略已经持有 $0.001$ BTC 多仓，当前 BUY add 报价为 100.00，SELL reducing 报价为 100.04。随后 BUY add 在 100.00 成交，十秒后中价跌到 99.96，30 秒 maker-signed markout 为负；campaign 最终在 100.02 附近减仓，计入费用后该次 decision-to-terminal 标签为 $-0.01$ USDC。</p>
+<p>从 realized label 看，它当然是一笔“坏成交”。但若反事实动作是取消这张 BUY add，未来可能至少有两条路径：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>路径</th>
+<th>baseline</th>
+<th>candidate：取消 BUY add</th>
+<th style="text-align:right">动作差值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A：价格继续下跌</td>
+<td>100.00 成交后承担下跌</td>
+<td>没有新增库存</td>
+<td style="text-align:right">candidate 较好</td>
+</tr>
+<tr>
+<td>B：价格短跌后急升</td>
+<td>100.00 成交并在 100.04 减仓</td>
+<td>稍后在 100.03 追入或完全错过修复</td>
+<td style="text-align:right">candidate 较差</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>历史只实现其中一条。仅凭 baseline 下观察到的 $Y_i^{fill}&lt;0$，无法同时知道取消后的路径。模型若只学习“跌前的盘口长什么样”，仍然没有识别取消会怎样改变后续订单、队列和库存。</p>
+<p>再看 first-opener。空仓时一个 SELL opener 成交后市场上涨，标签为负；抑制 opener 看似自然。然而 opener 也创建了后续 reducing BUY 的角色与 permission。删除 opener 不只是删除一笔坏 SELL fill，它会删除整个 campaign，连同后面所有可能的修复 fill。动作对比必须重放这棵路径树，而不是从历史 PnL 里减掉 opener 那一行。</p>
+<h3 id="4-3-为什么-campaign-state-baseline-是一道必要的科学门"><a href="#4-3-为什么-campaign-state-baseline-是一道必要的科学门" class="headerlink" title="4.3 为什么 campaign-state baseline 是一道必要的科学门"></a>4.3 为什么 campaign-state baseline 是一道必要的科学门</h3><p>库存方向、campaign age、此前 add/reducing 次数和已有 MAE，本身就能解释大量 terminal value 差异。一个已经持续很久、库存很深、历史 MAE 很大的 campaign，其下一笔 add 更容易落入负终局，并不需要盘口特征提供任何新信息。</p>
+<p>因此 $M0$ 不是“故意做弱的 baseline”，而是对已有风险状态的最小调整。局部盘口模型只有在同样 inventory burden 下仍能区分价值，才可能回答“现在这张订单是否格外危险”。如果直接拿 $M1$ 与常数均值比较，模型很可能只是重新发现：库存越深，终局越差。</p>
+<p>用残差语言表达，真正需要预测的是：</p>
+<script type="math/tex; mode=display">
+R_i=Y_i-\widehat f_0(C_i),</script><p>其中 $C_i$ 是 campaign state。局部状态 $Z_i$ 必须对 $R_i$ 提供稳定的未来日期解释力。F05 的结果说明，冻结 $Z_i$ 没有做到这一点；这比“模型总体 MSE 不错”更接近动作研究所需的问题。</p>
+<h3 id="4-4-日期聚类为什么会推翻逐成交显著性"><a href="#4-4-日期聚类为什么会推翻逐成交显著性" class="headerlink" title="4.4 日期聚类为什么会推翻逐成交显著性"></a>4.4 日期聚类为什么会推翻逐成交显著性</h3><p>同一天的许多 first-add 并不独立。它们共享波动 regime、行情趋势、撮合负载、库存初态和同一套策略参数。一场单边行情可能同时制造几十个负标签。如果把每笔 fill 当独立样本，标准误大约按 $1/\sqrt n$ 缩小，却没有承认真正的独立冲击单位更接近“日”。</p>
+<p>因此本文中的区间以日期或 campaign cluster 为基本重采样单位，并对两侧、多个指标和高风险选择同时修正。这个设计牺牲了表面上的显著性，却避免把“一天里重复发生的同一个市场故事”冒充成几十次独立确认。</p>
+<h3 id="4-5-什么结果才会推翻这次阴性结论"><a href="#4-5-什么结果才会推翻这次阴性结论" class="headerlink" title="4.5 什么结果才会推翻这次阴性结论"></a>4.5 什么结果才会推翻这次阴性结论</h3><p>重开研究不能只换树模型或移动分位数。至少应出现一种新的、事先可陈述的识别增量：例如 exact queue-ahead 的更高覆盖、可因果对齐的跨 venue 冲击、订单角色更细的状态转移，或直接成对生成 suppress/keep 两条完整 replay 路径。</p>
+<p>一个合格 successor 应在结果未读前冻结：决策单位、可见特征、M0、候选动作、终局、日期切分、最小支持与同时区间。然后它需要同时证明三件事：局部信息超过 campaign baseline；选择集合在未来日期仍有方向；动作 replay 的 $\tau$ 而不是 realized label 获得正经济下界。只满足第一件，仍然只是预测研究。</p>
 <h2 id="5-First-add-结果：负平均值存在，局部增量不存在"><a href="#5-First-add-结果：负平均值存在，局部增量不存在" class="headerlink" title="5. First-add 结果：负平均值存在，局部增量不存在"></a>5. First-add 结果：负平均值存在，局部增量不存在</h2><p>Grade-A 主 OOF 包含 327 个 BUY 与 346 个 SELL campaign；Grade-B sensitivity 包含 172 个 BUY 与 154 个 SELL campaign。</p>
 <div class="table-container">
 <table>
@@ -570,6 +622,20 @@ Y_i(\text{submit baseline opener})
 <li>live 或 baseline 变更：未授权。</li>
 </ul>
 <p>阴性结果并不等于“盘口没有信息”。它说明当时冻结的特征、模型类、决策角色和 direct terminal target 没有产生足够稳定的增量预测。一个未来项目若要重开，必须带来新的因果可见信息或不同的动作机制，而不是在同一 Development 面板上换一个阈值。</p>
+<h2 id="Filled-only-prediction-的选择方程"><a href="#Filled-only-prediction-的选择方程" class="headerlink" title="Filled-only prediction 的选择方程"></a>Filled-only prediction 的选择方程</h2><p>令$F=1$表示订单最终成交，$Y$表示成交后的terminal value。只在fills上拟合得到的是</p>
+<script type="math/tex; mode=display">
+E[Y\mid F=1,X],</script><p>而动作需要比较</p>
+<script type="math/tex; mode=display">
+E[Y(a)-Y(a_0)\mid X].</script><p>$F$同时受quote distance、queue、market path与原策略影响，是动作后的变量。一个feature可以很好地排序已成交样本中的$Y$，却无法告诉我们取消后哪个fill消失、哪个campaign改道，也无法给未成交路径赋值。若候选动作改变$F$，训练和部署面对的条件总体已经不同。</p>
+<p>这也解释“负平均fill value”为什么不直接支持skip。删掉一次负fill可能避免adverse selection，也可能留下更久的库存、错过repair或让下一张单失去queue。动作收益包含被删fill之外的完整路径差：</p>
+<script type="math/tex; mode=display">
+\Delta V_{skip}
+=
+Y_T(\text{skip})-Y_T(\text{baseline}),</script><p>不能用$-Y\mid F=1$替代。</p>
+<h2 id="Campaign-state-baseline-为什么是强对手"><a href="#Campaign-state-baseline-为什么是强对手" class="headerlink" title="Campaign-state baseline 为什么是强对手"></a>Campaign-state baseline 为什么是强对手</h2><p>许多负value可由显而易见的状态解释：已有库存方向、这是第几次add、campaign age、当前spread与volatility。复杂局部特征只有在这些baseline之外仍提供chronological OOF增量，才可能形成新selector。</p>
+<p>若模型只重发现“多层inventory更差”，高AUC不代表找到可执行微观机制；它可能只是给campaign severity重新编码。研究把campaign-state baseline放在前面，是为了检验trade/depth局部特征是否真正增加同一decision surface上的分辨率。</p>
+<h2 id="从阴性-selector-到合法-action-研究"><a href="#从阴性-selector-到合法-action-研究" class="headerlink" title="从阴性 selector 到合法 action 研究"></a>从阴性 selector 到合法 action 研究</h2><p>下一步应直接生成baseline与有限候选动作的one-shot counterfactual rows，保留未激活、未成交与terminal inventory。先用outcome-blind mechanics确认动作会改变quote与路径，再用nested chronology学习$\tau(X)$，最后用repeated full-path检验policy feedback。</p>
+<p>新的证据若要推翻本篇，需要在新日期上同时满足：相对campaign baseline的增量、足够distinct-day support、稳定方向，以及terminal action uplift。仅增加树深、换loss或在同一filled rows挑新threshold，不会改变estimand。</p>
 <h2 id="8-公共证据"><a href="#8-公共证据" class="headerlink" title="8. 公共证据"></a>8. 公共证据</h2><p>公开仓库提供方法、聚合结论和权限边界，不分发 owner-side OOF rows 或机器结果目录。主要公共入口：</p>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/README.md">F05 Fill Quality, Toxicity, And Quote EV README</a></li>
@@ -614,11 +680,11 @@ Y_i(\text{submit baseline opener})
       
         <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
       
-        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
-      
         <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
       
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
     </div>
   
@@ -675,9 +741,9 @@ Y_i(\text{submit baseline opener})
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Dynamic-Campaign-Mechanism-Attribution-Research/" title="NarrowGate Dynamic Campaign Attribution：Add Toxicity、Repair Failure 与动态控制器">
+                      <a href="/2026/08/29/NarrowGate-Conditional-P3-Joint-Quote-Value-Research/" title="NarrowGate Conditional P3：从触达概率到联合报价价值">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">NarrowGate Dynamic Campaign Attribution：Add Toxicity、Repair Failure 与动态控制器</span>
+                        <span class="hidden-mobile">NarrowGate Conditional P3：从触达概率到联合报价价值</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -685,8 +751,8 @@ Y_i(\text{submit baseline opener})
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-First-Add-Decision-Terminal-Loss-Research/" title="NarrowGate First-Add Terminal Loss：负价值究竟从哪一刻开始">
-                        <span class="hidden-mobile">NarrowGate First-Add Terminal Loss：负价值究竟从哪一刻开始</span>
+                      <a href="/2026/08/29/NarrowGate-Dynamic-Campaign-Mechanism-Attribution-Research/" title="NarrowGate Dynamic Campaign Attribution：Add Toxicity、Repair Failure 与动态控制器">
+                        <span class="hidden-mobile">NarrowGate Dynamic Campaign Attribution：Add Toxicity、Repair Failure 与动态控制器</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

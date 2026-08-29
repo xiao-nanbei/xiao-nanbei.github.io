@@ -27,6 +27,7 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：一次跳过看起来是动作，落到成交路径上却接近 no-op这项研究只改一个瞬间：SHORT inventory campaign 已经存在、策略原本准备再挂一笔 exposure-increasing SELL add 时，以 50% 概率照常报价，以 50% 概率跳过恰好一个 eligible cycle；下一周期">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/sell-one-cycle-skip-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f09-campaign-action-causal-path.svg">
 <meta property="article:published_time" content="2026-08-29T12:12:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:12:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -332,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          5.2k 字
+          8.9k 字
         
       </span>
     
@@ -344,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          43 分钟
+          75 分钟
         
       </span>
     
@@ -394,6 +395,8 @@
 <p>随后用当前 replay stack 对相同经济动作做的 40 日机制复核并不是新研究：BUY 2,403 次最终动作机会中成交 172 次，SELL 2,348 次中成交 147 次，对应 7.16% 与 6.26%；两侧 Wilson 95% 上界仍低于预先定义的 10% near-noop 线。它改变了约 99% 的报单决策，却只改变约 6%–7% 的成交路径。结论不是“跳过永远无效”，而是<strong>这个单周期杠杆太短，不能稳定改变 campaign 的经济终点</strong>。</p>
 <p><img src="/images/narrowgate/sell-one-cycle-skip-kline.svg" srcset="/img/loading.gif" lazyload alt="SELL 单周期跳过与竞争风险机制"></p>
 <p><em>图 1：机制示意。随机化只发生在一个 SELL add cycle；之后两臂回到相同基线。真正 estimand 必须追踪到 repair、trend-through 或终止，而不是把被跳过的报单直接当作收益。</em></p>
+<p><img src="/images/narrowgate/f09-campaign-action-causal-path.svg" srcset="/img/loading.gif" lazyload alt="单周期 permission action 的因果漏斗"></p>
+<p><em>图 2：assignment 能改变 quote decision，不代表会改变 fill，更不代表 campaign terminal 分叉。one-cycle action 的关键发现是从 mechanics 到经济路径的杠杆快速衰减。</em></p>
 <h2 id="1-研究问题：少挂一次，究竟避开毒性还是错过修复？"><a href="#1-研究问题：少挂一次，究竟避开毒性还是错过修复？" class="headerlink" title="1. 研究问题：少挂一次，究竟避开毒性还是错过修复？"></a>1. 研究问题：少挂一次，究竟避开毒性还是错过修复？</h2><p>SHORT campaign 中的 exposure-increasing SELL add 有两种相反解释。若价格继续上涨，它会以较低价格卖出并增加不利空头，是 trend-through 风险；若价格回落，它又可能改善平均开仓价并更快由 reducing BUY 修复。仅看下一笔 markout 无法区分这两条完整路径。</p>
 <p>项目把问题写成 campaign-level intervention：</p>
 <script type="math/tex; mode=display">
@@ -449,6 +452,19 @@ F_k(t)=P(T\le t,J=k),\qquad k\in\{repair,trend\}.</script><p>冻结的联合效�
 <p>行为 mixture 相对 control 保留 99.94% fills，campaign 数量为 1.0009 倍，absolute inventory time 为 1.0007 倍。这些数字说明随机化没有把策略变成另一套系统。另一方面，1,506 个 baseline assignments 中只有 53 个 selected-cycle fills：</p>
 <script type="math/tex; mode=display">
 \widehat p_{fill}=\frac{53}{1506}=3.52\%.</script><p>因此“跳过了一笔报单”和“改变了一条 inventory path”完全不是一回事。约 96.5% 的 baseline selected cycles 本来就不成交，两臂很快又重新汇合。</p>
+<h3 id="4-1-动作杠杆的三层漏斗"><a href="#4-1-动作杠杆的三层漏斗" class="headerlink" title="4.1 动作杠杆的三层漏斗"></a>4.1 动作杠杆的三层漏斗</h3><p>令 $E$ 为 eligible episode、$Q$ 为该 cycle 的报价确实被 skip、$F$ 为 baseline selected order 会成交、$D$ 为 terminal path 改变。action leverage 可写成：</p>
+<script type="math/tex; mode=display">
+\Pr(D=1\mid E)
+=
+\Pr(Q=1\mid E)
+\Pr(F=1\mid Q,E)
+\Pr(D=1\mid F,Q,E).</script><p>在 candidate assignment 下，$\Pr(Q=1\mid E)$ 接近一；但历史 selected-cycle fill 只有 3.52%，当前栈复核也只有约 6%–7%。最后一项还可能小于一，因为跳过目标订单后，稍后的 baseline quote 仍会在相似价格成交，使两条 campaign 再次汇合。</p>
+<p>这解释了为何“99% episodes 能改变下一个动作”和“经济上 near-noop”可以同时为真。代码路径很活跃，处理对最终状态却很弱。任何用 quote-change count 代替 fill/path-change count 的报告都会高估 treatment strength。</p>
+<h3 id="4-2-Competing-risk-utility-为什么不能由两个边际概率拼成"><a href="#4-2-Competing-risk-utility-为什么不能由两个边际概率拼成" class="headerlink" title="4.2 Competing risk utility 为什么不能由两个边际概率拼成"></a>4.2 Competing risk utility 为什么不能由两个边际概率拼成</h3><p>repair-first 与 trend-through-first 共享一份 first-event survival。若分别训练两个二元模型，可能同时预测 repair 70%、trend 60%，概率和超过一。正确累计发生率满足：</p>
+<script type="math/tex; mode=display">
+S(t)+F_{repair}(t)+F_{trend}(t)+F_{censor}(t)=1.</script><p>更重要的是动作可能同时降低两种事件：skip 后既少了 trend-through fill，也少了可在回落中修复的 add。只报告“trend-through 下降”会忽略 repair 也下降。冻结联合效用要求方向一致，正是为了拒绝这种单指标 cherry-pick。</p>
+<h3 id="4-3-一条-quote-没成交，仍可能改变什么；又通常不改变什么"><a href="#4-3-一条-quote-没成交，仍可能改变什么；又通常不改变什么" class="headerlink" title="4.3 一条 quote 没成交，仍可能改变什么；又通常不改变什么"></a>4.3 一条 quote 没成交，仍可能改变什么；又通常不改变什么</h3><p>若 baseline submit 后很快被下一次 requote 替换，而 candidate 本来就跳过，两个 arms 在下一周期可能提交同一价格、拥有不同短暂 queue age，却最终都不成交。严格 replay 仍会记录 order-count 与 queue path差异；terminal reward 则为零。</p>
+<p>少数情况下，baseline 未成交订单会改变 cancel/replace timing 或被部分成交，进而影响 inventory。研究不能把所有 no-fill 当绝对 no-op，但应报告从 submit 到 nonzero terminal 的逐层转换率。当前结果表明，任何这些间接路径都没有把 one-cycle action 提升到可识别的经济尺度。</p>
 <h2 id="5-OOF-结果：reward-小正点估计不能掩盖生命周期恶化"><a href="#5-OOF-结果：reward-小正点估计不能掩盖生命周期恶化" class="headerlink" title="5. OOF 结果：reward 小正点估计不能掩盖生命周期恶化"></a>5. OOF 结果：reward 小正点估计不能掩盖生命周期恶化</h2><p>policy OOF 有 766 行、28 个未来日，logged baseline/skip 为 393/373，policy ESS 391。浅层 honest tree 只选择 4 行 skip，candidate rate 0.52%。冻结行动预算要求 3%–40%，所以支持门已经失败。</p>
 <p>历史冻结结果如下；这些精确经济数值后来随 superseded denominator 撤回当前校准权限，但仍解释当时为何关闭：</p>
 <div class="table-container">
@@ -532,6 +548,12 @@ F_k(t)=P(T\le t,J=k),\qquad k\in\{repair,trend\}.</script><p>冻结的联合效�
 <h2 id="7-不确定性、关闭边界与可以学到什么"><a href="#7-不确定性、关闭边界与可以学到什么" class="headerlink" title="7. 不确定性、关闭边界与可以学到什么"></a>7. 不确定性、关闭边界与可以学到什么</h2><p>按 UTC day 聚类是必要的：同一天的 766 行共享趋势与波动，不能按独立 decision 做过窄标准误。candidate 只有 4 行还带来直接 positivity 问题；即便 interval 恰好为正，也缺少可执行频率。</p>
 <p>关闭的是“一个 eligible cycle 的 exact skip”。它没有证明较长 cooldown、价格惩罚、recovery event 或外部 fair center 无效。更重要的是，它暴露了 action leverage 的三层漏斗：eligible decision、提交订单、实际 fill。若第一层变化 99%、第三层只有 6%，经济效应自然需要很大才可检测。</p>
 <p>未来候选必须改变经济干预本身，并重新冻结面板。增加日期、换 denominator、把 3% 行动下限降到 0.5%、加深树或在 Validation 挑 threshold，都不能让已消费 family 重获独立性。</p>
+<h3 id="7-1-MDE-应怎样阅读"><a href="#7-1-MDE-应怎样阅读" class="headerlink" title="7.1 MDE 应怎样阅读"></a>7.1 MDE 应怎样阅读</h3><p>当前栈复核给出的约 0.014–0.015 USDC 平衡设计 MDE，是在冻结日间方差、样本与假定平衡分配下可分辨的效果尺度。它不是“动作至少值这么多”，也不是对真实 effect 的区间。</p>
+<p>当 fill leverage 只有约 6% 时，要达到这个每 assignment 效果，少数被改变 fills 必须具有很大的单位 terminal 差值。若这种大差值只来自一两天，日期聚类又会显著扩大区间。MDE 因此帮助判断设计是否值得运行，不为阴性结果提供后验借口。</p>
+<h3 id="7-2-为什么不能把-action-duration-偷偷延长"><a href="#7-2-为什么不能把-action-duration-偷偷延长" class="headerlink" title="7.2 为什么不能把 action duration 偷偷延长"></a>7.2 为什么不能把 action duration 偷偷延长</h3><p>把 one-cycle 改成三 cycles、85 秒或 until-flat，会提高 fill leverage，但也改变 treatment。持续 action 会影响更多 quote decisions、库存深度、repair 机会和 campaign duration；它的潜在结果不再是 $Y(skip\ one)$。</p>
+<p>F09 后续确实单独研究了更长 permission actions，并发现从低 leverage 到 participation shutdown 的另一端问题。它们共同勾勒 action frontier，却不能互相当作参数敏感性。每个 duration 都需要自己的 eligibility、assignment、activity gate 和 terminal outcome。</p>
+<h3 id="7-3-阴性结果留下了什么可复用设计知识"><a href="#7-3-阴性结果留下了什么可复用设计知识" class="headerlink" title="7.3 阴性结果留下了什么可复用设计知识"></a>7.3 阴性结果留下了什么可复用设计知识</h3><p>未来 action preflight 应在读取 PnL 前先算 selected-order fill rate、path-change rate 与按日期 MDE。若 upper bound 已低于最小 leverage 门，就应像本项目当前栈复核一样停止，不再消耗经济结果。</p>
+<p>这条规则节省的不是算力，而是统计独立性：避免在一个注定 near-noop 的 action 上读完 PnL，再根据偶然大路径改 action duration。先过 mechanics，才有资格打开 economics。</p>
 <h2 id="8-没有获得的权限"><a href="#8-没有获得的权限" class="headerlink" title="8. 没有获得的权限"></a>8. 没有获得的权限</h2><ul>
 <li>9 日 Validation 与 10 日 sealed holdout 未读；</li>
 <li>没有读取或传播任何原始 live state；</li>
@@ -539,6 +561,26 @@ F_k(t)=P(T\le t,J=k),\qquad k\in\{repair,trend\}.</script><p>冻结的联合效�
 <li>没有把当前机制复核当作同一动作的第二次 outcome trial；</li>
 <li>没有将旧 DR 精确值作为当前 baseline calibration 使用。</li>
 </ul>
+<h2 id="Action-dilution-可以在看收益前量化"><a href="#Action-dilution-可以在看收益前量化" class="headerlink" title="Action dilution 可以在看收益前量化"></a>Action dilution 可以在看收益前量化</h2><p>从eligible decisions到真正改变terminal path要经过多个漏斗：被随机分到skip、baseline原本会提交、订单会激活、在一个cycle内存在fill/touch机会、该机会又会影响inventory campaign。设每层retention为$r_j$，最终有效分叉率约为</p>
+<script type="math/tex; mode=display">
+r_{path}=\prod_j r_j.</script><p>即使每层有80%保留，五层后只剩32.8%。当$r_{path}$很低，百万decision rows也可能只有很少有信息的campaign。研究应先用outcome-blind mechanics估计可检测效应，再决定是否允许读PnL。</p>
+<h2 id="Skip-的反事实不是“没有这张单”这么简单"><a href="#Skip-的反事实不是“没有这张单”这么简单" class="headerlink" title="Skip 的反事实不是“没有这张单”这么简单"></a>Skip 的反事实不是“没有这张单”这么简单</h2><p>跳过一个cycle会让系统在下一decision重新观察market与inventory；baseline订单则可能仍active、部分fill或失去queue。若下一cycle自动恢复，treatment包含一段有限permission gap和一次queue reset。它既可能避免toxic fill，也可能错过reducing fill，还可能因重新排队降低后续成交。</p>
+<p>因此utility不能只写成$-P(bad\ fill)$。一个示意分解是</p>
+<script type="math/tex; mode=display">
+\Delta V_{skip}
+=
+-P(F_b)V_b
+-P(F_g)V_g
++\Delta V_{queue}
++\Delta V_{inventory\ path},</script><p>其中避免坏fill是正贡献、错过好fill是负贡献，后二项取决于re-entry和campaign。Competing-risk报告的意义就在于保留这些互斥路径，而不是把bad-fill概率单独当reward。</p>
+<h2 id="从-one-cycle-到-persistent-skip-是新治疗"><a href="#从-one-cycle-到-persistent-skip-是新治疗" class="headerlink" title="从 one-cycle 到 persistent skip 是新治疗"></a>从 one-cycle 到 persistent skip 是新治疗</h2><p>观察到one-cycle近似no-op，并不能在同一结果上把skip延长到flat或若干秒。持续时间改变action strength、市场状态覆盖与机会成本，是新的dynamic regime。它需要新的support preflight与activity gate；若删除近九成SELL adds，哪怕tail改善也不能假装是同一局部动作的放大版。</p>
+<p>这项研究最重要的结果是确定了一个下限：单cycle intervention在当前cadence和lifecycle下不足以稳定改变经济路径。后继要增加持续性时，必须明确付出的participation成本，并把它作为预注册门，而不是只追求更容易显著的强treatment。</p>
+<h2 id="MDE-为什么应在-outcome-前计算"><a href="#MDE-为什么应在-outcome-前计算" class="headerlink" title="MDE 为什么应在 outcome 前计算"></a>MDE 为什么应在 outcome 前计算</h2><p>给定有效campaign数、日级方差、assignment比例与action leverage，可以估计研究对业务最小效应的分辨率。若95% interval必然宽于可接受收益，即使点估计略正也不值得开启outcome。</p>
+<p>MDE不是失败后说“样本不够”的借口；它应写进preflight。action dilution使有效样本远少于eligible rows，必须按真正path-diverged units和day clusters估计。</p>
+<h2 id="Shadow-mechanics-与经济实验的分工"><a href="#Shadow-mechanics-与经济实验的分工" class="headerlink" title="Shadow mechanics 与经济实验的分工"></a>Shadow mechanics 与经济实验的分工</h2><p>shadow可以验证skip signal、permission duration、quote suppression和fallback，不应把未执行订单的counterfactual fill当真实经济。正式value需要randomized replay或可识别OPE，把baseline与skip完整路径都生成。</p>
+<p>若shadow显示几乎没有baseline order会在一个cycle内成交，动作在看outcome前就可判弱；这正是mechanics stop节省统计机会的意义。</p>
+<h2 id="阴性-one-cycle-仍能校准系统响应"><a href="#阴性-one-cycle-仍能校准系统响应" class="headerlink" title="阴性 one-cycle 仍能校准系统响应"></a>阴性 one-cycle 仍能校准系统响应</h2><p>它测出了从permission change到quote/order/fill的实际传导率，为任何更强duration候选提供action-leverage先验。后继需要明确增加多少持续性才能进入可辨识区间，同时设retention下限防止过强。</p>
+<p>这类工程知识不能被写成收益支持，却能让下一项研究不再从任意秒数开始搜索。</p>
 <h2 id="9-公共证据"><a href="#9-公共证据" class="headerlink" title="9. 公共证据"></a>9. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/sell_add_repair_trend_skip_causal_v4_v1_20260718.md"><code>sell_add_repair_trend_skip_causal_v4_v1_20260718.md</code></a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/cooldown_release_one_cycle_mechanics_reaudit_v1_development_20260730.md"><code>cooldown_release_one_cycle_mechanics_reaudit_v1_development_20260730.md</code></a></li>

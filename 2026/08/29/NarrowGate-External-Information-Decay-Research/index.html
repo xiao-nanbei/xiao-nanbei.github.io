@@ -27,13 +27,14 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：外部增量在 1 秒边界最强，1–7 秒通过 simultaneous lower bound“外部市场比本地先动”不是一个没有时间尺度的命题。NarrowGate 先做过 1&#x2F;3&#x2F;5 秒的历史 granularity audit：在保守的一整个 bucket 可见性延迟下，3 秒 direction 是当时唯一在">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/external-information-decay-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f04-external-signal-to-action-clock.svg">
 <meta property="article:published_time" content="2026-08-29T13:02:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T13:02:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
-<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="机器学习">
+<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="跨市场">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/external-information-decay-kline.svg">
@@ -333,7 +334,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          5.5k 字
+          8.6k 字
         
       </span>
     
@@ -345,7 +346,7 @@
         
         
           <!-- compatible with older versions-->
-          46 分钟
+          72 分钟
         
       </span>
     
@@ -560,6 +561,33 @@ LCB_h=\bar\Delta_h-q_{0.95}\left(\max_j|\bar\Delta_j^*-\bar\Delta_j|\right).</sc
 <p>关闭：继续从同一 Development curve 重新挑 2 秒、3 秒或任意 lookback；把历史“3 秒自然最佳”当现行结论；把旧 10 秒 bundle 当当前生产模型说明。</p>
 <p>未关闭：亚秒 receive-time decay、side-specific maker fill quality、动态 event-time kernels，以及任何经济 action estimand。</p>
 <p>没有获得：Test/late 读取、Validation promotion、cancel、widen、re-center、quote replacement、shadow 或 live authority。prediction qualification 也不能跨层继承为 action permission。</p>
+<h2 id="深入推导：为什么必须对整条-horizon-曲线同时推断"><a href="#深入推导：为什么必须对整条-horizon-曲线同时推断" class="headerlink" title="深入推导：为什么必须对整条 horizon 曲线同时推断"></a>深入推导：为什么必须对整条 horizon 曲线同时推断</h2><p>若分别对 18 个 horizons 计算 95% interval，再挑点估计最大者，family-wise false positive 会远高于 5%。研究使用 day-cluster bootstrap 的 max-absolute statistic，本质上在每次重采样中保留整条曲线的共同波动：</p>
+<script type="math/tex; mode=display">
+q_{.95}=Q_{.95}\left(\max_h|\bar\Delta_h^*-\bar\Delta_h|\right),\qquad
+LCB_h=\bar\Delta_h-q_{.95}.</script><p>这样 1–7 秒 lower bounds 同时为正，含义比“七个单独 p-values 显著”更强；8 秒以后跨零，也不能写成增量精确等于零，只能说 simultaneous evidence 不足。</p>
+<p><img src="/images/narrowgate/f04-external-signal-to-action-clock.svg" srcset="/img/loading.gif" lazyload alt="外部信息从创新、衰减到动作价值的完整时钟"></p>
+<p><em>图 2：decay curve 位于 prediction 层；source innovation 到 feature-ready 的延迟会消耗可用 horizon，action 还需额外跨过订单与库存路径。</em></p>
+<h2 id="信息半衰期与系统延迟如何配对"><a href="#信息半衰期与系统延迟如何配对" class="headerlink" title="信息半衰期与系统延迟如何配对"></a>信息半衰期与系统延迟如何配对</h2><p>假设外部增量的经验衰减可近似为 $g(h)=g<em>0e^{-h/\tau}$。post-peak half-gain horizon $h</em>{1/2}$ 满足 $g(h<em>{1/2})=g_0/2$，所以 $\tau=h</em>{1/2}/\ln2$。但这只是 target horizon 上的统计衰减，不是端到端可交易寿命。</p>
+<p>从外部撮合到本地动作至少经历 source publish、网络 receive、bucket close、feature compute、decision cadence、order submit 与 exchange ACK。若总延迟为 $L$，真正剩余的信息窗口更接近 $h-L$。1 秒 horizon 在 archive 上最强，可能同时意味着：信号确实很快；当前 1 秒 bucket 已位于分辨率边界；任何额外处理延迟都会吃掉大部分增量。</p>
+<p>因此下一步不是把 1 秒标签直接接入撤单，而是先测 receive-time decay 和 decision-time common support。若 $L$ 的高分位接近 1 秒，prediction candidate 可能在 live 不可执行；若 $L$ 只有几十毫秒，也仍需动作实验判断 queue reset 与库存反馈。</p>
+<h2 id="如何阅读-1-秒胜出而不把边界当峰值"><a href="#如何阅读-1-秒胜出而不把边界当峰值" class="headerlink" title="如何阅读 1 秒胜出而不把边界当峰值"></a>如何阅读 1 秒胜出而不把边界当峰值</h2><p>网格从 1 秒开始，所以 1 秒是左边界 winner。研究没有观察 100ms、250ms 或 500ms；真实峰值可能更短，也可能在 1 秒附近形成平台。统计上只能说：在冻结的 $1..18s$ 支持内，1 秒 simultaneous LCB 最大，并在 bootstrap 中最常成为 leader。</p>
+<p>这一区分很重要。若把边界 winner 写成自然常数，工程团队会围绕“正好 1 秒”设计 TTL 和 cadence；正确做法是把它当作亚秒/receive-time successor 的方向性证据。旧 3 秒 winner 被完整曲线推翻，也说明 horizon 选择对候选网格敏感。</p>
+<h2 id="同时置信带为什么比逐-horizon-星号更重要"><a href="#同时置信带为什么比逐-horizon-星号更重要" class="headerlink" title="同时置信带为什么比逐 horizon 星号更重要"></a>同时置信带为什么比逐 horizon 星号更重要</h2><p>18个horizons共享同一批起点和重叠未来窗口，误差高度相关。逐点95% interval只控制每个$h$单独犯错的概率；在看完18个点后挑最远仍为正的那个，会显著提高family-wise false positive。研究真正想声明的是“从1秒到某个连续边界都存在增量”，所以需要对整条曲线的最小下界进行同时推断。</p>
+<p>设$\Delta(h)$为M1相对M0的score improvement，可以用按日block bootstrap在每次重采样中计算全部$h$，再用最大标准化偏差构造simultaneous band。通过条件近似为</p>
+<script type="math/tex; mode=display">
+\min_{h\in\mathcal H_0}LB^{sim}(h)>0.</script><p>当前1–7秒通过说明这段集合的下界共同为正；8秒以后未通过不等于真实效应恰好在7.000秒消失，只说明现有分辨率和不确定性无法支持更长声明。</p>
+<h2 id="可用信息寿命要扣除整条系统延迟"><a href="#可用信息寿命要扣除整条系统延迟" class="headerlink" title="可用信息寿命要扣除整条系统延迟"></a>可用信息寿命要扣除整条系统延迟</h2><p>预测horizon从source event开始计时，但策略实际利用信号还需经历transport、parent aggregation、feature update、decision scheduling、order submit与exchange ACK。若总延迟为$L$，订单真正享受的剩余预测窗口最多约为$h-L$；当$L\ge h$时，再强的历史关系也没有可执行空间。</p>
+<p>延迟也不是一个常数。可以分解为</p>
+<script type="math/tex; mode=display">
+L=L_{feed}+L_{aggregate}+L_{feature}+L_{decision}+L_{submit}+L_{ack}.</script><p>不同venue与事件类型的尾部可能远高于中位数。因此把“1秒边界最强”解释成系统应在1秒内动作，还需要用高分位latency而不是平均值，并确认feature-ready时钟没有把parent child提前暴露。</p>
+<h2 id="Decay-curve-对后继实验的具体约束"><a href="#Decay-curve-对后继实验的具体约束" class="headerlink" title="Decay curve 对后继实验的具体约束"></a>Decay curve 对后继实验的具体约束</h2><p>第一，外部signal若只能在5秒后ready，就不该引用1–3秒prediction pass。第二，holding或order TTL若超过7秒，超出部分不能假设增量继续存在。第三，若策略每10秒才decision一次，随机到达的信号平均等待接近5秒，很多短寿命信息在下一次决策前已经衰减。</p>
+<p>这些约束不直接给出widen/recenter/skip动作，却能淘汰时间上不可能的设计。一个后继应先画source→ready→decision→ACK时间线，再选择与剩余信息寿命匹配的action；否则它测试的是陈旧信号，而不是本研究识别的外部增量。</p>
+<h2 id="Decay-curve-是-signal-与-target-dynamics-的卷积"><a href="#Decay-curve-是-signal-与-target-dynamics-的卷积" class="headerlink" title="Decay curve 是 signal 与 target dynamics 的卷积"></a>Decay curve 是 signal 与 target dynamics 的卷积</h2><p>观察到的$\Delta(h)$不一定等于一条单指数信息衰减。它混合外部冲击强度、本地吸收速度、feature aggregation与label horizon。不同事件类型的快慢成分叠加后，曲线可能先升后降或出现平台。</p>
+<p>因此“半衰期”若由拟合$Ae^{-h/\tau}$得到，只是描述性摘要；除非模型fit和residual diagnostics支持，不能把$\tau$当物理常数。当前最稳健陈述是1–7秒simultaneous lower bound为正、1秒边界最强，而不是声称真实峰值精确位于1秒。</p>
+<h2 id="Horizon-rows-的重叠怎样影响不确定性"><a href="#Horizon-rows-的重叠怎样影响不确定性" class="headerlink" title="Horizon rows 的重叠怎样影响不确定性"></a>Horizon rows 的重叠怎样影响不确定性</h2><p>同一event起点贡献1–18秒全部labels，相邻起点的future windows也重叠。row-level IID标准误会把一段价格趋势重复计为大量独立证据。按UTC day或足够长time block重采样，才能保留共同shock与曲线内相关。</p>
+<p>若日期很少，simultaneous band仍可能不稳定；应报告positive-day rate、最大单日贡献和leave-one-day-out边界。一个horizon只有删掉某天才通过，说明transport弱，而不是可以把那天叫异常后排除。</p>
+<h2 id="从-decay-到系统-SLO"><a href="#从-decay-到系统-SLO" class="headerlink" title="从 decay 到系统 SLO"></a>从 decay 到系统 SLO</h2><p>信息寿命可反推工程预算：feed、feature、decision与submit各层的高分位延迟之和必须明显低于有支持的horizon。若7秒是最远共同正下界，系统不能把7秒全部花在处理上；还要留给订单激活与市场分离。</p>
+<p>SLO应监控端到端ready-to-ACK与source-to-ready，而不是只看本机函数耗时。性能优化只有在缩短最主要延迟分量并保持事件语义时才可能增加可用信息；把parent child提前暴露虽然“更快”，却是因果错误。</p>
 <h2 id="9-公共证据"><a href="#9-公共证据" class="headerlink" title="9. 公共证据"></a>9. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f04_external_market_alpha/docs/external_information_decay_v1_development_20260727.md">External Information Decay v1 Development Result</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f04_external_market_alpha/docs/external_venue_model_granularity_20260713.md">External Venue Model Granularity Audit</a></li>
@@ -603,9 +631,9 @@ LCB_h=\bar\Delta_h-q_{0.95}\left(\max_j|\bar\Delta_j^*-\bar\Delta_j|\right).</sc
       
         <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
       
-        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
-      
         <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
         <a href="/tags/%E8%B7%A8%E5%B8%82%E5%9C%BA/" class="print-no-link">#跨市场</a>
       

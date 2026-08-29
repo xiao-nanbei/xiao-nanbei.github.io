@@ -27,14 +27,15 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：这项研究校准的是订单生命周期概率，不是撤单动作价值一个 maker order 激活以后，不会只面对“十秒内成交或不成交”这一种二元结局。它可能先部分成交、继续保留剩余数量；可能收到撤单请求却仍在交易所风险集中；可能被拒绝撤单后重新回到 active；也可能最终被完整成交、收到 cancel ACK，或以其它受支">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/active-order-lifecycle-cif-state-machine.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f07-active-order-competing-risks-path.svg">
 <meta property="article:published_time" content="2026-08-28T16:00:00.000Z">
 <meta property="article:modified_time" content="2026-08-28T16:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
+<meta property="article:tag" content="生存分析">
 <meta property="article:tag" content="机器学习">
 <meta property="article:tag" content="回测">
-<meta property="article:tag" content="生存分析">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/active-order-lifecycle-cif-state-machine.svg">
   
@@ -333,7 +334,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          11k 字
+          13k 字
         
       </span>
     
@@ -345,7 +346,7 @@
         
         
           <!-- compatible with older versions-->
-          92 分钟
+          107 分钟
         
       </span>
     
@@ -408,6 +409,23 @@
 <p>CANCEL_PENDING 表示撤单请求已经成为策略可见事实，但 cancel ACK 尚未成为可见的交易所终局。这个阶段仍属于 fill-risk：订单在请求与 ACK 之间可能被成交。把 request timestamp 当作 terminal 会系统性漏掉 request/ACK race，并让高延迟区间看起来异常安全。</p>
 <p>cancel reject 也不是终局。它把生命周期送回 ACTIVE 或 PARTIALLY_FILLED，继续使用同一个订单语义上的风险阶段。cancel ACK 才以 cause cancel_ack 终止当前风险集。full fill 使 remaining quantity 归零，并使用独立冻结的上游分类把它路由为 favorable_fill 或 adverse_fill。其它受支持的交易所终局进入 other_terminal；kernel 不得从 PnL、reward 或 markout 反推这些 cause。</p>
 <p>partial fill 的边界尤其重要。若把它当作 complete fill，后续剩余量风险会被丢弃；若完全忽略它，模型又会把不同 remaining quantity、不同 queue state 的时间拼成一条虚假的长 spell。正确做法是“order 未终止，risk spell 重启”，同时保证 last edge 不倒退、不重复。</p>
+<p><img src="/images/narrowgate/f07-active-order-competing-risks-path.svg" srcset="/img/loading.gif" lazyload alt="Active order 的阶段转移与互斥终局"></p>
+<p><em>图 2：partial fill 是 remaining-quantity spell 的重置点，不是整个订单终局；cancel request 只是进入 pending phase，ACK 才吸收。四种终局 cause 共享同一 survival mass。</em></p>
+<h3 id="2-1-为什么以-remaining-quantity-为风险单位"><a href="#2-1-为什么以-remaining-quantity-为风险单位" class="headerlink" title="2.1 为什么以 remaining quantity 为风险单位"></a>2.1 为什么以 remaining quantity 为风险单位</h3><p>假设订单初始数量为 0.003 BTC，在同一价格先成交 0.001，剩余 0.002。部分成交前后的风险不应简单相加：queue ahead 已改变，剩余量变小，订单 age 与行情状态也更新。若继续沿用旧 spell 的 survival，模型相当于假设“0.003 BTC 从未成交”；若把订单直接终止，又丢掉 0.002 BTC 的真实暴露。</p>
+<p>因此在 partial fill edge 上，旧 spell 以事件边界结束，新 spell 从同一 causal edge、更新后的 remaining quantity 开始：</p>
+<script type="math/tex; mode=display">
+q_{r}^{new}=q_r^{old}-q_{fill},</script><script type="math/tex; mode=display">
+S_{new}(0)=1,\qquad F_{k,new}(0)=0.</script><p>订单 identity 保留，spell identity 变化。这使概率解释保持明确：每条 CIF 都针对“当前这份剩余量从本段开始以后”的终局风险，而不是一个会在部分成交后语义漂移的对象。</p>
+<h3 id="2-2-同毫秒事件为什么不能凭业务直觉排序"><a href="#2-2-同毫秒事件为什么不能凭业务直觉排序" class="headerlink" title="2.2 同毫秒事件为什么不能凭业务直觉排序"></a>2.2 同毫秒事件为什么不能凭业务直觉排序</h3><p>若 trade、book delta 与 cancel ACK 都标在同一毫秒，但数据没有共享 sequence key，至少存在两种物理路径：trade 先发生则订单可能成交；ACK 先发生则订单已退出风险集。选择其中一个顺序会直接改变 terminal cause。</p>
+<p>研究对这种路径 fail closed 或 censor，而不是用“通常 ACK 比 trade 晚”补序。原因不是过度保守，而是不可识别：</p>
+<script type="math/tex; mode=display">
+\Pr(J=fill\mid\text{timestamp tie})</script><p>无法仅由相同的毫秒标签恢复。把 ties 全部排成对策略有利的顺序，会同时污染 label、hazard 与未来动作评估。</p>
+<h3 id="2-3-CIF-与普通分类概率的本质区别"><a href="#2-3-CIF-与普通分类概率的本质区别" class="headerlink" title="2.3 CIF 与普通分类概率的本质区别"></a>2.3 CIF 与普通分类概率的本质区别</h3><p>一个 5 秒 fill classifier 往往把 5 秒前 cancel 的订单标为 no-fill。它没有区分“仍存活但没成交”与“早已因 ACK 离开风险集”，于是不同 cancel policy 会改变负样本组成。CIF 则把 cancel ACK 作为竞争终局：</p>
+<script type="math/tex; mode=display">
+F_{fill}(5s)
+=
+\int_0^{5s}S(u^-)\,dH_{fill}(u),</script><p>其中 $S(u)$ 已经扣除了此前所有终局 cause 的概率质量。这使 fill probability 的含义绑定在明确 policy/lifecycle 下，而不是一个混合的“5 秒内有没有 1”。</p>
+<p>也正因为绑定 policy，CIF 不能无条件迁移到另一个 cancel cadence。更快撤单会改变 $H<em>{cancelACK}$，继而机械改变 $F</em>{fill}$；这不是模型 drift，而是 estimand 已变。</p>
 <h2 id="3-100ms-联合-hazard：四个-cause-只能共享一份事件概率"><a href="#3-100ms-联合-hazard：四个-cause-只能共享一份事件概率" class="headerlink" title="3. 100ms 联合 hazard：四个 cause 只能共享一份事件概率"></a>3. 100ms 联合 hazard：四个 cause 只能共享一份事件概率</h2><p>设当前 100ms interval 上四个 cause-specific rates 为 $\lambda_{k,t}\ge0$，网格宽度为 $\Delta=0.1$ 秒，并令</p>
 <script type="math/tex; mode=display">
 \Lambda_t=\sum_{j=1}^{4}\lambda_{j,t}.</script><p>当 $\Lambda_t&gt;0$ 时，第 $k$ 个 cause 在该 interval 的条件事件概率为</p>
@@ -521,6 +539,12 @@ F_k(u\mid x_{0:u})
 <p>两个主要 terminal counts 之和恰好等于 eligible spells：</p>
 <script type="math/tex; mode=display">
 636{,}186+29{,}645=665{,}831.</script><p>这项等式是 accounting cross-check：eligible denominator 没有未解释的 terminal residue，20,393 个 native-queue censors 也没有混入 event causes。event、journal row 与 spell 本来就是不同层级的计数单位；要求是各自语义冻结、identity 可追踪并逐事件锁步，而不是强迫它们相等。120 个 CIF cells 则统一服从同一套守恒、单调与 checkpoint 合同。</p>
+<h3 id="9-1-为什么机器精度-parity-既重要又有限"><a href="#9-1-为什么机器精度-parity-既重要又有限" class="headerlink" title="9.1 为什么机器精度 parity 既重要又有限"></a>9.1 为什么机器精度 parity 既重要又有限</h3><p>$1.11\times10^{-16}$ 的 CIF 最大差说明，在相同 event stream 和 rates 下，两种语言实现的是同一数值递推。它排除了线上 C++ 与研究 Python 因浮点更新、edge cursor 或 checkpoint state 不同而逐步分叉。</p>
+<p>但 parity 是条件命题：</p>
+<script type="math/tex; mode=display">
+\text{same inputs}+\text{same contract}\Rightarrow\text{same outputs}.</script><p>它不证明输入事件真实无漏损，不证明 rates 校准，不证明 terminal cause 的经济定义最佳，也不证明预测能改善动作。把 parity 说成“模型有效”会把实现一致性偷换成统计或经济有效性。</p>
+<h3 id="9-2-一个读者可以手工核对的三步不变量"><a href="#9-2-一个读者可以手工核对的三步不变量" class="headerlink" title="9.2 一个读者可以手工核对的三步不变量"></a>9.2 一个读者可以手工核对的三步不变量</h3><p>即使没有私有 lifecycle rows，公开聚合仍允许三步 sanity check。第一，eligible spells 应由互斥终局完全解释；这里 636,186 加 29,645 恰好为 665,831。第二，queue-censored 20,393 应在 eligible denominator 之外，不能被记成 no-event。第三，每个 edge 与最终 cell 都必须满足 $S+\sum_kF_k=1$，且 terminal 后没有 hazard reuse。</p>
+<p>这三步分别约束计数身份、admission 身份与概率身份。它们不会验证经济结论，却能防止最常见的“unknown 当 zero、censor 当 terminal、四个概率各算各的”错误。</p>
 <h2 id="10-这份证据支持什么"><a href="#10-这份证据支持什么" class="headerlink" title="10. 这份证据支持什么"></a>10. 这份证据支持什么</h2><p>它支持四件具体的事：冻结 adapter 能正确路由 risk phases、terminal causes 与 censors；100ms update 在长期累计后仍保持联合概率守恒；strict-native admission 会明确隔离证据不完整的 spells；同一 rate stream 的 Python/C++ inference 达到机器精度级 parity，checkpoint 恢复不改变后续状态。换言之，未来独立 transport 与 calibration audit 已有可执行 kernel，而不是只有数学说明。</p>
 <h2 id="11-这份证据没有支持什么"><a href="#11-这份证据没有支持什么" class="headerlink" title="11. 这份证据没有支持什么"></a>11. 这份证据没有支持什么</h2><p>Mechanics completion 不等于 prediction calibration completion。公开聚合没有证明新 prospective epoch 的 CIF 仍与观察频率一致，也没有跨 epoch drift audit；40 日历史 exposure 不能替代新的可见性合同。</p>
 <p>Mechanics completion 更不等于 action value。CIF 不知道 CANCEL 丢失多少 favorable queue option、何时 re-entry 或怎样改变库存 campaign。KEEP/CANCEL 仍需要独立 treatment、共同 eligibility、完整路径与经济 estimand；adverse CIF 高不能直接翻译成“应该撤”。</p>
@@ -597,11 +621,11 @@ F_k(u\mid x_{0:u})
       
         <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
       
+        <a href="/tags/%E7%94%9F%E5%AD%98%E5%88%86%E6%9E%90/" class="print-no-link">#生存分析</a>
+      
         <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
       
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
-      
-        <a href="/tags/%E7%94%9F%E5%AD%98%E5%88%86%E6%9E%90/" class="print-no-link">#生存分析</a>
       
     </div>
   
@@ -658,9 +682,9 @@ F_k(u\mid x_{0:u})
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Active-Order-Queue-Value-Keep-Cancel-Research/" title="NarrowGate Active-Order Queue Value：KEEP 还是 CANCEL/RE-ENTER">
+                      <a href="/2026/08/29/NarrowGate-Research-Project-Map/" title="NarrowGate 研究地图：十个研究族、48 个真实项目与证据状态">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">NarrowGate Active-Order Queue Value：KEEP 还是 CANCEL/RE-ENTER</span>
+                        <span class="hidden-mobile">NarrowGate 研究地图：十个研究族、48 个真实项目与证据状态</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -668,8 +692,8 @@ F_k(u\mid x_{0:u})
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Buy-Q90-Causal-Clock-Lifecycle-Research/" title="NarrowGate BUY q90：Cancel ACK 之后为什么不能继续打分">
-                        <span class="hidden-mobile">NarrowGate BUY q90：Cancel ACK 之后为什么不能继续打分</span>
+                      <a href="/2026/08/29/NarrowGate-Active-Order-Queue-Value-Keep-Cancel-Research/" title="NarrowGate Active-Order Queue Value：KEEP 还是 CANCEL/RE-ENTER">
+                        <span class="hidden-mobile">NarrowGate Active-Order Queue Value：KEEP 还是 CANCEL/RE-ENTER</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

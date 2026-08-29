@@ -27,13 +27,14 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：q90 ON 确实扩大了 SELL-minus-BUY fill imbalance，但“更多 SHORT、更多多层 SHORT、终局更差”都没有成立BUY q90 的组合机制假说很直观：若系统优先取消高风险 BUY active orders，就会减少增加 LONG 或修复 SHORT 的 BUY fills；">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/buy-q90-portfolio-attribution.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f10-attribution-evidence-ladder.svg">
 <meta property="article:published_time" content="2026-08-28T16:00:00.000Z">
 <meta property="article:modified_time" content="2026-08-28T16:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
-<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="组合归因">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/buy-q90-portfolio-attribution.svg">
@@ -333,7 +334,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          2k 字
+          2.1k 字
         
       </span>
     
@@ -345,7 +346,7 @@
         
         
           <!-- compatible with older versions-->
-          17 分钟
+          18 分钟
         
       </span>
     
@@ -398,6 +399,8 @@
 <p>本文只讨论公开 Development aggregation，不构成交易建议。图中的 K 线、订单与库存分叉是合成机制示意。</p>
 <p><img src="/images/narrowgate/buy-q90-portfolio-attribution.svg" srcset="/img/loading.gif" lazyload alt="BUY q90 ON/OFF 到 exposure imbalance、SHORT campaign 与 terminal MTM 的机制链"></p>
 <p><em>图 1：q90 ON 与 OFF 共享市场路径，在 BUY cancel 处开始分叉。只有 SELL-minus-BUY exposure imbalance 获得正下界；后续 SHORT share、multi-level share 与 terminal harm 均未通过。</em></p>
+<p><img src="/images/narrowgate/f10-attribution-evidence-ladder.svg" srcset="/img/loading.gif" lazyload alt="F10 从观测归因到动作价值的证据阶梯"></p>
+<p><em>图 2：Portfolio attribution 已经做了 paired full-path action replay，但固定 scorer 与 Development 重叠、运行强度又未 transport，所以它仍停留在机制归因，而不是独立样本外策略验证。</em></p>
 <h2 id="1-为什么这是-portfolio-path，不是单笔-cancel-study"><a href="#1-为什么这是-portfolio-path，不是单笔-cancel-study" class="headerlink" title="1. 为什么这是 portfolio path，不是单笔 cancel study"></a>1. 为什么这是 portfolio path，不是单笔 cancel study</h2><p>一笔 BUY cancel 的局部结果可能只是少一次 fill，但 inventory system 具有反馈。少一个 BUY exposure fill 可能减少 LONG，也可能减少对已有 SHORT 的 repair；随后 quote role、cooldown、inventory guard 与 campaign identity都会改变。不能只看被取消订单的 10 秒 markout，就推断组合终局。</p>
 <p>因此 q90 portfolio attribution 把 action 视为一条 full-path policy toggle：同一历史 market path、latency path、P3、queue calibration、cooldown、loss guard、size 与 inventory limit 下，只改变 q90 ON/OFF。arms 一旦 inventory path 分叉，campaigns 独立重建，不再强行匹配同名 campaign。</p>
 <p>主 contrast 为 paired daily effect：</p>
@@ -421,6 +424,17 @@ q90\ ON
 \rightarrow
 \Delta terminal\ MTM<0.</script><p>冻结 contract 要求所有核心 links 同时通过。中间一段显著不能补偿后一段失败；terminal harm 又需要 upper bound 低于零，而不是点估计为负。</p>
 <p>这种 joint gate 防止研究者只挑一个符合故事的 mediator。一个 policy 可以改变 side activity，却被后续 reducing fills、campaign repair 或其它 feedback 抵消。</p>
+<h3 id="2-1-为什么一条链不能靠单个显著-link-成立"><a href="#2-1-为什么一条链不能靠单个显著-link-成立" class="headerlink" title="2.1 为什么一条链不能靠单个显著 link 成立"></a>2.1 为什么一条链不能靠单个显著 link 成立</h3><p>将各段写成粗略的局部变化率，terminal effect可以示意为</p>
+<script type="math/tex; mode=display">
+\frac{\partial MTM_T}{\partial q90}
+=
+\frac{\partial BUYfill}{\partial q90}
+\frac{\partial imbalance}{\partial BUYfill}
+\frac{\partial SHORT}{\partial imbalance}
+\frac{\partial multiSHORT}{\partial SHORT}
+\frac{\partial MTM_T}{\partial multiSHORT}
++R,</script><p>其中 $R$ 汇总 SELL fills、reducing fills、quote recenter、cooldown、campaign duration和terminal mark等其它路径。这个式子不是用来做线性估计，而是提醒我们：第一段方向正确，不代表乘积的后续项非零，更不代表 $R$ 不会抵消。当前证据只较清楚地支持 imbalance这一段；SHORT share、multi-level与terminal三段均未闭合。</p>
+<p>因此“q90减少 BUY，所以一定造成 SHORT”是把 flow当成stock。库存是历史成交的累积状态，BUY既可能增加 LONG，也可能减少 SHORT；SELL同理。只有把初始库存、fill role与campaign边界一并纳入，才能知道 side flow改变最终落在哪个库存状态。</p>
 <h2 id="3-数据、arms-与-causal-boundary"><a href="#3-数据、arms-与-causal-boundary" class="headerlink" title="3. 数据、arms 与 causal boundary"></a>3. 数据、arms 与 causal boundary</h2><p>primary panel 是 24 个 Grade-A Development 日，16 个 Grade-B 日只作 sensitivity。两个 arms 使用同一 native snapshot/delta book、strict exact-price queue、individual execution trades 与 deterministic latency path。initial state、model、P3、queue calibration、cooldowns、size 和 risk limits 绑定不变。</p>
 <p>q90 scorer 的 Python/C++ kernel 在使用点 fail-fast lockstep，但完整 tick replay以 Python 为 authority。这个边界不能写成“全 C++ replay parity”。</p>
 <p>action 后 campaign path 可以不同，因此 outcome 在每个 arm 内独立 accounting。最大 absolute campaign accounting error 为 $3.69\times10^{-13}$ USDC，native event denominator在所有日、两 arms间一致。</p>
@@ -495,6 +509,8 @@ q90\ ON
 </div>
 <p>BUY suppression 的 upper endpoint 仅为 $+0.00173$，但冻结 gate 是单侧不跨零；“差一点”仍是失败。即使把这一 link宽松视为方向性成立，SHORT share 与 multi-level share 也没有正下界，terminal harm 更没有出现。</p>
 <p>这说明 exposure-flow imbalance 与 campaign-stock distribution 不是同一 estimand。fills/hour 的 side difference 可以改变，但 campaign birth、repair 与 flatting 的 nonlinear path可能吸收它。</p>
+<h3 id="4-1-一个数值路径说明为何-flow-增加不等于-SHORT-增加"><a href="#4-1-一个数值路径说明为何-flow-增加不等于-SHORT-增加" class="headerlink" title="4.1 一个数值路径说明为何 flow 增加不等于 SHORT 增加"></a>4.1 一个数值路径说明为何 flow 增加不等于 SHORT 增加</h3><p>假设某日 OFF arm 有 100 次 BUY exposure fills与100次 SELL exposure fills，side imbalance为0。ON arm因 q90少了3次BUY fills、同时多了2次SELL fills，imbalance于是增加5；但若被取消的3次 BUY里，两次原本会增加 LONG、只有一次会修复 SHORT，而新增的2次 SELL都发生在已有 LONG 上并把库存推回 flat，那么最终 SHORT campaign数未必增加。</p>
+<p>反过来，即使 SHORT campaign share增加，multi-level share也可能下降：policy可能制造更多很浅、很快被修复的单层 SHORT，同时减少少数长期累积的深层 SHORT。terminal MTM又同时取决于进场价、持有时间、repair价格与窗口末端标记。因此表中的五列不是同一事实的重复指标，而是同一机制故事中不可互换的状态转移。</p>
 <h2 id="5-Grade-B-与-all-40-为什么不能救-primary"><a href="#5-Grade-B-与-all-40-为什么不能救-primary" class="headerlink" title="5. Grade B 与 all-40 为什么不能救 primary"></a>5. Grade B 与 all-40 为什么不能救 primary</h2><p>Grade B 的 terminal-MTM effect 是 $+0.70306$ USDC/day，区间 $[+0.22705,+1.22846]$。multi-level SHORT share 增加，但 overall SHORT-share 与 exposure-imbalance intervals 都跨零。它的机制方向与 Grade A并不完整一致。</p>
 <p>全 40 日 descriptive effect 为 $+0.33804$ USDC/day，区间 $[+0.04751,+0.65533]$。aggregate terminal MTM 从 OFF 的 $-192.16901$ 变为 ON 的 $-178.64726$ USDC。</p>
 <p>这些正值不授权 q90。Grade B 预注册为 sensitivity，不能覆盖 Grade-A joint mechanism failure；all-40 pooled result又混合 evidence roles。固定模型与 panel 重叠，且 action intensity 未 transport。把描述性少亏写成“q90 profitable”会越过三道边界。</p>
@@ -510,6 +526,11 @@ q90\ ON
 <p>959.963 小时对应约 0.109 requests/hour。独立冻结的 120 小时 operational diagnostic 有 2,501 requests，约 20.84/hour。若 counters 语义可比，差异约 190 倍。</p>
 <p>这意味着 portfolio result 的外推对象非常有限。历史 replay回答“低频 fixed q90 在这 40 日是否形成完整 bias chain”；它没有回答高强度 operational behavior 的 causal effect。差异可能来自 market regime、receive/feature clock、runtime state 或 denominator semantics，不能只归因给模型阈值。</p>
 <p>后续 causal-clock audit确实发现 mixed-clock defect，但不能倒写本篇 economics：clock repair 改变 treatment denominator，需要新的完整 action identity，而不是重加权旧 105 cancels。</p>
+<h3 id="6-1-为什么不能把-105-次动作简单乘以-190"><a href="#6-1-为什么不能把-105-次动作简单乘以-190" class="headerlink" title="6.1 为什么不能把 105 次动作简单乘以 190"></a>6.1 为什么不能把 105 次动作简单乘以 190</h3><p>若 policy effect对动作次数线性，或许可以把低频 replay的每次 cancel value外推到高频环境。但 active-order策略具有明显干扰：一次 cancel改变后续是否有订单、queue位置、fill、inventory与下一次可触发机会。第 $k$ 次 action的反事实依赖前 $k-1$ 次 action，因而</p>
+<script type="math/tex; mode=display">
+Y(A_1,\ldots,A_K)
+\ne
+Y(0)+\sum_{k=1}^{K}\{Y(A_k)-Y(0)\}.</script><p>190倍差异也可能不是同一个 denominator上的频率差，而是 valid-risk-set、role定义、terminal hold或receive clock不同。最安全的结论不是“真实效应会放大190倍”，而是旧 40 日 paired effect不具备目标强度 transport。新的研究必须先复现目标 action-rate与role mix，再重新跑完整路径。</p>
 <h2 id="7-为什么-terminal-MTM-是必要但仍不充分的终点"><a href="#7-为什么-terminal-MTM-是必要但仍不充分的终点" class="headerlink" title="7. 为什么 terminal MTM 是必要但仍不充分的终点"></a>7. 为什么 terminal MTM 是必要但仍不充分的终点</h2><p>terminal MTM 保留 cash、remaining inventory 与 terminal mark：</p>
 <script type="math/tex; mode=display">
 E_T=cash_T+inventory_T\cdot mark_T-fees_T.</script><p>它避免把未关闭库存当作 realized zero，也避免只用 30 秒 markout判断长期 harm。但一个 daily terminal delta仍可被少数日和 window endpoint影响，因此研究同时报告 closed campaign value、multi-level SHORT value、share 与 day-cluster interval。</p>
@@ -517,10 +538,18 @@ E_T=cash_T+inventory_T\cdot mark_T-fees_T.</script><p>它避免把未关闭库�
 <h2 id="8-研究支持了什么、没有支持什么"><a href="#8-研究支持了什么、没有支持什么" class="headerlink" title="8. 研究支持了什么、没有支持什么"></a>8. 研究支持了什么、没有支持什么</h2><p>支持：q90 ON 在冻结 Grade-A replay上增加 SELL-minus-BUY exposure-fill imbalance；full-path mechanics 具有 nonzero treatment；paired day accounting 与 native event denominator闭合。</p>
 <p>不支持：BUY exposure suppression 的冻结单侧门、更多 SHORT campaigns、更多 multi-level SHORT campaigns、terminal harm、当前 operational policy effect。</p>
 <p>不能从本结果推导的决策包括：keep q90、remove q90、rollback、调 threshold、把 BUY filtering 改成 SELL filtering，或将 all-40 descriptive少亏当成 promotion evidence。</p>
+<h3 id="8-1-四种容易混淆的结论"><a href="#8-1-四种容易混淆的结论" class="headerlink" title="8.1 四种容易混淆的结论"></a>8.1 四种容易混淆的结论</h3><p>“没有证明有害”不是“证明无害”；区间跨零意味着当前分辨率下两种方向都仍可能。“全40日少亏”不是“Grade-A primary通过”；后者是预注册证据角色，前者混入 sensitivity days。“imbalance通过”不是“完整机制通过”；joint hypothesis要求链条闭合。“paired replay”也不是“独立OOS”；模型选择与Development overlap仍然存在。</p>
+<p>把这四层分开，文章得到的是一张机制地图：q90确实能够改变订单流方向，但在当前低强度路径上，这个改变没有稳定地传到 campaign结构或terminal harm。这个结果有研究价值，因为它排除了最简单的单调故事，同时告诉下一轮实验应把精力放在action transport与库存状态转移，而不是重复证明 scorer能发cancel。</p>
 <h2 id="9-最终状态与权限"><a href="#9-最终状态与权限" class="headerlink" title="9. 最终状态与权限"></a>9. 最终状态与权限</h2><p>最终结论为</p>
 <script type="math/tex; mode=display">
 \text{q90 portfolio bias mechanism not supported on Development}.</script><p>Validation 与 sealed holdout 未读；action、live、automatic rollback 与 baseline update 均未授权。项目也没有解释另一个历史 240 小时窗口中的 SHORT concentration，因为 frozen replay action rate未 transport。</p>
 <p>若未来重开，必须先完成 causal clock/lifecycle mechanics 和 exact action-rate transport，再冻结新的 ON/OFF economics；不能用修复后的 clock 去修改已完成的旧 report。</p>
+<h2 id="中介链报告不是自动的因果-mediation"><a href="#中介链报告不是自动的因果-mediation" class="headerlink" title="中介链报告不是自动的因果 mediation"></a>中介链报告不是自动的因果 mediation</h2><p>fills imbalance、SHORT share与multi-level share都是action后的变量，彼此还受共同market path与inventory feedback影响。分别对每个link做paired effect可以检查机制故事是否方向闭合，却不能把乘积解释为自然间接效应；那需要更强的sequential ignorability或专门随机化。</p>
+<p>本篇用joint gates的目的更克制：若连必要方向都未出现，完整单调故事就不受支持；某一link通过则只说明action确实改变该层。它没有声称0.43057的imbalance增量“造成”多少terminal MTM。</p>
+<h2 id="Target-rate-transport-应怎样重做"><a href="#Target-rate-transport-应怎样重做" class="headerlink" title="Target-rate transport 应怎样重做"></a>Target-rate transport 应怎样重做</h2><p>在clock/lifecycle修复后，先冻结目标运行环境的valid-risk fraction、cancel/hour、role mix、score quantiles与re-entry率区间；历史replay必须在不看economics时达到这些mechanics gates。若达不到，应解释source/regime差异或构造明确的随机ized dose，而不是缩放旧结果。</p>
+<p>通过后再以q90 OFF、目标强度ON和必要的低强度diagnostic组成paired full path。这样可以估计dose非线性，而不是假设105 actions与高频环境成比例。</p>
+<h2 id="Initial-state-与终局窗口"><a href="#Initial-state-与终局窗口" class="headerlink" title="Initial state 与终局窗口"></a>Initial state 与终局窗口</h2><p>daily fresh start可能低估连续live中继承的SHORT、active orders和cooldown；restart-aware replay又需要可信initial artifact。两种身份应分开报告。terminal MTM必须对未平库存mark-to-market，不能通过窗口末端强平制造收益。</p>
+<p>因此新结果即使通过，也只对其initial-state contract有效；不能把fresh-start40日直接解释为当前连续运行效应。</p>
 <h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/buy_q90_portfolio_path_attribution_v1_development_20260731.md">BUY q90 Portfolio Path Attribution v1</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/README.md">F10 Live/Replay Attribution README</a></li>
@@ -564,9 +593,9 @@ E_T=cash_T+inventory_T\cdot mark_T-fees_T.</script><p>它避免把未关闭库�
       
         <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
       
-        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
-      
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
         <a href="/tags/%E7%BB%84%E5%90%88%E5%BD%92%E5%9B%A0/" class="print-no-link">#组合归因</a>
       

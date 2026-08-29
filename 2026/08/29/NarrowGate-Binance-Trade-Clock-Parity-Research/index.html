@@ -27,6 +27,7 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：撮合真相与策略可见信息不是同一条时间线Binance Vision individual trades 适合回答“撮合按什么顺序发生、队列消耗了多少”；live USD-M aggTrade 才回答“策略在什么时刻看见一组主动成交”。把 child exchange timestamp 直接当成策略特征时钟，会让">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/binance-trade-clock-parity.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f08-trade-parent-child-dual-clock.svg">
 <meta property="article:published_time" content="2026-08-29T12:02:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:02:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -332,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          4.6k 字
+          6.1k 字
         
       </span>
     
@@ -344,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          39 分钟
+          52 分钟
         
       </span>
     
@@ -393,6 +394,8 @@
 <p>这项研究建立了 child-to-parent 映射、recorder source contract 和 historical/live parity。结果是：recorder-v2 的身份、方向、价格、时间和 parent-prefix gate 通过；但 finalized historical parent 可能在 live slice 之后继续吸收同价同方向成交，所以 <code>q/f/l</code> 的 exact payload replay 不能仅凭日后下载的 finalized parent 宣称完成。</p>
 <p><img src="/images/narrowgate/binance-trade-clock-parity.svg" srcset="/img/loading.gif" lazyload alt="Individual trade、aggregate parent 与策略可见时钟"></p>
 <p><em>图 1：冻结机制图。上轴是 exchange-time child truth；下轴是 parent <code>aggTrade</code> 的 receive/feature-ready 时钟。队列可在上轴消费，policy feature 只能在下轴更新。</em></p>
+<p><img src="/images/narrowgate/f08-trade-parent-child-dual-clock.svg" srcset="/img/loading.gif" lazyload alt="Parent/child 身份与 live 可见性的拆分"></p>
+<p><em>图 2：结果层按 child 保留精确撮合顺序；输入层按 finalized-at-the-time parent 更新。历史最终对象比 live slice 更完整，不代表新增 children 在早先决策时已经可见。</em></p>
 <h2 id="1-研究问题"><a href="#1-研究问题" class="headerlink" title="1. 研究问题"></a>1. 研究问题</h2><p>目标不是寻找 alpha，而是回答一个数据身份问题：历史 individual trades、历史 finalized <code>aggTrades</code> 与 live <code>aggTrade</code> slice 能否构成一个不会制造未来信息的重放合同。</p>
 <p>若一个 parent 覆盖 child IDs $[f,l]$，基本守恒条件为：</p>
 <script type="math/tex; mode=display">
@@ -437,6 +440,23 @@ t_{ready}=\max(t_{parent\ transact},\max_i t_{child,i})+L_{receive}+L_{feature}.
 </table>
 </div>
 <p>只有三者在各自角色内对齐，replay 才能同时保留 outcome truth 与信息可用性。</p>
+<h3 id="3-1-一个-parent-是“随时间增长的对象”还是“一条不可变记录”"><a href="#3-1-一个-parent-是“随时间增长的对象”还是“一条不可变记录”" class="headerlink" title="3.1 一个 parent 是“随时间增长的对象”还是“一条不可变记录”"></a>3.1 一个 parent 是“随时间增长的对象”还是“一条不可变记录”</h3><p>日后下载的 aggregate row 看起来像不可变记录，但 live 观察到的是一个时间切片。更安全的抽象是累积过程：</p>
+<script type="math/tex; mode=display">
+P_p(u)=\{i:f_p\le id_i\le l_p(u),\ T_i^{ex}\le u\},</script><p>其中 $l_p(u)$ 与累计 quantity 随 parent 尚在延伸而增长。历史 finalized row 是 $P_p(\infty)$；live recorder 在 receive 时保存的是 $P_p(u_r)$。两者 aggregate ID 相同，不代表 payload at time 相同。</p>
+<p>如果 replay 只有 finalized row，却把全量 $Q_p(\infty)$ 放到第一个 child 的时刻，就同时犯了两次提前：提前知道 parent 已经结束，也提前知道之后才发生的 quantity。prefix-compatible 合同只能证明 live slice 属于最终 parent，不能证明最终 payload 可用于 slice 时刻。</p>
+<h3 id="3-2-Queue-truth-与-information-truth-为什么可以使用不同-source"><a href="#3-2-Queue-truth-与-information-truth-为什么可以使用不同-source" class="headerlink" title="3.2 Queue truth 与 information truth 为什么可以使用不同 source"></a>3.2 Queue truth 与 information truth 为什么可以使用不同 source</h3><p>撮合模拟需要知道 aggressive quantity 如何按价位消耗公开队列，因此 child 的 exchange order、price、qty 是 outcome mechanics。策略特征则只能使用当时收到的消息。两套 source 并用并不矛盾，只要身份边界明确：</p>
+<script type="math/tex; mode=display">
+\mathcal H_t^{market\ outcome}
+\supseteq
+\mathcal H_t^{policy\ visible}.</script><p>回放引擎可以用更完整的 outcome history 决定“订单实际上是否会成交”，却必须向策略屏蔽尚未 ready 的部分。就像离线仿真知道未来 K 线，也不能把未来收盘价喂给当时模型。双时钟 adapter 的职责正是维持这条信息防火墙。</p>
+<h3 id="3-3-Internal-gap-为什么只影响-strict-queue，不必删除整天"><a href="#3-3-Internal-gap-为什么只影响-strict-queue，不必删除整天" class="headerlink" title="3.3 Internal gap 为什么只影响 strict queue，不必删除整天"></a>3.3 Internal gap 为什么只影响 strict queue，不必删除整天</h3><p>44 个 aggregate ranges 有 child ID gap。若缺失 child 的价位或数量未知，严格 queue consumption 不能证明完整；但 parent lineage、已观察 price/side 和保守 ready time 仍可能有效。正确做法是按用途降级：</p>
+<ul>
+<li>strict queue outcome：该 range fail closed；</li>
+<li>aggregate policy clock：若 source contract 完整，仍可保留 parent ready；</li>
+<li>child-derived run/interarrival：unsupported；</li>
+<li>其它无关时段：不必整日删除。</li>
+</ul>
+<p>这种字段级 authority 比“数据日好/坏”的单布尔更精确，也避免把少量 gap 变成幸存者偏差：只保留完全平静的日期，可能反而改变市场分布。</p>
 <h2 id="4-研究演进"><a href="#4-研究演进" class="headerlink" title="4. 研究演进"></a>4. 研究演进</h2><p>recorder-v1 没保存 <code>f/l</code>、typed schema 和 source contract，因此即使基础字段全部匹配，正式状态仍 blocked。v2 增加 aggregate ID、<code>f/l</code>、range-derived child count、<code>q/nq</code> 与 source identity。随后发现一条 live slice 的 parent 在 95ms 内继续扩展：live 当时看到的是 child 974..978，REST 最终 parent 延伸到 982。这不是 recorder bug，而是实时切片与日后 finalized database object 的语义差异。</p>
 <p>这条 lineage 里有 recorder 版本、mapping audit 和 parity result，但只有一个研究项目：建立可执行 trade-information contract。v1 的字段缺失是采集契约不足；v2 的 source contract 是同一项目的修正；parent extension 是研究发现。将它们拆成三篇会把一次合同收敛写成三次实验。</p>
 <h2 id="5-结果与不确定性"><a href="#5-结果与不确定性" class="headerlink" title="5. 结果与不确定性"></a>5. 结果与不确定性</h2><p>recorder/live source contract 通过；2,421/2,421 aggregate IDs matched；exact quantity 和完整 <code>f..l</code> 为 99.958695%，其中 1 个 parent 发生扩展。</p>
@@ -480,8 +500,20 @@ t_{ready}=\max(t_{parent\ transact},\max_i t_{child,i})+L_{receive}+L_{feature}.
 </table>
 </div>
 <p>不能把 99.958695% 四舍五入成“100% 因果复刻”。一个错误发生率很低的字段，只要进入 policy threshold 或 queue count，就可能在关键订单上改变动作。fail-closed 的意义正是让罕见身份差异保留为显式 unsupported mass。</p>
+<h3 id="5-1-延迟分布不是一个可随手相加的常数"><a href="#5-1-延迟分布不是一个可随手相加的常数" class="headerlink" title="5.1 延迟分布不是一个可随手相加的常数"></a>5.1 延迟分布不是一个可随手相加的常数</h3><p>trade-to-receive p50 约 109.64ms、p95 约 1,293.12ms，包含 parent 聚合等待、venue publish、网络、host scheduling 与 recorder path。feature latency p50 约 106.32us、p95 约 3.808ms，则是收到消息后的本地处理部分。端到端 ready lag 是联合分布：</p>
+<script type="math/tex; mode=display">
+L_{ready}=L_{aggregate/publish/network/receive}+L_{feature}.</script><p>不能用两个边际 p95 相加宣称端到端 p95，也不能把第一个量命名为“网络延迟”。若未来 replay 需要采样 latency，应保存 paired observations 或保守 joint profile；随机独立拼接两个边际会改变尾部。</p>
+<p>这对 100ms 特征尤其关键：当 receive lag p95 超过 1 秒时，exchange-time 的 100ms burst 可能在策略时钟里晚很多个决策窗口到达。一个只在零延迟回放有效的亚秒特征，必须单独过 transport gate。</p>
+<h3 id="5-2-五层-parity，不应压成一个-pass-fail"><a href="#5-2-五层-parity，不应压成一个-pass-fail" class="headerlink" title="5.2 五层 parity，不应压成一个 pass/fail"></a>5.2 五层 parity，不应压成一个 pass/fail</h3><p>这项研究实际区分：source contract、aggregate ID mapping、price/side/first-child parity、prefix compatibility、exact payload completeness。前四层通过而第五层 99.958695%，所以结论既不是“全部失败”，也不是“完全一致”。</p>
+<p>层级化报告能告诉下游哪些字段可用。仅依赖 parent direction 的模型可能继续研究；依赖 finalized quantity 或 child count 的模型必须做 extension sensitivity；依赖块内 interarrival 的模型则根本没有 live feature identity。用单一 <code>parity=true</code> 会把不同权限混在一起。</p>
 <h2 id="6-哪些特征仍然可以研究"><a href="#6-哪些特征仍然可以研究" class="headerlink" title="6. 哪些特征仍然可以研究"></a>6. 哪些特征仍然可以研究</h2><p>同窗 receive tape 支持 aggregate message count、quantity、quote notional、side、price path、aggregate-ready interarrival 与 side run。由 <code>f..l</code> 推导的 child count 也只能整块在 parent ready 时揭示。</p>
 <p>仅有 finalized parent 时，可以安全研究 parent price/side 与保守 ready lower bound；quantity、notional 和 child count 必须做 source-extension sensitivity。individual block 内 child interarrival、receive order 和 child feature-ready 永久 diagnostic-only，因为 aggregate message从未公开这些顺序。</p>
+<h3 id="6-1-一个安全字段的最小-lineage"><a href="#6-1-一个安全字段的最小-lineage" class="headerlink" title="6.1 一个安全字段的最小 lineage"></a>6.1 一个安全字段的最小 lineage</h3><p>任何可执行 trade feature 至少应能沿以下链条追踪：source stream → aggregate ID → receive timestamp → parser completion → feature state version → quote decision。形式上，每个决策读取的最新状态版本 $v$ 应满足：</p>
+<script type="math/tex; mode=display">
+t_{ready}(v)\le t_{decision}<t_{ready}(v+1).</script><p>这条不等式让审计者能回答“为什么这次决策看见了 P9，却没有看见 P10”。只保存最后一个滚动 imbalance 数值而不保存版本/ready lineage，无法排除重放时按 exchange timestamp 回填。</p>
+<p>对历史 finalized-only 数据，安全默认不是把 latency 设为零，而是声明字段级 uncertainty：price/side 可能有 conservative lower-bound clock，quantity/count 做 prefix sensitivity，无法恢复的块内属性直接禁用。研究精度会降低，但不会制造不存在的信息。</p>
+<h3 id="6-2-如何把这个合同带进后续模型"><a href="#6-2-如何把这个合同带进后续模型" class="headerlink" title="6.2 如何把这个合同带进后续模型"></a>6.2 如何把这个合同带进后续模型</h3><p>训练 artifact 应绑定 feature source mode，例如 <code>live_slice_exact</code>、<code>finalized_parent_prefix</code> 或 <code>child_exchange_diagnostic</code>。同一模型不能在训练时用最后一种、回放时用第二种、live 时用第一种，却仍宣称 input ABI 相同。</p>
+<p>运输检查也不只比较字段名和均值。它应比较 ready-lag 分布、parent extension rate、missing/gap rate、窗口非零率、极值与 threshold crossing rate。因为真正决定策略的不是总体 correlation，而是有多少 quote decisions 在不同 source mode 下跨过动作阈值。</p>
 <h2 id="7-支持与关闭边界"><a href="#7-支持与关闭边界" class="headerlink" title="7. 支持与关闭边界"></a>7. 支持与关闭边界</h2><p>支持：individual trades 作为 exchange-time matching/queue truth；live <code>aggTrade</code> 作为 policy information clock；parent-prefix compatible 的历史映射。</p>
 <p>不支持：用 finalized parent quantity、child count 或块内 interarrival 精确重建 live 可见 payload。缺同窗 receive tape 时，这些字段必须 fail closed 或作为 source-extension sensitivity。</p>
 <p>可复核输出还必须同时记录 source-contract version、aggregate ID、<code>f/l</code>、是否存在 internal gap、parent 是否只满足 prefix、ready lower bound 的构造方式与 latency profile identity。缺任一字段都不能只凭“价格和方向相同”升级为 exact parity。这样第三方才能区分数据映射正确、实时切片正确和历史 finalized payload 完全相等这三个层级。</p>
@@ -491,6 +523,18 @@ t_{ready}=\max(t_{parent\ transact},\max_i t_{child,i})+L_{receive}+L_{feature}.
 <li>没有把 trade-to-receive lag 当成纯网络延迟的权限；</li>
 <li>没有用 individual child timestamp 提前更新 policy feature 的权限。</li>
 </ul>
+<h2 id="一条-parent-从开始到-ready-的状态机"><a href="#一条-parent-从开始到-ready-的状态机" class="headerlink" title="一条 parent 从开始到 ready 的状态机"></a>一条 parent 从开始到 ready 的状态机</h2><p>把parent aggregate视作随child到达增长的对象时，可以定义<code>OPEN → EXTENDED → FINAL/READY</code>。第一个child只创建parent identity，后续children扩展数量、价格范围与结束时间；只有收到能够证明parent边界的消息后，策略feature才原子看见最终aggregate。若source协议不能确定结束，ready规则必须明确依赖provider message，而不能根据“暂时没有下一个child”猜测。</p>
+<p>同一child还要在两个账本出现：exchange ledger按原始撮合时间用于queue depletion；information ledger按parent ready time用于flow feature。二者通过稳定event identity关联，数量守恒必须满足</p>
+<script type="math/tex; mode=display">
+Q_P=\sum_{i\in children(P)}Q_i,</script><p>但不能因此在两个ledger都消费queue。任何duplicate、missing child或parent extension after ready都应触发明确invalid reason。</p>
+<h2 id="延迟分解怎样进入-transport"><a href="#延迟分解怎样进入-transport" class="headerlink" title="延迟分解怎样进入 transport"></a>延迟分解怎样进入 transport</h2><p>source-to-ready延迟不是简单的网络ping。它包含交易所撮合到公共聚合、feed传输、本地decode、parent completion、feature计算与调度。不同field可能在不同阶段ready：price/quantity child用于exchange replay，聚合tempo直到parent complete才用于policy。</p>
+<p>因此transport应比较条件分布$P(L\mid venue,event\ type,burst\ size,regime)$，而不是只比一个median。若高burst parent恰好延迟更长，使用统一常数会选择性提前暴露最有预测性的事件。尾部分位数、missing parent rate、same-ms ambiguity与fallback fraction都应进入gate。</p>
+<h2 id="Parity-contract-如何防止“相同输出、不同原因”"><a href="#Parity-contract-如何防止“相同输出、不同原因”" class="headerlink" title="Parity contract 如何防止“相同输出、不同原因”"></a>Parity contract 如何防止“相同输出、不同原因”</h2><p>只比较最终feature数值可能漏掉路径差异：Python先发布partial parent再修正，C++等到final一次发布，最终sum相同但中间decision不同。完整parity应逐层比较event identity、ready timestamp、atomic batch membership、feature state hash、evaluation rows与action。</p>
+<p>同样，零mismatch只证明两runtime实现同一合同。若合同错误地用source time当ready time，它们会一致地look ahead。本项目最重要的产物不是一串延迟统计，而是把“撮合事实”和“策略可见事实”变成两套不可混用的类型；后继模型只能消费标注了lineage和ready semantics的字段。</p>
+<h2 id="Field-level-authority-为什么优于整行-authority"><a href="#Field-level-authority-为什么优于整行-authority" class="headerlink" title="Field-level authority 为什么优于整行 authority"></a>Field-level authority 为什么优于整行 authority</h2><p>同一记录里的exchange price/quantity可能适合matching，parent completion与receive metadata适合policy visibility，local ingest time只适合诊断。若规定“整行都以provider time为准”，会把不同事实错误绑在同一clock上。</p>
+<p>schema应给关键字段标注authority和ready semantics。下游builder按用途选择，而不是复制一个万能timestamp。缺少某字段authority时只让依赖它的strict feature invalid；不必删除整天其它可识别对象。</p>
+<h2 id="Atomic-ready-batch-的-deterministic-ordering"><a href="#Atomic-ready-batch-的-deterministic-ordering" class="headerlink" title="Atomic ready batch 的 deterministic ordering"></a>Atomic ready batch 的 deterministic ordering</h2><p>多个parents或book updates同一ready timestamp到达时，策略应先原子更新可见state，再在固定phase评估，避免文件顺序导致Python/C++分叉。若exchange内部同毫秒先后不可识别，matching truth保持stable input order或标ambiguity，不能借policy batch重排。</p>
+<p>这套规则让“同一毫秒”从隐含偶然变成显式合同。后继q90项目正是通过exact-ready batch和ambiguity propagation取得event lockstep。</p>
 <h2 id="9-公共证据"><a href="#9-公共证据" class="headerlink" title="9. 公共证据"></a>9. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f08_side_taker_lifecycle/docs/binance_trade_lifecycle_contract_v2_20260723.md"><code>binance_trade_lifecycle_contract_v2_20260723.md</code></a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f08_side_taker_lifecycle/docs/side_specific_taker_flow_research_20260723.md"><code>side_specific_taker_flow_research_20260723.md</code></a></li>

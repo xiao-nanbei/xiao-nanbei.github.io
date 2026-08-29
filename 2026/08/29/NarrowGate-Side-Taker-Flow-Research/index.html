@@ -27,13 +27,14 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：方向不是一个可以随手乘以正负号的变量这项研究问的是：BUY maker 与 SELL maker 在订单决策附近面对的主动成交流是否具有相同分布，以及短时对手方 taker flow 是否与随后成交质量稳定相关。 对 maker 而言，BUY 单的直接对手是 aggressive SELL taker，SELL">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/side-taker-flow-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f08-trade-parent-child-dual-clock.svg">
 <meta property="article:published_time" content="2026-08-29T12:00:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
-<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/side-taker-flow-kline.svg">
   
@@ -332,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          4.9k 字
+          3k 字
         
       </span>
     
@@ -344,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          41 分钟
+          26 分钟
         
       </span>
     
@@ -414,6 +415,22 @@ M_h(s)=s\frac{m_{t+h}-p_{fill}}{p_{fill}}10^4,
 <p>历史 individual trades 只有 exchange timestamp。它们可以用于撮合与 outcome truth，却不能假装成 live 策略即时看到的消息。正式策略特征必须等待 individual child 所属的 parent <code>aggTrade</code> 到达并完成 feature 处理：</p>
 <script type="math/tex; mode=display">
 t_{policy}=t_{parent\ feature\ ready}\geq\max_i t_{child,i}.</script><p>因此当前面板明确标为 <code>exchange_time_diagnostic</code>、<code>policy_eligible=false</code>。逐笔块内 interarrival 和 receive order 永久属于 diagnostic-only。</p>
+<p><img src="/images/narrowgate/f08-trade-parent-child-dual-clock.svg" srcset="/img/loading.gif" lazyload alt="Individual trade、aggregate parent 与策略可见双时钟"></p>
+<p><em>图 2：child trades 决定 exchange outcome，但 parent 在最后一笔 child 完成并经过传输、特征处理后才可进入 policy state。若在第一笔 child 时就使用 parent 总量，就提前读取了其余 children。</em></p>
+<h3 id="3-1-为什么“100ms-flow”有两种完全不同的定义"><a href="#3-1-为什么“100ms-flow”有两种完全不同的定义" class="headerlink" title="3.1 为什么“100ms flow”有两种完全不同的定义"></a>3.1 为什么“100ms flow”有两种完全不同的定义</h3><p>exchange-time 诊断可以把所有 child trades 按物理成交时刻落入 $[t-100ms,t)$，得到：</p>
+<script type="math/tex; mode=display">
+Q^{ex}_{100}(t)=\sum_i q_i\mathbf 1\{t-100ms\le T_i^{ex}<t\}.</script><p>策略可执行版本必须按 parent 的 ready time 入桶：</p>
+<script type="math/tex; mode=display">
+Q^{ready}_{100}(t)=\sum_p Q_p\mathbf 1\{t-100ms\le T_p^{ready}<t\}.</script><p>二者既不要求数值相同，也不要求最强窗口相同。parent 可能跨过多个 100ms 边界，且发布延迟具有长尾；同一串 child 在 exchange-time 图上表现为连续 burst，在 policy-time 图上可能是稍后一次跳变。研究若用前者发现信号、用后者执行，就发生了 feature identity transport，而不是无缝上线。</p>
+<h3 id="3-2-Side-mapping-不是符号翻转，而是条件分布变化"><a href="#3-2-Side-mapping-不是符号翻转，而是条件分布变化" class="headerlink" title="3.2 Side mapping 不是符号翻转，而是条件分布变化"></a>3.2 Side mapping 不是符号翻转，而是条件分布变化</h3><p>若只构造全市场 signed flow $I=(Q_B-Q_S)/(Q_B+Q_S)$，再给 SELL maker 乘以 $-1$，数学上虽然得到相反符号，却默认 BUY 与 SELL 的响应函数镜像：</p>
+<script type="math/tex; mode=display">
+\mathbb E[M_h\mid I,x,side=BUY]
+=
+\mathbb E[M_h\mid -I,x',side=SELL].</script><p>这个假设通常过强。两侧的 inventory role、spread distance、queue depth、baseline guard 与市场趋势分布都可能不同。正确做法是先统一“counterparty pressure 越高越危险”的语义，再分侧估计、分侧校准和分侧报告支持；不能因为字段公式互为相反数，就把样本也当成可交换。</p>
+<p>一个典型的 Simpson 问题是：BUY fills 多出现在下跌日、SELL fills 多出现在上涨日。池化后 flow 与 markout 相关，可能只是 side/day composition；在 side 与 date 内部，关系接近零。宽 denominator 的复核正是在检验这类 composition shift，而不是单纯“增加样本量”。</p>
+<h3 id="3-3-Burst、run-与-sweep-各自描述什么"><a href="#3-3-Burst、run-与-sweep-各自描述什么" class="headerlink" title="3.3 Burst、run 与 sweep 各自描述什么"></a>3.3 Burst、run 与 sweep 各自描述什么</h3><p>数量 imbalance 只看方向总量；arrival rate 看单位时间事件强度；same-side run 看方向持续性；sweep range 看同一主动流跨越多少价格；burst ratio 则比较短窗与长窗强度。它们不是同一个“成交强度”的重复字段。</p>
+<p>例如两个 100ms 窗口都包含 0.20 BTC aggressive SELL：窗口 A 是一笔 0.20 BTC、只在一个价位；窗口 B 是 20 笔各 0.01 BTC、连续扫过三档。总量相同，queue depletion 与信息含义可能完全不同。反过来，若这些 children 属于一个尚未 finalize 的 parent，live policy 在完成前又不能消费完整 run 或 sweep。</p>
+<p>因此任何后续模型都应先声明字段所依赖的 source identity：哪些只需 parent price/side/quantity，哪些依赖 child sequence，哪些在历史数据中只能诊断。没有这个表，模型特征名即使相同，也可能在 research 与 live 中表示不同随机变量。</p>
 <h2 id="4-研究演进"><a href="#4-研究演进" class="headerlink" title="4. 研究演进"></a>4. 研究演进</h2><p>第一阶段只问“分布是否对称”，并在 1,448 行 eligible-state 面板上做窗口比较。第二阶段把同一思路带到更宽的 order-value denominator，检验早期 BUY 100ms 线索是否延续。第三阶段才考虑 hazard；它后来因 event identity、risk set 与复现失败而关闭。这里的版本是证据演进，不是三个可独立宣传的策略。</p>
 <h2 id="5-结果与不确定性"><a href="#5-结果与不确定性" class="headerlink" title="5. 结果与不确定性"></a>5. 结果与不确定性</h2><p>在初始面板中，100ms BUY/SELL taker quote ratio 为 0.549，same-side max-run ratio 为 0.730；两项日聚类区间都支持亚秒方向差异。到 1s 和 5s，区间普遍穿过零，说明差异主要集中在短时尺度。</p>
 <p>actual BUY fills 中，100ms net counterparty pressure 的 high-minus-low maker-signed markout 约为 -0.086bps，12 个可估日的日 bootstrap 95% 区间为 $[-0.815,-0.040]$bps。其他 BUY 窗口和全部 SELL 窗口均没有排除零。</p>
@@ -462,6 +479,14 @@ t_{policy}=t_{parent\ feature\ ready}\geq\max_i t_{child,i}.</script><p>因此�
 <p>动作价值必须比较同一个 decision surface 上的潜在结果：</p>
 <script type="math/tex; mode=display">
 \Delta(x)=E[Y(\text{candidate})-Y(\text{baseline})\mid X=x],</script><p>并让两条路径分别重放 cancel、ACK、queue reset、fill、inventory 与 terminal。当前研究没有这个设计，所以最诚实的输出是 hypothesis，而不是 policy。</p>
+<h3 id="6-1-Fill-conditioned-association-的-collider-问题"><a href="#6-1-Fill-conditioned-association-的-collider-问题" class="headerlink" title="6.1 Fill-conditioned association 的 collider 问题"></a>6.1 Fill-conditioned association 的 collider 问题</h3><p>进入 actual-fill 子集本身由报价距离、queue ahead、未来 taker flow 和 baseline cancel policy共同决定。用因果图语言，$F$ 同时受 flow $X$ 与订单状态 $Q$ 影响；条件于 $F=1$ 后，原本弱相关的 $X$ 与 $Q$ 可能被人为关联。于是：</p>
+<script type="math/tex; mode=display">
+\mathbb E[M\mid X,F=1]</script><p>不等于同一 decision denominator 上改变 $X$ 或报价动作的效果。高 pressure bucket 更差，可能只是高 pressure 让本来排得更深、状态更脆弱的订单进入了成交样本。</p>
+<p>要减轻这个问题，下一步至少应在所有 baseline-eligible decisions 上保留 no-fill rows、activation 与 queue state，并用明确 lifecycle target。最终若研究 cancel/widen，还需要动作分配或同路径 counterfactual，而不是对 filled-only 分数加阈值。</p>
+<h3 id="6-2-原始线索为什么值得保留，却不能作为“失败后删除”"><a href="#6-2-原始线索为什么值得保留，却不能作为“失败后删除”" class="headerlink" title="6.2 原始线索为什么值得保留，却不能作为“失败后删除”"></a>6.2 原始线索为什么值得保留，却不能作为“失败后删除”</h3><p>初始 BUY 100ms 结果有清楚的方向与日期区间，它仍然是可审计的 hypothesis origin。宽 denominator 没有复现，意味着当前 identity 的 transport 失败，而不是早期数字从未发生。保留两者可以防止以后又在同一小分母上重复发现相同线索并误称为新证据。</p>
+<p>真正能重开的结果应同时满足：预先冻结 maker-side mapping；使用 parent-ready 特征；在未参与窗口选择的未来日期复现；相对于只含 campaign/order state 的 M0 有增量；并且有足够 top-risk support。之后最多获得 action-registration eligibility，仍不是动作通过。</p>
+<h3 id="6-3-读图时应把-K-线放在哪一层"><a href="#6-3-读图时应把-K-线放在哪一层" class="headerlink" title="6.3 读图时应把 K 线放在哪一层"></a>6.3 读图时应把 K 线放在哪一层</h3><p>K 线只是把 price path 压成可视窗口。红色长阴线附近 aggressive SELL flow 增强，既可能是信息型卖出导致下跌，也可能是下跌触发更多市价卖出；仅从同一窗口无法辨别方向。研究通过“只用决策前完成窗口、未来 markout 只作标签”阻止最直接的时间穿越，却没有创造外生冲击。</p>
+<p>所以图 1 的用途是解释 maker side 与流向，图 2 的用途是解释信息何时可见。两张图都不是“看到红 K 就撤 BUY”的策略图。一个可执行图还必须画出 baseline 与 candidate 两条订单/库存路径，并以 terminal value 收尾；本项目尚未到那一层。</p>
 <h3 id="为什么版本必须写进同一主文"><a href="#为什么版本必须写进同一主文" class="headerlink" title="为什么版本必须写进同一主文"></a>为什么版本必须写进同一主文</h3><p>窗口描述、maker-side mapping、宽 denominator 复核和 hazard gate 回答的是同一条研究链上的不同问题。只有输入状态、目标、面板和统计契约共同冻结后，才形成可以单独下结论的 research identity。一次字段修正、一次运行失败或一次图表更新都不是新项目。把这些文件拆成多篇，会让读者误以为发生了多次独立验证，实际上 Validation 与 holdout 从未打开。</p>
 <h2 id="7-关闭与支持边界"><a href="#7-关闭与支持边界" class="headerlink" title="7. 关闭与支持边界"></a>7. 关闭与支持边界</h2><p>这项研究支持三件事：maker side 必须按真实对手方映射；亚秒流可能比分秒级聚合更不对称；任何策略特征必须服从 parent <code>aggTrade</code> 的可见时钟。</p>
 <p>它不支持把一个窗口、一个相关系数或一个 fill-conditioned bucket 变成动作。初始信号也不能因“方向符合直觉”而跳过宽 denominator 复核。</p>
@@ -471,6 +496,20 @@ t_{policy}=t_{parent\ feature\ ready}\geq\max_i t_{child,i}.</script><p>因此�
 <li>没有 raw individual receive-time 的可执行特征权限；</li>
 <li>没有把 BUY 结论复制给 SELL 的权限。</li>
 </ul>
+<h2 id="从交易方向到-maker-side-的完整映射"><a href="#从交易方向到-maker-side-的完整映射" class="headerlink" title="从交易方向到 maker side 的完整映射"></a>从交易方向到 maker side 的完整映射</h2><p>aggressor BUY表示主动买方跨过spread、消耗ask；它直接冲击的是挂在ask上的maker SELL订单。aggressor SELL消耗bid，直接冲击maker BUY。若研究的是“同侧未来价格延续”，符号可能与订单受击side相反；若研究的是inventory role，又必须结合当前$q_t$判断该fill是在add exposure还是reduce inventory。</p>
+<p>因此一笔trade至少有三种side标签：taker aggressor side、resting maker side、inventory role。它们的映射为</p>
+<script type="math/tex; mode=display">
+maker\_side=-taker\_side,
+\qquad
+role=\operatorname{sign}(\Delta |q|),</script><p>第二个等式只在给定fill前库存后才能判断。把三个字段压成一个BUY/SELL，会让同一flow在不同文章里看似反号。一个可审计panel应同时保留原始aggressor flag、归一化maker side与pre-fill inventory。</p>
+<h2 id="Parent-child-聚合为何会制造假-burst"><a href="#Parent-child-聚合为何会制造假-burst" class="headerlink" title="Parent/child 聚合为何会制造假 burst"></a>Parent/child 聚合为何会制造假 burst</h2><p>公共aggTrade parent可能包含多个individual executions。若既保留parent quantity，又把所有child quantity相加，flow会重复计算；若只取parent最终记录并把ready time回填到第一个child，又会提前暴露尚未完成的aggregate。正确做法取决于用途：matching/queue使用individual child exchange sequence；策略flow feature可以在parent ready后原子发布聚合值。</p>
+<p>设parent $P$有children $i=1,\ldots,n$，则可见flow应在$t_{ready}(P)$一次增加$\sum_i q_i$，而不是在每个$t_i^{exchange}$逐个可见。对exchange truth则保留每个$t_i$的价格、数量与stable order。两条序列可以来自同一原始家族，却服务不同因果事实。</p>
+<h2 id="一个合法-action-successor-应怎样使用-flow"><a href="#一个合法-action-successor-应怎样使用-flow" class="headerlink" title="一个合法 action successor 应怎样使用 flow"></a>一个合法 action successor 应怎样使用 flow</h2><p>首先在未条件化fill的decision rows上评估flow对future touch、fill cause与markout的增量；随后按maker side与inventory role分层。只有某个state同时满足足够日期、非退化action overlap与稳定条件价值，才冻结局部动作如widen、cancel或keep。</p>
+<p>动作实验还必须在flow unavailable时回退baseline，不能把missing映射成零；burst/run/sweep thresholds必须在新outcomes前冻结。若只发现“高SELL flow后的BUY fills更差”，仍不能推出取消所有BUY，因为filled-only样本遗漏了被动作改变的未成交与repair路径。最终判断仍需要paired campaign terminal value。</p>
+<h2 id="Flow-normalization-与-price-impact-不是同一个对象"><a href="#Flow-normalization-与-price-impact-不是同一个对象" class="headerlink" title="Flow normalization 与 price impact 不是同一个对象"></a>Flow normalization 与 price impact 不是同一个对象</h2><p>raw signed quantity会随总体交易活跃度放大；除以总量得到imbalance又在低量bucket里极不稳定。可以同时保留signed BTC、signed notional、imbalance和event count，但每个字段有不同单位与missing规则。不能从中看哪个与outcome相关就事后选一个叫“flow”。</p>
+<p>flow与价格还存在机械同步：aggressive BUY通常在ask成交，本身就与短时上行同源。研究未来return时要确保feature window结束在label window开始前，并用本地price/volatility baseline判断外部或side信息的增量。否则模型只是重述当前价格已经动了。</p>
+<h2 id="负对照可以发现哪些时钟错误"><a href="#负对照可以发现哪些时钟错误" class="headerlink" title="负对照可以发现哪些时钟错误"></a>负对照可以发现哪些时钟错误</h2><p>将flow time整体向未来错移一个bucket不应改善causal score；使用尚未ready的parent-complete quantity若异常强，提示lookahead。随机打乱同日parent顺序应破坏短期关系而保留日级activity；若仍高分，模型可能只学日期regime。</p>
+<p>这些negative controls不能代替lineage audit，却能快速暴露聚合、side或clock实现错误。通过后仍只获得prediction资格，动作层必须另行验证。</p>
 <h2 id="9-公共证据"><a href="#9-公共证据" class="headerlink" title="9. 公共证据"></a>9. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f08_side_taker_lifecycle/docs/side_specific_taker_flow_research_20260723.md"><code>side_specific_taker_flow_research_20260723.md</code></a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f08_side_taker_lifecycle/docs/side_taker_hazard_m0_v1_20260723.md"><code>side_taker_hazard_m0_v1_20260723.md</code></a></li>
@@ -514,9 +553,9 @@ t_{policy}=t_{parent\ feature\ ready}\geq\max_i t_{child,i}.</script><p>因此�
       
         <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
       
-        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
-      
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
     </div>
   

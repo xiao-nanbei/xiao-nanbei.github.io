@@ -27,14 +27,15 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：预测排序存在，正式三日的 maker value 全面反向Causal-v9 在一个容易被忽略的失败之后诞生。v8 曾从 mutable trade_features workspace 读取 taker-tempo sidecars，其中 2026-07-04 至 07-11 的旧文件把 individual">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/causal-v9-taker-tempo-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f03-thirteen-head-evidence-pipeline.svg">
 <meta property="article:published_time" content="2026-08-29T12:39:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:39:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
-<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="机器学习">
 <meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/causal-v9-taker-tempo-kline.svg">
   
@@ -333,7 +334,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          5.2k 字
+          8.3k 字
         
       </span>
     
@@ -345,7 +346,7 @@
         
         
           <!-- compatible with older versions-->
-          44 分钟
+          69 分钟
         
       </span>
     
@@ -581,6 +582,38 @@ SELL maker &lt;- aggressive BUY taker</code></pre></div>
 <h2 id="9-关闭、支持与没有获得的权限"><a href="#9-关闭、支持与没有获得的权限" class="headerlink" title="9. 关闭、支持与没有获得的权限"></a>9. 关闭、支持与没有获得的权限</h2><p>支持：corrected taker-tempo 能产生有限 prediction ranking；ML path 确实改变 fills 与 inventory；same-input parity 在代表日成立。</p>
 <p>关闭：causal-v9 13-head bundle 作为 ML-OFF baseline replacement。v8 artifacts 永久 invalid，不可通过更名复活。</p>
 <p>没有获得：model promotion、deployment、queue retuning、action、Validation/holdout、shadow 或 live authority。后继若继续 13-head，需要新的 fixed-forward/action-value estimand，而不是继续优化相同 AUC。</p>
+<h2 id="深入推导：tempo-ranking-与-maker-动作之间隔着-treatment-effect"><a href="#深入推导：tempo-ranking-与-maker-动作之间隔着-treatment-effect" class="headerlink" title="深入推导：tempo ranking 与 maker 动作之间隔着 treatment effect"></a>深入推导：tempo ranking 与 maker 动作之间隔着 treatment effect</h2><p>Taker tempo 可以预测短时价格或 adverse fill 风险。以 BUY maker 为例，对手方是 aggressive SELL taker；更短 interarrival、更长同向 run 或更高 notional 可能对应更强向下压力。模型若能排序坏状态，说明：</p>
+<script type="math/tex; mode=display">
+E[Y_0\mid score\ high]<E[Y_0\mid score\ low],</script><p>其中 $Y_0$ 是 baseline 下的结果。但动作研究需要的是：</p>
+<script type="math/tex; mode=display">
+E[Y_1-Y_0\mid score\ high]>0,</script><p>这里 $Y_1$ 才是 widen、skip、cancel 等候选路径。第一式是 prognostic risk，第二式是 conditional treatment effect；它们可以一正一负。高风险状态中，撤掉 BUY 也可能错过最快的 reducing 或 repair 机会。</p>
+<p><img src="/images/narrowgate/f03-thirteen-head-evidence-pipeline.svg" srcset="/img/loading.gif" lazyload alt="十三头 prediction ranking 到 maker action 的完整证据链"></p>
+<p><em>图 2：tempo head 通过排序只到达 prediction gate；冻结报价 mapping 与完整路径仍可能反号。</em></p>
+<h2 id="为什么-BUY-SELL-映射不能靠统一符号解决"><a href="#为什么-BUY-SELL-映射不能靠统一符号解决" class="headerlink" title="为什么 BUY/SELL 映射不能靠统一符号解决"></a>为什么 BUY/SELL 映射不能靠统一符号解决</h2><p>市场原始流有 BUY taker 与 SELL taker，maker 决策又有 BUY quote 与 SELL quote。BUY maker 的直接对手是 SELL taker，SELL maker 的直接对手是 BUY taker；但“away flow”对库存修复的影响还取决于当前持仓与订单角色。</p>
+<p>例如当前为 short inventory，SELL add 会继续加空，BUY reducing 则帮助 flat。相同的 aggressive BUY taker burst 对 SELL add 可能是 adverse continuation，对 BUY reducing 却可能提高修复成交机会。若只给 trade feature 乘一个 side sign，再把 opener/add/reducing 混合，模型会把风险和机会平均。</p>
+<p>所以 side-specific 不只是训练两个模型，还要冻结 maker-side counterparty mapping、order role、inventory sign 与 reward。没有实际 action overlap 的 role 只能写 <code>diagnostic_only</code>。</p>
+<h2 id="Formal-Test3-反号应怎样解释"><a href="#Formal-Test3-反号应怎样解释" class="headerlink" title="Formal Test3 反号应怎样解释"></a>Formal Test3 反号应怎样解释</h2><p>正式三日中 maker value 全面反向，不意味着 tempo 完全没有预测信息。更准确的解释是：冻结 v9 mapping 在声明的测试日期没有把 prediction ranking 转化为正经济路径。可能原因包括 conditional fill value 与方向信号不同、模型集中减少有利 fills、queue/latency 稀释短时信号，或三日 regime 与训练不同。</p>
+<p>三日样本也不足以把每个解释精确分离，所以不能继续在同一 Test3 上改窗口、阈值或 side mapping。正确 stop decision 是关闭这个 exact inference identity，并把诊断线索留给新的、不同动作语义；不是从反号结果中挑一个新阈值继续试。</p>
+<h2 id="Taker-tempo-与-maker-value-中间缺少哪几个条件概率"><a href="#Taker-tempo-与-maker-value-中间缺少哪几个条件概率" class="headerlink" title="Taker tempo 与 maker value 中间缺少哪几个条件概率"></a>Taker tempo 与 maker value 中间缺少哪几个条件概率</h2><p>tempo head预测的是短窗口内主动成交节奏或方向，而maker action关心的是挂单在特定side、price与queue下的终局价值。二者之间至少经过</p>
+<script type="math/tex; mode=display">
+P(tempo\mid X)
+\rightarrow
+P(touch\mid tempo,X)
+\rightarrow
+P(fill\mid touch,queue,tempo,X)
+\rightarrow
+E[V_T\mid fill,role,tempo,X].</script><p>任一箭头都可能反号。快速SELL taker flow会提高BUY quote被触达与成交的概率，但该fill可能是负向延续中的exposure add；同一信号对已有SHORT的BUY repair却可能有利。统一把“SELL flow高”映射为widen BUY，会混合两个inventory roles。</p>
+<p>此外，tempo预测改善可能主要来自容易识别的极端burst，而策略动作发生在中等分数、接近阈值的rows。总体AUC通过不保证threshold neighborhood calibration。动作研究应报告policy-weighted calibration与阈值附近support，而不是从全分布ranking推断边际动作价值。</p>
+<h2 id="Formal-Test3-全面反向意味着什么"><a href="#Formal-Test3-全面反向意味着什么" class="headerlink" title="Formal Test3 全面反向意味着什么"></a>Formal Test3 全面反向意味着什么</h2><p>三日不是足以证明长期负效应的大样本，但预注册formal panel在主要maker-value方向上全面反向，足以拒绝当前映射的晋级。因为项目目标是证明一个有正价值的action，证据不足与点估计反向都应导致同一个权限结果：不推广。不能用额外diagnostic days挑回一个有利平均，也不能把prediction pass当作经济门的替代票。</p>
+<p>这个失败仍留下可复用信息。它说明taker tempo在预测层不是纯噪声；错误更可能位于side/role mapping、order lifetime或value target。若未来重开，应把action单位改成明确的keep/widen/cancel/recenter，按exposure-increasing与inventory-reducing分层，并用one-shot发现后再做repeated full-path确认。</p>
+<p>换句话说，v9关闭的是“当前tempo到maker动作的统一映射”，不是“主动流没有信息”。这是阴性研究能够给出的最精确边界。</p>
+<h2 id="Tempo-至少有三种不可互换的定义"><a href="#Tempo-至少有三种不可互换的定义" class="headerlink" title="Tempo 至少有三种不可互换的定义"></a>Tempo 至少有三种不可互换的定义</h2><p>trade count per second衡量消息/成交片段频率，quantity per second衡量成交量，signed notional imbalance衡量方向与规模。一个大单拆成许多children会提高count却不改变总quantity；价格上涨会提高notional即使BTC量不变。burst、run与sweep又涉及连续性和跨level路径。</p>
+<p>因此head contract必须写明event identity、聚合窗口、side convention和单位。一个预测count tempo的模型不能直接解释为预测depth exhaustion；一个预测signed notional的模型也不能无条件映射到maker adverse value。</p>
+<h2 id="Threshold-neighborhood-才是动作真正消费的区域"><a href="#Threshold-neighborhood-才是动作真正消费的区域" class="headerlink" title="Threshold neighborhood 才是动作真正消费的区域"></a>Threshold neighborhood 才是动作真正消费的区域</h2><p>若action只在score高于$q_{0.9}$触发，overall AUC由全分布pair ranking构成，大量远离阈值的easy rows会主导。真正需要的是阈值附近calibration、日期覆盖与policy lift：</p>
+<script type="math/tex; mode=display">
+E[Y\mid s\in(\tau-\epsilon,\tau+\epsilon),side,role].</script><p>但在同一已读面板扫描$\tau$和$\epsilon$会形成新multiplicity。应先用训练fold选阈值，外层chronological fold评价，且unsupported时回baseline。</p>
+<h2 id="Formal-三日反号后的研究纪律"><a href="#Formal-三日反号后的研究纪律" class="headerlink" title="Formal 三日反号后的研究纪律"></a>Formal 三日反号后的研究纪律</h2><p>diagnostic days可以帮助解释是某side、role或regime失效，却不能合入主结果救平均。若解释提出了明确新机制，例如tempo只对exposure-add有害，它成为新hypothesis；必须冻结后在新证据上测试。</p>
+<p>保留原反号结果还有一个价值：未来模型若宣称改进，应与这条失败路径比较，证明不是通过更弱action、不同clock或删除不利日获得。研究版本连续性让真正的进步可见。</p>
 <h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/docs/causal_v9_through_20260725_replay_20260727.md">Causal-v9 Retraining and Replay Result</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/docs/causal_v8_lineage_invalidation_20260727.md">Causal-v8 Lineage Invalidation</a></li>
@@ -624,11 +657,11 @@ SELL maker &lt;- aggressive BUY taker</code></pre></div>
       
         <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
       
-        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
-      
         <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
       
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
     </div>
   

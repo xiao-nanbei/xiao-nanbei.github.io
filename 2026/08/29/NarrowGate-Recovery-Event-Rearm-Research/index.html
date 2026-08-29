@@ -27,6 +27,7 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：这次不是样本不足，也不是停止交易；候选在有支持时仍显著更差上一项四条件 conjunction 太稀疏。本项目把恢复状态改写为连续几何分数：shock decay、refill recovery、microprice recovery 与 queue recovery 各映射到 $[0,1]$，用等权几何均值合成">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/recovery-event-rearm.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f09-campaign-action-causal-path.svg">
 <meta property="article:published_time" content="2026-08-29T12:15:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:15:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -332,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          4.3k 字
+          5.6k 字
         
       </span>
     
@@ -344,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          36 分钟
+          47 分钟
         
       </span>
     
@@ -394,6 +395,8 @@
 <p>SELL 是预声明的 first side。56 日 Development 产生 1,644 campaign rows、180 active entry rows、712 OOF rows，support、overlap 和 activity 全部通过；但 reward DR uplift 为 -0.01560 USDC/campaign，UTC-day 95% interval $[-0.02996,-0.00377]$，campaign cost、negative terminal 与 MAE 也显著更差。这是一项干净的 action failure：动作发生了、没有活动崩塌、却降低价值。BUY 只完成 support freeze，outcome panel 未开。Validation 与 sealed holdout 均未读。</p>
 <p><img src="/images/narrowgate/recovery-event-rearm.svg" srcset="/img/loading.gif" lazyload alt="Recovery-event rearm 几何分数状态机"></p>
 <p><em>图 1：机制示意。四个 causal components 合成为 recovery score；低于阈值时 candidate block，高于阈值时 rearm。invalid state 不能被当成“恢复”。</em></p>
+<p><img src="/images/narrowgate/f09-campaign-action-causal-path.svg" srcset="/img/loading.gif" lazyload alt="Recovery-event action 的完整因果路径"></p>
+<p><em>图 2：score 只决定 permission，不能替代终局。支持选择不读 outcome；正式 arm 则从 assignment 重新生成订单与库存，并同时经过 activity、lifecycle 与 economics 门。</em></p>
 <h2 id="1-研究问题：描述恢复是否等于识别有价值的动作？"><a href="#1-研究问题：描述恢复是否等于识别有价值的动作？" class="headerlink" title="1. 研究问题：描述恢复是否等于识别有价值的动作？"></a>1. 研究问题：描述恢复是否等于识别有价值的动作？</h2><p>盘口恢复可以从多个角度观察：adverse flow 是否衰减、被抽走的深度是否补回、microprice 是否向有利方向移动、当前 queue 是否恢复到 shock 前水平。把这些量组合成 score 很容易；难点是证明“低 score 时多等一会”优于立即恢复报价。</p>
 <p>目标 estimand 是：</p>
 <script type="math/tex; mode=display">
@@ -407,6 +410,12 @@ q=\operatorname{clip}(\text{current depth}/\text{pre-shock depth},0,1).</script>
 <script type="math/tex; mode=display">
 S=(\max(d,\epsilon)\max(r,\epsilon)\max(m,\epsilon)\max(q,\epsilon))^{1/4}.</script><p>几何均值使任何一个近零组件都压低整体 score。<code>refill</code> 比较 depleted level 后的恢复，<code>queue recovery</code> 比较 shock 前起始深度；二者相关但不是同一分母。</p>
 <p>有效行需要 causal path、至少两个 L2 snapshots，且 book age 不超过 2 秒。entry invalid 时回退 baseline；candidate episode 已启动后遇到 invalid observation，则保持等待，不能把缺数据误当恢复。</p>
+<h3 id="2-1-几何均值到底表达了怎样的恢复观"><a href="#2-1-几何均值到底表达了怎样的恢复观" class="headerlink" title="2.1 几何均值到底表达了怎样的恢复观"></a>2.1 几何均值到底表达了怎样的恢复观</h3><p>等权几何均值接近一种“短板惩罚”：四项都适度恢复时 score 才上升；一个组件接近零会显著压低整体。对 component $x_j$，log score 为：</p>
+<script type="math/tex; mode=display">
+\log S=\frac14\sum_{j=1}^{4}\log\max(x_j,\epsilon).</script><p>所以相对敏感度 $\partial\log S/\partial\log x_j=1/4$ 相同，但在原始尺度上，小值附近绝对导数很大。这个设计与 arithmetic mean 不同：后者允许三个高分补偿一个零分。</p>
+<p>它是清楚的机制假设，却不是经济定理。也许 queue 未恢复时应等待，也许恰恰是空 queue 让下一张订单更快成交并有利修复。randomized replay 检验的就是“短板恢复观”能否产生价值，而不是只检查 score 数学是否优雅。</p>
+<h3 id="2-2-Invalid-state-的方向不能由结果决定"><a href="#2-2-Invalid-state-的方向不能由结果决定" class="headerlink" title="2.2 Invalid state 的方向不能由结果决定"></a>2.2 Invalid state 的方向不能由结果决定</h3><p>entry 时数据无效就回 baseline，避免用缺失状态创建 treatment；episode 已经 block 后遇到无效则继续等待，避免缺数据被解释为恢复。两个规则不对称，是因为前者控制是否开始干预，后者控制一个已有持久状态何时终止。</p>
+<p>这仍是一种冻结的保守选择。若高负载时 L2 更容易 stale，“invalid 后继续 block”可能延长最剧烈行情下的 treatment。正式报告因此必须同时给 invalid frequency 与 duration，而不能只说 feature coverage 很高。</p>
 <h2 id="3-动作、时钟与风险集例子"><a href="#3-动作、时钟与风险集例子" class="headerlink" title="3. 动作、时钟与风险集例子"></a>3. 动作、时钟与风险集例子</h2><div class="table-container">
 <table>
 <thead>
@@ -476,6 +485,10 @@ S=(\max(d,\epsilon)\max(r,\epsilon)\max(m,\epsilon)\max(q,\epsilon))^{1/4}.</scr
 </table>
 </div>
 <p>BUY 只获得机制与支持结论，outcome panel 没有开启。这不是漏做，而是 side order 的治理：预先声明 SELL first，SELL 失败后没有理由继续消费 BUY outcomes。</p>
+<h3 id="4-1-为什么用-fill-retention-的保守下界选择-threshold"><a href="#4-1-为什么用-fill-retention-的保守下界选择-threshold" class="headerlink" title="4.1 为什么用 fill retention 的保守下界选择 threshold"></a>4.1 为什么用 fill retention 的保守下界选择 threshold</h3><p>selector 无法在不打开结果路径的情况下精确知道 candidate 会丢多少终局价值，但可以用 baseline 与 blocked entries 的机械 overlap 给出保守 fill-retention proxy。阈值必须同时把 candidate rate 放在 5%–30% 且 retention 至少 85%，否则会重演 one-cycle near-noop 或 until-flat shutdown。</p>
+<p>这个过程只决定“动作是否有适中杠杆”，不决定“动作是否赚钱”。因此 support pass 只允许打开预声明 SELL economics。把 threshold grid 与 PnL 同时优化，会使 action rate、状态定义和经济方向在一份数据上共同过拟合。</p>
+<h3 id="4-2-SELL-first-顺序为什么保护-BUY-证据"><a href="#4-2-SELL-first-顺序为什么保护-BUY-证据" class="headerlink" title="4.2 SELL-first 顺序为什么保护 BUY 证据"></a>4.2 SELL-first 顺序为什么保护 BUY 证据</h3><p>BUY 与 SELL 有独立 action identity，但共享方法。预先规定先打开 SELL，可以把 BUY 保留为未来独立分侧证据。如果 SELL 失败后仍打开 BUY，只是为了寻找一个正方向，整个双侧 family 的错误发现率会升高。</p>
+<p>这里 SELL 已出现完整负区间，继续消费 BUY outcome 不会修复 SELL action，也不会让共享 score 获得普遍权限。保留 BUY 未读，给真正不同的 BUY-specific hypothesis 留下更干净的证据，而不是把“没算”当作遗憾。</p>
 <h2 id="5-SELL-Development-面板"><a href="#5-SELL-Development-面板" class="headerlink" title="5. SELL Development 面板"></a>5. SELL Development 面板</h2><p>正式回放覆盖 56 个 Development 日，fresh-start daily state、exact 50/50 propensity 与每 campaign 一次 intervention。共有 1,644 campaign rows；180 个 active entry rows 分布于 51 日，其中 active baseline 97、effective candidate 83。实际 candidate rate 10.95%，conservative fills retention 87.19%。</p>
 <p>chronological OOF 有 712 rows，policy ESS 343，unsupported mass 与 overlap violations 都是 0。21.7% effective candidate assignments 阻断超过一个 quote cycle，说明多数 episode 很快恢复，但动作并非纯 one-cycle mask。</p>
 <h2 id="6-结果：支持通过后的明确阴性"><a href="#6-结果：支持通过后的明确阴性" class="headerlink" title="6. 结果：支持通过后的明确阴性"></a>6. 结果：支持通过后的明确阴性</h2><div class="table-container">
@@ -541,6 +554,10 @@ S=(\max(d,\epsilon)\max(r,\epsilon)\max(m,\epsilon)\max(q,\epsilon))^{1/4}.</scr
 E[Y(0)\mid Z]\ll E[Y(0)\mid \neg Z],</script><p>却仍然同时满足：</p>
 <script type="math/tex; mode=display">
 E[Y(1)-Y(0)\mid Z]<0.</script><p>第一式说 $Z$ 预测坏 campaign；第二式说在坏 campaign 中 block 更差。原因可能是被阻断的 SELL add 原本会改善平均开仓价，或者延后参与使 repair opportunity 消失。此实验识别的正是第二式。</p>
+<h3 id="7-1-一条负-action-path-的合成解释"><a href="#7-1-一条负-action-path-的合成解释" class="headerlink" title="7.1 一条负 action path 的合成解释"></a>7.1 一条负 action path 的合成解释</h3><p>设 SHORT campaign 在价格上冲后 cooldown 到期，refill 与 queue 尚弱，score 很低。baseline 恢复 SELL add，在短暂高价成交；数秒后价格回落，新增 short 与 reducing BUY 共同贡献修复。candidate 等到 book 看似恢复才 rearm，此时价格已回落，错过更有利的 SELL execution，campaign 反而更久或以更差 value 结束。</p>
+<p>这条路径里低 score 对“市场刚受冲击”的描述完全正确，错误发生在把描述映射为“继续禁止加空”。对某些 inventory state，adverse market state 也可能提供更好的 passive entry price；动作效应取决于库存与未来路径，不由风险标签单独决定。</p>
+<h3 id="7-2-明确阴性比-support-failure-提供了更多信息"><a href="#7-2-明确阴性比-support-failure-提供了更多信息" class="headerlink" title="7.2 明确阴性比 support failure 提供了更多信息"></a>7.2 明确阴性比 support failure 提供了更多信息</h3><p>上一项 conjunction 因 active rows 不足，无法区分 rule 真无效还是估计太宽。本项目 support、activity、overlap 都通过，reward、campaign cost、negative terminal 与 MAE 却有负下界。这缩小了替代解释：不是 no-op、不是 shutdown、不是 propensity 崩溃，也不是只差一点样本。</p>
+<p>因此不能用“再收集更多相同日期类型”作为默认重开理由。真正新项目需要不同 economic mapping，例如价格调整而非 permission、不同 inventory role 或新的 decision-visible evidence；仅重调几何权重是在已观察负结果上找逃生门。</p>
 <h2 id="8-研究演进与关闭边界"><a href="#8-研究演进与关闭边界" class="headerlink" title="8. 研究演进与关闭边界"></a>8. 研究演进与关闭边界</h2><p>从稀疏四条件 conjunction 到连续几何 score，经济机制发生了足够变化，因此这是新 research identity；但 support selector、正式 SELL run 与 scorecard 都只是同一 identity 的阶段，不应拆文。</p>
 <p>后续 denominator 修复使旧 exact reward/fill/campaign/duration 数值不再用于当前标定；原始 interval 已明确为负，修复也不会自动授予重调 weights、threshold 或 aggregation 的权限。要尝试 arithmetic mean、不同组件或 active-order cancel，必须新注册 action 与面板。</p>
 <p>关闭的是这个四组件几何 score 下的 post-85 delayed rearm，尤其是 SELL outcome action。BUY 仅有 support 结论，不能说 BUY value 正或负；它同样没有 outcome 晋级权限。</p>
@@ -551,6 +568,19 @@ E[Y(1)-Y(0)\mid Z]<0.</script><p>第一式说 $Z$ 预测坏 campaign；第二式
 <li>没有将几何 score 当作已验证 risk alpha；</li>
 <li>没有把旧精确经济值当作当前 calibration。</li>
 </ul>
+<h2 id="Recovery-score-为什么容易把描述顺序误当动作顺序"><a href="#Recovery-score-为什么容易把描述顺序误当动作顺序" class="headerlink" title="Recovery score 为什么容易把描述顺序误当动作顺序"></a>Recovery score 为什么容易把描述顺序误当动作顺序</h2><p>价格、spread、flow与volatility都“恢复”到阈值内，只说明当前市场接近某个历史normal region；它不说明重新允许add的边际价值为正。恢复事件往往发生在大冲击之后，库存、queue与opportunity set已经被冲击选择。score越高，可能只是离下一个常态更近，也可能仍处在反弹前的危险过渡期。</p>
+<p>几何均值让任一分量接近零时总分显著下降，适合表达conjunctive health，但它隐含各分量可比且乘法补偿。两个score同为0.6的状态，可能一个四项均衡，另一个三项很好、一项临界；动作价值未必相同。冻结研究检验的就是这一个聚合定义，不能把阴性结果推广为所有recovery representations都无效。</p>
+<h2 id="Outcome-blind-threshold-选择保护了什么"><a href="#Outcome-blind-threshold-选择保护了什么" class="headerlink" title="Outcome-blind threshold 选择保护了什么"></a>Outcome-blind threshold 选择保护了什么</h2><p>用control path的fill retention下界选threshold，只看动作强度与support，不看reward。这样可以避免挑出“刚好在这批日赚钱”的切点，并确保候选不是接近no-op。它仍不能保证经济效果，因为retained fills只度量参与度，不度量删掉的是坏fill还是repair fill。</p>
+<p>在threshold冻结后，SELL结果显著更差，说明当前recovery事件即便有足够动作杠杆，也没有形成正value。此时再用PnL调score weights、invalid direction或BUY/SELL阈值，会把明确阴性变成无限搜索。合法后继必须改变机制假说或使用新证据面板，而不是围绕旧threshold做局部救援。</p>
+<h2 id="阴性结果如何缩小下一轮搜索空间"><a href="#阴性结果如何缩小下一轮搜索空间" class="headerlink" title="阴性结果如何缩小下一轮搜索空间"></a>阴性结果如何缩小下一轮搜索空间</h2><p>本项目排除了“多个恢复指标的几何均值超过门槛即可安全rearm”这一简单规则。后续可以研究更接近动作价值的状态：active queue option、inventory role、冲击后first-passage time、external reference residual或明确的campaign repair机会。</p>
+<p>新模型也应直接估计keep-hold与rearm的terminal contrast，而不是先预测一个无监督normality score再假设高分等于正value。若仍保留recovery features，它们作为$X$进入</p>
+<script type="math/tex; mode=display">
+\tau(X)=E[Y(rearm)-Y(hold)\mid X],</script><p>并用chronological OOF、overlap和full-path replay验证。这样负结果被转化为estimand升级，而不是被遗忘。</p>
+<h2 id="Invalid-direction-的敏感性不能事后选择"><a href="#Invalid-direction-的敏感性不能事后选择" class="headerlink" title="Invalid direction 的敏感性不能事后选择"></a>Invalid direction 的敏感性不能事后选择</h2><p>把invalid当低recovery会延长hold，把invalid当高recovery会提前rearm；删除invalid又改变目标总体。三种处理都可能改变结果。spec必须在outcome前确定fallback，报告各原因和日期集中度。</p>
+<p>若missingness与shock相关，简单complete-case也不安全。可以给worst/best-case bounds或把invalid作为独立state随机化验证，但不能看到哪种处理赚钱就选哪种语义。</p>
+<h2 id="为什么-direct-uplift-比-normality-score更近"><a href="#为什么-direct-uplift-比-normality-score更近" class="headerlink" title="为什么 direct uplift 比 normality score更近"></a>为什么 direct uplift 比 normality score更近</h2><p>recovery score衡量“像不像正常”，动作真正需要的是rearm相对hold的差值。两个state都很正常，若一个有良好queue repair机会、另一个即将再次冲击，normality相同而uplift不同。</p>
+<p>直接模型$\tau(X)$也不是免费答案：需要两动作support、chronological OOF与terminal outcomes。但它至少把训练目标与决策对齐，避免用描述性状态分数替代value。</p>
+<h2 id="明确阴性后的停止规则"><a href="#明确阴性后的停止规则" class="headerlink" title="明确阴性后的停止规则"></a>明确阴性后的停止规则</h2><p>support通过且reward显著更差时，应关闭当前score/threshold/action三元组，并把所有已读subgroup纳入multiplicity账本。只有新的机制或新数据身份才能重开。这样阴性结果真正减少搜索空间，而不是成为下一轮调参的起点。</p>
 <h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/recovery_event_rearm_v1_20260722.md"><code>recovery_event_rearm_v1_20260722.md</code></a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/state_conditioned_rearm_after85_v1_20260722.md"><code>state_conditioned_rearm_after85_v1_20260722.md</code></a></li>

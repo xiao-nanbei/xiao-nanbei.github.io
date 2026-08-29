@@ -27,6 +27,7 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：repair 快 84.82 秒、库存时间下降，但 PnL 与左尾没有改善SELL price penalty 试图少增加 SHORT；本项目换到另一条经济杠杆：当 inventory 首次达到 $\le-0.002$ BTC 时，以 50% 概率保持 reducing BUY 基线，以 50% 概率把 redu">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/multi-short-reducing-buy-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f09-campaign-action-causal-path.svg">
 <meta property="article:published_time" content="2026-08-29T12:19:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:19:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -332,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          4.7k 字
+          8.9k 字
         
       </span>
     
@@ -344,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          40 分钟
+          74 分钟
         
       </span>
     
@@ -394,6 +395,8 @@
 <p>但 assignment-to-terminal reward uplift 为 -0.004435 USDC，95% interval $[-0.030210,+0.021736]$，正日率 45.83%；candidate q10/CVaR10 还略差。更快修复没有运输成更好 terminal value。Development 关闭，Validation 与 sealed holdout 未读。</p>
 <p><img src="/images/narrowgate/multi-short-reducing-buy-kline.svg" srcset="/img/loading.gif" lazyload alt="Multi-short reducing BUY aggressive maker 机制"></p>
 <p><em>图 1：机制示意。candidate 在 multi-short 区间将 reducing BUY 推到最激进 maker tick；它能更快获得修复 fills，但更激进的被动价格也会牺牲 spread/selection value。</em></p>
+<p><img src="/images/narrowgate/f09-campaign-action-causal-path.svg" srcset="/img/loading.gif" lazyload alt="被动修复动作从触发到 terminal 的完整路径"></p>
+<p><em>图 2：更积极的 reducing BUY 同时改变 execution price、queue、repair speed 与后续 inventory。repair-time 是中介变量；assignment-to-terminal reward 才是随机化总效应。</em></p>
 <h2 id="1-研究问题：修复速度本身值多少钱？"><a href="#1-研究问题：修复速度本身值多少钱？" class="headerlink" title="1. 研究问题：修复速度本身值多少钱？"></a>1. 研究问题：修复速度本身值多少钱？</h2><p>multi-level SHORT campaign 的损失归因提示库存持有时间可能重要。减少 exposure-add fills 会同时缩小业务；更积极的 reducing BUY 则保持 SELL exposure surface，不直接阻断新 campaign。问题是：缩短 SHORT duration 的收益，能否覆盖更激进报价带来的价格与 selection 成本？</p>
 <p>在首个 $q\le-0.002$ BTC transition 处随机化，estimand 为：</p>
 <script type="math/tex; mode=display">
@@ -445,6 +448,17 @@ p^{cand}_{BUY}=\min(ask_1-tick,\max(p^{base}_{BUY},bid_1)).</script><p>它至少
 </table>
 </div>
 <p>第一版实现用 floating price arithmetic，可能产生 invalid maker tick，在读取 outcome 前失败。v1.1 改为 integer tick arithmetic，保留同一 frozen action。这是工程修复章节，不是新研究项目，也没有给动作第二次 outcome chance。</p>
+<h3 id="2-1-“最激进合法-maker”不是无限接近中价"><a href="#2-1-“最激进合法-maker”不是无限接近中价" class="headerlink" title="2.1 “最激进合法 maker”不是无限接近中价"></a>2.1 “最激进合法 maker”不是无限接近中价</h3><p>BUY GTX 的最高合法价格必须低于当时 ask，通常最多到 $ask_1-tick$，同时不低于 baseline 与 bid。若 spread 只有一 tick，$ask_1-tick=bid_1$；若更宽，candidate 可站到 bid 或改善一档。tick arithmetic确保报价落在交易所网格上：</p>
+<script type="math/tex; mode=display">
+k^{cand}=\min(k_{ask}-1,\max(k^{base},k_{bid})),\qquad p=k\cdot tick.</script><p>这避免浮点 99,999.90000000001 在比较时意外跨价。修复发生在 outcome 前，故可保留同一 action identity；如果已读过 PnL 后才改 rounding，旧/new mechanics会对应不同 treatment，不能合并。</p>
+<h3 id="2-2-更快成交付出的三类价格"><a href="#2-2-更快成交付出的三类价格" class="headerlink" title="2.2 更快成交付出的三类价格"></a>2.2 更快成交付出的三类价格</h3><p>candidate 可能付出：更差的直接 execution edge、更高的 adverse-selection probability、以及 queue reset/reprice成本；得到的是更早降低 short inventory 和可能更短 campaign。粗略价值平衡为：</p>
+<script type="math/tex; mode=display">
+\Delta V
+=
+V_{inventory\ relief}
+-C_{price\ concession}
+-C_{selection}
+-C_{path}.</script><p>maker-only 只保证不支付 taker fee、不过 ask，并不让后三项为零。站在 bid 顶部的 BUY 更容易接到继续下跌的 aggressive SELL flow；即使它“修复 short”，也可能在下一刻从 flat 变成不利 LONG 或错过更低价格。</p>
 <h2 id="3-因果时钟与-path-例子"><a href="#3-因果时钟与-path-例子" class="headerlink" title="3. 因果时钟与 path 例子"></a>3. 因果时钟与 path 例子</h2><p>assignment 必须发生在 inventory 首次跨过 -0.002 的 ready state，之后固定到 release。candidate quote 的 activation、queue-ahead、cancel/replace、fill 与 inventory 都重新生成。若 baseline 与 candidate price 不同，不能共用 future fill。</p>
 <p>例子：bid1/ask1 为 99,999.9/100,000.0，tick 0.1，baseline reducing BUY 为 99,999.7。candidate 取 $\min(99,999.9,\max(99,999.7,99,999.9))=99,999.9$。它更靠近 taker flow，queue/成交概率更高，却也少了 0.2 price units 的 maker edge。若快速 fill 使 inventory 从 -0.002 回到 -0.001，action 释放；后续 campaign 仍走 baseline。</p>
 <p>这条路径中 repair-time 改善是 mediator。用它筛选“只有快速修复的 candidate rows”会产生 post-treatment selection；必须先看 randomized terminal contrast。</p>
@@ -511,8 +525,20 @@ p^{cand}_{BUY}=\min(ask_1-tick,\max(p^{base}_{BUY},bid_1)).</script><p>它至少
 +\underbrace{\Delta V_{execution}}_{\text{更激进价格}}
 +\underbrace{\Delta V_{selection/path}}_{\text{成交对象与后续路径}}.</script><p>$\Delta T_{repair}$ 明确改善，不表示后两项为零。实验观察到总效应下界未正，说明当前机制下速度收益不足以稳定覆盖执行与路径代价。不能用中介变量显著性替代随机化总效应。</p>
 <p>q10/CVaR 略差也提醒：更早成交的 reducing BUY 可能在急跌中带来新 LONG/flat timing risk；maker-only 虽避免 taker fee，却没有避免 adverse selection。</p>
+<h3 id="6-1-中介变量不能替代-total-effect"><a href="#6-1-中介变量不能替代-total-effect" class="headerlink" title="6.1 中介变量不能替代 total effect"></a>6.1 中介变量不能替代 total effect</h3><p>repair time $M$ 位于 $A\rightarrow M\rightarrow Y$ 路径上，同时 market path也影响 $M$ 和 $Y$。在随机化之后按“成功快速 repair”筛 candidate，会破坏随机化：</p>
+<script type="math/tex; mode=display">
+A\rightarrow M\leftarrow MarketPath\rightarrow Y.</script><p>因此 +84.82 秒 avoidance 是有意义的 treatment mechanism，却不能在 repaired subgroup内估 PnL来证明动作。总效应按原 assignment保留所有未修复、censor 与反向路径，才回答策略问题。</p>
+<h3 id="6-2-速度的经济价值为什么可能随-regime-变号"><a href="#6-2-速度的经济价值为什么可能随-regime-变号" class="headerlink" title="6.2 速度的经济价值为什么可能随 regime 变号"></a>6.2 速度的经济价值为什么可能随 regime 变号</h3><p>在持续上涨中，快速 BUY repair short 可以止损，$V_{inventory\ relief}&gt;0$；在快速下跌中，更慢的 baseline BUY 可能以更低价格成交，等待本身有正 option value；在震荡中，candidate可能早修复、随后又被 opener重新建仓。相同 84 秒平均改善混合了这些 regime。</p>
+<p>要提出新的 state-conditioned repair，必须在 assignment 前用 causal feature定义 regime，并在新日期评价。不能按事后 price path 把当前 627 assignments 分成“上涨时有效”与“下跌时无效”，那是在 outcome上选择。</p>
+<h3 id="6-3-q10-CVaR-略差为何是重要反例"><a href="#6-3-q10-CVaR-略差为何是重要反例" class="headerlink" title="6.3 q10/CVaR 略差为何是重要反例"></a>6.3 q10/CVaR 略差为何是重要反例</h3><p>如果“减少库存时间必然降低尾部风险”，candidate 的 q10/CVaR 应至少不差。结果略差说明 inventory duration不是唯一 tail driver；execution timing与新 inventory sign 也可能贡献左尾。</p>
+<p>这并不证明 aggressive repair必然增加 tail，因为区间与样本仍有限；它足以拒绝用 inventory-time单调改善替代 tail gate。风险 proxy 与最终分布必须并列报告。</p>
 <h2 id="7-研究演进与关闭边界"><a href="#7-研究演进与关闭边界" class="headerlink" title="7. 研究演进与关闭边界"></a>7. 研究演进与关闭边界</h2><p>v1 invalid tick failure 发生在 outcome access 前；v1.1 只修复整数 tick boundary，action、sample、estimand 和 gates 不变。replay-cache DAG 是运行后实现，也不会 retroactively 改变结果。因此一篇文章足以覆盖设计、失败、修正与正式结果。</p>
 <p>关闭的是 trigger $-0.002$、release $-0.001$ 与最激进合法 maker price 的 exact action。不能在同一 Development 上调 trigger、release 或 aggressiveness。bounded IOC emergency repair 会引入 taker fee、ACK/fill race 与全新 safety contract，是不同 research identity，本文没有测试。</p>
+<h3 id="7-1-为什么不顺手测试-IOC"><a href="#7-1-为什么不顺手测试-IOC" class="headerlink" title="7.1 为什么不顺手测试 IOC"></a>7.1 为什么不顺手测试 IOC</h3><p>IOC 会把 fill probability推近一，却同时改变 maker/taker角色、fee、冲击、partial fill与剩余量处理。其价值式至少多出：</p>
+<script type="math/tex; mode=display">
+-C_{taker\ fee}-C_{crossing\ spread}-C_{impact}+V_{immediate\ risk\ relief}.</script><p>这些项在 maker-only replay中没有被识别。把 IOC 当作“aggressiveness再加一级”会跨越执行制度，而不是普通参数敏感性。若未来确有紧急风险 mandate，需独立安全与经济注册。</p>
+<h3 id="7-2-这项研究怎样与-SELL-price-penalty-共同形成边界"><a href="#7-2-这项研究怎样与-SELL-price-penalty-共同形成边界" class="headerlink" title="7.2 这项研究怎样与 SELL price penalty 共同形成边界"></a>7.2 这项研究怎样与 SELL price penalty 共同形成边界</h3><p>price penalty从入口减少 multi-short，确实压低库存却损失参与；aggressive reducing BUY保留参与并加快修复，却未改善 value/tail。两者共同说明“inventory suppression”和“passive repair”这两个冻结杠杆在当前 Development都没有闭合。</p>
+<p>这不是说 inventory不可控，而是不能再用相同面板扫 entry penalty、repair trigger或 maker tick。新 evidence应来自不同决策信息、不同执行制度或独立时期，而不是在两条已读路径之间后验拼一个 hybrid。</p>
 <h2 id="8-没有获得的权限"><a href="#8-没有获得的权限" class="headerlink" title="8. 没有获得的权限"></a>8. 没有获得的权限</h2><ul>
 <li>Validation 与 sealed holdout 未读；</li>
 <li>没有 action、shadow、live 或 current baseline 变更权限；</li>
@@ -520,6 +546,21 @@ p^{cand}_{BUY}=\min(ask_1-tick,\max(p^{base}_{BUY},bid_1)).</script><p>它至少
 <li>没有把 repair-time 改善当作 terminal PnL 证据；</li>
 <li>没有调 trigger/release/aggressiveness 或在 post-treatment repaired subgroup 重选。</li>
 </ul>
+<h2 id="Repair-time-是-mediator，不是目标本身"><a href="#Repair-time-是-mediator，不是目标本身" class="headerlink" title="Repair time 是 mediator，不是目标本身"></a>Repair time 是 mediator，不是目标本身</h2><p>候选把reducing BUY挂得更激进后，更快回到flat是动作→结果路径中的中介。若只在“最终修复的campaign”里比较duration，会排除未修复或被新fill改变的路径；若按repair speed选择参数再报告PnL，又形成post-selection。</p>
+<p>总效应应直接比较terminal campaign value、inventory-time与tail；repair time用来解释机制。一个可能的路径是</p>
+<script type="math/tex; mode=display">
+A\rightarrow\text{faster fill}\rightarrow\text{shorter inventory}
+\rightarrow Y_T,</script><p>但另一路径是$A\rightarrow$放弃spread/更差selection$\rightarrow Y_T$。速度通过只证明第一条中间边发生，不说明两条总和为正。</p>
+<h2 id="最激进合法-maker-的执行含义"><a href="#最激进合法-maker-的执行含义" class="headerlink" title="最激进合法 maker 的执行含义"></a>最激进合法 maker 的执行含义</h2><p>BUY reducing quote不能跨ask，否则变成taker；通常上界是best ask减一个tick或由post-only规则给出的合法价格。若best bid/ask跳动，取整顺序会影响是否仍maker；cancel/replace还会重置queue。公式必须在每个decision用当前可见book计算，并记录最终exchange-valid price，而不是把理论连续价直接用于回测。</p>
+<p>更激进一tick的价值取决于三项：额外fill probability、失去的spread capture、成交条件价格路径。若订单原本已在best bid且queue很优，提价可能丢掉queue option；若离市场很远，提价一tick又可能没有action leverage。这解释了为何平均repair快84.82秒仍未改善mean或tail。</p>
+<h2 id="q10-CVaR-反例怎样约束“降低库存就是降风险”"><a href="#q10-CVaR-反例怎样约束“降低库存就是降风险”" class="headerlink" title="q10/CVaR 反例怎样约束“降低库存就是降风险”"></a>q10/CVaR 反例怎样约束“降低库存就是降风险”</h2><p>inventory duration下降常被当作风险必然下降，但更激进repair可能在最差时点付出高价，集中损失于少数campaign。q10/CVaR略差说明库存时间只是risk proxy，不是完整损失分布。持有更短与亏得更少没有逻辑等价。</p>
+<p>未来若专门优化risk-adjusted repair，应预注册utility，例如terminal mean、CVaR与BTC-hours的固定组合，并在新面板检验。不能用本次未通过的PnL结果事后给inventory-time赋一个足以翻正的影子价格。</p>
+<h2 id="No-fill-opportunity-cost-如何进入结果"><a href="#No-fill-opportunity-cost-如何进入结果" class="headerlink" title="No-fill opportunity cost 如何进入结果"></a>No-fill opportunity cost 如何进入结果</h2><p>更激进BUY若成交，可能更快repair；若baseline本可在更低价成交，candidate提前成交就失去价格改善；若两者都未成交，candidate仍可能因cancel/replace失去queue。只分析successful repairs会遗漏后两类。</p>
+<p>one-shot paired replay应从同一decision开始，直到campaign terminal或统一censor，所有路径都计入$Y_T$。mechanism表再分为candidate-only fill、baseline-only fill、both fill with timing/price difference和neither。这样读者能看到84.82秒缩短来自哪类路径。</p>
+<h2 id="Initial-inventory-level-改变同一动作的风险"><a href="#Initial-inventory-level-改变同一动作的风险" class="headerlink" title="Initial inventory level 改变同一动作的风险"></a>Initial inventory level 改变同一动作的风险</h2><p>在轻微SHORT时，提高BUY price可能只是较小spread让步；在multi-level深SHORT时，repair urgency更高但size、queue和terminal exposure也不同。把所有levels混合会让少数深库存支配BTC-hours，却在campaign count中占比很小。</p>
+<p>报告应按pre-action$|q|$、campaign age与remaining horizon分层，但这些分层只能解释预注册总效应；不能在已读结果上选一个好看的level授权动作。新level-specific policy需独立冻结。</p>
+<h2 id="什么结果才会支持-aggressive-repair"><a href="#什么结果才会支持-aggressive-repair" class="headerlink" title="什么结果才会支持 aggressive repair"></a>什么结果才会支持 aggressive repair</h2><p>至少需要terminal mean下界为正或通过预注册risk utility，q10/CVaR不恶化，inventory-time确实下降且activity/fees可接受。仅repair-time通过不够；仅少数worst campaigns改善也不能覆盖总体成本，除非tail action从一开始就是primary。</p>
+<p>当前结果提供了强mechanics、弱/负economics的反例，迫使未来设计把“快”与“值”分开。</p>
 <h2 id="9-公共证据"><a href="#9-公共证据" class="headerlink" title="9. 公共证据"></a>9. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/multi_short_reducing_buy_aggression_v1_1_development_20260801.md"><code>multi_short_reducing_buy_aggression_v1_1_development_20260801.md</code></a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/multi_short_reducing_buy_aggression_v1_implementation_failure_20260801.md"><code>multi_short_reducing_buy_aggression_v1_implementation_failure_20260801.md</code></a></li>

@@ -27,14 +27,15 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：五日 PnL 点估计为正，13 个 prediction gates 只过 5 个，完整经济门仍然关闭Causal-v12 把 2025 provider-normalized source-aware features、semantics-v6 10 秒 causal cutoff、13-head model">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/causal-v12-source-aware-native-path.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f03-thirteen-head-evidence-pipeline.svg">
 <meta property="article:published_time" content="2026-08-29T12:40:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:40:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
-<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="机器学习">
 <meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/causal-v12-source-aware-native-path.svg">
   
@@ -333,7 +334,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          5.6k 字
+          8.9k 字
         
       </span>
     
@@ -345,7 +346,7 @@
         
         
           <!-- compatible with older versions-->
-          47 分钟
+          74 分钟
         
       </span>
     
@@ -541,6 +542,36 @@ SpearmanIC>0,\qquad RMSESkill>0.</script><p>family-level prediction pass 要求�
 <h2 id="9-关闭、支持与没有获得的权限"><a href="#9-关闭、支持与没有获得的权限" class="headerlink" title="9. 关闭、支持与没有获得的权限"></a>9. 关闭、支持与没有获得的权限</h2><p>支持：部分 heads 保留 ranking；ML-ON 在五日有正 terminal point estimate；native replay 能产生完整 campaign/economic diagnostics。</p>
 <p>关闭：当前 10 秒 source-aware causal-v12 historical economic screen。结果不支持把历史 canary 叙述成通过 prediction/economic gates。</p>
 <p>没有获得：prediction family pass、model/action promotion、Validation、sealed holdout、shadow 或 live authority。任何后继必须建立新 model/estimand，而不是在已读 panels 上调 calibrator、threshold 或 feature list。</p>
+<h2 id="深入推导：十三个-heads-为什么必须使用-joint-gate"><a href="#深入推导：十三个-heads-为什么必须使用-joint-gate" class="headerlink" title="深入推导：十三个 heads 为什么必须使用 joint gate"></a>深入推导：十三个 heads 为什么必须使用 joint gate</h2><p>如果研究预先声明十三个 heads 共同构成 inference bundle，那么整体身份不能用“至少几个表现不错”定义。每个 head 的 base rate、loss 与经济用途不同；一个 failed volatility head 可能错误缩放 spread，一个 failed fill head 可能错误决定 participation，一个 failed direction head 可能偏移 center。</p>
+<p>设通过事件为 $G_j$。完整 bundle 的 prospective gate 是：</p>
+<script type="math/tex; mode=display">
+G_{bundle}=\bigcap_{j\in J_{required}}G_j.</script><p>观察到 5/13 通过，说明部分预测对象有增量，却不满足交集。事后把 required set 缩成这五个，会把 Development 变成 feature selection panel；若想研究 five-head successor，必须重新冻结 mapping、面板与多重性，而不能把它写成 v12 原本就通过。</p>
+<p><img src="/images/narrowgate/f03-thirteen-head-evidence-pipeline.svg" srcset="/img/loading.gif" lazyload alt="十三头 joint gate、冻结映射与完整经济路径"></p>
+<p><em>图 2：共享模型的局部成功不能抵消 required head 的失败；经济正点估计也不能越过 prediction joint gate。</em></p>
+<h2 id="五日-PnL-正点估计为什么证据仍然弱"><a href="#五日-PnL-正点估计为什么证据仍然弱" class="headerlink" title="五日 PnL 正点估计为什么证据仍然弱"></a>五日 PnL 正点估计为什么证据仍然弱</h2><p>五日 paired PnL 为正，可以说明 candidate 值得解释，但日级有效样本仍是五，而不是日内数百万 rows。若 daily deltas 为 $\Delta_1,\ldots,\Delta_5$，不确定性取决于日期间波动和 regime，而不是 tick 数：</p>
+<script type="math/tex; mode=display">
+SE(\bar\Delta)\approx \frac{s_{day}}{\sqrt5}.</script><p>任何单日都可能强烈影响均值；leave-one-day-out 旋转、side 反号或 tail harm 都不能被 pooled point estimate 掩盖。更何况 quote policy 是由多个 heads 联合驱动，正 PnL 无法告诉我们是哪一头贡献，也可能来自较低 participation。</p>
+<p>所以这组结果最多支持“source-aware bundle 具有后续研究价值”，不支持“v12 已验证 alpha”。若继续，必须先冻结 required heads 和 mapping，再用较长 chronological panel 检查 simultaneous lower bound、side/role、fill retention 与 campaign tail。</p>
+<h2 id="从-prediction-transport-到-inference-contract"><a href="#从-prediction-transport-到-inference-contract" class="headerlink" title="从 prediction transport 到 inference contract"></a>从 prediction transport 到 inference contract</h2><p>模型 artifact 不只是权重文件。一个可复核 inference identity 还应绑定 feature schema、normalizer、缺失值语义、head 顺序、calibration、decision cadence、fallback 与 quote mapping。相同权重在 1 秒与 10 秒 cadence、不同 stale-age cutoff 或不同 missing fallback 下，会产生不同订单路径。</p>
+<p>v12 的 source-aware 价值之一，是把 source identity 与 feature readiness 写入训练；但若 downstream mapping 没有同样强类型绑定，transport 仍会漂移。文章把 train spec、postfit、native A/B 和 amendment 合在一起，正是为了让读者看到完整 contract，而不是把一个 <code>.json</code> 权重包当作全部研究。</p>
+<h2 id="十三个-heads-的-joint-gate-为什么不是过度保守"><a href="#十三个-heads-的-joint-gate-为什么不是过度保守" class="headerlink" title="十三个 heads 的 joint gate 为什么不是过度保守"></a>十三个 heads 的 joint gate 为什么不是过度保守</h2><p>十三个targets不是十三张独立彩票，而是同一个报价器将使用的联合状态描述。若只选通过的五个heads，需要在看到结果后重新定义模型bundle与映射；新组合已经是一个outcome-informed candidate。原合同要求joint prediction transport，目的不是宣称每个head同等重要，而是防止研究者事后从相关targets中挑出最漂亮者。</p>
+<p>heads之间高度相关也不意味着可以忽略失败。相关性会减少“十三次完全独立检验”的夸张，但失败可能集中在对动作关键的toxicity或volatility维度。更好的successor做法是在结果前定义一个较小的必要head集合，或预注册组合loss：</p>
+<script type="math/tex; mode=display">
+L_{bundle}
+=
+\sum_{j=1}^{13}w_jL_j,
+\qquad
+w_j\ge0,
+\quad\sum_jw_j=1,</script><p>并同时保留每个关键head的hard safety gate。权重必须来自动作语义或旧训练资料，不能按本次test表现调。</p>
+<h2 id="五日经济结果的分辨率"><a href="#五日经济结果的分辨率" class="headerlink" title="五日经济结果的分辨率"></a>五日经济结果的分辨率</h2><p>五个formal days的正点估计只说明在这五条市场路径上candidate总和更高。日级相关、campaign clustering与少数大尾部意味着row-level标准误毫无意义；即使五天全部同号，仍难区分持续效应与单一regime。日期bootstrap在$D=5$时也只有很粗的经验支持，interval的端点高度依赖有限日组合。</p>
+<p>所以本项目同时要求prediction gates、full-path value、activity/inventory与tail，而不是让PnL点估计单独裁决。若模型通过5/13 heads、PnL正但区间和风险门不闭合，正确结论是“存在后继假说”，不是“差一点就该上线”。</p>
+<p>下一步若重开，应优先扩充冻结的chronological independent days，并把inference contract缩到被动作真正消费的features。只有在新days上同时保持prediction transport与paired terminal improvement，source-aware 13-head bundle才可能从研究资产升级为action input。</p>
+<h2 id="Source-aware-模型为何仍可能学到年份标签"><a href="#Source-aware-模型为何仍可能学到年份标签" class="headerlink" title="Source-aware 模型为何仍可能学到年份标签"></a>Source-aware 模型为何仍可能学到年份标签</h2><p>当provider与native日期几乎分属不同年份，source flag、calendar regime、volatility与market structure纠缠。即使模型没有显式source feature，它也可能从spread、message rate或session pattern识别时期。跨来源OOF必须按chronology测试，而不是随机打散rows。</p>
+<p>理想设计包含overlap-day measurement parity、earlier→later temporal transport与native-only sensitivity。若只有混合训练后的五日结果，无法区分旧数据带来可迁移representation还是把模型拉向过去regime。五日点估计为正不足以解决这个识别问题。</p>
+<h2 id="Joint-gate-可以怎样兼顾必要性与可解释性"><a href="#Joint-gate-可以怎样兼顾必要性与可解释性" class="headerlink" title="Joint gate 可以怎样兼顾必要性与可解释性"></a>Joint gate 可以怎样兼顾必要性与可解释性</h2><p>先把heads分为动作必需、安全必需与diagnostic三组。动作必需heads决定quote，必须各自通过；安全必需heads即使不提高平均PnL也不能恶化关键calibration；diagnostic heads失败不应阻断未消费它们的action，但也不能被宣传为bundle整体成功。</p>
+<p>分组必须在结果前写进ABI。若当前bundle把13个heads全部作为同一candidate identity，看到5个通过后再声称其它8个“不重要”，等于事后创建小bundle。新的小bundle可以研究，但要使用新日期和新mapping。</p>
+<h2 id="五日结果如何规划样本，而不是提供权限"><a href="#五日结果如何规划样本，而不是提供权限" class="headerlink" title="五日结果如何规划样本，而不是提供权限"></a>五日结果如何规划样本，而不是提供权限</h2><p>可以用观察到的day-level dispersion估计下一次研究需要多少独立日期才能分辨业务最小效应，但不能把同一五日反复bootstrap当成新增信息。样本规划应保留regime覆盖、连续日依赖与source Grade，而不是只按IID公式。</p>
+<p>五日正点估计最合理的用途是形成一个优先级：如果模型/动作链在工程上值得继续，可预注册更长native panel；若新日未保持方向，就关闭。它不是以“方向先验”为由降低后续门槛的许可证。</p>
 <h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/docs/causal_v12_postfit_native_oos_20260726_31_20260802.md">Causal-v12 Post-Fit Native OOS Diagnostic</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/docs/causal_v12_expanded_source_aware_semantics_v6_train_spec_20260802.json">Source-Aware Semantics-v6 Training Spec</a></li>
@@ -585,11 +616,11 @@ SpearmanIC>0,\qquad RMSESkill>0.</script><p>family-level prediction pass 要求�
       
         <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
       
-        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
-      
         <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
       
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
     </div>
   

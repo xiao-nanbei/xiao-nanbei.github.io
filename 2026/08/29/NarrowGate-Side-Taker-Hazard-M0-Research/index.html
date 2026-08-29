@@ -27,13 +27,14 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：模型关闭，不是因为 AUC 不够漂亮，而是问题本身没有被正确识别side_taker_hazard_m0_v1 试图用分侧 taker-flow 与订单状态预测 favorable fill 和 adverse fill。SELL split 的 balanced loss 一度优于 pooled model，看">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/side-taker-hazard-m0-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f08-trade-parent-child-dual-clock.svg">
 <meta property="article:published_time" content="2026-08-29T12:01:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:01:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
-<meta property="article:tag" content="回测">
 <meta property="article:tag" content="生存分析">
+<meta property="article:tag" content="回测">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/side-taker-hazard-m0-kline.svg">
   
@@ -332,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          4.8k 字
+          8.7k 字
         
       </span>
     
@@ -344,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          41 分钟
+          73 分钟
         
       </span>
     
@@ -444,6 +445,17 @@ h_{s,k}(x_t)=P(T\in[t_k,t_{k+1}),J=s\mid T\ge t_k,x_t),</script><p>其中 $s$ �
 <p>这种差异不是实现细节。keep/cancel action 的反事实正发生在 request 到 ACK 之间，丢失区间会系统性扭曲 action cost 或收益。</p>
 <h2 id="3-数据与因果时钟"><a href="#3-数据与因果时钟" class="headerlink" title="3. 数据与因果时钟"></a>3. 数据与因果时钟</h2><p>chronological OOF 有 135,610 行、9 个 future test folds，但训练/测试最晚日期早于最初假设窗口。它是 internal chronological OOF，不是相对于假设形成过程的 confirmatory future evidence。</p>
 <p>individual trades 只能提供 exchange-time matching truth。策略侧 taker-flow 还必须等待 mapped parent <code>aggTrade</code> 的 feature-ready clock。块内 child receive order、interarrival 与 feature-ready time不可被历史 replay 发明。</p>
+<p><img src="/images/narrowgate/f08-trade-parent-child-dual-clock.svg" srcset="/img/loading.gif" lazyload alt="Outcome child 与 policy parent 的双时钟边界"></p>
+<p><em>图 2：hazard label 可以用 individual-trade outcome truth；hazard covariate 只能在 aggregate parent 完成并 feature-ready 后更新。同一批成交若同时以 child 时间充当输入和未来 outcome，会形成隐蔽的自我预测。</em></p>
+<h3 id="3-1-一个合法-start-stop-面板应长什么样"><a href="#3-1-一个合法-start-stop-面板应长什么样" class="headerlink" title="3.1 一个合法 start-stop 面板应长什么样"></a>3.1 一个合法 start-stop 面板应长什么样</h3><p>静态一行表通常把订单从 decision 到 first event 压成 $(x,T,J)$。动态面板应拆成：</p>
+<script type="math/tex; mode=display">
+(id,t_{start},t_{stop},q_{remaining},phase,x(t_{start}),event).</script><p>只有当订单已经 activation、remaining quantity 为正且尚未 exchange-terminal 时，fill-risk indicator 才为一。partial fill 会结束当前 quantity spell 并启动下一段；jump 只更新 $x$；cancel request 改变 phase；ACK 才使旧订单吸收。</p>
+<p>这样模型估计的是：</p>
+<script type="math/tex; mode=display">
+\Pr(J=j,T\in[t,t+\Delta)\mid Y_F(t)=1,\mathcal H_t),</script><p>而不是“从一个尚未存在的订单决策开始，先看到哪个日志字段”。二者在 cancel 较多、fill 较少时会产生完全不同的 loss 权重。</p>
+<h3 id="3-2-Parent-ready-feature-为什么必须落在-interval-左端"><a href="#3-2-Parent-ready-feature-为什么必须落在-interval-左端" class="headerlink" title="3.2 Parent-ready feature 为什么必须落在 interval 左端"></a>3.2 Parent-ready feature 为什么必须落在 interval 左端</h3><p>一个 interval 的 covariate 应是其开始时已经可见的状态。若 parent 在区间中间才完成，最早只能进入下一条或在完成时切出新 interval；不能把其全量回填到区间开头。形式上要求：</p>
+<script type="math/tex; mode=display">
+t_{feature-ready}\le t_{start}.</script><p>如果为了方便将 feature 与最近 exchange timestamp 对齐，某个 adverse fill 所属 parent 的总量可能被写进 fill 发生前的 covariate。模型会“预测”它正在用作 label 的同一事件，AUC 看起来提高，却没有任何实时可执行意义。</p>
 <h2 id="4-研究演进"><a href="#4-研究演进" class="headerlink" title="4. 研究演进"></a>4. 研究演进</h2><p>早期版本把 native book 的存在误写成“native first-hit label 已用于 competing risk”。corrected audit 将标签、comparison geometry 和 day count 逐项核对；<code>event_identity_and_riskset_v1</code> 随后把根因冻结为 estimand 不可识别，并要求 v2 输出 activation、remaining quantity、cancel request/ACK、partial fill 和 delayed-entry repair。修正报告与风险集 successor 是同一研究主线，不是多个独立项目。</p>
 <p>版本合并的理由很具体：旧 report、corrected report、v1 blocker audit 和 v2 lifecycle contract 都围绕同一个 foreground question——“分侧 taker flow 能否在正确生命周期上预测 fill risk”。其中 report correction 没改变研究问题；risk-set v2 则改变了未来可接受的 estimand，但仍是同一项目的必要 successor。若把每个文件写成独立文章，读者会误以为已经有四次经济实验，实际上一次动作实验都没有发生。</p>
 <h2 id="5-结果与不确定性"><a href="#5-结果与不确定性" class="headerlink" title="5. 结果与不确定性"></a>5. 结果与不确定性</h2><p>BUY favorable/adverse split AUC 为 0.507/0.514，balanced-loss composite 更差。SELL 为 0.467/0.532；corrected composite 只能使用 7 个双-head 完整日。SELL 的 loss 改善主要来自整体概率校准，排序仍接近随机。</p>
@@ -493,6 +505,21 @@ h_{s,k}(x_t)=P(T\in[t_k,t_{k+1}),J=s\mid T\ge t_k,x_t),</script><p>其中 $s$ �
 </table>
 </div>
 <p>负 loss delta 只表示在各自缩放、intercept 和 regularization 下的概率损失更低，不能归因于 side-specific slopes。尤其 SELL favorable AUC 低于 0.5、adverse 仅略高于 0.5，说明“校准改善”与“排序出可行动高风险订单”是两回事。</p>
+<h3 id="5-1-pooled-与-split-若比较几何不同，loss-差不再是-side-信息"><a href="#5-1-pooled-与-split-若比较几何不同，loss-差不再是-side-信息" class="headerlink" title="5.1 pooled 与 split 若比较几何不同，loss 差不再是 side 信息"></a>5.1 pooled 与 split 若比较几何不同，loss 差不再是 side 信息</h3><p>要把 split-minus-pooled loss 解释成“分侧斜率有增量”，两者至少要共享 feature transform、训练权重、regularization grid、intercept 处理和 outer test rows。否则差值可以来自：</p>
+<script type="math/tex; mode=display">
+\Delta L
+=
+\Delta L_{side slopes}
++\Delta L_{scaling}
++\Delta L_{intercept}
++\Delta L_{regularization}
++\Delta L_{rows}.</script><p>旧 identity 没有把后四项冻结为零。因此 SELL loss 较低不能归因给 side-specific taker-flow；它可能只是在各侧单独拟合 base rate。corrected composite 只有 7 个双-head 完整日，又进一步限制了时间外解释。</p>
+<p>一个公平 successor 应在同一 nested chronological fold 内拟合 pooled 与 split，所有 preprocessing 只在 train 完成，test rows 完全相同，并把“只允许 side intercept”作为独立 M0。split slopes 只有超过这个 M0，才说明方向性交互不只是两侧基准概率不同。</p>
+<h3 id="5-2-AUC、balanced-loss-与-action-support-各回答不同问题"><a href="#5-2-AUC、balanced-loss-与-action-support-各回答不同问题" class="headerlink" title="5.2 AUC、balanced loss 与 action support 各回答不同问题"></a>5.2 AUC、balanced loss 与 action support 各回答不同问题</h3><p>AUC 只关心随机正例是否排在随机负例前；balanced loss 同时关心概率幅度，并人为平衡稀少 cause；action support 则关心 top-risk 区域有多少真实机会和生命周期。一个 head 可能 AUC 略高却严重失准，也可能 loss 改善却所有高分集中在一两天。</p>
+<p>对撤单候选，最小可读报告还应包括：top-$q$ score 的 eligible orders、support days、fills、adverse/favorable 分解、common-risk-set overlap，以及 score threshold 在每个 outer train 中的来源。没有这些，0.532 的 AUC 既不能说明经济大小，也不能说明能执行多少动作。</p>
+<h3 id="5-3-结构性失败为什么比统计阴性更强"><a href="#5-3-结构性失败为什么比统计阴性更强" class="headerlink" title="5.3 结构性失败为什么比统计阴性更强"></a>5.3 结构性失败为什么比统计阴性更强</h3><p>如果只是区间跨零，未来更多独立数据可能提高精度；这里 event identity 本身混合了 outcome、policy stop 与 state transition。样本量趋于无穷时，模型会更精确地学习这个混合对象：</p>
+<script type="math/tex; mode=display">
+J^{old}=\min(Fill,CancelPolicy,LegacyJump,RepairEntry),</script><p>而不是目标 $J^{fill}$。因此“不打开 Validation”不是保守偏好，而是防止用宝贵未来数据评估一个没有可解释目标的问题。</p>
 <h2 id="6-正确-successor-必须回答什么"><a href="#6-正确-successor-必须回答什么" class="headerlink" title="6. 正确 successor 必须回答什么"></a>6. 正确 successor 必须回答什么</h2><p>新的 dynamic hazard 不能简单把旧表换成长表。它必须同时满足四个条件：activation 后才进入 fill risk；cancel request/ACK 与 pending fill 分开；native jump 作为 non-absorbing transition；repair 使用 delayed entry。预测 feature 还必须在 mapped parent <code>aggTrade</code> ready 后才可见。</p>
 <p>若这些条件通过，评价也不能只看 AUC。至少需要 side-specific Brier skill、calibration、day-cluster uncertainty、top-risk support，以及未来动作表面的 overlap。一个有效 prediction 最多允许登记新的 randomized action experiment；它本身不能设置 <code>action_family_allowed=true</code>。</p>
 <p>预测到“高 adverse-fill hazard”仍不等于 cancel 有正值。动作会丢掉 queue position、改变 re-entry、fill mix 与后续 campaign，正式 reward 至少需要：</p>
@@ -506,6 +533,22 @@ R=V_{fill}-C_{campaign}-C_{queue\ reset}.</script><p>M0 没有 propensity 或 pa
 <li><code>action_family_allowed=false</code>；</li>
 <li>Validation、sealed holdout、live 均未获得权限。</li>
 </ul>
+<h2 id="Start-stop-风险集里的三个经典陷阱"><a href="#Start-stop-风险集里的三个经典陷阱" class="headerlink" title="Start-stop 风险集里的三个经典陷阱"></a>Start-stop 风险集里的三个经典陷阱</h2><p>第一个是immortal time：若一张订单必须存活到第一个完整100ms bucket才入样，那么从activation到该bucket的时间不能被悄悄忽略；它要么作为暴露进入risk set，要么明确left truncation。第二个是post-event leakage：一旦fill/cancel/terminal发生，之后的rows必须停止，不能继续用已知幸存状态生成负例。第三个是same-time ambiguity：feature ready、trade与terminal在同一毫秒但缺少先后时，应censor或标unknown，不能用文件行序猜顺序。</p>
+<p>离散competing-risk数据可写为每个订单的区间序列$(L_k,R_k]$，仅当订单在$L_k$仍at risk才创建row。cause-specific outcome包括fill、cancel ACK、expiry等；no event只表示该区间内继续生存。这样模型估计的是</p>
+<script type="math/tex; mode=display">
+h_{k,c}=P(T\in(L_k,R_k],J=c\mid T>L_k,X_{L_k}),</script><p>而不是对所有时间戳做普通classification。</p>
+<h2 id="Pooled-与-side-split-的公平比较"><a href="#Pooled-与-side-split-的公平比较" class="headerlink" title="Pooled 与 side-split 的公平比较"></a>Pooled 与 side-split 的公平比较</h2><p>要检验side-aware信息，pooled M0与BUY/SELL split M1必须使用相同rows、相同时间grid、相同baseline family与相同proper score。若split模型获得不同censor rule、更多features或不同regularization，loss差混合了side与pipeline变化。</p>
+<p>一个干净的增量写法是在pooled model中加入side interaction，再与无interaction版本比较：</p>
+<script type="math/tex; mode=display">
+\eta_{k,c}
+=
+f_c(X_k)+\mathbf1[side=BUY]g_c(X_k).</script><p>若$g_c$在chronological OOF中改善proper loss且两侧support充分，才说明side结构有预测增量。即便如此，action还需要知道hazard cause后的value；更高fill hazard可能是机会，也可能是adverse selection。</p>
+<h2 id="结构失败之后为什么不能继续报-AUC"><a href="#结构失败之后为什么不能继续报-AUC" class="headerlink" title="结构失败之后为什么不能继续报 AUC"></a>结构失败之后为什么不能继续报 AUC</h2><p>当risk-set start/stop、parent-ready或比较几何不一致时，标签和可见特征不再指向同一estimand。此时AUC可以非常高：模型可能只识别订单年龄、终局残留或提前可见的parent completion。漂亮分数反而是泄漏警报，而不是保留模型的理由。</p>
+<p>正确successor先在不看outcome的情况下验证row counts、exposure conservation、terminal stop与clock ordering，再进行prediction。只有数据对象通过，AUC、Brier与calibration才有意义；只有prediction通过，才轮到动作价值。本项目的关闭因此比“模型没显著”更基础：旧M0/M1 comparison geometry本身不能继续解释。</p>
+<h2 id="Hazard-calibration-应按-risk-time-而不是-row-count阅读"><a href="#Hazard-calibration-应按-risk-time-而不是-row-count阅读" class="headerlink" title="Hazard calibration 应按 risk time 而不是 row count阅读"></a>Hazard calibration 应按 risk time 而不是 row count阅读</h2><p>订单早期和晚期rows的base hazard不同；大量长寿低风险rows可能让总体Brier好看。应按age band、side、event cause与day比较predicted/observed，并给at-risk exposure。若模型在最常触发action的早期区间失准，总体AUC没有补救作用。</p>
+<p>多cause概率还需满足每bucket总和不超过1，survival与CIF质量守恒。一个head单独calibrated、合起来却超过1，说明独立binary construction无法作为competing-risk系统消费。</p>
+<h2 id="Outcome-blind-risk-set-validator"><a href="#Outcome-blind-risk-set-validator" class="headerlink" title="Outcome-blind risk-set validator"></a>Outcome-blind risk-set validator</h2><p>在训练前可验证：每个order只有一个activation、remaining quantity单调不增、terminal后零rows、区间时间严格正、source/ready不倒退、same-time ambiguity有明确标记、各cause terminal唯一。再按order重算暴露与row builder汇总对账。</p>
+<p>这些检查不读取哪个模型更好，所以可在不花费统计确认机会的情况下反复修复。M0的结构失败告诉后继先把validator做到零违例，再谈side split。</p>
 <h2 id="9-公共证据"><a href="#9-公共证据" class="headerlink" title="9. 公共证据"></a>9. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f08_side_taker_lifecycle/docs/side_taker_hazard_m0_v1_20260723.md"><code>side_taker_hazard_m0_v1_20260723.md</code></a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f08_side_taker_lifecycle/docs/event_identity_and_riskset_v1_20260723.md"><code>event_identity_and_riskset_v1_20260723.md</code></a></li>
@@ -549,9 +592,9 @@ R=V_{fill}-C_{campaign}-C_{queue\ reset}.</script><p>M0 没有 propensity 或 pa
       
         <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
       
-        <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
-      
         <a href="/tags/%E7%94%9F%E5%AD%98%E5%88%86%E6%9E%90/" class="print-no-link">#生存分析</a>
+      
+        <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
       
     </div>
   

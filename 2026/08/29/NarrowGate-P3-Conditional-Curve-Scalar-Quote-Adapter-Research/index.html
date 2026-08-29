@@ -27,13 +27,14 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：失败的是“压成两个标量再喂给旧公式”，不是条件 P3 本身volatility-conditioned P3 v4.1 在历史 Development 上给出了明显优于静态 v2 的 touch probability。一个很自然的下一步是：既然预测面更准，能否把它压缩成旧 quote ABI 已经认识的 del">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/p3-conditional-scalar-adapter-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f02-p3-estimand-ladder.svg">
 <meta property="article:published_time" content="2026-08-29T12:34:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:34:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
-<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/p3-conditional-scalar-adapter-kline.svg">
   
@@ -332,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          4.9k 字
+          8.7k 字
         
       </span>
     
@@ -344,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          42 分钟
+          73 分钟
         
       </span>
     
@@ -502,6 +503,47 @@ P_{pair}(d\mid x)=\frac{P_{BUY}(d\mid x)+P_{SELL}(d\mid x)}2.</script><p>然后�
 <h2 id="7-关闭、未关闭与权限"><a href="#7-关闭、未关闭与权限" class="headerlink" title="7. 关闭、未关闭与权限"></a>7. 关闭、未关闭与权限</h2><p>关闭：pair-averaged scalar compression、当前 grid/central-slope mapping，以及任何在这 24 个已读 OOF 日上追加 kappa cap、shrinkage、side weight 或 favorable-day filtering 的救援。</p>
 <p>未关闭：保持 BUY/SELL 分离、显式建模 queue conversion、fill value、campaign terminal economics，并直接优化一对 quote coordinates 的新 mapping。那必须是新的 ex-ante identity。</p>
 <p>本项目没有 prediction promotion、artifact replacement、quote authority、action registration、Validation、sealed holdout、shadow 或 live authority。current v2 继续作为 operational baseline dependency。</p>
+<h2 id="深入推导：曲面压成两个标量为什么是不可逆的"><a href="#深入推导：曲面压成两个标量为什么是不可逆的" class="headerlink" title="深入推导：曲面压成两个标量为什么是不可逆的"></a>深入推导：曲面压成两个标量为什么是不可逆的</h2><p>条件 P3 的自然对象是一组按 side、distance、horizon 与 state 索引的概率：</p>
+<script type="math/tex; mode=display">
+\mathcal P(X)=\{p_s(\delta_j,h_k\mid X):s\in\{BUY,SELL\},j,k\}.</script><p>旧报价接口只接收类似 $\delta^*$ 与 $\kappa_{eff}$ 的两个标量。任何映射 $g:\mathcal P\rightarrow\mathbb R^2$ 都是强压缩：存在大量不同曲面 $\mathcal P_1\ne\mathcal P_2$，却满足 $g(\mathcal P_1)=g(\mathcal P_2)$。如果差异恰好位于实际报价距离附近、短 horizon 或某一 side，压缩后就会把最有经济意义的信息删除。</p>
+<p>例如，两张 BUY 曲面都可能在十秒 50% 触达点给出 $\delta^*=1$，整体指数拟合也得到同一 $\kappa_{eff}$。第一张曲面可能在 0.2–0.5 USDC 附近陡降，第二张却在 1–2 USDC 才陡降；若实际 maker quotes 主要落在 0.3 USDC，二者的局部可达性完全不同。两个标量相同并不意味着动作等价。</p>
+<p>更根本的问题是语义错位。GLFT 的 $\kappa$ 描述成交订单到达强度随距离的指数衰减：</p>
+<script type="math/tex; mode=display">
+\lambda(\delta)=A e^{-\kappa\delta}.</script><p>P3 描述固定时间内市场价格是否触达某价位。除非 queue conversion、order lifetime、cancel policy 与成交条件价值都有额外模型，把 P3 拟合斜率叫作 <code>kappa_eff</code> 也不会让它变成同一个 estimand。</p>
+<p><img src="/images/narrowgate/f02-p3-estimand-ladder.svg" srcset="/img/loading.gif" lazyload alt="曲面、hazard、fill 与动作价值不能跨级替代"></p>
+<p><em>图 2：scalar adapter 试图从第一级跨接到第五级；中间三层没有因为接口兼容而消失。</em></p>
+<h2 id="冻结反例：更多成交为何带来更差终局"><a href="#冻结反例：更多成交为何带来更差终局" class="headerlink" title="冻结反例：更多成交为何带来更差终局"></a>冻结反例：更多成交为何带来更差终局</h2><p>这项研究最有解释力的不是 prediction 指标，而是完整路径反例。adapter 把平均半价差从约 24.58 缩到 13.49，fills 从 8,799 增到 21,597；如果只看参与度，会认为更准确的概率模型成功提高了成交机会。但终局 MTM 反而恶化约 115.66 USDC。</p>
+<p>这组数字揭示了三件事。第一，报价更近确实改变了动作，不是 no-op。第二，更多 fills 没有被自动转化为更高价值，说明 fill conversion 与 adverse selection 的联合分布没有被两个标量表达。第三，路径反馈很强：新增 fill 改变库存，库存改变 reservation price，进而改变后续两侧 quotes 和 campaign tail。</p>
+<p>可以把增量粗略分解为：</p>
+<script type="math/tex; mode=display">
+\Delta Y=\underbrace{\Delta N_{fill}\,\bar v_{common}}_{\text{参与度}}
++\underbrace{N_{new}(\bar v_{new}-\bar v_{common})}_{\text{新增成交质量}}
++\underbrace{\Delta C_{path}}_{\text{库存、queue 与后续路径}}.</script><p>第一项为正并不足够；新成交质量和路径成本可以更负。adapter 的失败正是一个“预测改善—动作恶化”案例，而不是 P3 曲面毫无信息。</p>
+<h2 id="怎样设计不会重复同一错误的-successor"><a href="#怎样设计不会重复同一错误的-successor" class="headerlink" title="怎样设计不会重复同一错误的 successor"></a>怎样设计不会重复同一错误的 successor</h2><p>后继接口不应先问“怎样生成一个旧 $\kappa$”，而应直接在可执行候选集合上估计联合价值。对每个 side 和离散报价 $a\in{\delta_1,\ldots,\delta_m}$，保留原曲面局部形状、queue state 和库存状态，估计：</p>
+<script type="math/tex; mode=display">
+V(a,X)=E[Y(a)-Y(B_0)\mid X].</script><p>候选动作必须通过 common-support、known propensity 或完整 paired replay；unsupported cells 回退 baseline。这样 P3 作为一个输入参与 action-value，而不是伪装成旧模型参数。关闭 scalar adapter 恰恰为这种强类型接口留下了空间。</p>
+<h2 id="为什么-kappa-eff-甚至不是一个稳定的曲面摘要"><a href="#为什么-kappa-eff-甚至不是一个稳定的曲面摘要" class="headerlink" title="为什么 kappa_eff 甚至不是一个稳定的曲面摘要"></a>为什么 <code>kappa_eff</code> 甚至不是一个稳定的曲面摘要</h2><p>若在距离区间$[d_1,d_2]$上用log概率斜率定义</p>
+<script type="math/tex; mode=display">
+\kappa_{eff}
+=
+-\frac{\log P_{touch}(d_2)-\log P_{touch}(d_1)}{d_2-d_1},</script><p>它会同时依赖horizon、选取的距离区间、floor/clipping与条件state。同一曲面在近端可能平、远端可能陡；换一组grid就会得到另一个$\kappa_{eff}$。这不是估计噪声，而是曲面本来不必服从单指数形状。</p>
+<p>更严重的是，即便touch曲线恰好指数化，GLFT里的arrival intensity还包含时间尺度$A$：$\lambda(\delta)=Ae^{-\kappa\delta}$。固定horizon touch概率若在Poisson近似下写成</p>
+<script type="math/tex; mode=display">
+P_{touch,H}(\delta)=1-e^{-\lambda_{touch}(\delta)H},</script><p>从$P$恢复的也是“价格触达事件强度”，不是排队后本单成交的market-order arrival intensity。queue conversion随距离与状态变化时，两者连比例关系都不保证。把touch slope塞进旧$kappa$位置，实际上把模型形式相似误当成物理对象相同。</p>
+<h2 id="这次失败如何定位，而不是简单归咎于“过度成交”"><a href="#这次失败如何定位，而不是简单归咎于“过度成交”" class="headerlink" title="这次失败如何定位，而不是简单归咎于“过度成交”"></a>这次失败如何定位，而不是简单归咎于“过度成交”</h2><p>候选报价更窄、fills增加、terminal MTM恶化，至少排除了no-op，但仍存在多个机制分支：新增fills可能集中在不利side；相同side内可能来自更toxic状态；更早fill会改变inventory reservation price；更多cancel/requote会重置queue；floor又可能让曲面信息在某些状态被重复放大。</p>
+<p>要区分这些分支，successor应报告从decision到terminal的分层分解：候选改变了多少报价、多少订单激活、多少touch、多少fill、哪些fill增加exposure、campaign持续多久，以及未成交路径的机会成本。特别要避免只在filled rows比较markout，因为action本身选择了谁会fill。</p>
+<p>一个合格的negative conclusion因此不是“更窄一定不好”，而是：在冻结scalar-compression mapping、当前queue与完整path identity下，增加的参与度没有补偿选择与库存路径成本。它关闭这一个ABI，不关闭条件P3、离散quote action或显式fill-value模型。</p>
+<h2 id="Scalar-adapter-怎样在报价公式里被重复使用"><a href="#Scalar-adapter-怎样在报价公式里被重复使用" class="headerlink" title="Scalar adapter 怎样在报价公式里被重复使用"></a>Scalar adapter 怎样在报价公式里被重复使用</h2><p>如果曲面先通过$\delta<em>\star$给出minimum half-spread floor，又用同一log slope生成$\kappa</em>{eff}$进入AS/GLFT spread term，同一touch信息会沿两条通道影响最终距离。floor在某些状态绑定时，$\kappa$变化无效；未绑定时两者又可能同向收窄，产生非线性放大。</p>
+<p>最终quote可示意为</p>
+<script type="math/tex; mode=display">
+\delta_{final}
+=
+\max\left\{\delta_\star(X),
+\delta_{AS/GLFT}(\gamma,\sigma^2,H,\kappa_{eff}(X),q)\right\},</script><p>但$\delta<em>\star$与$\kappa</em>{eff}$来自同一曲面且都不是fill value。这不是两个独立证据源。报告必须给floor-binding率和对每条通道的消融，否则无法知道动作强度来自哪一项。</p>
+<h2 id="数量单位为何让旧-ABI-更危险"><a href="#数量单位为何让旧-ABI-更危险" class="headerlink" title="数量单位为何让旧 ABI 更危险"></a>数量单位为何让旧 ABI 更危险</h2><p>AS/GLFT推导常把订单量规范化为1；实际库存以BTC计、每单数量又可能是0.001 BTC。如果公式没有显式订单量$z$，$\gamma$或$q$就隐含依赖denomination。再把以USDC/BTC距离拟合的touch slope作为$\kappa$，单位虽表面是inverse price，经济尺度仍未闭合。</p>
+<p>最小检查是denomination invariance：把BTC改成mBTC、USDC改成cent后，换回原单位的quotes必须一致。其次把risk horizon、P3 horizon、requote interval和TTL分别记录。scalar adapter失败不仅是统计问题，也暴露了旧接口让不同物理对象“只要是float就能互换”的类型债务。</p>
+<h2 id="如何读完整路径里的库存时间下降"><a href="#如何读完整路径里的库存时间下降" class="headerlink" title="如何读完整路径里的库存时间下降"></a>如何读完整路径里的库存时间下降</h2><p>candidate fills更多但absolute inventory time下降，可能因为更积极的两侧交易更快来回穿越flat；它并不说明每次fill质量更好。高turnover可以缩短持仓，同时支付更多adverse selection与fees，terminal MTM仍更差。</p>
+<p>所以inventory-time是risk exposure diagnostic，不能作为PnL替代。若业务真的愿意以价值换更低BTC-hours，应在实验前定义shadow price或hard risk constraint；不能在看到负PnL后临时用inventory改善为candidate辩护。</p>
 <h2 id="8-公共证据"><a href="#8-公共证据" class="headerlink" title="8. 公共证据"></a>8. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/docs/p3_touch_conditional_curve_quote_mapping_v1_development_20260803.md">Conditional P3 Curve to Quote Mapping v1 Development</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/docs/p3_touch_conditional_curve_quote_mapping_v1_contract_errata_20260803.md">Contract Errata</a></li>
@@ -545,9 +587,9 @@ P_{pair}(d\mid x)=\frac{P_{BUY}(d\mid x)+P_{SELL}(d\mid x)}2.</script><p>然后�
       
         <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
       
-        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
-      
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
     </div>
   

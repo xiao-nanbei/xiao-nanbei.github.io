@@ -27,6 +27,7 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：一日生命周期 plumbing 通过，40 日 mechanics 与任何经济结论都还没有这项研究尝试把 causal-v12 的 side-specific toxicity rank 变成一个真正的 active-order action：在 exposure-increasing BUY 或 SELL qu">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/ranked-toxicity-exposure-guard.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f09-campaign-action-causal-path.svg">
 <meta property="article:published_time" content="2026-08-29T12:21:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:21:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -332,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          1.8k 字
+          2k 字
         
       </span>
     
@@ -344,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          15 分钟
+          17 分钟
         
       </span>
     
@@ -394,6 +395,8 @@
 <p>冻结一日 smoke 的 untreated baseline 有 29,072 decisions，candidate 全部消费。BUY/SELL 各 337 episodes、336 complete、1 censor；carryovers 58/50，SELL 有 1 次合法 active-order role transition；cross-arm ownership、forced washout cancel、owner mismatch 与 terminal risk-set reuse 都为零。v2.2 plumbing 因而通过，但正式 40 日 mechanics 未运行，PnL、reward、markout、Validation 与 sealed holdout 全部未读。本文的结论是<strong>因果动作与所有权合同可实现</strong>，不是支持、价值或部署结论。</p>
 <p><img src="/images/narrowgate/ranked-toxicity-exposure-guard.svg" srcset="/img/loading.gif" lazyload alt="Ranked toxicity guard 的 ACK 与 carryover 状态机"></p>
 <p><em>图 1：机制示意。p90 crossing 只发一次 cancel；ACK 才把旧 order 移出风险集。campaign 边界不能冲掉仍 live 的 owner，role 也可随 inventory 合法转移。</em></p>
+<p><img src="/images/narrowgate/f09-campaign-action-causal-path.svg" srcset="/img/loading.gif" lazyload alt="Persistent guard 的 campaign action 与 ownership 路径"></p>
+<p><em>图 2：rank crossing 只是 trigger。candidate 经 cancel pending、ACK、suppression、release 与 fresh re-entry 形成完整路径；ownership 必须跨 campaign 边界保持，mechanics 通过后才能读取 selectivity 与 economics。</em></p>
 <h2 id="1-研究问题：预测毒性之后，究竟对哪一张订单做什么？"><a href="#1-研究问题：预测毒性之后，究竟对哪一张订单做什么？" class="headerlink" title="1. 研究问题：预测毒性之后，究竟对哪一张订单做什么？"></a>1. 研究问题：预测毒性之后，究竟对哪一张订单做什么？</h2><p>toxicity score 可以排序未来 adverse flow，但 maker action 不是把 score 写进日志。订单可能已经 active、有 queue position、正在 cancel pending，甚至在 inventory 变化后从 reducing 变成 exposure。研究问题是：一个 past-only ranked score 能否定义一条无 ownership 泄漏、无 terminal reuse、可随机化的 persistent permission path？</p>
 <p>BUY 与 SELL 是独立注册 identity，因为 <code>tox_bid</code> 与 <code>tox_ask</code> 的风险面不同；它们共享同一主文章，因为 rank denominator、state machine、所有权修复与证据边界一致。未来经济 estimand 才会分别是：</p>
 <script type="math/tex; mode=display">
@@ -404,6 +407,10 @@ t^{feature}_{ready}\le t^{decision}.</script><p>经验阈值为：</p>
 <script type="math/tex; mode=display">
 c_{s,d}=Q_{0.90}\left(\{z_{s,b}:day(b)<d,\ b\text{ eligible completed bucket}\}\right).</script><p>重复的 100ms main-loop evaluations 不进入 CDF，否则高频重复会给慢变 score 过高权重。阈值在整个 UTC day 冻结；更早数据少于 5 日或 500 buckets 时没有 fallback。缺阈值就没有 candidate action，不能用当天数据补齐。</p>
 <p>baseline 是 exact operational v5：causal-v12 enabled、q90 shadow enabled/action disabled、BUY fill-selection 在两臂相同、raw toxicity threshold disabled。关闭 BUY fill-selection 会构成不同 baseline，不能为本项目提供 promotion evidence。</p>
+<h3 id="2-1-为什么-rank-比-raw-score-更可运输，又不是免费的"><a href="#2-1-为什么-rank-比-raw-score-更可运输，又不是免费的" class="headerlink" title="2.1 为什么 rank 比 raw score 更可运输，又不是免费的"></a>2.1 为什么 rank 比 raw score 更可运输，又不是免费的</h3><p>past-only p90 将不同日期的 score scale映射为相对尾部，减少模型校准漂移对阈值的影响。若 score做单调变换，rank基本不变；raw threshold则会改变 action rate。</p>
+<p>但 rank仍依赖 denominator。若把 100ms循环中同一个 10秒 score重复 100次，慢变状态会按运行频率加权；只取 completed bucket的第一条 eligible row，才让经验 CDF以信息更新为单位。若 eligibility本身受 candidate影响，又会发生 treatment-dependent threshold，因此阈值只从 untreated历史构造并整日冻结。</p>
+<h3 id="2-2-五日-500-bucket-warmup为什么-fail-closed"><a href="#2-2-五日-500-bucket-warmup为什么-fail-closed" class="headerlink" title="2.2 五日/500 bucket warmup为什么 fail closed"></a>2.2 五日/500 bucket warmup为什么 fail closed</h3><p>少量历史下 p90易被一两个极值决定，且无法覆盖日间 regime。没有足够过去数据时回退固定 0.8，看似保持动作可用，却把 plumbing threshold偷换成预测阈值。冻结合同宁可不触发，也不借当天分布补种。</p>
+<p>这意味着 early days或 source gap会减少 action opportunities，正式 mechanics必须将其计入 denominator。不能只在有阈值的日期报告漂亮 action rate，再称为全期支持。</p>
 <h2 id="3-动作、输入与未来-estimand"><a href="#3-动作、输入与未来-estimand" class="headerlink" title="3. 动作、输入与未来 estimand"></a>3. 动作、输入与未来 estimand</h2><p>状态机冻结为：</p>
 <div class="code-wrapper"><pre><code class="hljs text">BASELINE --p90 crossing--&gt; GUARD_ACTIVE
 GUARD_ACTIVE --cancel once--&gt; CANCEL_PENDING
@@ -462,6 +469,13 @@ R_i(t)=\mathbf1\{t_{activate,i}\le t<t_{ack,i}\ \land\ order_i\text{ exchange-li
 <p>更隐蔽的情况是 role transition。某订单提交时是 reducing SELL，之后其他 fill 改变 inventory，使同一 exchange-live order 变为 exposure-increasing。旧 adapter 把 submit-time role 当永恒常量，于是错误 fail。修复只允许在 order 仍 active、exchange-nonterminal、<code>fill_risk_active=true</code> 且 owner 相同的情况下发生：</p>
 <script type="math/tex; mode=display">
 role_i(t^-)=reducing,\quad role_i(t)=exposure,</script><p>并写入显式 journal event；queue 与 owner 不重置。unknown、terminal 或已离开风险集的 order 仍立即 fail-fast。</p>
+<h3 id="5-1-Assignment-owner-与当前-inventory-role-是两个维度"><a href="#5-1-Assignment-owner-与当前-inventory-role-是两个维度" class="headerlink" title="5.1 Assignment owner 与当前 inventory role 是两个维度"></a>5.1 Assignment owner 与当前 inventory role 是两个维度</h3><p>owner回答“这张订单由哪次随机 assignment创建并负责”；role回答“按当前 inventory，这张仍 active 的订单成交后会增加还是减少暴露”。前者在订单终局前不可变，后者可能随其它 fills改变。</p>
+<p>可写成：</p>
+<script type="math/tex; mode=display">
+owner_i(t)=owner_i(t_{submit}),\qquad t<t_{terminal},</script><script type="math/tex; mode=display">
+role_i(t)=r(side_i,q_t,remaining_i).</script><p>把 role冻结在 submit，会错过合法 transition；按新 campaign重写 owner，又会让新 arm控制旧 arm创建的 queue option。carryover-safe adapter必须同时维护这两个状态。</p>
+<h3 id="5-2-为什么不能强制-washout"><a href="#5-2-为什么不能强制-washout" class="headerlink" title="5.2 为什么不能强制 washout"></a>5.2 为什么不能强制 washout</h3><p>在 campaign flat 时强制取消所有旧单，确实能让 assignment边界整齐，但它本身是额外动作，会改变 fill、queue与下一 campaign。若只在 candidate或边界附近发生，就污染 treatment contrast。</p>
+<p>自然 washout要求 owner延续到所有 owned exchange-live orders和guard state终止；最后未终止 episode右 censor。这样牺牲一点样本整齐度，保留真实市场路径。58/50 carryovers说明这不是理论角落，而是常见 lifecycle事实。</p>
 <h2 id="6-研究演进：失败记录为什么不能拆成新项目"><a href="#6-研究演进：失败记录为什么不能拆成新项目" class="headerlink" title="6. 研究演进：失败记录为什么不能拆成新项目"></a>6. 研究演进：失败记录为什么不能拆成新项目</h2><p>v1.1–v1.5 的 full-path adapter 尝试逐步发现 ownership、terminal risk set 与 role contract；它们是同一 frozen action 的实现审计。carryover-safe v2 一日 smoke 修复 role transition 后通过。v2.1 尝试复用旧 baseline tape，却在 prediction warmup 前发现 current loader 下 candidate 与 untreated baseline identity 不再相等，输出 0B，fail-safe 关闭。</p>
 <p>v2.2 不偷继承旧 tape，而是在相同 current loader、read-only replay-cache DAG 与 code identity 下重新生成 untreated baseline shadow 和 candidate path。冻结 0.8 threshold 仅为 plumbing，不具预测或动作含义。spec/attempt/version 的变化解决的是执行可比性，没有改变科学 action，因此全部合并在本文。</p>
 <h2 id="7-一日冻结-mechanics-结果"><a href="#7-一日冻结-mechanics-结果" class="headerlink" title="7. 一日冻结 mechanics 结果"></a>7. 一日冻结 mechanics 结果</h2><p>2026-04-17 baseline 29,072 decisions，candidate 29,072，unconsumed 0。结果：</p>
@@ -525,9 +539,17 @@ role_i(t^-)=reducing,\quad role_i(t)=exposure,</script><p>并写入显式 journa
 </div>
 <p>role lifecycle 与 carryover lifecycle 都 valid，cache writers 全关闭、write attempts 为零。21 个 v2.2/v2.1/carryover assignment tests 通过；较早 targeted regression 49 tests 也通过。</p>
 <p>这些数字只证明 one-day plumbing。337 episodes 不是正式 support denominator，0 ownership violation 也不能估计 40 日 action rate、ESS 或 value。尤其不能拿 plumbing threshold 0.8 替代 past-only p90。</p>
+<h3 id="7-1-Smoke-test-能证伪什么，不能估计什么"><a href="#7-1-Smoke-test-能证伪什么，不能估计什么" class="headerlink" title="7.1 Smoke test 能证伪什么，不能估计什么"></a>7.1 Smoke test 能证伪什么，不能估计什么</h3><p>一日 smoke足以发现 deterministic contract defect：未消费 baseline row、cross-arm owner、terminal后复用、forced cancel、role transition失败。只要出现一次，就说明 adapter不安全。零次则仅说明这一天没有观察到违反，不给稀有失败率一个强上界，更不证明其它 regime。</p>
+<p>它也不能估计 p90 action support，因为使用0.8 plumbing threshold；不能估计 value，因为 outcome字段未读；不能证明 current baseline parity，因为绑定历史v5 snapshot。把 smoke称为“策略回测通过”会跨越三个证据层。</p>
+<h3 id="7-2-正式-mechanics-应报告的-selectivity-funnel"><a href="#7-2-正式-mechanics-应报告的-selectivity-funnel" class="headerlink" title="7.2 正式 mechanics 应报告的 selectivity funnel"></a>7.2 正式 mechanics 应报告的 selectivity funnel</h3><p>40日 stage one至少要报告：past-only threshold可用 opportunities、rank crossings、active-order cancels、ACK前 fills、suppressed quote decisions、fresh re-entries、assigned quantity、retained fills与missing-label worst-case bounds。BUY/SELL分开，并按日给 propensity与ESS。</p>
+<p>只有 action rate适中、quantity denominator闭合、reducing bypass零违反、candidate不是 broad shutdown，才允许打开 terminal economics。预测 score很强不能替代这些机械条件。</p>
 <h2 id="8-不确定性与关闭-支持边界"><a href="#8-不确定性与关闭-支持边界" class="headerlink" title="8. 不确定性与关闭/支持边界"></a>8. 不确定性与关闭/支持边界</h2><p>当前状态不是“经济失败”，而是“formal mechanics not run”。已支持的是：rank denominator 可定义、ACK/riskset 与 carryover owner 可执行、一日 baseline/candidate consumption 对齐。未支持的是：40 日机会率、action selectivity、quantity-based fill retention、Development reward/tail、live transport。</p>
 <p>future selectivity 必须以 common assigned-quantity denominator 计算。missing 10-second BBO labels 保留在 denominator 并使用对 candidate 不利的 censoring bound，不能删除 missing rows 获得漂亮 retention。</p>
 <p>旧 operational v5 baseline 本身后来有 lifecycle repair，但 local repair 不构成 deployed runtime parity。prospective placement recovery、full transport 与 live parity 仍 unsupported，ranked guard 不能借 q90 repair 获得 action authority。</p>
+<h3 id="8-1-当前状态为什么是“未完成”，不是正面或阴性经济结果"><a href="#8-1-当前状态为什么是“未完成”，不是正面或阴性经济结果" class="headerlink" title="8.1 当前状态为什么是“未完成”，不是正面或阴性经济结果"></a>8.1 当前状态为什么是“未完成”，不是正面或阴性经济结果</h3><p>formal mechanics 尚未运行，所以 action可能支持不足、过度抑制、选择性良好或完全无效；当前都不知道。经济字段未读，也就没有 reward符号。唯一已建立的是动作状态机在一日历史路径上能维持所有权与终局不变量。</p>
+<p>把未完成写成 closed-negative会抹掉真实工程进展；写成 promising alpha又会越级。最精确状态是 mechanics plumbing passed on one-day smoke，formal support/economics unopened。</p>
+<h3 id="8-2-这项-plumbing-对其它动作有什么公共价值"><a href="#8-2-这项-plumbing-对其它动作有什么公共价值" class="headerlink" title="8.2 这项 plumbing 对其它动作有什么公共价值"></a>8.2 这项 plumbing 对其它动作有什么公共价值</h3><p>carryover-safe ownership不只服务 toxicity guard。任何 campaign-level随机 action，只要订单可跨 flat或role可随 inventory变化，都需要同一原则：exchange-live order保留创建 arm，role动态计算，terminal后才释放 owner。</p>
+<p>这类基础设施可以复用，经济证据不能复用。另一个 action继承 adapter parity，不等于继承本 guard的 p90、support或value；它仍需自己的 assignment与结果门。</p>
 <h2 id="9-没有获得的权限"><a href="#9-没有获得的权限" class="headerlink" title="9. 没有获得的权限"></a>9. 没有获得的权限</h2><ul>
 <li>正式 40 日 mechanics 尚未运行；</li>
 <li>PnL、reward、markout、toxic fills 与 campaign tails 未读；</li>
@@ -536,6 +558,14 @@ role_i(t^-)=reducing,\quad role_i(t)=exposure,</script><p>并写入显式 journa
 <li>没有把一日 0.8 plumbing threshold 当作预测阈值；</li>
 <li>没有从零 ownership violation 推出正经济价值。</li>
 </ul>
+<h2 id="Rank-transport-的优势和隐藏状态"><a href="#Rank-transport-的优势和隐藏状态" class="headerlink" title="Rank transport 的优势和隐藏状态"></a>Rank transport 的优势和隐藏状态</h2><p>past-only percentile rank把不同模型版本或regime的raw score压到相对位置，能减弱尺度漂移。但rank依赖reference denominator：过去哪些日进入、窗口多长、按side还是按role、missing bucket怎样处理。denominator变化会让同一raw score得到不同rank，所以它本身是有状态的online estimator。</p>
+<p>设过去合法scores经验CDF为$\hat F_{t^-}$，当前rank为</p>
+<script type="math/tex; mode=display">
+r_t=\hat F_{t^-}(s_t).</script><p>必须先冻结$\hat F$再评当前$s_t$；若把当前bucket或未来日加入denominator，就会轻微lookahead。warmup不足时fail closed保护了语义，但也会选择性删除新regime开头，正式mechanics需报告这些invalid rows集中在哪里。</p>
+<h2 id="Exposure-guard-的-assignment-owner-与动态-role"><a href="#Exposure-guard-的-assignment-owner-与动态-role" class="headerlink" title="Exposure guard 的 assignment owner 与动态 role"></a>Exposure guard 的 assignment owner 与动态 role</h2><p>一张订单在assignment时可能是exposure-increasing，之后库存因另一侧fill改变，它在当前时刻变成reducing。若guard按动态role立即释放，treatment duration依赖其它订单；若按assignment owner保持，可能继续保护一张现在有修复价值的单。两种都合理，却是不同policy。</p>
+<p>因此lineage需同时保存<code>assignment_owner_role</code>与<code>current_inventory_role</code>，并预注册terminal/release规则。campaign边界也不能靠强制washout制造独立样本；自然flat或明确terminal state才结束经济路径。否则guard可能通过删除跨窗口尾部看起来更安全。</p>
+<h2 id="从-one-day-plumbing-到-40-day-scorecard"><a href="#从-one-day-plumbing-到-40-day-scorecard" class="headerlink" title="从 one-day plumbing 到 40-day scorecard"></a>从 one-day plumbing 到 40-day scorecard</h2><p>正式mechanics至少要给eligible→rank valid→threshold hit→quote changed→order active→fill/cancel→campaign terminal的selectivity funnel，并按side、role与day报告。只有action exposure充分且不被少数日期支配，才允许读取terminal value。</p>
+<p>经济阶段应比较guard ON/OFF的paired full path，并预注册mean、tail、fills retention和inventory-time gates。若rank只在action intensity上transport、value不通过，结论仍是不晋级；若mechanics本身不足，则状态是incomplete而非negative。当前一日结果只证明state/ACK plumbing可工作，离这两种正式结论都还有距离。</p>
 <h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/causal_v12_ranked_toxicity_exposure_guard_v1_registration_20260802.md"><code>causal_v12_ranked_toxicity_exposure_guard_v1_registration_20260802.md</code></a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/causal_v12_ranked_toxicity_exposure_guard_carryover_safe_v2_implementation_20260803.md"><code>causal_v12_ranked_toxicity_exposure_guard_carryover_safe_v2_implementation_20260803.md</code></a></li>

@@ -27,12 +27,13 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：第一组真正随机化的局部动作，没有稳定赢家这项研究把“模型分数看起来不错”改写成一个可以直接失败的动作问题：在每个 inventory campaign 的 exposure-increasing add surface 上，保持订单大小、减仓侧、安全限制、queue 和 latency 不变，只改变当前报价的一小">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/fixed-local-quote-actions-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f09-campaign-action-causal-path.svg">
 <meta property="article:published_time" content="2026-08-29T12:10:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:10:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
-<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="离线策略评估">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/fixed-local-quote-actions-kline.svg">
@@ -332,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          4.8k 字
+          9.1k 字
         
       </span>
     
@@ -344,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          41 分钟
+          76 分钟
         
       </span>
     
@@ -394,6 +395,8 @@
 <p>后来数据与 replay identity 修复使旧精确 DR、PnL、fill 和 tail 数值失去当前校准权限，但<strong>不晋级决定仍然保守有效</strong>。修复数据不能成为打开已锁面板、重跑同一动作的理由。</p>
 <p><img src="/images/narrowgate/fixed-local-quote-actions-kline.svg" srcset="/img/loading.gif" lazyload alt="固定局部报价动作在 K 线与报单上的含义"></p>
 <p><em>图 1：机制示意。四个动作只改变 exposure-increasing add 的局部报价；reducing quote、size、inventory limit 和市场路径保持冻结。</em></p>
+<p><img src="/images/narrowgate/f09-campaign-action-causal-path.svg" srcset="/img/loading.gif" lazyload alt="Campaign 动作从分配到终局的完整路径"></p>
+<p><em>图 2：同一个 untreated opportunity 先冻结 eligibility，再随机分配报价动作。candidate 必须自行生成 submit、queue、fill、inventory 与 campaign terminal；mechanics、participation、risk 和 economics 是四道不同的门。</em></p>
 <h2 id="1-研究问题：不是哪个-tick-最赚钱，而是局部动作能否迁移"><a href="#1-研究问题：不是哪个-tick-最赚钱，而是局部动作能否迁移" class="headerlink" title="1. 研究问题：不是哪个 tick 最赚钱，而是局部动作能否迁移"></a>1. 研究问题：不是哪个 tick 最赚钱，而是局部动作能否迁移</h2><p>maker 策略很容易产生局部直觉：盘口恶化时再 widen 一 tick，过度 widening 时撤回一部分，或者让报价重新靠近合理中心。传统参数回测会在很多 tick 距离中挑赢家，却无法区分随机波动、日期选择与动作本身。</p>
 <p>本项目把问题冻结为一个 campaign-level intervention。每个 campaign 最多有一次 exposure-increasing add intervention；opener 与 reducing 没有动作 overlap，因此不能继承结果。形式上，动作价值是：</p>
 <script type="math/tex; mode=display">
@@ -448,6 +451,20 @@ R=V_{fill}-C_{campaign}-C_{queue\ reset}.</script><p>maker-signed fill value 已
 <p>特征必须在 decision timestamp 前 ready。市场、queue、P3、latency seed 与 initial state 在所有 arms 相同。一个 extra cancel 不能让后续所有随机延迟错位，因此 latency 使用 keyed deterministic path，而不是顺序 RNG。</p>
 <h2 id="4-一个具体路径例子"><a href="#4-一个具体路径例子" class="headerlink" title="4. 一个具体路径例子"></a>4. 一个具体路径例子</h2><p>假设 BUY add baseline price 为 99,999.9，tick 为 0.1，当前 inventory 已为 +0.001 BTC。<code>widen_1tick</code> 把 bid 改为 99,999.8。若 baseline order 在队列前端原本会成交，而 widened order 没成交，candidate 不仅少一个 fill，也少一段库存、一个 reducing quote 和后续 cooldown。不能把“没吃到那笔 -0.2bps markout”直接当收益；必须把失去的修复机会与 queue reset 一起算到 terminal。</p>
 <p>相反，<code>recenter_1tick</code> 可能增加 fills，却也可能以更差选择进入库存。局部价格变化的经济含义来自完整路径，不来自 quote 距离本身。</p>
+<h3 id="4-1-四臂不是四个独立回测"><a href="#4-1-四臂不是四个独立回测" class="headerlink" title="4.1 四臂不是四个独立回测"></a>4.1 四臂不是四个独立回测</h3><p>每个 campaign 只能观察一个实际 assignment。四臂价值由同一随机行为分布识别，而不是分别选择四个“最好日期”运行。设行为概率为 $p(a)$，某个目标 policy 为 $\pi(x)$，则 inverse-propensity correction 只在日志动作恰好等于目标动作时启用：</p>
+<script type="math/tex; mode=display">
+\frac{\mathbf 1\{A_i=\pi(X_i)\}}{p(A_i\mid X_i)}.</script><p>由于 baseline 概率 0.4、其余各 0.2，稀有动作匹配行权重更高。clipping 可控制方差，却也改变 estimand 附近的偏差—方差权衡。因此 clipping 是冻结合同，不是看到哪个动作区间差一点就调哪个。</p>
+<p>四臂共享同一天行情和相似 campaign 状态，动作估计也彼此相关。对每个动作分别做 95% 区间、再挑唯一正的一个，会放大 familywise 假阳性。正确 scorecard 要同时约束动作族、side、tail 与日期方向。</p>
+<h3 id="4-2-DR-估计器为什么不是“机器学习保证”"><a href="#4-2-DR-估计器为什么不是“机器学习保证”" class="headerlink" title="4.2 DR 估计器为什么不是“机器学习保证”"></a>4.2 DR 估计器为什么不是“机器学习保证”</h3><p>DR 的双重稳健性指：在一定正则条件下，propensity 或 outcome model 至少一方正确可带来一致性。这里 propensity 由 replay 已知，是强项；但仍需要 consistency、no interference、正确 reward 与稳定的 campaign assignment。</p>
+<p>如果同一 campaign 被随机多次，早期 action 改变后来 $X$，那么后续行不是独立的静态 contextual bandit。项目将 intervention 限为每 campaign 一次，就是为了让：</p>
+<script type="math/tex; mode=display">
+Y_i=Y_i(A_i)</script><p>保持清楚。known propensity 不能修复错误的订单 lifecycle、重复 terminal PnL 或时间穿越特征；这些都属于 DR 公式之外的识别前提。</p>
+<h3 id="4-3-一个-winner-rotation-的合成解释"><a href="#4-3-一个-winner-rotation-的合成解释" class="headerlink" title="4.3 一个 winner rotation 的合成解释"></a>4.3 一个 winner rotation 的合成解释</h3><p>假设 Development 恰有较多缓慢下跌日。BUY widen 少接到一些 add fills，点估计领先；SELL recenter 在反弹段增加修复，亦略正。Validation 若趋势组成改变，BUY widen 的优势缩小，SELL recenter 可能反号，而 prevent-over-widen 偶然领先。</p>
+<p>这不必意味着“市场规律每月彻底相反”。当真实 action effect 接近零、日间噪声大于信号时，最大样本均值本来就会旋转。若四个真值都为零：</p>
+<script type="math/tex; mode=display">
+\Pr\left(\arg\max_a\widehat\tau_a^{Dev}
+=
+\arg\max_a\widehat\tau_a^{Val}\right)</script><p>并不会很高。winner rotation 因此是弱信号与选择噪声的自然诊断，不能成为在 Validation 再选一次动作的理由。</p>
 <h2 id="5-结果：Development-线索没有穿过-Validation"><a href="#5-结果：Development-线索没有穿过-Validation" class="headerlink" title="5. 结果：Development 线索没有穿过 Validation"></a>5. 结果：Development 线索没有穿过 Validation</h2><p>历史冻结报告中，Development 每个动作的 DR interval 都跨零。点估计领先者是 BUY <code>widen_1tick</code> 与 SELL <code>recenter_1tick</code>；它们只被记录为 diagnostic candidates，并未通过晋级门。</p>
 <p>Validation 不回灌训练。BUY widen 仍是很小的正点估计，但日正率低于 50%；SELL recenter 反号；Validation 中最大的 SELL 点估计反而来自 Development 为负的 <code>prevent_over_widen</code>。这种 winner rotation 是不稳定性证据，不是让研究者在 Validation 再挑一次赢家的许可。</p>
 <div class="table-container">
@@ -490,6 +507,12 @@ R=V_{fill}-C_{campaign}-C_{queue\ reset}.</script><p>maker-signed fill value 已
 <p>BUY 与 SELL 也必须分开。一个 pooled positive estimate 可能由 BUY 支撑、同时掩盖 SELL 伤害；opener、add、reducing 则必须拥有实际 action overlap 才能获得角色结论。本项目只有 add overlap。</p>
 <p>还要区分 assignment support 与 outcome information。四臂都有足够随机化行，只能说明 $p_i(a\mid X_i)&gt;0$；极端 tail 每个 candidate 少于五个事件，则对应的有效信息仍接近零。用总 fills 或总 campaigns 给 tail interval “补样本”会混淆 estimand。一个直观反例是：一万个普通 terminal rows 加上零个 $Y\le-5$ 的 candidate event，仍然不能估计 candidate 对这一阈值事件的保护率。因而 scorecard 同时保留 overlap、daily cluster、tail-event count 与 activity gates，任何单一均值都不能覆盖其余缺口。</p>
 <p>此外，known propensity 只解决行为分配，不解决 interference。一个动作改变当前 queue 后可能改变同 campaign 的下一次 eligible decision；这也是 intervention 被限制为每 campaign 至多一次、reward 登记一次的原因。若把后续 rows 再当独立 assignments，标准误与 treatment count 都会被重复放大。</p>
+<h3 id="7-1-Mechanics、activity-与-economics-的联合读法"><a href="#7-1-Mechanics、activity-与-economics-的联合读法" class="headerlink" title="7.1 Mechanics、activity 与 economics 的联合读法"></a>7.1 Mechanics、activity 与 economics 的联合读法</h3><p>一个动作要有意义，至少要沿三层漏斗：被分配后是否真的改变可执行价格；价格变化是否改变 activation/fill/path；改变的路径是否带来足够 terminal value。第一层失败是 no-op，第二层过弱是低 leverage，第二层过强又可能是 shutdown；只有第三层给出经济方向。</p>
+<p>因此“control/random fills 几乎相同”在本项目只是完整性检查：随机化没有让系统总体停摆。它不能证明四个 action 的 path-changing rate 相同，也不能证明新增或删除 fills 的质量。后者必须由 action-specific full path 与 terminal scorecard 决定。</p>
+<h3 id="7-2-第三方怎样复核而不依赖旧精确-PnL"><a href="#7-2-第三方怎样复核而不依赖旧精确-PnL" class="headerlink" title="7.2 第三方怎样复核而不依赖旧精确 PnL"></a>7.2 第三方怎样复核而不依赖旧精确 PnL</h3><p>即使旧数值因 replay identity 修复而撤回，第三方仍可检查研究决定是否保守：四臂 propensity 是否冻结；Development 是否没有正下界；Validation 是否 leader rotation；tail 是否缺候选事件；holdout 是否未读；修复后是否没有把同一已消费 family 重跑成新确认。</p>
+<p>这些结构事实足以支持“不晋级”。它们不支持重新引用具体动作排名，也不支持说某个 tick 永久无效。把决定与数值 authority 分开，是历史证据 revalidation 的核心。</p>
+<h3 id="7-3-什么才算真正不同的-successor"><a href="#7-3-什么才算真正不同的-successor" class="headerlink" title="7.3 什么才算真正不同的 successor"></a>7.3 什么才算真正不同的 successor</h3><p>改变 action lever 会产生新项目，例如从静态一 tick移动改为保留 queue 的 active-order action、外部 fair-center 对整对报价的连续平移，或库存条件的持久 permission。仅更换模型、clip、树深、日期数量或阈值，仍在追问同一个已消费问题。</p>
+<p>新 successor 还需重新建立 untreated eligibility、独立 split 和经济预算，并说明与旧四臂的重叠。旧结果可以作为设计先验，例如避免低 leverage 或 participation shutdown，但不能作为新 policy 的训练标签或确认数据。</p>
 <h2 id="8-关闭边界"><a href="#8-关闭边界" class="headerlink" title="8. 关闭边界"></a>8. 关闭边界</h2><p>关闭的是这四个固定局部 add actions 在冻结 causal-v4 identity 下的 family。它不证明所有 quote geometry 无效，也不关闭使用新状态表示或不同经济杠杆的动作。</p>
 <p>不能做的补救包括：在 Validation 选 winner、改变 clipping、调新阈值、把 zero tail events 当安全证据、把 opener/reducing 写进结论，或等待新日期重复同一个 family。</p>
 <h2 id="9-没有获得的权限"><a href="#9-没有获得的权限" class="headerlink" title="9. 没有获得的权限"></a>9. 没有获得的权限</h2><ul>
@@ -499,6 +522,22 @@ R=V_{fill}-C_{campaign}-C_{queue\ reset}.</script><p>maker-signed fill value 已
 <li>没有将历史 point estimate 作为方向性 alpha 的权限；</li>
 <li>live baseline、order size、inventory limit 与 reducing behavior 均未改变。</li>
 </ul>
+<h2 id="随机化单位为何必须跟随-campaign-lineage"><a href="#随机化单位为何必须跟随-campaign-lineage" class="headerlink" title="随机化单位为何必须跟随 campaign lineage"></a>随机化单位为何必须跟随 campaign lineage</h2><p>如果每个100ms row独立随机keep/widen/recenter/skip，同一订单会在生命周期中不断换arm；后续fill无法归因给哪次assignment，action还会通过库存影响未来rows。更安全的单位是在冻结decision opportunity上随机一次，并把assignment沿订单或campaign lineage携带到terminal outcome。</p>
+<p>令$Z_c$为campaign $c$的首次合法assignment，结果为$Y_c(Z_c)$。随机化保证在共同支持内</p>
+<script type="math/tex; mode=display">
+Z_c\perp\{Y_c(a):a\in\mathcal A\}\mid X_c,</script><p>但不同campaign仍可能在同一日期共享market shock，所以interval要按日cluster。若一个campaign的action改变后续另一个campaign是否存在，还需要把full-day policy value作为更高层estimand；不能把campaign outcomes当完全无干扰。</p>
+<h2 id="为什么-DR-不能救一个不断旋转的-winner"><a href="#为什么-DR-不能救一个不断旋转的-winner" class="headerlink" title="为什么 DR 不能救一个不断旋转的 winner"></a>为什么 DR 不能救一个不断旋转的 winner</h2><p>Doubly robust估计器在propensity或outcome model至少一个正确时具有稳健性，但前提是positivity、稳定treatment与正确row identity。若某arm在关键状态几乎从不被分配，权重会爆炸；若campaign lineage错配，两个模型都在回答错误问题。</p>
+<p>一个常见形式是</p>
+<script type="math/tex; mode=display">
+\hat V(a)=\frac1n\sum_i\left[\hat m_a(X_i)+\frac{\mathbf1(A_i=a)}{\hat e_a(X_i)}\{Y_i-\hat m_a(X_i)\}\right].</script><p>它不会消除从多个arms、subgroups和日期切片中事后挑winner的选择偏差。Development里胜出的动作若在Validation旋转，说明异质性、噪声或模型选择没有transport；正确反应是关闭当前family，而不是用更复杂DR learner重新排序同一已读面板。</p>
+<h2 id="这项研究给后继动作设计留下的坐标"><a href="#这项研究给后继动作设计留下的坐标" class="headerlink" title="这项研究给后继动作设计留下的坐标"></a>这项研究给后继动作设计留下的坐标</h2><p>局部一tick动作不是完全无效：它们能改变报价与一部分fills，却没有稳定迁移。后继应缩小动作空间，并由机制证据提出明确方向，例如只在exposure-increasing first-add时widen，或只在active queue option value为负时cancel。</p>
+<p>新实验还应预注册最小action leverage、有效日期数和terminal value gate。若动作只改变极少订单，应该在看PnL前因MDE不足停止；若activity足够但value跨零，则得到经济阴性。把“无力检验”和“有力但失败”分开，比继续从四臂表里找最好的小数更有信息。</p>
+<h2 id="多臂-simultaneous-inference"><a href="#多臂-simultaneous-inference" class="headerlink" title="多臂 simultaneous inference"></a>多臂 simultaneous inference</h2><p>四个arms相对baseline产生多个pairwise contrasts。若逐个看95% interval，再挑唯一为正者，family-wise错误率超过单检验。可以用按日bootstrap每次同时计算所有arms，并以最大t统计量构造共同下界；或者在spec中指定唯一primary arm、其它只作diagnostic。</p>
+<p>Development用于选arm、Validation用于确认时，Validation门还必须考虑selection：它确认的是完整选择程序，而不是把winner当事先固定。winner rotation表明选择程序没有迁移。</p>
+<h2 id="Full-path-随机化仍需检查-execution-integrity"><a href="#Full-path-随机化仍需检查-execution-integrity" class="headerlink" title="Full-path 随机化仍需检查 execution integrity"></a>Full-path 随机化仍需检查 execution integrity</h2><p>随机assignment正确不代表replay正确。各arms应共享market events、queue inputs、latency key和initial state；submit/cancel/fill数量守恒；unsupported action回退规则一致。arm-specific action多产生event是treatment结果，不应强制event count相等。</p>
+<p>随机化balance表应在pre-action covariates、day和role上检查，但不能按post-action fills重新配平。后者会删除真实action路径并引入collider。</p>
+<h2 id="数值撤回后，研究结论为何仍可复核"><a href="#数值撤回后，研究结论为何仍可复核" class="headerlink" title="数值撤回后，研究结论为何仍可复核"></a>数值撤回后，研究结论为何仍可复核</h2><p>旧exact PnL受后续replay修复影响而撤回，但随机化合同、Development winner未穿过Validation、无promotion的权限记录仍可审计。公共读者不需要信任一张失效收益表，也能核对研究没有给任何arm上线许可。</p>
+<p>若要恢复数值证据，只能在corrected baseline上重新执行整套四臂程序，不能单独重跑旧winner。否则selection denominator已经变化。</p>
 <h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/side_specific_action_uplift_existing_split_20260718.md"><code>side_specific_action_uplift_existing_split_20260718.md</code></a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/README.md"><code>F09 README</code></a></li>
@@ -540,9 +579,9 @@ R=V_{fill}-C_{campaign}-C_{queue\ reset}.</script><p>maker-signed fill value 已
       
         <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
       
-        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
-      
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
         <a href="/tags/%E7%A6%BB%E7%BA%BF%E7%AD%96%E7%95%A5%E8%AF%84%E4%BC%B0/" class="print-no-link">#离线策略评估</a>
       

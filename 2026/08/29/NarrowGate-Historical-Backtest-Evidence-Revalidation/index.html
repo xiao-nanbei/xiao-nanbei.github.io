@@ -27,12 +27,13 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：旧“不要晋级”仍然安全，旧 PnL、winner 与参数排名却不能继续引用回测系统修复单位、feature clock、merged event clock、L2 identity、trade side、calendar、commission、tick&#x2F;lot 或 queue semantics 后，最危险的反应">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/historical-backtest-evidence-revalidation.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/sys-replay-causality-repair-stack.svg">
 <meta property="article:published_time" content="2026-08-28T16:00:00.000Z">
 <meta property="article:modified_time" content="2026-08-28T16:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
-<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="研究治理">
 <meta property="article:tag" content="可复现性">
 <meta name="twitter:card" content="summary_large_image">
@@ -333,7 +334,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          7.1k 字
+          8.7k 字
         
       </span>
     
@@ -345,7 +346,7 @@
         
         
           <!-- compatible with older versions-->
-          60 分钟
+          73 分钟
         
       </span>
     
@@ -399,6 +400,8 @@
 <p>本文是历史证据治理复盘，不构成交易建议。图中的回测曲线、证据卡与时间线为机制示意，不是实盘或当前收益曲线。</p>
 <p><img src="/images/narrowgate/historical-backtest-evidence-revalidation.svg" srcset="/img/loading.gif" lazyload alt="历史回测证据在 identity 修复后的保留、复现与撤回分类"></p>
 <p><em>图 1：修复不会把全部历史简单归零。Correctness contract 可保留，重新复现的 shape 可降级保留，conservative no-promote decision 可继续安全；exact PnL、winner 与 rankings 则必须撤回。</em></p>
+<p><img src="/images/narrowgate/sys-replay-causality-repair-stack.svg" srcset="/img/loading.gif" lazyload alt="从输入身份修复到重新生成动作证据的系统栈"></p>
+<p><em>图 2：历史结论是否存活，取决于它位于哪一层。单位不变量可以跨数据集保留；触及feature、event、queue或full-path outcome的数字，则必须在修复后的共同身份上重算。</em></p>
 <h2 id="1-Evidence-identity-为什么比文件名重要"><a href="#1-Evidence-identity-为什么比文件名重要" class="headerlink" title="1. Evidence identity 为什么比文件名重要"></a>1. Evidence identity 为什么比文件名重要</h2><p>一个 replay claim 可以抽象为</p>
 <script type="math/tex; mode=display">
 \mathcal E
@@ -413,6 +416,8 @@ f(
 \text{initial state}
 ).</script><p>只要其中一个维度发生 material change，旧 $\mathcal E$ 就不再自动与新 baseline可比较。即使 strategy parameter完全相同，订单是否存在、何时 cancel、是否 fill、campaign 是否形成都可能改变。</p>
 <p>SHA256 只能标识某份 bytes，不能替代 reader-accessible provenance，更不能让 superseded bytes重新获得 current authority。正确做法是把 claim 与输入、语义、source commit/manifest和权限一起绑定。</p>
+<h3 id="1-1-一个结果至少有六层身份"><a href="#1-1-一个结果至少有六层身份" class="headerlink" title="1.1 一个结果至少有六层身份"></a>1.1 一个结果至少有六层身份</h3><p>第一层是问题：估计的是touch、fill、markout、campaign value还是action uplift。第二层是观测：market data、calendar与initial state。第三层是可见性：source、receive、feature-ready与decision clocks。第四层是执行：queue、latency、cancel/ACK、fees与tick/lot。第五层是统计：split、cluster、multiplicity与scorecard。第六层才是权限：exploratory、Development、Validation、action或live。</p>
+<p>两个文件即使参数表相同，只要其中一层不同，就不应共用一个“版本号+收益”标签。反过来，SHA完全不同的两个artifact也可能支持同一条抽象correctness不变量，例如“左标窗口必须在右边界后才可见”。Revalidation研究的核心就是按claim层级判断，而不是按文件新旧一刀切。</p>
 <h2 id="2-这次-revalidation-面对哪些修复"><a href="#2-这次-revalidation-面对哪些修复" class="headerlink" title="2. 这次 revalidation 面对哪些修复"></a>2. 这次 revalidation 面对哪些修复</h2><p>历史链陆续确认了：</p>
 <ul>
 <li>absolute-price variance 被错误再乘 mid，单位不成立；</li>
@@ -441,6 +446,51 @@ f(
 <p>Fixed local actions、BUY conditional widen、SELL one-cycle skip 等历史 families 都属于这类：不晋级仍成立；若要重新研究，必须创建新的 frozen denominator和 paired current baseline，不能把旧 failure数字改名成 current evidence。</p>
 <h3 id="3-4-Invalid-for-current-selection"><a href="#3-4-Invalid-for-current-selection" class="headerlink" title="3.4 Invalid for current selection"></a>3.4 Invalid for current selection</h3><p>pre-repair gamma/cap/guard/cooldown winner、historical survivor ranking、run-local arm ID、旧 exact live/replay PnL、mixed-clock BUY score buckets、cross-day snapshot修复前的 results以及 model days含 premature five-minute features 的 outputs都不得用于 current selection。</p>
 <p>删除旧结果表不是“隐藏失败”，而是防止 reader把已知 invalid numbers继续比较。</p>
+<h3 id="3-5-一张可操作的判定表"><a href="#3-5-一张可操作的判定表" class="headerlink" title="3.5 一张可操作的判定表"></a>3.5 一张可操作的判定表</h3><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Claim 类型</th>
+<th>修复是否改变输入/状态路径</th>
+<th>可否保留旧数字</th>
+<th>可否保留旧决策</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>量纲、因果可见性不变量</td>
+<td>否，属于逻辑约束</td>
+<td>不涉及数字</td>
+<td>可以</td>
+</tr>
+<tr>
+<td>在新身份下独立复现的shape</td>
+<td>是，但已重算</td>
+<td>只能引用新数字</td>
+<td>可作为弱先验</td>
+</tr>
+<tr>
+<td>旧candidate未晋级</td>
+<td>可能改变</td>
+<td>不可以</td>
+<td>保守的“不上线”可以</td>
+</tr>
+<tr>
+<td>winner、PnL、fill、tail排名</td>
+<td>是</td>
+<td>不可以</td>
+<td>不可以用于当前选择</td>
+</tr>
+<tr>
+<td>live运行记录</td>
+<td>描述旧process</td>
+<td>可作为历史事实</td>
+<td>不证明corrected策略</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>这里最反直觉的是第三行。保留“不上线”并不是声称旧负效应仍真，而是权限单调性：证据失效不会自动产生更强权限。若旧研究没有授权某动作，修复后在没有新正证据前仍不能授权；但研究者也不能继续用旧点估计宣称动作确定有害。</p>
 <h2 id="4-Mixed-L2：同一个目录名可能不是同一个数据-identity"><a href="#4-Mixed-L2：同一个目录名可能不是同一个数据-identity" class="headerlink" title="4. Mixed L2：同一个目录名可能不是同一个数据 identity"></a>4. Mixed L2：同一个目录名可能不是同一个数据 identity</h2><p>旧 top-level BBO/L2后来确认混合 approximately one-second/top-10 与 100ms/top-20 files。文件都叫 L2，不代表 depth、frequency、sequence与 warmup contract相同。</p>
 <p>queue、touch、fill 与 lifecycle duration依赖 event geometry。更稀的 snapshot可能错过短暂 touch、把 cancel-ahead压成不可见、改变 activation path。于是 old empirical P3 artifact、lifecycle durations和所有依赖它的 replay numbers必须撤回。</p>
 <p>P3 后来在 normalized source上近似复现，只说明概率曲面 shape robust；旧 mixed source hash仍不能冒充新 evidence。Lifecycle audit 的“30 秒不是 full value”语义保留，5.8-minute、92.1% 等 exact values必须重建。</p>
@@ -461,9 +511,13 @@ Y(\pi_1;\mathcal I_{old})
 <script type="math/tex; mode=display">
 Y(\pi_1;\mathcal I_{new})
 -Y(\pi_0;\mathcal I_{new}).</script><p>repair audit中，一个 full-day public-template diagnostic从 legacy trade clock的178 fills / $-0.97$ USDC变成 merged clock的184 fills / $+1.18$ USDC。它不是 alpha result，却直接反驳“timing repair不影响结果”的假设。</p>
+<h3 id="7-1-一个最小非线性反例"><a href="#7-1-一个最小非线性反例" class="headerlink" title="7.1 一个最小非线性反例"></a>7.1 一个最小非线性反例</h3><p>设 baseline在 $t_0$ 有一张BUY单，candidate因score略高在 $t_1$发cancel。旧trade-only clock没有在$t_1$推进timer，于是两arms都等到$t_2$的下一笔trade才处理；该trade先成交，两arms路径看起来相同，A/B delta为零。修复后的merged clock在$t_1$先处理cancel：candidate收到ACK并失去fill，baseline在$t_2$成交，库存从此分叉。</p>
+<p>即使同一个clock defect同时存在于两arms，它也与action发生交互。共同错误项不是可以从$Y_1-Y_0$里约掉的常数，而是policy-dependent state transition。相同逻辑适用于tick rounding、queue depletion、commission asset和feature-ready：只要错误影响“哪个事件先发生”，差分结果就没有跨identity不变性。</p>
 <h2 id="8-什么需要-paired-rerun"><a href="#8-什么需要-paired-rerun" class="headerlink" title="8. 什么需要 paired rerun"></a>8. 什么需要 paired rerun</h2><p>只有仍值得研究的 hypothesis 才重跑。新 rerun必须在 outcomes前冻结：code/config/model/P3 identities、event-L2与 individual-trade identity、initial inventory/order/campaign state、strict queue、latency profile、random seeds、action probabilities和 scorecard。</p>
 <p>如果重启 global parameter work，至少要先有 corrected strict baseline，再逐步研究 gamma、kappa/depth/cap interaction、guard、cooldown/execution，最后才考虑新的 broad search。旧 Sobol survivors不能直接带入新 baseline。</p>
 <p>更优先的是明确 action value：一套小 candidate family、known overlap、chronological panels、paired full path和 terminal campaign outcome。Revalidation不是邀请回到无边界参数挖掘。</p>
+<h3 id="8-1-重跑不是复制旧命令"><a href="#8-1-重跑不是复制旧命令" class="headerlink" title="8.1 重跑不是复制旧命令"></a>8.1 重跑不是复制旧命令</h3><p>真正的successor需要先写迁移清单：旧estimand是否仍值得问；输入日是否满足新source contract；feature能否按ready time重建；initial orders与inventory如何处理；candidate在新baseline上是否仍有support；旧threshold是否属于模型的一部分还是可以重新训练。任何一项变化都应得到新的research identity。</p>
+<p>重跑报告还应同时给出“保持不变的东西”和“故意改变的东西”。前者保证paired contrast可解释，后者说明它为何是successor而非偷偷覆盖历史。若新结果方向相反，正确说法是新身份下的证据更新了结论，不是旧报告当时计算错误的数字被神奇修正。</p>
 <h2 id="9-最终保留的证据集"><a href="#9-最终保留的证据集" class="headerlink" title="9. 最终保留的证据集"></a>9. 最终保留的证据集</h2><p>最终留下：</p>
 <ul>
 <li>corrected accounting、time/unit/causal contracts；</li>
@@ -518,9 +572,9 @@ Y(\pi_1;\mathcal I_{new})
       
         <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
       
-        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
-      
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
         <a href="/tags/%E7%A0%94%E7%A9%B6%E6%B2%BB%E7%90%86/" class="print-no-link">#研究治理</a>
       
@@ -581,9 +635,9 @@ Y(\pi_1;\mathcal I_{new})
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Fill-Inventory-Lifecycle-Research/" title="NarrowGate Fill-to-Inventory Lifecycle：30 秒 Markout 为什么不是成交 PnL">
+                      <a href="/2026/08/29/NarrowGate-First-Add-Decision-Terminal-Loss-Research/" title="NarrowGate First-Add Terminal Loss：负价值究竟从哪一刻开始">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">NarrowGate Fill-to-Inventory Lifecycle：30 秒 Markout 为什么不是成交 PnL</span>
+                        <span class="hidden-mobile">NarrowGate First-Add Terminal Loss：负价值究竟从哪一刻开始</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     

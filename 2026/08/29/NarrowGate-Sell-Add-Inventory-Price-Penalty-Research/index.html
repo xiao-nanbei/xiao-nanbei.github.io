@@ -27,6 +27,7 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：库存风险变小了，但 candidate 更像压低参与，而不是挑出坏 fills本研究在 campaign 已经 SHORT 时，只把 exposure-increasing SELL ask 向外移动；惩罚随 short units 增大：一单位 0.5 bps、两单位 1.0 bps、三单位及以上 1.5 bp">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/sell-inventory-price-penalty-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f09-campaign-action-causal-path.svg">
 <meta property="article:published_time" content="2026-08-29T12:18:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:18:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -332,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          5k 字
+          8.7k 字
         
       </span>
     
@@ -344,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          42 分钟
+          73 分钟
         
       </span>
     
@@ -394,6 +395,8 @@
 <p>candidate 的确减少 max inventory、inventory time 与 campaign MAE，descriptive q10/CVaR 也改善；可是 randomized multi-level loss protection 没有正下界，剩余 multi-level paths 反而更 adverse。结论是 <code>risk_control_evidence_only</code>：这条固定 price curve 有机械效力，却未识别正价值。Validation 与 sealed holdout 未读。</p>
 <p><img src="/images/narrowgate/sell-inventory-price-penalty-kline.svg" srcset="/img/loading.gif" lazyload alt="SELL inventory price penalty 的 K 线报价机制"></p>
 <p><em>图 1：机制示意。库存越 short，candidate ask 越向外移；减少的 fills 同时包含 toxic fills 与本可盈利的 maker participation，所以必须追踪到 campaign terminal。</em></p>
+<p><img src="/images/narrowgate/f09-campaign-action-causal-path.svg" srcset="/img/loading.gif" lazyload alt="库存价格动作从报价到终局的完整路径"></p>
+<p><em>图 2：price penalty 每次都改变 quote，不代表它选择性删除坏 fills。报价外移经过 activation、queue 和 fill 后改变库存，最后必须同时通过 participation、tail 与 terminal value。</em></p>
 <h2 id="1-研究问题：用价格而不是-permission-控制加空"><a href="#1-研究问题：用价格而不是-permission-控制加空" class="headerlink" title="1. 研究问题：用价格而不是 permission 控制加空"></a>1. 研究问题：用价格而不是 permission 控制加空</h2><p>stop-until-flat 直接关闭后续 SELL adds，过于粗暴；whole-unit budget 又缺少 fill frontier。价格惩罚提供连续但冻结的经济杠杆：保留报价，只让进一步加空需要更高补偿。</p>
 <p>令 inventory $q&lt;0$、每单位 0.001 BTC，则：</p>
 <script type="math/tex; mode=display">
@@ -443,6 +446,12 @@ n_{short}=\max(0,-q/0.001),</script><script type="math/tex; mode=display">
 <h2 id="3-因果时钟与订单例子"><a href="#3-因果时钟与订单例子" class="headerlink" title="3. 因果时钟与订单例子"></a>3. 因果时钟与订单例子</h2><p>randomization 在第一笔 final-eligible SELL add 路径生成之前，且同一 campaign assignment 固定。inventory、book、P3 与 blockers 必须在 decision-ready 时可见；outward price 产生新 activation 与 queue，不能继承 baseline queue position。</p>
 <p>例子：inventory 为 $-0.002$ BTC，baseline ask 100,000.0，candidate penalty 1.0 bps，理论上约移到 100,010.0，再按 tick/cap 得到有效 maker quote。若 aggressive BUY 只打到 100,005，baseline 可能成交而 candidate 不成交。若之后价格回落，baseline fill 可能贡献 repair；若继续上涨，它扩大 short loss。estimand 是两条 campaign 终局之差，而不是执行价差本身。</p>
 <p>BUY q90 在两臂都关闭，所以这是 q90-OFF randomized reference，不能称为当前 live baseline 等价。full C++ tick replay authority 也为 false，Python native snapshot/delta full path 是权威路径。</p>
+<h3 id="3-1-bps-penalty-如何变成交易所可执行-tick"><a href="#3-1-bps-penalty-如何变成交易所可执行-tick" class="headerlink" title="3.1 bps penalty 如何变成交易所可执行 tick"></a>3.1 bps penalty 如何变成交易所可执行 tick</h3><p>理论价格移动为：</p>
+<script type="math/tex; mode=display">
+\Delta p=p^{base}\frac{\Delta_{bps}}{10^4}.</script><p>随后必须按 SELL maker 方向向合法 tick 取整，并满足 GTX 与 pair-spread cap。因 BTC 价格水平不同，同样 0.5 bps 对应的绝对价格和 tick 数会变化；所以研究同时记录 requested bps、rounded tick move 与 realized/requested ratio。</p>
+<p>101.46% 的 realized ratio 并不表示 candidate 神奇地多执行 1.46% 经济强度，而主要来自离散 tick rounding。cap truncation 为零、action-change 100%，共同证明曲线没有被执行约束吞掉。它们仍只属于 mechanics。</p>
+<h3 id="3-2-为什么固定曲线而不是扫描-penalty-grid"><a href="#3-2-为什么固定曲线而不是扫描-penalty-grid" class="headerlink" title="3.2 为什么固定曲线而不是扫描 penalty grid"></a>3.2 为什么固定曲线而不是扫描 penalty grid</h3><p>若同时测试 0.1、0.25、0.5、1.0、2.0 bps 与多个 cap，再挑 terminal PnL最佳值，库存单位与日期噪声会制造一个 winner。这里 0.5 bps/unit 与 1.5 bps cap 在 outcome 前冻结，故只回答一条曲线。</p>
+<p>代价是阴性后不能声称“可能 0.25 bps 就通过”并在同一 Development 重跑。那个猜想没有被本文反驳，也没有证据支持；若经济杠杆真不同，应在新分母上注册，而不是把 consumed panel变成超参数搜索集。</p>
 <h2 id="4-证据合同与支持"><a href="#4-证据合同与支持" class="headerlink" title="4. 证据合同与支持"></a>4. 证据合同与支持</h2><p>Development 固定 40 UTC days：24 Grade A 进入 primary scorecard，16 Grade B 仅 sensitivity。共有 2,371 assignments，control/candidate 1,181/1,190，propensity 0.5；40,200 replay fills。source gaps、invalid sequences、sync censor、q90 evaluations 与 unsupported mass 都为零；64 个 frozen contract tests 通过。</p>
 <p>Grade-A candidate assignment rate 48.90%，actual final-action change 100%，其 95% interval 也是 [100%,100%]。realized/requested penalty 101.46%，cap truncation 0，说明动作既没有被 tick rounding 吃掉，也没有被 spread cap 剪平。</p>
 <p>但 SELL-add fill retention 60.98%，activity retention 73.74%。动作保留了报价形式，却移除了约 39% SELL-add fills、约 26% aggregate activity；这是经济上很强的 participation change。</p>
@@ -522,6 +531,21 @@ n_{short}=\max(0,-q/0.001),</script><script type="math/tex; mode=display">
 </div>
 <p>risk reduction 是真实的：进入 multi-level SHORT 的比例从 control 45.51% 降至 candidate 36.28%。但 remaining candidate multi-level paths 更 adverse，随机化 multi-level-loss contrast 没有改善。risk control 与 selection alpha 不能混写。</p>
 <p>descriptive q10 从 -0.13235 改善到 -0.10475，CVaR10 从 -0.31089 到 -0.26616；预注册 day-cluster tail lower bounds 仍跨零，mean reward 又下降，因此这两个 arm-level 描述不能救援动作。</p>
+<h3 id="5-1-Participation-suppression-与-selection-的可检验区别"><a href="#5-1-Participation-suppression-与-selection-的可检验区别" class="headerlink" title="5.1 Participation suppression 与 selection 的可检验区别"></a>5.1 Participation suppression 与 selection 的可检验区别</h3><p>如果 price penalty 对好坏 fills 一视同仁，fill 数大致按触达概率下降，库存 exposure 与 MAE自然变小；这叫 participation suppression。selection 则要求被删除 fills 的平均 counterfactual value 足够负，使 terminal reward改善得比 activity下降更快。</p>
+<p>可用一个边际分解理解：</p>
+<script type="math/tex; mode=display">
+\Delta V
+=
+V_{shared\ fills}^{price}
+-V_{control-only\ fills}^{lost}
++V_{path\ feedback}.</script><p>candidate 减少约 39% SELL-add fills，说明第二项规模很大。若这些 control-only fills 真以 toxic 为主，multi-level loss protection与 terminal reward应有正下界；结果没有。库存 proxy改善只能证明 fills 被删除，不能证明删对了谁。</p>
+<h3 id="5-2-为什么-remaining-multi-level-subgroup-不能做因果解释"><a href="#5-2-为什么-remaining-multi-level-subgroup-不能做因果解释" class="headerlink" title="5.2 为什么 remaining multi-level subgroup 不能做因果解释"></a>5.2 为什么 remaining multi-level subgroup 不能做因果解释</h3><p>candidate 会改变谁进入 multi-level SHORT，所以“candidate 下仍 multi-level 的 campaigns”与“control 下 multi-level 的 campaigns”不是同一前置人群。条件于 treatment 后的 inventory state，可能打开 selection path：</p>
+<script type="math/tex; mode=display">
+A\rightarrow MultiLevel\leftarrow MarketPath.</script><p>在这个 collider 上比较 terminal value，会让更极端的 market paths集中到 candidate remaining subgroup。研究因此只把“剩余路径更 adverse”作为机制诊断，主结论仍来自 assignment-level随机对比。</p>
+<h3 id="5-3-Risk-budget-通过、value-budget-失败意味着什么"><a href="#5-3-Risk-budget-通过、value-budget-失败意味着什么" class="headerlink" title="5.3 Risk budget 通过、value budget 失败意味着什么"></a>5.3 Risk budget 通过、value budget 失败意味着什么</h3><p>max inventory、inventory-time 和 MAE 的正下界说明 candidate 是有效风险控制器；reward、positive days、full-policy value 与 loss protection失败说明它没有成为价值改进器。两个结论可同时成立。</p>
+<p>如果生产目标明确愿意为更低库存支付可量化成本，那应另行注册带风险偏好的效用：</p>
+<script type="math/tex; mode=display">
+U=E[PnL]-\lambda_1 E[|q|dt]-\lambda_2 CVaR.</script><p>本文没有预注册这些 $\lambda$，所以不能在看到负 PnL 后用“风险更小”隐式改变目标函数。</p>
 <h2 id="6-Grade-B-与不确定性"><a href="#6-Grade-B-与不确定性" class="headerlink" title="6. Grade-B 与不确定性"></a>6. Grade-B 与不确定性</h2><p>Grade B 只检验方向稳健性，不能 pooled rescue。其 reward uplift -0.002904，interval $[-0.011452,+0.005987]$；正日 7/16，fill retention 59.79%，activity 74.83%，full-policy value -0.2225 USDC/day。方向与 primary 一致。</p>
 <p>不确定性按 UTC day 聚类，而非把 2,371 campaigns 当独立 regime。24 日里仅一半为正，说明 market-day variation 不是小噪声。与此同时 retention failure 是大效应，不依赖某个细小 PnL interval。</p>
 <h2 id="7-研究演进与关闭边界"><a href="#7-研究演进与关闭边界" class="headerlink" title="7. 研究演进与关闭边界"></a>7. 研究演进与关闭边界</h2><p>spec、随机化 runner、post-run audit 与 scorecard 都属于这一个 fixed curve identity。grade-B sensitivity 也不是新项目。动作结果之后不能用 post-treatment “剩余 multi-level paths”重新定义 eligibility，否则会把 treatment 改变后的 subgroup 当作因果前置状态。</p>
@@ -533,6 +557,26 @@ n_{short}=\max(0,-q/0.001),</script><script type="math/tex; mode=display">
 <li>没有搜索 penalty grid、调 step/cap 或基于 post-treatment subgroup 选 policy；</li>
 <li>没有把 positive inventory diagnostics 写成 terminal alpha。</li>
 </ul>
+<h2 id="Participation-suppression-与-selection-improvement-的可分解形式"><a href="#Participation-suppression-与-selection-improvement-的可分解形式" class="headerlink" title="Participation suppression 与 selection improvement 的可分解形式"></a>Participation suppression 与 selection improvement 的可分解形式</h2><p>价格penalty使部分订单不再激活或成交，也改变仍成交订单的组成。总效果可以示意分解为</p>
+<script type="math/tex; mode=display">
+\Delta V
+=
+\underbrace{\Delta N\cdot \bar V_0}_{participation}
++
+\underbrace{N_1(\bar V_1-\bar V_0)}_{selection}
++
+\underbrace{\Delta V_{path}}_{inventory/queue\ feedback}.</script><p>观察到fills下降、inventory tail改善，不能判断第二项为正；remaining filled subgroup是动作后的选择结果，与baseline fills不在同一可交换总体。必须用paired opportunities或随机assignment比较“同一decision在penalty下是否改变及其全路径结果”。</p>
+<h2 id="Penalty-的单位与非线性执行边界"><a href="#Penalty-的单位与非线性执行边界" class="headerlink" title="Penalty 的单位与非线性执行边界"></a>Penalty 的单位与非线性执行边界</h2><p>bps penalty先按价格转换为绝对距离，再向合法maker tick取整。若原报价已受minimum spread、post-only或inventory cap约束，一个小penalty可能完全no-op；跨过一个tick后又突然改变queue level。作用函数是阶梯状而非连续线性：</p>
+<script type="math/tex; mode=display">
+p'_{sell}=\operatorname{ceil}_{tick}\{p_{sell}(1+b/10^4)\}.</script><p>因此不能从一个固定$b$的结果外推“半个penalty会有一半效果”。grid搜索又会引入multiplicity；合理的后继要么预注册少量经济可解释档位，要么先用outcome-blind action-distance选择档位，再锁定economics。</p>
+<h2 id="风险预算通过、价值预算失败应怎样决策"><a href="#风险预算通过、价值预算失败应怎样决策" class="headerlink" title="风险预算通过、价值预算失败应怎样决策"></a>风险预算通过、价值预算失败应怎样决策</h2><p>如果业务目标明确愿意用某个mean成本换取tail下降，应该事先定义utility或hard constraints。例如要求CVaR改善至少$c$、fills retention不低于$r$，再在可行候选中检验mean。看到结果后才说“少赚一点换安全”会让任何负PnL候选都可被解释成风险策略。</p>
+<p>当前合同要求价值与风险联合通过；候选主要靠降低参与减少库存，terminal uplift未成立，所以不能晋级。它留下的工程结论是price channel确实能控制SELL adds；留下的研究结论是当前固定曲线没有证明选择性价值。</p>
+<h2 id="Price-control-与-permission-control-的差别"><a href="#Price-control-与-permission-control-的差别" class="headerlink" title="Price control 与 permission control 的差别"></a>Price control 与 permission control 的差别</h2><p>price penalty仍允许订单存在，只降低激活/成交概率；skip/stop-add直接删除机会。前者保留极端market move时的fill，后者完全没有该订单。它们的tail与participation不能按一个连续“强度”轴简单排序。</p>
+<p>价格动作还可能在tick rounding后no-op，而permission永远改变submit。比较两者时应匹配最终action leverage，不是匹配名义bps和skip duration。否则看似penalty温和，只是多数rows没有跨tick。</p>
+<h2 id="Paired-daily-path-的分解"><a href="#Paired-daily-path-的分解" class="headerlink" title="Paired daily path 的分解"></a>Paired daily path 的分解</h2><p>在同一日两arms从相同initial state开始，第一次candidate-only或baseline-only fill后inventory分叉。之后不能继续强行逐订单匹配；应保留day-levelterminal contrast，并用first divergence时间、side与role解释机制。</p>
+<p>对分叉前rows可以报告exact quote differences；分叉后只比较aggregate path measures。这样既利用paired设计降低共同shock，又不制造不存在的same-campaign对应。</p>
+<h2 id="一个新-penalty-研究需要怎样的独立理由"><a href="#一个新-penalty-研究需要怎样的独立理由" class="headerlink" title="一个新 penalty 研究需要怎样的独立理由"></a>一个新 penalty 研究需要怎样的独立理由</h2><p>在已读40日上缩小bps、改变曲线或只选某inventory level，都是当前family内搜索。新候选应由外部风险预算、理论单位或新机制证据确定，并在新chronological panel测试。</p>
+<p>若目标从value改为hard inventory cap，也要预先重写scorecard；不能沿用本篇value失败后事后切换目标。权限跟随问题定义，而不是跟随实现复用。</p>
 <h2 id="9-公共证据"><a href="#9-公共证据" class="headerlink" title="9. 公共证据"></a>9. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/sell_add_inventory_price_penalty_randomized_replay_v1_development_20260801.md"><code>sell_add_inventory_price_penalty_randomized_replay_v1_development_20260801.md</code></a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/post_cooldown_incremental_inventory_budget_feasibility_v1_2_development_20260801.md"><code>post_cooldown_incremental_inventory_budget_feasibility_v1_2_development_20260801.md</code></a></li>

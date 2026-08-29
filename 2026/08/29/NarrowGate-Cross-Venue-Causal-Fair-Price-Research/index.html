@@ -27,6 +27,7 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：这是一条稳健价格坐标，不是 alpha，也不是改价许可NarrowGate 的 cross_venue_causal_fair_price_v1 试图回答一个比“外部市场会不会涨”更基础的问题：如何把 Bitget、Bybit、OKX 的 BTCUSDT 现货和永续，在只使用当时可见信息的前提下，翻译成一个 BT">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/cross-venue-causal-fair-price.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f04-external-signal-to-action-clock.svg">
 <meta property="article:published_time" content="2026-08-29T13:03:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T13:03:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -333,7 +334,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          6.2k 字
+          6.3k 字
         
       </span>
     
@@ -485,6 +486,36 @@ T^{feature\ ready}_{i}\le T^{decision}.</script><p>历史 sensitivity 没有精�
 <h2 id="9-关闭、支持与权限边界"><a href="#9-关闭、支持与权限边界" class="headerlink" title="9. 关闭、支持与权限边界"></a>9. 关闭、支持与权限边界</h2><p>支持：在 40 日历史一秒 sensitivity source 上，past-only basis、2-of-3 weighted median、online gain 和四路 common-mask LOO 可以稳定产出一条有明确 fallback 的 BTCUSDC coordinate，overall support 约 89.65%。</p>
 <p>未支持：方向 prediction、campaign value、fill quality、quote-center economic uplift、receive-time transport 与亚秒执行。common support 高不等于收益高。</p>
 <p>没有获得：Validation、sealed holdout、参数 outcome tuning、quote mutation、action experiment、shadow collection、model promotion、部署或 live authority。早期 spec 中任何历史性工程许可都不能被解释成当前运行授权；本文采用当前公开 README 的更严格边界。</p>
+<h2 id="深入推导：past-only-basis-与-online-gain-各解决什么"><a href="#深入推导：past-only-basis-与-online-gain-各解决什么" class="headerlink" title="深入推导：past-only basis 与 online gain 各解决什么"></a>深入推导：past-only basis 与 online gain 各解决什么</h2><p>外部合约与本地 BTCUSDC 之间可能有稳定 basis。若直接用当前窗口同时估计 basis 和 residual，当前本地价格会部分校正自己，降低表面误差并制造非因果贴合。past-only basis 把变换冻结在 $t^-$：</p>
+<script type="math/tex; mode=display">
+\tilde m_{v,t}=\frac{m_{v,t}}{\widehat b_{v,t^-}},
+\qquad
+\widehat b_{v,t^-}=\operatorname{robust\_fit}\{m_{v,u}/m_{local,u}:u<t\}.</script><p>online gain 则回答外部变化应有多少投射到本地：</p>
+<script type="math/tex; mode=display">
+\Delta f_t=\widehat\beta_{t^-}\Delta G_t.</script><p>$\widehat b$ 对齐价格水平，$\widehat\beta$ 对齐短时变化幅度；把两者混成一个系数会让长期 basis 漂移和短时 lead/lag 相互污染。</p>
+<p><img src="/images/narrowgate/f04-external-signal-to-action-clock.svg" srcset="/img/loading.gif" lazyload alt="Cross-venue fair price 的 source、ready 与 action 边界"></p>
+<p><em>图 2：causal fair price 是价格坐标层，使用 past-only transforms；真正改变报价仍需独立 action-value。</em></p>
+<h2 id="Weighted-median-的稳健性边界"><a href="#Weighted-median-的稳健性边界" class="headerlink" title="Weighted median 的稳健性边界"></a>Weighted median 的稳健性边界</h2><p>三 venue weighted median 能抵抗一个孤立异常源，但只有在至少两个有效来源围绕共同价格时成立。需要同时报告 source age、可用来源数、各 venue leave-one-out 差异和共振事件。在极端行情中，如果所有衍生品同时跳动而现货延迟，median 可能代表真实领先，也可能代表共享拥堵；仅看截面一致性无法区分。</p>
+<p>因此 reference 输出应携带 provenance：哪些 venue 入选、各自 freshness、权重与 basis age。unsupported 或 stale 状态回退本地 baseline，而不是用零填充或沿用旧 external value。一个没有 provenance 的单一 fair scalar 很难在后续研究中审计。</p>
+<h2 id="为什么-fair-price-MAE-改善仍不是报价证据"><a href="#为什么-fair-price-MAE-改善仍不是报价证据" class="headerlink" title="为什么 fair-price MAE 改善仍不是报价证据"></a>为什么 fair-price MAE 改善仍不是报价证据</h2><p>若 $f_t$ 对未来本地 mid 的 MAE 更低，说明坐标预测更准。但 maker 的执行价格不是未来 mid；报价向 $f_t$ 移动会同时改变两侧距离、queue priority 与 inventory skew。一个公平中心整体上移，可能让 BUY 更激进、SELL 更保守：前者增加 long exposure，后者减少 repair 机会。</p>
+<p>所以 center action 的完整差值应分解为：</p>
+<script type="math/tex; mode=display">
+\Delta V=\Delta V_{BUY\ fill}+\Delta V_{SELL\ fill}
++\Delta V_{inventory}+\Delta C_{queue/cancel}.</script><p>坐标 MAE 只与其中一部分相关。F04 的 causal fair price 因而保留 mechanics/prediction evidence；F09 的 cross-venue fair-center randomized replay 才回答 action value，两篇不能互相授予权限。</p>
+<h2 id="Basis-与-gain-的识别顺序不能交换"><a href="#Basis-与-gain-的识别顺序不能交换" class="headerlink" title="Basis 与 gain 的识别顺序不能交换"></a>Basis 与 gain 的识别顺序不能交换</h2><p>venue价格差同时包含稳定basis、短期lead-lag和measurement noise。若先用当前local move拟合gain，再用同一观测校正basis，模型可以把将要预测的变化吸入当期reference。past-only basis要求在$t$之前冻结$b_{v,t^-}$；随后只用已ready的external innovation估计gain。</p>
+<p>抽象地，venue$v$的校正价格为</p>
+<script type="math/tex; mode=display">
+\tilde p_{v,t}=p_{v,t}-b_{v,t^-},</script><p>外部创新为$u<em>{v,t}=\tilde p</em>{v,t}-\tilde p<em>{v,t^-}$，最终fair shift才是$\sum_v g</em>{v,t^-}u_{v,t}$的稳健组合。把$t$时刻local outcome参与$b$或$g$更新，会让同一个价格变化既当输入又当标签。</p>
+<p>online gain也必须有shrinkage与support gate。短窗口内某venue偶然领先，不应立刻获得大权重；source stale或basis跳变时，weight应下降或fail closed。weighted median保护单点幅度，但不能修复三家共同的clock错误或共同stablecoin shock。</p>
+<h2 id="Fair-center-改善为什么可能让报价更差"><a href="#Fair-center-改善为什么可能让报价更差" class="headerlink" title="Fair-center 改善为什么可能让报价更差"></a>Fair-center 改善为什么可能让报价更差</h2><p>设baseline center误差较大但quotes较宽，candidate center MAE更小却把BUY与SELL整对平移。若平移方向在inventory-exposure side增加了更多toxic fills，terminal value仍会恶化。反过来，一个center prediction总体无显著MAE改善，也可能在特定inventory-reducing role上有动作价值。</p>
+<p>因此从fair price到quote至少要区分pair-preserving recenter与side-specific width。前者保持spread但改变两侧相对本地book的位置；后者改变成交机会。完整研究需要记录candidate quote是否cross、距best多少ticks、queue seed、fill role与campaign outcome，而不是把价格预测误差直接换算成PnL。</p>
+<p>一个安全的后继顺序是：先在common-mask上验证causal fair price；再做leave-one-venue-out和signal-age敏感性；然后冻结一个很小的recenter action；最后做paired full-path replay。每层失败都停止，不能用后层偶然PnL给前层补票。</p>
+<h2 id="Weighted-median-的-breakdown-point-与共同故障"><a href="#Weighted-median-的-breakdown-point-与共同故障" class="headerlink" title="Weighted median 的 breakdown point 与共同故障"></a>Weighted median 的 breakdown point 与共同故障</h2><p>weighted median只要错误venue权重未超过一半，就能限制单点幅度影响；这比加权均值对fat-finger或stale quote更稳健。但若最大venue本身权重大于50%，或两家共享同一错误clock/basis，breakdown保护消失。</p>
+<p>所以权重应有cap与health gate，并报告每时刻effective venue count。LOO结果不仅是model diagnostic，也是聚合器的故障演练：去掉任何一家后fair center是否仍定义、误差是否可接受、信号方向是否保持。</p>
+<h2 id="Price-accuracy-的三个-benchmark"><a href="#Price-accuracy-的三个-benchmark" class="headerlink" title="Price accuracy 的三个 benchmark"></a>Price accuracy 的三个 benchmark</h2><p>第一是local mid random walk，检验external是否超过“未来等于现在”。第二是local-only causal model，检验增量是否只是本地惯性。第三是robust multi-venue ablation，检验改善是否依赖单源。所有模型在同一common mask和ready clock上比较。</p>
+<p>MAE适合中心误差，但maker还关心signed error、tail和turnover。一个高频抖动center可能略降MAE，却导致大量requotes与queue loss；因此进入action前要加center variation、tick-crossing与staleness diagnostics。</p>
+<h2 id="Fair-price-artifact-的运行时安全边界"><a href="#Fair-price-artifact-的运行时安全边界" class="headerlink" title="Fair-price artifact 的运行时安全边界"></a>Fair-price artifact 的运行时安全边界</h2><p>输出应包含value、ready time、source ages、contributing venues、basis/gain state与valid reason。任一必需source超时、calendar/basis越界或number非有限时回退本地baseline，不允许沿用不知年龄的最后fair price。</p>
+<p>这些字段使fair center可以被审计为research input；真正quote action仍需单独artifact和权限。把data-quality fallback写进接口，避免“模型没信号”与“数据没到”在运行时变成同一个零值。</p>
 <h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f04_external_market_alpha/docs/cross_venue_causal_fair_price_v1_spec_20260801.json">Cross-Venue Causal Fair Price v1 Spec</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f04_external_market_alpha/README.md">F04 External Market Alpha README</a></li>

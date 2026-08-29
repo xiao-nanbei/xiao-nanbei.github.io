@@ -27,13 +27,14 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：Add campaign 历史上更差，但这只是机制线索，不是“跳过 add 会赚钱”的因果结论NarrowGate 的 inventory campaign 并不是由一个固定 spread 参数控制。波动 regime 会缩放报价，P3 floor 会阻止过度收紧，depth kappa 会影响距离，dynami">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/dynamic-campaign-mechanism-attribution.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f10-attribution-evidence-ladder.svg">
 <meta property="article:published_time" content="2026-08-28T16:00:00.000Z">
 <meta property="article:modified_time" content="2026-08-28T16:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
-<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="风险管理">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/dynamic-campaign-mechanism-attribution.svg">
@@ -333,7 +334,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          6.4k 字
+          9.7k 字
         
       </span>
     
@@ -345,7 +346,7 @@
         
         
           <!-- compatible with older versions-->
-          54 分钟
+          82 分钟
         
       </span>
     
@@ -397,6 +398,8 @@
 <p>本文是历史机制归因复盘，不构成交易建议。图中的 K 线、报价、库存与控制器状态为合成示意，不对应实盘路径。</p>
 <p><img src="/images/narrowgate/dynamic-campaign-mechanism-attribution.svg" srcset="/img/loading.gif" lazyload alt="Dynamic campaign 中 add toxicity、repair failure 与控制器传导"></p>
 <p><em>图 1：一个 add fill 可以先产生短期 adverse markout，再通过更长的库存修复路径进入 campaign terminal。Regime、P3、cap、cooldown 与 reducing defense 影响报价，却不等于已经构造出“跳过 add”的反事实。</em></p>
+<p><img src="/images/narrowgate/f10-attribution-evidence-ladder.svg" srcset="/img/loading.gif" lazyload alt="从历史归因到动作价值的证据阶梯"></p>
+<p><em>图 2：add/no-add campaign差异位于portfolio mechanism层。它能定位损失，但只有新的随机或配对action path才能到达uplift层；30秒markout、库存时长或controller状态都不能单独跨级。</em></p>
 <h2 id="1-研究问题：损失集中在哪里，机制是否真的在动"><a href="#1-研究问题：损失集中在哪里，机制是否真的在动" class="headerlink" title="1. 研究问题：损失集中在哪里，机制是否真的在动"></a>1. 研究问题：损失集中在哪里，机制是否真的在动</h2><p>这项审计问两个描述性问题。第一，terminal loss 更集中在没有 add、发生 add、immediate toxic add、repair failure 还是二者混合的 campaigns？第二，配置中宣称的动态控制器在实际路径上是否有足够 variation，还是多数时间被 floor、cap、离散阶梯或其它 overlay 固定住？</p>
 <p>对 campaign $c$，可观察 terminal outcome 为</p>
 <script type="math/tex; mode=display">
@@ -411,6 +414,13 @@ Y_c=E_c(T_{flat})-E_c(T_{birth}).</script><p>令 $A_c=1$ 表示该 campaign 至�
 \Delta_{obs}
 \ne
 \mathbb E[Y_c(\text{skip add})-Y_c(\text{baseline add})].</script><p>这条不等式是全文最重要的边界。审计可以定位候选机制，不能替代随机化或 paired full-path replay。</p>
+<h3 id="1-1-Add-no-add-对比中的选择路径"><a href="#1-1-Add-no-add-对比中的选择路径" class="headerlink" title="1.1 Add/no-add 对比中的选择路径"></a>1.1 Add/no-add 对比中的选择路径</h3><p>发生add需要：campaign已存在、baseline permission开放、quote激活、市场触达并完成fill。市场趋势与库存状态同时影响是否add以及terminal outcome。一个简化因果图是：</p>
+<script type="math/tex; mode=display">
+MarketState\rightarrow AddFill\leftarrow Quote/Queue,</script><script type="math/tex; mode=display">
+MarketState\rightarrow Terminal,qquad InventoryState\rightarrow AddFill,Terminal.</script><p>条件于 $AddFill=1$ 会选择出更容易触达、更长或更困难的campaign。即使add本身没有因果伤害，add group也可能更差；反之，add也可能真增加风险。观察性差异无法区分。</p>
+<p>因此100个add campaigns与408个no-add campaigns不是两臂实验。它们最适合回答“哪里集中损失、下一步动作面在哪”，不适合回答“删除100个add会省9.37 USDC”。</p>
+<h3 id="1-2-48小时窗口为何只能做机制定位"><a href="#1-2-48小时窗口为何只能做机制定位" class="headerlink" title="1.2 48小时窗口为何只能做机制定位"></a>1.2 48小时窗口为何只能做机制定位</h3><p>两天容易被单一趋势、周内时段与少数worst campaigns主导。worst 20承担大部分loss本身就说明重尾；按campaign row做普通区间会低估共同市场冲击。</p>
+<p>这个窗口仍有价值，因为它揭示controller是否binding、cooldown staircase与add/repair路径，可用于注册新问题。但稳定side ranking、参数最优值或长期loss share需要更多独立日期和修复后的denominator。</p>
 <h2 id="2-Campaign-分类：toxicity-与-repair-是两条不同路径"><a href="#2-Campaign-分类：toxicity-与-repair-是两条不同路径" class="headerlink" title="2. Campaign 分类：toxicity 与 repair 是两条不同路径"></a>2. Campaign 分类：toxicity 与 repair 是两条不同路径</h2><p>历史审计预先定义 immediate add toxicity 为 first-add 30s maker-signed markout 不高于 $-0.5$ bps，repair failure 为 first add 到 first reducing fill 超过 300 秒。它们是 diagnostic thresholds，不是 treatment rules。</p>
 <p>四类路径分别是：</p>
 <ul>
@@ -502,11 +512,19 @@ d_{pair,t}
 d_{dynamic,t},
 d_{P3\ floor,t}
 \right).</script><p>当 floor binding 时，继续改变 regime 或基础 gamma 未必移动最终报价；只有 $d_{dynamic,t}$ 重新超过 floor，控制器才恢复 action range。研究 controller effect 时必须观察最终 quote geometry，而不是只看内部 parameter changed。</p>
+<h3 id="4-1-用局部导数理解“参数动了、报价没动”"><a href="#4-1-用局部导数理解“参数动了、报价没动”" class="headerlink" title="4.1 用局部导数理解“参数动了、报价没动”"></a>4.1 用局部导数理解“参数动了、报价没动”</h3><p>若最终spread为 $d=\max(d<em>{dynamic}(\theta),d</em>{floor})$，则floor binding时：</p>
+<script type="math/tex; mode=display">
+\frac{\partial d}{\partial\theta}=0</script><p>即使内部参数 $\theta$、regime scale或kappa持续变化，执行价格对它没有局部敏感度。只有dynamic分支超过floor，导数才恢复。</p>
+<p>同理，cap未binding时调高cap也有零action effect；spread cap碰撞时又可能把两个内部报价压成同一最终tick。机制审计必须沿“state → internal quote → floor/cap/rounding → final order”逐层记录，而不是把state variation当treatment strength。</p>
+<h3 id="4-2-28-9-floor-binding-如何阅读"><a href="#4-2-28-9-floor-binding-如何阅读" class="headerlink" title="4.2 28.9% floor binding 如何阅读"></a>4.2 28.9% floor binding 如何阅读</h3><p>它说明约部分sampled时刻由P3 floor决定下界，不代表另外71.1%都由某一个dynamic参数独占控制；其它floor、tick rounding、inventory skew与safety overlay仍可能参与。比例也来自withdrawn historical denominator，不具当前calibration authority。</p>
+<p>因此这项数字的正确用途是历史机制例子：某些内部参数在相当部分路径上无法移动final quote。它不是现在应降低P3 floor的依据，更不是P3 value的因果证据。</p>
 <h2 id="5-Kappa-与-cap：参数在变化，不代表报价受它控制"><a href="#5-Kappa-与-cap：参数在变化，不代表报价受它控制" class="headerlink" title="5. Kappa 与 cap：参数在变化，不代表报价受它控制"></a>5. Kappa 与 cap：参数在变化，不代表报价受它控制</h2><p>审计发现 effective depth kappa 与 empirical P3 kappa 在普通状态非常接近。rare states 会移动它，但大多数 campaigns 中可用的连续动作范围很小。一个看似精细的 depth controller 若长期贴着外部 calibrated surface，就不应被当作主要 campaign adaptation lever。</p>
 <p>dynamic cap 的 level 确实变化，历史窗口 mean 约 24.52 bps；但 sampled cap-hit rate 为 0%。因此 cap 是 safety ceiling，而不是当时损失路径中的 active treatment。调一个从未 binding 的 cap，不会自动改变 fill 或 campaign。</p>
 <p>这个例子揭示了 mechanism attribution 的必要性：配置文件里有参数，不等于数据里存在 treatment strength。研究动作前必须先证明 candidate 会改变最终 quote、fill 或 lifecycle，而不是只改变一个中间变量。</p>
 <h2 id="6-Cooldown：所谓-dynamic-可能只是离散-staircase"><a href="#6-Cooldown：所谓-dynamic-可能只是离散-staircase" class="headerlink" title="6. Cooldown：所谓 dynamic 可能只是离散 staircase"></a>6. Cooldown：所谓 dynamic 可能只是离散 staircase</h2><p>历史 sampled campaigns 的 maximum cooldown 呈现清楚的 85 秒整数倍：85s 有 3 个、170s 有 61 个、255s 有 30 个、340s 有 8 个、425s 有 2 个。它是状态触发的 staircase，不是连续平滑控制器。</p>
 <p>离散阶梯会产生两个后果。第一，两个略有不同的 states 可能落到同一 cooldown bucket，动作实际上相同。第二，跨过一个台阶会一次改变 85 秒 permission，远比 score 的微小变化更强。任何 cooldown action study 都必须冻结具体 transition，而不能把 score slope 当作 treatment size。</p>
+<h3 id="6-1-阶梯动作的边际效应集中在边界"><a href="#6-1-阶梯动作的边际效应集中在边界" class="headerlink" title="6.1 阶梯动作的边际效应集中在边界"></a>6.1 阶梯动作的边际效应集中在边界</h3><p>如果连续score只在跨过阈值时把cooldown从85变170秒，那么绝大多数score小变化没有action difference，少数边界变化却一次改变85秒。模型若回归score与PnL，估计的是状态关联，不是这条离散jump的效果。</p>
+<p>真正action estimand应比较同一个boundary opportunity上是否跨级，并追踪后续permission与campaign。后来的state/recovery/variance-time项目正把不同release规则独立注册；它们不能由本篇staircase统计直接授权。</p>
 <h2 id="7-Reducing-side-defense：想修复库存，先确认机制有-support"><a href="#7-Reducing-side-defense：想修复库存，先确认机制有-support" class="headerlink" title="7. Reducing-side defense：想修复库存，先确认机制有 support"></a>7. Reducing-side defense：想修复库存，先确认机制有 support</h2><p>减少风险的 reducing quote 也会受到 common overlays、distance 与 pause 影响。历史审计中实际 defense pause 很稀少，inventory emergency quantity threshold 没有在冻结窗口触发；loss-based emergency 与 quantity emergency 又是两条不同机制，不能混成一个“防御开关”。</p>
 <p>研究曾为 reducing repair release 预注册每侧最低 campaign、active-day、strict-through interval 与 affected-negative-add rate。支持门未同时满足，因此该动作在读 action economics 前就关闭。touch 或 strict trade-through 也不能当作真实 queue fill counterfactual；一个更激进 reducing quote 是否成交仍需要 queue、latency 和 exact execution path。</p>
 <p>后续应该转向 first baseline-eligible exposure-increasing add opportunity，因为这个决策点在 add fill 发生前、具有明确 baseline action，也更接近可识别的预防动作。</p>
@@ -523,10 +541,21 @@ d_{P3\ floor,t}
 <li>replay 完整 queue、latency、fill 与后续 campaign path。</li>
 </ul>
 <p>reward 应从 decision 到 terminal，报告 campaign cost、repair time、tail 与 activity。这个动作后来属于 F09 action-uplift 研究，而不是本篇 descriptive audit 的结果。</p>
+<h3 id="9-1-后续action结果如何反过来校正机制直觉"><a href="#9-1-后续action结果如何反过来校正机制直觉" class="headerlink" title="9.1 后续action结果如何反过来校正机制直觉"></a>9.1 后续action结果如何反过来校正机制直觉</h3><p>one-cycle skip证明单次quote对fill路径杠杆太低；until-flat证明持久阻断能降风险却近似关掉参与；recovery-event在支持充分时伤害SELL价值；price penalty与aggressive repair分别改善库存proxy和修复速度，却没有terminal uplift。</p>
+<p>这些结果不抹掉add/repair机制定位，而是说明从“损失集中”到“可控且有价值”之间有很长的识别链。机制文章应把后续阴性结果链接进叙述，而不能永远停在“下一步可能有效”的悬念。</p>
+<h3 id="9-2-什么证据能真正更新本篇结论"><a href="#9-2-什么证据能真正更新本篇结论" class="headerlink" title="9.2 什么证据能真正更新本篇结论"></a>9.2 什么证据能真正更新本篇结论</h3><p>修复denominator后的完整campaign panel可更新loss concentration、duration与controller action-range数值；新的randomized action则可更新某个lever的因果价值。两类更新不能互相替代。</p>
+<p>若新panel仍显示add group平均更差，它加强descriptive localization；只有同一untreated opportunity的skip/widen/price/full-path contrast为正，才支持action。文章中每个数字都应标明属于哪一层。</p>
 <h2 id="10-最终状态与权限"><a href="#10-最终状态与权限" class="headerlink" title="10. 最终状态与权限"></a>10. 最终状态与权限</h2><p>项目最终状态是 <strong>descriptive mechanism only</strong>。</p>
 <p>支持：add campaigns 在冻结历史窗口承担绝大多数 aggregate loss；immediate toxicity 与 repair failure 是不同传导机制；regime/P3/cooldown 确实改变内部或报价状态；cap 与部分 defense mechanisms 缺少实际 action range。</p>
 <p>不支持：跳过 add 的因果收益、任一 dynamic parameter 的最优值、稳定 side ranking、reducing repair release action、把 live 与 replay 数字合并成政策结论。</p>
 <p>没有读取或获得 Validation、sealed holdout、policy promotion、live action、baseline update 或参数调优权限。旧 Development exact values 保持 withdrawn。</p>
+<h2 id="描述性差异的-DAG-为什么不能省略"><a href="#描述性差异的-DAG-为什么不能省略" class="headerlink" title="描述性差异的 DAG 为什么不能省略"></a>描述性差异的 DAG 为什么不能省略</h2><p>令$S$为市场/库存状态，$A$为是否发生add，$F$为后续fills，$Y$为terminal value。原策略根据$S$选择$A$，而$S$也直接影响$Y$：</p>
+<script type="math/tex; mode=display">
+S\rightarrow A,\qquad S\rightarrow Y,\qquad A\rightarrow F\rightarrow Y.</script><p>观察到$E[Y\mid A=1]&lt;E[Y\mid A=0]$同时包含动作效应与state selection。进一步按已fill、已closed或某个post-action campaign type分层，还可能打开collider路径。机制审计可以定位损失集中在哪，却不能把条件均值直接翻译为skip uplift。</p>
+<h2 id="Binding-rate-是-control-authority-的局部地图"><a href="#Binding-rate-是-control-authority-的局部地图" class="headerlink" title="Binding rate 是 control authority 的局部地图"></a>Binding rate 是 control authority 的局部地图</h2><p>当P3 floor在28.9% decisions绑定时，某些上游参数变化不会传到最终quote；在未绑定区间，局部导数才非零。总体parameter movement与final action movement之间需要一张transmission table：input changed、raw quote changed、floor/cap bound、tick-rounded quote changed、order replaced、fill path changed。</p>
+<p>这张表能解释为何动态$\kappa$或cap看起来波动很大，实际订单却很少不同。反过来，若final quote频繁不同但value不变，问题位于市场分离或fill/path层。mechanism attribution的价值就是指出控制链在哪一层失去authority。</p>
+<h2 id="从“add更差”到随机化-action-的设计"><a href="#从“add更差”到随机化-action-的设计" class="headerlink" title="从“add更差”到随机化 action 的设计"></a>从“add更差”到随机化 action 的设计</h2><p>第一步选择decision-visible surface，例如first-add、multi-level add或post-cooldown rearm；第二步定义有限动作keep/widen/skip；第三步在outcome前验证每个arm的合法性、action leverage与retention；第四步用已知propensity或paired replay估计terminal contrast。</p>
+<p>这样新的action研究回答$E[Y(a)-Y(a_0)]$，而不是重复比较observed add/no-add。后来的F09结果有些动作机械上强却经济失败，正好证明历史损失集中不能保证简单干预有效。</p>
 <h2 id="11-公共证据"><a href="#11-公共证据" class="headerlink" title="11. 公共证据"></a>11. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/README.md">F10 Live/Replay Attribution README</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/dynamic_mechanism_campaign_audit_20260722.md">Dynamic Mechanism Campaign Audit v1</a></li>
@@ -570,9 +599,9 @@ d_{P3\ floor,t}
       
         <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
       
-        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
-      
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
         <a href="/tags/%E9%A3%8E%E9%99%A9%E7%AE%A1%E7%90%86/" class="print-no-link">#风险管理</a>
       
@@ -631,9 +660,9 @@ d_{P3\ floor,t}
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Conditional-P3-Joint-Quote-Value-Research/" title="NarrowGate Conditional P3：从触达概率到联合报价价值">
+                      <a href="/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/" title="NarrowGate Fill Quality：决策时可见状态能否识别负价值成交">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">NarrowGate Conditional P3：从触达概率到联合报价价值</span>
+                        <span class="hidden-mobile">NarrowGate Fill Quality：决策时可见状态能否识别负价值成交</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -641,8 +670,8 @@ d_{P3\ floor,t}
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/" title="NarrowGate Fill Quality：决策时可见状态能否识别负价值成交">
-                        <span class="hidden-mobile">NarrowGate Fill Quality：决策时可见状态能否识别负价值成交</span>
+                      <a href="/2026/08/29/NarrowGate-Fill-Inventory-Lifecycle-Research/" title="NarrowGate Fill-to-Inventory Lifecycle：30 秒 Markout 为什么不是成交 PnL">
+                        <span class="hidden-mobile">NarrowGate Fill-to-Inventory Lifecycle：30 秒 Markout 为什么不是成交 PnL</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

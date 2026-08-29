@@ -27,14 +27,15 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：13-head 有预测排序，ML-ON 没有稳定经济晋级；baseline 又确实优于随机生命周期Causal-v5 把 normalized 100ms L2、修复后的 taker-side、经验 P3、queue q0.70、固定 latency 和 fresh-start replay 绑定成一个新身份，重">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/causal-v5-three-arm-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f03-thirteen-head-evidence-pipeline.svg">
 <meta property="article:published_time" content="2026-08-29T12:38:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:38:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
-<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="机器学习">
 <meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/causal-v5-three-arm-kline.svg">
   
@@ -333,7 +334,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          6.1k 字
+          9.7k 字
         
       </span>
     
@@ -345,7 +346,7 @@
         
         
           <!-- compatible with older versions-->
-          51 分钟
+          81 分钟
         
       </span>
     
@@ -492,6 +493,39 @@
 <h2 id="9-关闭、支持与没有获得的权限"><a href="#9-关闭、支持与没有获得的权限" class="headerlink" title="9. 关闭、支持与没有获得的权限"></a>9. 关闭、支持与没有获得的权限</h2><p>支持：normalized input 和 corrected lifecycle 下仍有 multi-head ranking；baseline 明显优于冻结的 executable random-passive null；Python/C++ same-input parity 可建立。</p>
 <p>不支持：13-head ML unconditional economic uplift、四个 BUY scorer 的 direct action、通过 PnL 重新选 queue，或 baseline 绝对盈利。</p>
 <p>没有获得：model promotion、scorer action、Validation/holdout 重读、shadow 或 live authority。历史 owner-directed operational trial 不等于 statistical promotion，也不描述当前 runtime。</p>
+<h2 id="深入理解三种比较：prediction、策略-A-B-与-executable-null"><a href="#深入理解三种比较：prediction、策略-A-B-与-executable-null" class="headerlink" title="深入理解三种比较：prediction、策略 A/B 与 executable null"></a>深入理解三种比较：prediction、策略 A/B 与 executable null</h2><p>这项研究同时出现三类问题，必须分开读。Prediction 比较问十三个 heads 能否在 chronological OOF 中优于各自 baseline；ML-ON/OFF 比较问冻结 mapping 是否改善完整 maker 路径；random opportunity diagnostic 则问当前 runner 与生命周期是否至少能区分真实策略和不带信息的随机动作。</p>
+<p>它们之间不是简单的逐级“通过证书”。Prediction fail 会阻止声称模型已学到完整状态；prediction pass 也不保证 mapping 有价值。Executable null 若异常，则说明 replay 或 attribution 不能成为经济证据；null 正常也只证明实验装置有基本分辨率，不会使 ML-ON 自动有效。</p>
+<p><img src="/images/narrowgate/f03-thirteen-head-evidence-pipeline.svg" srcset="/img/loading.gif" lazyload alt="13-head 的 prediction 与 economics 双重 joint gate"></p>
+<p><em>图 2：十三个 heads 的校准与 full-path 经济路径是两层独立门；随机生命周期对照只校验装置，不产生 alpha。</em></p>
+<h2 id="Queue-sensitivity-为什么只能做机制敏感性"><a href="#Queue-sensitivity-为什么只能做机制敏感性" class="headerlink" title="Queue sensitivity 为什么只能做机制敏感性"></a>Queue sensitivity 为什么只能做机制敏感性</h2><p>设某次 placement 前方 queue 为 $q_0$，成交过程由 aggressive volume、cancel-ahead 与价格跳动共同消耗。若 replay 把 $q_0$ 乘以敏感性系数 $c$，得到的 fills 与 PnL 会变化；但不同 $c$ 对应不同的未观测撮合世界，不是策略可以选择的动作。</p>
+<p>因此从 $c\in{0.5,1,2}$ 中挑 PnL 最高者，相当于按结果选择“市场曾经怎样排队”，而不是找到更好的策略。Queue sensitivity 的合法用途是检查结论是否对合理 calibration 范围稳健：若 ML-ON 只在一个极端 $c$ 下为正，应该降低证据等级；不能把那个 $c$ 设为 winner。</p>
+<p>真正的 action 必须是 maker 能实施的 KEEP、CANCEL、REENTER、WIDEN 等，并在同一 queue calibration 下 paired replay。市场机制参数与策略参数必须是不同类型。</p>
+<h2 id="为什么-baseline-优于随机生命周期仍然重要"><a href="#为什么-baseline-优于随机生命周期仍然重要" class="headerlink" title="为什么 baseline 优于随机生命周期仍然重要"></a>为什么 baseline 优于随机生命周期仍然重要</h2><p>随机 opportunity control 刻意破坏状态—动作对应关系，同时保留大体 action rate。若真实 baseline 与随机策略没有区别，可能意味着 runner 没有执行 action、reward attribution 太稀疏，或策略本身只是在随机采样。baseline 明显优于随机 null 说明当前 maker 结构包含可重复机制，也说明完整 replay 对路径差异有分辨率。</p>
+<p>但这是一条较弱结论：</p>
+<script type="math/tex; mode=display">
+V(B_0)>V(\pi_{random})\not\Rightarrow V(\pi_{ML})>V(B_0).</script><p>它排除“所有策略都一样”的极端解释，却不能替 ML candidate 补上相对 baseline 的置信下界、tail 与 side gates。v5 因此同时保留了 baseline 有结构和 ML 无晋级两条结论。</p>
+<h2 id="三类比较各自排除什么解释"><a href="#三类比较各自排除什么解释" class="headerlink" title="三类比较各自排除什么解释"></a>三类比较各自排除什么解释</h2><p>Prediction comparison排除“模型连未来标签排序都做不到”；它比较proper loss、AUC/IC、calibration与日期稳定性，却不包含下单反馈。ML ON/OFF full-path comparison排除“预测改善在既定映射下没有任何策略效应”；它让库存与订单递归分叉，但结果同时混合model、mapping与execution。Executable null则排除“baseline只因为挂得久或交易得多才看起来更好”；它把机会、寿命或动作频率随机化，检查真实状态逻辑是否提供超越机械参与度的结构。</p>
+<p>三者形成的证据关系不是多数投票：</p>
+<script type="math/tex; mode=display">
+\text{prediction pass}
+\not\Rightarrow
+\text{mapping pass},
+\qquad
+\text{baseline>null}
+\not\Rightarrow
+\text{candidate>baseline}.</script><p>当前结果恰好体现这种组合：13-head保留一定排序，clean ML A/B没有稳定晋级，baseline又明显不是随机生命周期。这不矛盾；它说明系统已有值得保留的结构，而新增模型还没有把结构变成更好的动作。</p>
+<h2 id="Queue-sensitivity-应怎样变成可证伪问题"><a href="#Queue-sensitivity-应怎样变成可证伪问题" class="headerlink" title="Queue sensitivity 应怎样变成可证伪问题"></a>Queue sensitivity 应怎样变成可证伪问题</h2><p>queue quantile从0.55到1.00改变fills与inventory path时，PnL不单调，说明它不是一个可以在同一回放上按收益选择的自由超参数。正确用途是外部calibration：用独立的activation-to-fill轨迹检验不同quantile对fill timing、partial quantity与cancel-ahead的coverage，然后在结果出现前冻结一个queue identity。</p>
+<p>如果多个queue assumptions都符合外部数据，策略结论还应对这组plausible identities做robustness，而不是选PnL最高者。可以要求candidate effect在集合$\mathcal Q$内保持方向：</p>
+<script type="math/tex; mode=display">
+\inf_{q\in\mathcal Q}\Delta V(q)>0.</script><p>若只在某个极端queue设定下为正，最诚实的结论是对执行假设敏感。这样queue study提供的是identified set，而不是另一个回测调参维度。</p>
+<h2 id="为什么阴性经济结果仍推动了研究"><a href="#为什么阴性经济结果仍推动了研究" class="headerlink" title="为什么阴性经济结果仍推动了研究"></a>为什么阴性经济结果仍推动了研究</h2><p>revalidation把两个常见借口分开了。模型没有完全失去预测排序，所以不能简单说“ML不行”；baseline优于random null，所以也不能说“所有报价生命周期都一样”。失败更集中在prediction-to-action接口、状态支持和full-path价值门。</p>
+<p>这使后续研究从“再训练一个更高AUC的bundle”转向更窄的action estimand：在明确inventory role、quote coordinate与counterfactual baseline下，预测哪些局部动作真正改善terminal campaign value。研究关闭的是当前clean A/B identity，不是继续建模的理由。</p>
+<h2 id="十三个输出为什么不是一个统一“市场方向分数”"><a href="#十三个输出为什么不是一个统一“市场方向分数”" class="headerlink" title="十三个输出为什么不是一个统一“市场方向分数”"></a>十三个输出为什么不是一个统一“市场方向分数”</h2><p>direction heads输出分类概率，return/volatility heads输出不同单位的连续量，toxicity或fill-related heads又有自己的条件总体。把它们标准化后相加会隐藏单位与loss差异；报价器必须明确每个head如何进入center、width、permission或diagnostic。</p>
+<p>一个safe ABI应给每个output附带<code>estimand</code>、<code>unit</code>、<code>horizon</code>、<code>side convention</code>、<code>ready_time</code>与<code>valid</code>。例如absolute-price variance可以进入risk formula，dimensionless return probability不能在没有映射时替代；toxicity ranking可以触发研究action，却不能伪装成fill probability。</p>
+<h2 id="Executable-null-应保留哪些机械量"><a href="#Executable-null-应保留哪些机械量" class="headerlink" title="Executable null 应保留哪些机械量"></a>Executable null 应保留哪些机械量</h2><p>随机生命周期如果同时减少active time、requotes与fills，baseline胜出可能只因为参与更多。更强的null应尽可能匹配eligible opportunities、side/role mix、订单寿命或action rate，只随机化state-to-action关联。匹配越多，越能排除纯机械解释；但也不能通过post-treatment matching删除真实作用路径。</p>
+<p>可以分层建立null ladder：随机decision、随机同日同side、随机同role/age bucket，最后action-matched control。每一层回答更窄问题。baseline持续优于这些null，说明状态逻辑有结构；它仍不证明新增13-head mapping超过baseline。</p>
+<h2 id="从-revalidation-到可部署-bundle-的缺口"><a href="#从-revalidation-到可部署-bundle-的缺口" class="headerlink" title="从 revalidation 到可部署 bundle 的缺口"></a>从 revalidation 到可部署 bundle 的缺口</h2><p>除prediction与full-path gates外，还需runtime parity、latency budget、missing fallback、resource envelope和monitoring。任何head在live不可及时生成，都不能用离线100ms分数替代；任何invalid state都应回baseline而非默认风险低。</p>
+<p>最重要的是新action证据必须独立于model选择面板。revalidation可以保留模型作为research artifact，却不授予部署。将“模型存在”与“模型被策略消费”拆开，正是这项研究留下的系统边界。</p>
 <h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/docs/causal_v5_normalized100ms_revalidation_20260725.md">Causal-v5 Normalized-100ms Revalidation</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/docs/causal_v5_revalidation_registry_20260725.md">Causal-v5 Revalidation Registry</a></li>
@@ -535,11 +569,11 @@
       
         <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
       
-        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
-      
         <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
       
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
     </div>
   

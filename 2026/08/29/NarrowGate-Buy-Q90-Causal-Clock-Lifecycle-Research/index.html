@@ -27,13 +27,14 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：混合时钟几乎删掉了整个 q90 风险集，修好时钟后又暴露出 cancel ACK 后继续打分的终局缺陷BUY q90 是 active-order fill-hazard 路径上的高分过滤机制。它本应在订单仍然暴露于 exchange fill risk 时读取因果可见状态，决定是否发出 cancel；订单收到">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/buy-q90-causal-clock-lifecycle.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f10-attribution-evidence-ladder.svg">
 <meta property="article:published_time" content="2026-08-28T16:00:00.000Z">
 <meta property="article:modified_time" content="2026-08-28T16:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
-<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="低延迟系统">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/buy-q90-causal-clock-lifecycle.svg">
@@ -333,7 +334,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          8.4k 字
+          11k 字
         
       </span>
     
@@ -345,7 +346,7 @@
         
         
           <!-- compatible with older versions-->
-          70 分钟
+          89 分钟
         
       </span>
     
@@ -398,6 +399,8 @@
 <p>本文只讨论公开 Development mechanics，不构成交易建议。图中的订单、时钟和状态为抽象机制图，不是实盘订单或当前运行状态。</p>
 <p><img src="/images/narrowgate/buy-q90-causal-clock-lifecycle.svg" srcset="/img/loading.gif" lazyload alt="BUY q90 的 exchange clock、visibility clock 与 terminal recovery 状态机"></p>
 <p><em>图 1：exchange truth 与 strategy visibility 分属两只时钟。Cancel request 后旧订单仍可 fill；cancel ACK 才结束 active risk。ACK 后的 recovery 必须创建 fresh prospective placement，不能继续使用旧 cursor。</em></p>
+<p><img src="/images/narrowgate/f10-attribution-evidence-ladder.svg" srcset="/img/loading.gif" lazyload alt="F10 从观测归因、机制复现到动作价值的证据阶梯"></p>
+<p><em>图 2：本项目停在“机制修复与单日复现”一层。它尚未完成全样本 transport，更没有跨过 paired action-value 与 live-authority 两道门。把修复后的 state machine 直接称为有效策略，会跳过阶梯中间的全部证据。</em></p>
 <h2 id="1-q90-到底在哪个风险集上工作"><a href="#1-q90-到底在哪个风险集上工作" class="headerlink" title="1. q90 到底在哪个风险集上工作"></a>1. q90 到底在哪个风险集上工作</h2><p>q90 的输入是 active BUY order path。合法 fill-risk phases 只有 ACTIVE、PARTIALLY_FILLED 与 CANCEL_PENDING。SUBMITTED 尚未获得 active risk，EXCHANGE_TERMINAL 已经没有 remaining exchange fill risk。</p>
 <p>设订单在 feature-ready edge $t$ 的 score 为 $q<em>t$，冻结阈值为 $\tau</em>{0.90}$。抽象触发规则为</p>
 <script type="math/tex; mode=display">
@@ -456,6 +459,11 @@ t_{ready}(x)\le t_{eval}.</script><p>如果 replay 在 source time 立刻暴露 
 </div>
 <p>在 mixed clock 下，普通 latency 被解释成状态时间冲突，99% 以上 evaluations 从 q90 risk set 消失。旧 low action rate 因此不能被读成“score 很少超过 q90”；它主要反映 invalidation mechanics。</p>
 <p>正确 clock 下 stateful apply mode有 784,825 evaluations、784,675 valid、192 applied cancels。历史 observed slice 是 184 cancels；修正后的 cancel/hour ratio 约 0.641，不再是早期估计的约 $1/190$。这只说明 treatment strength 恢复到同一数量级，不证明 parity 或 action value。</p>
+<p>可以把这个问题写成风险集分母的改变。令 $N_t^{risk}$ 表示时刻 $t$ 真正处于 active exchange risk 的订单数，$V_t$ 表示同时满足 feature-ready 与输入支持的订单数，则 scorer 的有效覆盖率是</p>
+<script type="math/tex; mode=display">
+C
+=
+\frac{\sum_t V_t}{\sum_t N_t^{risk}}.</script><p>旧 mixed clock 不是把同一批风险样本打出了较低分，而是把绝大多数 $V_t$ 错误置零。阈值命中率、cancel rate 与 role distribution 因而都在一个被破坏的分母上计算。此时即使把 score histogram 画得再精细，也无法区分“模型认为安全”和“系统没有允许模型看见样本”。这正是为什么 clock repair 必须先于任何 threshold tuning。</p>
 <h2 id="4-第一版修复为何必须保留为-failure"><a href="#4-第一版修复为何必须保留为-failure" class="headerlink" title="4. 第一版修复为何必须保留为 failure"></a>4. 第一版修复为何必须保留为 failure</h2><p>首次 stateful run 在第一个合法 Python/C++ evaluation 停止。两侧 lifecycle identity、action、source/ready timestamps、generation、queue counters 与 book values 都匹配，但四个 probabilities 差约 0.5%–0.7%。</p>
 <p>根因不是浮点 tolerance，而是连续 input semantics：Python 的 visible_state_age_ms 从 last feature-ready timestamp 计算，C++ active-order path age仍从 provider source timestamp 计算。若 source 与 ready 相差两秒，策略在 ready 后 100ms 的可见 age 应是 100ms，而不是 2,100ms。</p>
 <p>修复没有改旧失败报告。它创建新 implementation identity，并加入 source/ready separation regression。这样 failure receipt 保留了“哪个合同被暴露”，successor 才证明“如何修复”。两次 execution attempt 仍属于同一 causal-clock/lifecycle 项目，不应拆成两篇 alpha。</p>
@@ -531,6 +539,9 @@ t_{ready}(x)\le t_{eval}.</script><p>如果 replay 在 source time 立刻暴露 
 </div>
 <p>对 BUY order，old order price 高于 current mid 已足以说明它高于 best bid；62,466 条 observations 不是“deep book 不够深”，而是终局订单仍在被错误当作 active path。剩余 29 条因 frozen tape 缺少精确 field 而保持 unresolved，没有强行归因给 depth。</p>
 <p>18 个 apparent recoveries 也无效，因为它们仍使用终局 order 的旧 active-risk state。一个 recovery 事件最终产生 re-entry，不会逆向证明 score 过程合法。</p>
+<h3 id="6-1-一条订单路径的逐步推演"><a href="#6-1-一条订单路径的逐步推演" class="headerlink" title="6.1 一条订单路径的逐步推演"></a>6.1 一条订单路径的逐步推演</h3><p>考虑一张在 $t<em>0$ 被交易所确认 active 的 BUY 单，初始剩余量 $Q_0$、价格 $p_0$、queue-ahead $a_0$。在 $t_1$，可见特征使 $q</em>{t<em>1}\ge\tau</em>{0.90}$，策略发出 cancel；从 $t_1$ 到 ACK 到达前的 $t_2$，订单仍可能被成交，所以状态只能是 CANCEL_PENDING，不能提前从 exchange risk set 删除。</p>
+<p>在 $t_2$ 收到 cancel ACK 后，旧订单的合法状态立刻变成 EXCHANGE_TERMINAL。若市场在 $t_3$ 回到可接受状态，策略可以评估一张新候选单 $(p_3,Q_3)$，但新单的年龄必须是零、queue-ahead 必须按 $p_3$ 的当前队尾重新种子化，active-order cursor 也必须重新创建。把 $p_0,a_0,t_0$ 延续到 $t_3$，等价于假设一张已经撤掉的订单仍保留原队列位置。</p>
+<p>这条路径解释了为何旧实现会同时制造两类错觉：终局订单在价格远离市场后不断产生 invalid evaluations；一旦价格重新靠近，它又像“自然恢复”一样重新有效。前者夸大无支持状态，后者虚构 queue continuity。二者来自同一 lifecycle identity 泄漏，不能分别解释成模型保守与策略恢复能力。</p>
 <h2 id="7-三种状态必须拆开"><a href="#7-三种状态必须拆开" class="headerlink" title="7. 三种状态必须拆开"></a>7. 三种状态必须拆开</h2><p>修复后的合同明确区分：</p>
 <ol>
 <li>exchange_order_terminal：cancel ACK、full fill、reject、expiry 或其它受支持 terminal 已结束旧订单风险；</li>
@@ -551,6 +562,14 @@ E_q^{visible}
 <h2 id="9-Fresh-prospective-placement：re-entry-必须从零开始"><a href="#9-Fresh-prospective-placement：re-entry-必须从零开始" class="headerlink" title="9. Fresh prospective placement：re-entry 必须从零开始"></a>9. Fresh prospective placement：re-entry 必须从零开始</h2><p>cancel ACK with positive remainder 只获得进入 prospective recovery 的资格。fresh evaluator 使用：current BUY candidate price、age zero、current causal book/trade state、current level 的 fresh queue-at-tail seed、当前 non-crossing GTX eligibility 与 feature-ready coverage。</p>
 <p>retired order_id 只保留 lifecycle provenance。旧 cursor、queue path、elapsed age 与 active hazard state禁止作为 feature。没有引入新的 learned activation model；这一阶段 activation support 只是 GTX eligible 与 current state causally covered。</p>
 <p>这条合同保护 baseline integrity，但它仍不回答 q90 action 是否有经济价值。fresh candidate 只是 mechanics 正确，不代表 score calibration、re-entry fill probability 或 terminal campaign value已通过。</p>
+<h3 id="9-1-Active-hazard-与-prospective-placement-是两个-estimand"><a href="#9-1-Active-hazard-与-prospective-placement-是两个-estimand" class="headerlink" title="9.1 Active hazard 与 prospective placement 是两个 estimand"></a>9.1 Active hazard 与 prospective placement 是两个 estimand</h3><p>active-order hazard问的是：<strong>一张已经在簿上的订单，给定其真实 path age、queue history 与 remaining quantity，继续暴露是否危险？</strong> prospective placement问的是：<strong>如果现在重新挂一张新单，它从当前队尾开始的未来风险与价值是什么？</strong> 两者的条件变量不同：</p>
+<script type="math/tex; mode=display">
+q^{active}_t
+=
+f(X_t,p_{old},age_t,queue\_path_t,Q_t),</script><script type="math/tex; mode=display">
+q^{new}_t
+=
+g(X_t,p_{new},0,queue\_seed_t,Q_{new}).</script><p>即使 $f$ 与 $g$ 最终共享部分编码器，也不能把 $f$ 对旧订单的 recovery score当成 $g$ 的输出。旧实现恰恰跨过了这条 estimand boundary：它用 active path 的连续状态替代新 placement 尚不存在的生命周期。v1.6 的 61 次 prospective evaluation 全部 fail closed，说明边界已经被守住，但新估计量的支持仍未建立。</p>
 <h2 id="10-One-day-smoke-通过，为何项目仍未闭合"><a href="#10-One-day-smoke-通过，为何项目仍未闭合" class="headerlink" title="10. One-day smoke 通过，为何项目仍未闭合"></a>10. One-day smoke 通过，为何项目仍未闭合</h2><p>v1.6 one-day Development smoke 在 exact feature-ready batch semantics 下得到：</p>
 <div class="table-container">
 <table>
@@ -599,6 +618,18 @@ E_q^{visible}
 <p>同一 ready boundary 上 book 与 execution ordering 不可知时，两 runtimes 都持久标记 same_ms_exchange_book_ambiguity。214 次 Python authoritative invalidations 被同步到 message-oriented C++，三次 q90 evaluations 携带该 reason，mismatch 仍为零。</p>
 <p>但是 61 个 prospective recovery evaluations 全部 invalid；这不破坏 lockstep，因为双方一致 fail closed，却没有提供有效 recovery-score transport support。正式 40 日 run也没有启动：可用内部空间 56.63 GiB，低于冻结 60 GiB reserve。没有删除 cache 来绕过安全门。</p>
 <p>所以 one-day smoke 只证明一个 target day 的 event mechanics，不等于 full denominator，也不应该被写成“q90 parity passed”。</p>
+<h3 id="10-1-从-smoke-到-economics-还缺四个闭环"><a href="#10-1-从-smoke-到-economics-还缺四个闭环" class="headerlink" title="10.1 从 smoke 到 economics 还缺四个闭环"></a>10.1 从 smoke 到 economics 还缺四个闭环</h3><p>第一，全 40 日必须在同一 frozen input identity 上完成，确认 one-day 的 zero mismatch不是偶然避开某种 terminal route。第二，prospective placement必须获得非零且可解释的有效支持，否则“双方一致 invalid”只是一种安全停机。第三，replay与目标运行环境要在 valid fraction、cancel role、cancel/hour、state age和terminal route上通过 transport gates。第四，只有前三项完成后，才允许比较 q90 ON/OFF 的 fills、inventory campaign与 terminal MTM。</p>
+<p>顺序不能倒置。若在 recovery rows全 invalid时先看 PnL，观察到的 arm difference主要反映 fail-closed fallback；若 action rate未 transport就做 paired replay，结果只适用于历史低强度 treatment；若 lifecycle仍泄漏就调阈值，threshold会吸收系统 bug。完整证据链因此是</p>
+<script type="math/tex; mode=display">
+\text{event identity}
+\rightarrow
+\text{risk-set support}
+\rightarrow
+\text{runtime parity}
+\rightarrow
+\text{transport}
+\rightarrow
+\text{paired economics}.</script><p>本项目目前明确停在前两层之间，而不是“只差一次长回测”。</p>
 <h2 id="11-最终状态与没有获得的权限"><a href="#11-最终状态与没有获得的权限" class="headerlink" title="11. 最终状态与没有获得的权限"></a>11. 最终状态与没有获得的权限</h2><p>整条项目链最终得到：</p>
 <ul>
 <li>mixed clock defect confirmed；</li>
@@ -656,9 +687,9 @@ E_q^{visible}
       
         <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
       
-        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
-      
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
         <a href="/tags/%E4%BD%8E%E5%BB%B6%E8%BF%9F%E7%B3%BB%E7%BB%9F/" class="print-no-link">#低延迟系统</a>
       
@@ -717,9 +748,9 @@ E_q^{visible}
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Active-Order-Lifecycle-CIF-100ms-Research/" title="NarrowGate Active-Order Lifecycle CIF：100ms 竞争风险与 Python/C++ 锁步">
+                      <a href="/2026/08/29/NarrowGate-Active-Order-Queue-Value-Keep-Cancel-Research/" title="NarrowGate Active-Order Queue Value：KEEP 还是 CANCEL/RE-ENTER">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">NarrowGate Active-Order Lifecycle CIF：100ms 竞争风险与 Python/C++ 锁步</span>
+                        <span class="hidden-mobile">NarrowGate Active-Order Queue Value：KEEP 还是 CANCEL/RE-ENTER</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     

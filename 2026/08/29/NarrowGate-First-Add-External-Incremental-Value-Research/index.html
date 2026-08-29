@@ -27,6 +27,7 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：30 日数量门已完成，但 exact lifecycle 与共同分母仍未闭合，因此没有模型结果First-Add M0&#x2F;M1 研究的目标不是预测下一秒涨跌，而是识别 maker campaign 中第一次 exposure-increasing add 是否会带来负的 campaign-terminal valu">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/first-add-external-m0-m1.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f04-external-signal-to-action-clock.svg">
 <meta property="article:published_time" content="2026-08-29T13:04:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T13:04:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -333,7 +334,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          6.7k 字
+          10k 字
         
       </span>
     
@@ -345,7 +346,7 @@
         
         
           <!-- compatible with older versions-->
-          56 分钟
+          85 分钟
         
       </span>
     
@@ -484,6 +485,33 @@ T^{feature\ ready}_{i,k}\le T^{first\ add\ decision}_i.</script><p>外部 event 
 <h2 id="10-关闭、支持与权限边界"><a href="#10-关闭、支持与权限边界" class="headerlink" title="10. 关闭、支持与权限边界"></a>10. 关闭、支持与权限边界</h2><p>已支持：count gate 达到 30 distinct UTC days；first-add direct target、M0/M1、LOO 与 split 合同已预注册。</p>
 <p>仍阻塞：corrected exact lifecycle、row-level/common-mask、source transport、causal clock、side/quality 与 late-panel admission。当前没有 prediction 或 economics result。</p>
 <p>没有获得：Validation 或 sealed holdout 读取、模型拟合后的 promotion、阈值选择、ADD/NO-ADD、cancel、widen、re-center、shadow collection、外部 feed action 或 live authority。</p>
+<h2 id="深入推导：为什么-first-add-是一个自然-decision-surface"><a href="#深入推导：为什么-first-add-是一个自然-decision-surface" class="headerlink" title="深入推导：为什么 first-add 是一个自然 decision surface"></a>深入推导：为什么 first-add 是一个自然 decision surface</h2><p>Campaign opener 把库存从零变成非零，first add 则把已有暴露进一步加深。后者发生时，策略已经拥有一段 campaign history：初次成交价格、当前库存、已等待时间、repair 是否失败、外部市场是否继续领先。它既比任意 add 更同质，又直接对应“是否继续增加风险”的动作问题。</p>
+<p>目标不应从 realized fill rows 倒推。正确 row 在 baseline 首次满足 add eligibility 的 decision 时产生，无论候选最终是否成交；reward 从 decision 前权益一直追到 campaign terminal。否则只保留发生了 fill 的路径，会把 action-dependent selection 写进训练集。</p>
+<p><img src="/images/narrowgate/f04-external-signal-to-action-clock.svg" srcset="/img/loading.gif" lazyload alt="First-add 外部增量从 source clock 到 campaign terminal"></p>
+<p><em>图 2：M1 外部状态必须在 first-add decision 前 ready；terminal 只能作为标签。数量门完成并不代表 lifecycle 这条路径可识别。</em></p>
+<h2 id="M0-M1-增量究竟检验什么"><a href="#M0-M1-增量究竟检验什么" class="headerlink" title="M0/M1 增量究竟检验什么"></a>M0/M1 增量究竟检验什么</h2><p>M0 应包含本地 decision-visible state：inventory、campaign age、local flow、spread、queue/placement、P3 与波动等。M1 只增加冻结的 external state。比较对象不是两个模型各自的 AUC，而是共同 rows 上的增量：</p>
+<script type="math/tex; mode=display">
+\Delta_{M1}=L_{OOF}(M0)-L_{OOF}(M1).</script><p>若 M1 改善，才能说外部信息在本地状态之外提供额外解释；若只看 M1 自身表现，模型可能完全依赖本地 inventory 或 campaign age。即使增量通过，也只建立 observational value prediction，动作仍需 randomized/paired add versus no-add。</p>
+<h2 id="为什么-30-日-count-complete-仍然不是-usable-panel"><a href="#为什么-30-日-count-complete-仍然不是-usable-panel" class="headerlink" title="为什么 30 日 count complete 仍然不是 usable panel"></a>为什么 30 日 count complete 仍然不是 usable panel</h2><p>一天有至少一个 capture window，只证明日期数量达到门槛。正式 first-add row 还需要在同一 causal interval 上连接 external trades、local L2、policy decision、order activation、fill/cancel ACK、inventory campaign 与 terminal equity。任一关键字段缺失，都可能使 M0/M1 看到不同 rows 或让 reward 截断。</p>
+<p>特别是 exact lifecycle gate：若不知道某张订单何时真正 active、何时 cancel ACK，无法判断它在风险集中多久；若 campaign terminal 缺失，不能把最后一个 markout 当作 flat。共同分母要求 M0 与 M1 对完全相同 rows 可评分，不能让外部缺失只删除 M1 的难例。</p>
+<p>所以项目停在 count complete 是严谨的阻塞状态。继续训练一个“能跑”的模型会换成较窄 estimand，再把它误写成原问题答案。</p>
+<h2 id="First-add-row-怎样避免把结果条件化进输入"><a href="#First-add-row-怎样避免把结果条件化进输入" class="headerlink" title="First-add row 怎样避免把结果条件化进输入"></a>First-add row 怎样避免把结果条件化进输入</h2><p>一条campaign可以有许多候选时刻，但本项目的decision unit是第一次允许增加absolute inventory的机会。row必须在动作发生前确定：campaign id、current inventory、side/role、candidate quote、internal state、external features与feature-ready ages。随后才附上activation、fill、campaign terminal outcome等未来字段。</p>
+<p>若只保留实际发生first-add的campaign，会条件化在baseline action与execution上；若只保留filled first-add，又会进一步形成fill collider。正确面板应包含所有合法decision opportunities，包括最终未激活、未成交与campaign在窗口末端censor的路径，并明确各自outcome是否可识别。</p>
+<p>M0与M1的增量比较也必须在共同rows上完成。设$L_d(M)$是第 $d$ 日loss，则主要estimand是</p>
+<script type="math/tex; mode=display">
+\Delta_{ext}
+=
+\frac1D\sum_d\{L_d(M0)-L_d(M1)},</script><p>而不是比较两个模型各自最容易评分的row集合。external source缺失若与高波动相关，complete-case结果会偏向平静期；因此coverage、missing reason与fallback都属于estimand。</p>
+<h2 id="为什么-exact-lifecycle-是模型训练前的条件"><a href="#为什么-exact-lifecycle-是模型训练前的条件" class="headerlink" title="为什么 exact lifecycle 是模型训练前的条件"></a>为什么 exact lifecycle 是模型训练前的条件</h2><p>first-add价值依赖这次动作是否真正进入exchange、何时成交、随后是否触发更多adds、何时repair/flat以及窗口末端剩余库存。若order activation与cancel ACK不完整，一行label可能把“从未暴露”当成“暴露但未成交”；若campaign join用nearest timestamp，可能把后一个campaign的terminal outcome归给前一个decision。</p>
+<p>这类错误无法靠更强模型修复。模型会学习数据管线的错误选择机制，甚至在OOF取得稳定增量。数量门完成只说明日期和机会可能足够，不说明label semantics成立；停止在fit前，是避免生成一张看似精确、实际对象不明确的分数表。</p>
+<h2 id="从可用面板到动作结论还需两阶段"><a href="#从可用面板到动作结论还需两阶段" class="headerlink" title="从可用面板到动作结论还需两阶段"></a>从可用面板到动作结论还需两阶段</h2><p>第一阶段可以做outcome-blind panel audit和M0/M1 prediction：external信息是否在internal state之外增加对terminal loss或fill value的排序。第二阶段才冻结一个具体动作，如keep vs one-tick widen或skip first-add，并用paired full-path估计action uplift。</p>
+<p>即使M1显著优于M0，也只证明信息增量；若动作映射在缺乏overlap的高风险状态频繁改变报价，经济结论仍不可靠。相反，预测增量很小但一个简单action在明确状态下稳定改善，也可能形成独立策略证据。把两阶段分开，是first-add研究没有在count-complete时急于训练的根本原因。</p>
+<h2 id="数量门应基于-cluster，而不是总-rows"><a href="#数量门应基于-cluster，而不是总-rows" class="headerlink" title="数量门应基于 cluster，而不是总 rows"></a>数量门应基于 cluster，而不是总 rows</h2><p>first-add每campaign一行后，表面样本已经更接近经济单位，但同日campaign仍共享趋势、波动与source outage。可检测能力主要由distinct days、每日日志完整度和effect dispersion决定；把30日内数千campaign当IID会高估精度。</p>
+<p>preflight可在不读outcome方向的情况下统计每side的eligible campaigns、terminal-complete比例、最大单日占比、external-valid rate与candidate action overlap。若某side由三天贡献一半，即使总count过门，也应降低证据等级或增加日期。</p>
+<h2 id="Exact-lifecycle-的守恒条件"><a href="#Exact-lifecycle-的守恒条件" class="headerlink" title="Exact lifecycle 的守恒条件"></a>Exact lifecycle 的守恒条件</h2><p>每个decision只能绑定一个campaign；每个order lifecycle的submitted、ACK、partial fills、cancel与terminal数量必须守恒；terminal campaign value只能归属一次。对first-add动作，还要确认pre-action inventory非零且fill方向增加$|q|$，否则row可能是opener或reducing。</p>
+<p>在两arms full-path分叉后，campaign ids可以不同，不能强行按编号匹配。paired unit应是共同起始day/initial state，或在one-shot设计中是冻结decision。把action后的campaign nearest-join到一起会引入错误对应。</p>
+<h2 id="为什么“没有模型结果”比弱模型表更诚实"><a href="#为什么“没有模型结果”比弱模型表更诚实" class="headerlink" title="为什么“没有模型结果”比弱模型表更诚实"></a>为什么“没有模型结果”比弱模型表更诚实</h2><p>lifecycle与common denominator未闭合时训练M0/M1，任何loss差都同时包含label错配和missing selection。即使点估计漂亮，也无法知道external信息是否有增量。停止使后续修复可以在未看outcome的状态下完成，保留真正的确认机会。</p>
+<p>等面板合法后，原预注册问题仍可执行；这不是永久阴性。文章明确区分<code>count complete</code>、<code>panel usable</code>、<code>prediction result</code>和<code>action result</code>，让读者不会把工程进度误读为科学结论。</p>
 <h2 id="11-公共证据"><a href="#11-公共证据" class="headerlink" title="11. 公共证据"></a>11. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f04_external_market_alpha/docs/first_add_external_incremental_value_m0_m1_v1_preregistration_20260730.md">First-Add External Incremental Value M0/M1 v1 Preregistration</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f04_external_market_alpha/docs/babel_external_market_research_map.md">BABEL External-Market Research Map</a></li>

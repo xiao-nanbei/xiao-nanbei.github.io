@@ -27,14 +27,15 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：撤单确实删除了大量成交，但没有优先删除有毒成交，最终动作价值为负或不确定active maker order 同时暴露在 adverse fill 风险中，也拥有已积累的 queue priority。看到危险状态后撤单，可能避开坏成交，也可能把排队期权一起丢掉。 F07 因此研究一个直接动作：  K0 KEEP">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/active-order-keep-cancel-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f07-active-order-competing-risks-path.svg">
 <meta property="article:published_time" content="2026-08-28T16:00:00.000Z">
 <meta property="article:modified_time" content="2026-08-28T16:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
-<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="机器学习">
 <meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/active-order-keep-cancel-kline.svg">
   
@@ -333,7 +334,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          10k 字
+          12k 字
         
       </span>
     
@@ -345,7 +346,7 @@
         
         
           <!-- compatible with older versions-->
-          87 分钟
+          103 分钟
         
       </span>
     
@@ -450,6 +451,27 @@ R_i
 \text{incremental campaign cost}_i
 -
 \text{queue-reset cost}_i.</script><p>terminal MTM、MAE、campaign duration、inventory time 与 tail 是并列报告项。不能把同一个 campaign terminal PnL 复制到多个 decision rows，也不能在 maker-signed fill value 已从 execution price 起算后再加一次 half-spread。</p>
+<p><img src="/images/narrowgate/f07-active-order-competing-risks-path.svg" srcset="/img/loading.gif" lazyload alt="KEEP 与 CANCEL/RE-ENTER 的竞争风险路径"></p>
+<p><em>图 2：KEEP 延续旧 queue option；CANCEL 先进入仍可成交的 pending race，ACK 后才退出，满足状态退出与 baseline permission 后才以 fresh queue re-enter。动作价值必须覆盖整条路径，不能在 cancel request 处截断。</em></p>
+<h3 id="2-1-CANCEL-不是一个瞬时二元开关"><a href="#2-1-CANCEL-不是一个瞬时二元开关" class="headerlink" title="2.1 CANCEL 不是一个瞬时二元开关"></a>2.1 CANCEL 不是一个瞬时二元开关</h3><p>在简化表格里，K0/K1 看似一个 0/1 treatment；在交易所生命周期里，K1 是一个持续状态机。若请求在 $t_c$ 发出、ACK 在 $t_a$ 到达、重新激活在 $t_r$，则三个区间的风险不同：</p>
+<script type="math/tex; mode=display">
+[t_0,t_c):\text{old queue active},</script><script type="math/tex; mode=display">
+[t_c,t_a):\text{cancel pending but still fillable},</script><script type="math/tex; mode=display">
+[t_a,t_r):\text{no old-order exchange exposure}.</script><p>$t_r$ 以后 candidate 以 fresh queue 回到市场。若在 $[t_c,t_a)$ 成交，不能把它记作“撤单已经避开的 fill”；若 baseline permission 从未恢复，也不能人为制造 re-entry。任何一个简化都会系统性偏袒 K1。</p>
+<h3 id="2-2-Queue-option-value-的经济分解"><a href="#2-2-Queue-option-value-的经济分解" class="headerlink" title="2.2 Queue option value 的经济分解"></a>2.2 Queue option value 的经济分解</h3><p>旧订单排队优先权可以看成一项状态依赖期权。粗略地：</p>
+<script type="math/tex; mode=display">
+V_{keep}(x)
+=
+p_f(x)\,v_f(x)
++p_a(x)\,v_a(x)
++p_c(x)\,v_c(x),</script><p>其中 favorable fill value $v_f&gt;0$，adverse fill value $v_a&lt;0$，而自然 cancel/replace 的价值 $v_c$ 还包括未来机会。CANCEL 同时改变三组概率，并增加 ACK delay、无报价区间和 fresh-queue cost：</p>
+<script type="math/tex; mode=display">
+V_{cancel}(x)
+=
+V_{pending}(x)-C_{gap}(x)-C_{reset}(x)+V_{reentry}(x).</script><p>只估 $p_a$ 会把 $p_fv_f$ 设成不可见的零。后续 dynamic-fill 结果正说明这不是无害近似：adverse heads 可预测，但 favorable heads 没有建立可用于净值计算的增量 skill。缺一半期权价值时，撤单阈值没有经济单位。</p>
+<h3 id="2-3-一条合成路径为何会让“预测正确、动作错误”"><a href="#2-3-一条合成路径为何会让“预测正确、动作错误”" class="headerlink" title="2.3 一条合成路径为何会让“预测正确、动作错误”"></a>2.3 一条合成路径为何会让“预测正确、动作错误”</h3><p>设一张 active BUY 已排在同价位前列，状态模型正确预测未来一秒下跌概率升高。K1 发起撤单，但 ACK 前 aggressive SELL 仍打到该价，candidate 与 KEEP 都成交；这时动作没有删除 adverse fill，却可能额外产生控制与重挂成本。</p>
+<p>另一条路径里 ACK 先到，价格短暂下跌后反弹。KEEP 本可在低价成交并由后续 SELL 修复；K1 避开了这笔在短 markout 上看似“危险”、但 terminal 上有利的 fill，重新进入时又失去 queue priority。风险预测方向完全正确，动作价值仍然为负。</p>
+<p>所以研究要求 selectivity：candidate 删除 adverse fills 的速度必须显著快于删除全部 fills。若两者同速，机制只是 participation suppression，而不是 toxicity selection。</p>
 <h2 id="3-两套时钟：策略看到什么，交易所先发生什么"><a href="#3-两套时钟：策略看到什么，交易所先发生什么" class="headerlink" title="3. 两套时钟：策略看到什么，交易所先发生什么"></a>3. 两套时钟：策略看到什么，交易所先发生什么</h2><p>F07 的核心不是“用更深 L2 就好”，而是保持两条因果时钟：</p>
 <div class="table-container">
 <table>
@@ -712,6 +734,10 @@ S_T=r_T-r_F.</script><p>若 $S_T&gt;0$，toxic fills 被删除得更快；若接
 </table>
 </div>
 <p>toxic fills 反而比全部 fills 保留得稍多。这个 action 没有成为 selective toxicity filter，而是把有利与不利 queue option 一起删除。</p>
+<h3 id="10-1-用比率看-selectivity，为什么仍需看绝对价值"><a href="#10-1-用比率看-selectivity，为什么仍需看绝对价值" class="headerlink" title="10.1 用比率看 selectivity，为什么仍需看绝对价值"></a>10.1 用比率看 selectivity，为什么仍需看绝对价值</h3><p>也可定义保留率 $r<em>{all}=N</em>{fill}^{K1}/N<em>{fill}^{K0}$，毒性保留率 $r</em>{toxic}=N<em>{toxic}^{K1}/N</em>{toxic}^{K0}$。理想 guard 至少需要 $r<em>{toxic}&lt;r</em>{all}$，而且差异在日期聚类下稳定。这里二者几乎同速下降，说明 action 没有优先筛掉毒性。</p>
+<p>但即使 $r<em>{toxic}&lt;r</em>{all}$，也还不够。被删除的少量 favorable fills 可能单位价值很高，或 no-quote gap 可能扩大 inventory tail。因此 selectivity 是机制门，terminal reward 是经济门；两者必须同时通过，不能让比率替代 USDC。</p>
+<h3 id="10-2-为什么-BUY-与-SELL-必须分开"><a href="#10-2-为什么-BUY-与-SELL-必须分开" class="headerlink" title="10.2 为什么 BUY 与 SELL 必须分开"></a>10.2 为什么 BUY 与 SELL 必须分开</h3><p>同样的 CANCEL 动作对 BUY add 与 SELL add 会沿不同库存方向作用。BUY cancel 可能减少加多，也可能延迟对既有空头的修复；SELL cancel 则相反。市场趋势和当前 campaign role 会使 pooled mean 出现抵消。</p>
+<p>F07 的 BUY 结果显著有害、SELL 不确定，因此 pooled 数值不能解释为“一半有效”。它意味着至少一个预注册主侧已经产生方向性反证，而另一侧没有建立正证据。除非新项目事先定义不同 side-specific action，否则不能在结果后只保留看起来较好的侧。</p>
 <h2 id="11-Net-hazard-randomized-ITT：BUY-显著有害"><a href="#11-Net-hazard-randomized-ITT：BUY-显著有害" class="headerlink" title="11. Net-hazard randomized ITT：BUY 显著有害"></a>11. Net-hazard randomized ITT：BUY 显著有害</h2><p>primary all-row ITT 为：</p>
 <div class="table-container">
 <table>
@@ -878,11 +904,11 @@ S_T=r_T-r_F.</script><p>若 $S_T&gt;0$，toxic fills 被删除得更快；若接
       
         <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
       
-        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
-      
         <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
       
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
     </div>
   
@@ -939,9 +965,9 @@ S_T=r_T-r_F.</script><p>若 $S_T&gt;0$，toxic fills 被删除得更快；若接
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Research-Project-Map/" title="NarrowGate 研究地图：十个研究族、48 个真实项目与证据状态">
+                      <a href="/2026/08/29/NarrowGate-Active-Order-Lifecycle-CIF-100ms-Research/" title="NarrowGate Active-Order Lifecycle CIF：100ms 竞争风险与 Python/C++ 锁步">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">NarrowGate 研究地图：十个研究族、48 个真实项目与证据状态</span>
+                        <span class="hidden-mobile">NarrowGate Active-Order Lifecycle CIF：100ms 竞争风险与 Python/C++ 锁步</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -949,8 +975,8 @@ S_T=r_T-r_F.</script><p>若 $S_T&gt;0$，toxic fills 被删除得更快；若接
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Active-Order-Lifecycle-CIF-100ms-Research/" title="NarrowGate Active-Order Lifecycle CIF：100ms 竞争风险与 Python/C++ 锁步">
-                        <span class="hidden-mobile">NarrowGate Active-Order Lifecycle CIF：100ms 竞争风险与 Python/C++ 锁步</span>
+                      <a href="/2026/08/29/NarrowGate-Buy-Q90-Causal-Clock-Lifecycle-Research/" title="NarrowGate BUY q90：Cancel ACK 之后为什么不能继续打分">
+                        <span class="hidden-mobile">NarrowGate BUY q90：Cancel ACK 之后为什么不能继续打分</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

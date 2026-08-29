@@ -27,6 +27,7 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：风险尾部改善了，但代价是移除近九成 SELL add fills单周期 skip 太弱，于是本项目研究更强的 permission action：SHORT campaign 的首个 eligible SELL add decision 到来时，以 50% 概率保持 baseline，以 50% 概率禁止此后所有">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/sell-stop-until-flat-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f09-campaign-action-causal-path.svg">
 <meta property="article:published_time" content="2026-08-29T12:13:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:13:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -332,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          5k 字
+          2.6k 字
         
       </span>
     
@@ -344,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          42 分钟
+          22 分钟
         
       </span>
     
@@ -394,6 +395,8 @@
 <p>所以这个动作被判为 <strong>overbroad risk control</strong>，而不是 selection alpha。它让风险变小的方法近似“停止做这部分业务”，不能以更漂亮的尾部统计绕过活动性要求。Validation 与 sealed holdout 未读，baseline 未改。</p>
 <p><img src="/images/narrowgate/sell-stop-until-flat-kline.svg" srcset="/img/loading.gif" lazyload alt="SELL stop-until-flat 权限状态机与 K 线"></p>
 <p><em>图 1：机制示意。candidate 从首个 add decision 起锁住所有后续 SELL adds，只有 flat 才释放；reducing BUY 仍运行。尾部收缩必须与消失的参与度一起解释。</em></p>
+<p><img src="/images/narrowgate/f09-campaign-action-causal-path.svg" srcset="/img/loading.gif" lazyload alt="持久 permission 从分配到 campaign terminal"></p>
+<p><em>图 2：until-flat 不是在一行数据上打 mask，而是改变此后整段 submit、fill、库存与修复递归。风险门通过时，还必须同时查看 participation 与 terminal economics。</em></p>
 <h2 id="1-从太弱到太强：研究问题的由来"><a href="#1-从太弱到太强：研究问题的由来" class="headerlink" title="1. 从太弱到太强：研究问题的由来"></a>1. 从太弱到太强：研究问题的由来</h2><p>前一个 one-cycle action 只影响一个报单，selected-cycle fill 率约 3.52%，经济杠杆接近 no-op。自然的反方向实验是把阻断延长到 campaign 结束：如果危险 SHORT campaign 的问题来自反复加仓，停止所有后续 SELL adds 是否能保护 terminal value？</p>
 <p>冻结问题为：</p>
 <script type="math/tex; mode=display">
@@ -444,6 +447,17 @@
 <p>外部参考被禁用，所有 state 是 local M0、campaign history、queue 与 shock/refill/recovery 的 decision-ready 表示。action-specific Ridge nuisance models 与 depth-2 honest tree 只能使用 past-only folds；unsupported leaf 自动回 baseline。</p>
 <h2 id="3-因果时钟：permission-是持久状态，不是一行-mask"><a href="#3-因果时钟：permission-是持久状态，不是一行-mask" class="headerlink" title="3. 因果时钟：permission 是持久状态，不是一行 mask"></a>3. 因果时钟：permission 是持久状态，不是一行 mask</h2><p>动作顺序是：首个 eligible add 到达 ready clock，assignment 生成，若为 $K_1$ 则 permission state 转为 blocked；此后每个 exposure-increasing SELL decision 都被抑制，但 reducing BUY、cancel/ACK 与 terminal accounting 继续演化；flat 后 campaign 结束并登记一次 outcome。</p>
 <p>例如 inventory 为 $-0.001$ BTC 时出现 add。baseline 随后可能在 100,001、100,002 再成交两次，达到 $-0.003$；candidate 保持 $-0.001$，并靠 BUY quote 修复。若市场一路上涨，candidate 的 terminal loss 较小；若市场回落，baseline 的额外 SELL fills 可能贡献 spread 与 repair PnL。动作必须承担这两类 counterfactual，而不能只统计减少的最大库存。</p>
+<h3 id="3-1-状态递归为什么让-duration-成为动作的一部分"><a href="#3-1-状态递归为什么让-duration-成为动作的一部分" class="headerlink" title="3.1 状态递归为什么让 duration 成为动作的一部分"></a>3.1 状态递归为什么让 duration 成为动作的一部分</h3><p>令 permission $P_t\in{0,1}$。control 始终由 baseline 决定；candidate 在 assignment 后满足：</p>
+<script type="math/tex; mode=display">
+P_{t+1}^{K1}
+=
+\begin{cases}
+0,&q_t<0,\\
+1,&q_t=0.
+\end{cases}</script><p>报价函数读取 $P<em>t$，fill 又更新库存 $q</em>{t+1}$，库存反过来决定何时释放。于是 duration 是内生 stopping time，而非固定秒数。行情越单边、repair 越慢，candidate 阻断越久；这正是它能压低尾部、也能大幅删除参与的原因。</p>
+<p>如果回放只对已生成的 SELL add rows 做 mask，却仍沿用 baseline 后续 inventory 与 flat timestamp，就会把 candidate 的 release 时刻设成来自另一条路径的未来信息。full-path replay 必须让每个 arm 自己决定何时 flat。</p>
+<h3 id="3-2-一个-tail-改善但净值不改善的合成例子"><a href="#3-2-一个-tail-改善但净值不改善的合成例子" class="headerlink" title="3.2 一个 tail 改善但净值不改善的合成例子"></a>3.2 一个 tail 改善但净值不改善的合成例子</h3><p>假设十个 campaigns 中，baseline 的八个普通 campaign 各靠后续 SELL add 多赚 0.01 USDC；另两个趋势 campaign 各因额外 short 多亏 0.04。stop-until-flat 删除所有 later adds 后，两个坏尾部各改善 0.04，却也丢掉八个普通收益 0.01，总净变化恰为零。</p>
+<p>此时 negative-terminal rate、q10 与 MAE 都可能显著改善，平均 reward 却无正下界。这个例子说明 risk metric 不是假的，只是它和机会成本处在不同加总位置。动作权限需要二者共同闭合。</p>
 <h2 id="4-数据与支持"><a href="#4-数据与支持" class="headerlink" title="4. 数据与支持"></a>4. 数据与支持</h2><p>Development 固定 56 日。behavior panel 有 1,734 个独立 campaigns，baseline/candidate 883/851，propensity 恰为 0.5；baseline later SELL add fills 为 986，candidate 为 0，duplicate decisions 为 0，每 campaign 只有一次 intervention。</p>
 <p>外层 chronological schedule 是 30 train + 1 embargo + 7 test；OOF 汇总 764 campaigns、25 个未来 UTC 日。policy ESS 为 383。因此失败不是 arms 没重叠，而是候选的经济形状与门槛冲突。</p>
 <p>活动效应非常直观：candidate arm 按定义没有 subsequent SELL add fill。learned policy 又在 85.7% OOF rows 上选它，于是估计 fill retention 只有 10.8%。这不是微小的 safety adjustment，而是对主要 participation surface 的广泛关闭。</p>
@@ -504,6 +518,14 @@
 <script type="math/tex; mode=display">
 \text{Net action value}=\text{avoided toxic loss}-\text{lost good fills}-\text{path opportunity cost}.</script><p>本实验明确识别了第一项，却没有证明其大于后两项。活动门不是额外装饰，而是防止“通过不交易获得安全”的可证伪约束。</p>
 <p>同时，BUY 与 reducing 没有被干预，所以结果不能推到 bilateral pause。candidate 的正 tail effect 只适用于 SHORT campaign 后续 SELL add permission。</p>
+<h3 id="6-1-Activity-gate-是-estimand-约束，不是商业偏好"><a href="#6-1-Activity-gate-是-estimand-约束，不是商业偏好" class="headerlink" title="6.1 Activity gate 是 estimand 约束，不是商业偏好"></a>6.1 Activity gate 是 estimand 约束，不是商业偏好</h3><p>若允许 candidate 任意降低参与，最优风险策略总可以退化成“永不提交 exposure-increasing order”。这会让任何 selection 研究失去可证伪性。冻结 $\rho_{fill}\ge0.85$ 的含义是：研究寻找的是在大致保留业务表面的前提下选择性减少坏 fills，而非比较做市与不做市。</p>
+<p>10.8% retention 与 85% 门相距太远，不能称作 near miss。即便 reward interval后来变正，这个动作仍回答另一个问题——“关闭绝大部分 SELL add 是否安全”——而不是“能否选择坏 add”。除非新项目明确注册 shutdown-style risk mandate，否则不能删除 activity gate。</p>
+<h3 id="6-2-Action-frontier：太弱与太强之间不是靠插值保证存在最优点"><a href="#6-2-Action-frontier：太弱与太强之间不是靠插值保证存在最优点" class="headerlink" title="6.2 Action frontier：太弱与太强之间不是靠插值保证存在最优点"></a>6.2 Action frontier：太弱与太强之间不是靠插值保证存在最优点</h3><p>one-cycle 的 path leverage 约几个百分点，until-flat 则删除近九成 add fills。直觉会说中间 duration 必有甜点，但数据不保证效应随 duration 单调或平滑。库存反馈、repair 与行情 reversal 会使：</p>
+<script type="math/tex; mode=display">
+\tau(d)=\mathbb E[Y(permission\ blocked\ for\ duration\ d)-Y_0]</script><p>出现跳变甚至多次反号。看到两个端点后扫描 5、10、20、40、85 秒并挑 winner，又会产生新的多重选择。</p>
+<p>所以后续 state-conditioned、recovery-event 与 variance-time rearm 被当成新的、带经济语义的停止规则，而不是在已读面板上连续调 duration。它们各自必须过 support 与终局价值门。</p>
+<h3 id="6-3-为什么-positive-day-rate-不能替代-clustered-interval"><a href="#6-3-为什么-positive-day-rate-不能替代-clustered-interval" class="headerlink" title="6.3 为什么 positive-day rate 不能替代 clustered interval"></a>6.3 为什么 positive-day rate 不能替代 clustered interval</h3><p>14/25 reward 正日只表示符号略多于一半，不考虑每天幅度。少数大负日可以抵消许多小正日，这对库存尾部尤其重要。日聚类均值区间同时保留幅度与日间变异，而 positive-day rate 是辅助稳定性指标。</p>
+<p>反过来，区间跨零也不等于所有日都无效。它表示冻结证据无法把总体方向与 regime variation 分开；研究应该停止，而不是在结果后定义“只在某几类日期使用”。任何 regime rule 都需用决策时可见状态预注册，并在未来日验证。</p>
 <h2 id="7-研究演进：版本为何只是一篇文章中的章节"><a href="#7-研究演进：版本为何只是一篇文章中的章节" class="headerlink" title="7. 研究演进：版本为何只是一篇文章中的章节"></a>7. 研究演进：版本为何只是一篇文章中的章节</h2><p>这一身份承接 one-cycle near-noop，探索动作强度的另一端。后来 <code>action_defense_v1</code> scorecard 回看同一冻结输出，得到 total score -0.2681、mechanism score -1.0 和 <code>overbroad_risk_control</code> 分类；scorecard 当时尚未预注册，所以仅作诊断，不创造新研究版本。</p>
 <p>后续 denominator 与 replay 修复撤回了旧精确 PnL、fill、campaign 与 tail 的当前校准权限，但并不撤回“不晋级”。修复不能让已经看过 Development 的相同 stop-until-flat action 获得一次免费重跑，也不能把版本、执行修正或 scorecard 分拆成新文章。</p>
 <p>动作强度的已知边界因此是：one-cycle 太弱，until-flat 太强。这个边界启发 recovery-event rearm 等新经济动作，但那些项目必须用新 identity 独立评价。</p>
@@ -516,6 +538,26 @@
 <li>没有降低 activity gate 或用同一面板重调树的权限；</li>
 <li>没有将历史 exact values 当作当前基线校准。</li>
 </ul>
+<h2 id="Persistent-permission-是一个-dynamic-treatment-regime"><a href="#Persistent-permission-是一个-dynamic-treatment-regime" class="headerlink" title="Persistent permission 是一个 dynamic treatment regime"></a>Persistent permission 是一个 dynamic treatment regime</h2><p>一旦触发stop-add，未来动作取决于先前是否已经进入hold、库存是否flat以及期间发生了哪些reducing fills。policy可写成递归状态</p>
+<script type="math/tex; mode=display">
+H_{t+1}
+=
+\begin{cases}
+1,&H_t=1\land q_{t+1}\ne0,\\
+1,&H_t=0\land trigger_t=1,\\
+0,&q_{t+1}=0,
+\end{cases}</script><p>SELL add permission为$1-H_t$。这不是逐row classifier；同一trigger可能删除未来几十个机会，效果取决于何时出现repair。任何OPE或随机化都必须沿lineage保持assignment，不能在hold期间重新抽签。</p>
+<h2 id="Tail-improvement-的成本曲线"><a href="#Tail-improvement-的成本曲线" class="headerlink" title="Tail improvement 的成本曲线"></a>Tail improvement 的成本曲线</h2><p>删除近九成SELL add fills几乎必然收缩极端SHORT tail，但也改变策略的核心参与度。一个risk action是否有价值，应在预注册utility或多指标gate中同时比较mean、q10/CVaR、fills、spread capture与inventory time。</p>
+<p>若只优化CVaR，最优解可能是永不报价；若只优化mean，又可能容忍不可接受的库存尾部。可以把候选集合画成$(\Delta mean,\Delta CVaR,retained\ fills)$的Pareto frontier，而不是把所有量压成看过结果后才选择权重的单一分数。当前候选tail方向改善但activity跌破门，属于frontier上过于强的控制。</p>
+<h2 id="为什么中间强度不能靠线性插值推出"><a href="#为什么中间强度不能靠线性插值推出" class="headerlink" title="为什么中间强度不能靠线性插值推出"></a>为什么中间强度不能靠线性插值推出</h2><p>从one-cycle skip几乎no-op到until-flat删除大量fills，看似暗示中间存在sweet spot，但dynamic market path不保证连续。hold多一秒可能刚好跨过一次关键repair，也可能完全没有额外影响；duration与state trigger还有交互。</p>
+<p>真正后继应冻结少量可解释的release事件，例如固定短TTL、price recovery、volatility clock或inventory budget，并先用outcome-blind replay检查action leverage与retention。只有mechanics落在可辨识区间，才读terminal economics。当前结果提出了设计问题，却没有为任何中间值提供先验收益证据。</p>
+<h2 id="Dynamic-regime-的-off-policy-估计为何困难"><a href="#Dynamic-regime-的-off-policy-估计为何困难" class="headerlink" title="Dynamic regime 的 off-policy 估计为何困难"></a>Dynamic regime 的 off-policy 估计为何困难</h2><p>until-flat action改变未来是否还能add、何时flat和下一campaign何时开始。历史baseline下很少出现的长hold路径，在candidate下可能常见；逐decision importance weights会连乘并迅速退化：</p>
+<script type="math/tex; mode=display">
+W_T=\prod_{t\le T}\frac{\pi(A_t\mid H_t)}{e(A_t\mid H_t)}.</script><p>只要某一步propensity接近零，整条trajectory失去overlap。因此本类强persistent action更适合paired full-path replay或campaign-level randomized policy，而不是把观察性rows交给通用OPE。</p>
+<h2 id="Campaign-terminal-与日终都要报告"><a href="#Campaign-terminal-与日终都要报告" class="headerlink" title="Campaign terminal 与日终都要报告"></a>Campaign terminal 与日终都要报告</h2><p>until-flat可能把campaign推到回放窗口外。只看closed campaigns会选择性删除最长、风险最大的路径；只看日终MTM又可能受terminal mark和initial state影响。二者应并列：campaign terminal/MTM处理路径，daily terminal equity提供共同市场分母。</p>
+<p>若candidate减少campaign births，per-campaign均值与per-day总价值还会方向不同。activity gate正是为了避免通过删除业务把per-campaign表做漂亮。</p>
+<h2 id="未来-frontier-的-outcome-blind-预筛"><a href="#未来-frontier-的-outcome-blind-预筛" class="headerlink" title="未来 frontier 的 outcome-blind 预筛"></a>未来 frontier 的 outcome-blind 预筛</h2><p>候选release rules先只看mechanics：retained SELL add fills、hold duration、reducing fills、terminal-open campaigns和distinct days。选择落在预注册活动区间的两三个规则，才允许开启经济结果。</p>
+<p>这种预筛不能看PnL或markout，否则仍会挑winner。它保证后继既不是one-cycle no-op，也不是until-flat过强，为真正可辨识的中间动作创造空间。</p>
 <h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/sell_campaign_add_permission_v1_20260722.md"><code>sell_campaign_add_permission_v1_20260722.md</code></a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/sell_add_repair_trend_skip_causal_v4_v1_20260718.md"><code>sell_add_repair_trend_skip_causal_v4_v1_20260718.md</code></a></li>

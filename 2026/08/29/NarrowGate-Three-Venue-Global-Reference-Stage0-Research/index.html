@@ -27,13 +27,14 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：三家交易所提高了可证伪性，却没有把秒级残差变成稳定 maker alpha这项研究把 Bitget、Bybit 与 OKX 的现货和永续逐笔成交转换成因果可见的一秒状态，再用 Binance BTCUSDT 永续和 USDCUSDT 现货把外部价格翻译到 BTCUSDC 坐标。三家来源不是为了投票得出一个“必涨”">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/three-venue-global-reference-stage0.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f04-external-signal-to-action-clock.svg">
 <meta property="article:published_time" content="2026-08-29T13:01:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T13:01:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
-<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="跨市场">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/three-venue-global-reference-stage0.svg">
@@ -333,7 +334,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          5.2k 字
+          8.4k 字
         
       </span>
     
@@ -345,7 +346,7 @@
         
         
           <!-- compatible with older versions-->
-          44 分钟
+          71 分钟
         
       </span>
     
@@ -528,6 +529,36 @@ T^{visible}_{t}=\max_i T^{event}_i\text{ in }[t,t+1s)+1\text{ bucket edge},</scr
 <script type="math/tex; mode=display">
 \text{receive-time BBO/trades}\rightarrow\text{flow/depletion}\rightarrow\text{fill toxicity}.</script><p>第二条链需要真实接收与 feature-ready clock、10/25/50/100/250/500ms windows、当前 native local outcomes，以及独立 prediction/action 注册。不能把本研究的负结果拿去阻止那个问题，也不能把本研究的零星线索直接当作动作先验。</p>
 <h2 id="9-没有获得的权限"><a href="#9-没有获得的权限" class="headerlink" title="9. 没有获得的权限"></a>9. 没有获得的权限</h2><p>本项目没有读取 Validation 或 sealed holdout，没有获得 prediction promotion、quote action、re-center、cancel、widen/tighten、size、shadow deployment 或 live authority。保留全部六个外部 spot/perp 来源作为未来研究输入，只表示数据层有价值，不表示任一策略已获准运行。</p>
+<h2 id="深入推导：global-reference-为什么首先是一个稳健坐标问题"><a href="#深入推导：global-reference-为什么首先是一个稳健坐标问题" class="headerlink" title="深入推导：global reference 为什么首先是一个稳健坐标问题"></a>深入推导：global reference 为什么首先是一个稳健坐标问题</h2><p>多个 venue 的 mid 不能直接平均。不同合约有 basis、不同 tick、不同 freshness 与偶发 stale source。Stage 0 的合理结构是先把每个 venue 转成与本地 BTCUSDC 可比的过去时标度，再做稳健聚合：</p>
+<script type="math/tex; mode=display">
+r_v(t)=\frac{m_v(t)}{b_v(t^-)},\qquad
+G_t=\operatorname{wmed}\{r_v(t);w_v(t^-)\}.</script><p>$b_v(t^-)$ 与 $w_v(t^-)$ 必须只用过去数据估计；当前或未来本地价格不能参与“校准”外部 venue。weighted median 的好处是单一 venue 暂时偏离时不会像均值一样被直接拉走，但它也不是万能：若三家共享同一美元流动性冲击、或多数 source 同时 stale，稳健聚合仍会失败。</p>
+<p><img src="/images/narrowgate/f04-external-signal-to-action-clock.svg" srcset="/img/loading.gif" lazyload alt="外部市场从 source clock 到 maker action 的证据链"></p>
+<p><em>图 2：Stage 0 只建立外部 reference 与本地残差的预测/诊断坐标；center shift、widen 或 guard 属于后续独立动作。</em></p>
+<h2 id="Residual-可预测不等于-maker-fill-有价值"><a href="#Residual-可预测不等于-maker-fill-有价值" class="headerlink" title="Residual 可预测不等于 maker fill 有价值"></a>Residual 可预测不等于 maker fill 有价值</h2><p>令本地残差为 $e<em>t=m</em>{local,t}-\alpha_t G_t$。若 $e_t$ 在未来数秒均值回归，方向模型可能有正 AUC 增量；但 maker action 还取决于当前 order role。BUY add 看到本地低于 global fair，可能意味着本地即将上行、挂 BUY 有利；也可能意味着外部已经跳动而本地盘口尚未更新，眼前 BUY quote 正暴露在 stale-book 风险中。</p>
+<p>两种解释需要不同动作，一个可能 recenter，另一个可能 widen/cancel。仅凭 residual 符号无法区分，必须加入 source age、lead/lag、local flow、queue 与 inventory，再在完整路径上估计。</p>
+<p>这也是旧 maker 数字撤回后仍可保留 Stage 0 mechanics 的原因：稳健 reference 的计算与 prediction increment 可以独立审计，而旧 quote mapping、P3、queue 或 timing defect 会使经济结果失效。</p>
+<h2 id="Leave-one-venue-out-应怎样用"><a href="#Leave-one-venue-out-应怎样用" class="headerlink" title="Leave-one-venue-out 应怎样用"></a>Leave-one-venue-out 应怎样用</h2><p>跨 venue 信号最常见的伪稳定，是其实由一家主导。对每个 venue $v$，应计算移除后的 reference $G_t^{(-v)}$，并比较 prediction 与动作差值。若结果只在包含某一家时存在，结论应写成“该 source 在该面板提供增量”，不能泛化为“三市场共识”。</p>
+<p>LOO 还要结合 freshness。移除一个经常 stale 的 venue，结果改善可能只是数据质量；移除最领先 venue 后消失，则可能是真实信息贡献。两者的后续工程完全不同。Stage 0 提高可证伪性的意义，正在于让这些来源假设可被逐一拆解，而不是把所有 external rows 混成一个黑箱 feature。</p>
+<h2 id="三个-venue-并不等于三个独立样本"><a href="#三个-venue-并不等于三个独立样本" class="headerlink" title="三个 venue 并不等于三个独立样本"></a>三个 venue 并不等于三个独立样本</h2><p>Binance、OKX与Bybit常被同一全球冲击驱动，venue residual也会通过套利迅速相关。因此“有三家交易所同时先动”不能按三次独立证据计算。层级reference的价值主要在robustness：某一家source gap、异常print或局部basis漂移时，weighted median不至于被单点拖走。</p>
+<p>统计不确定性仍应按时间块或日期cluster，而不是按venue倍增样本量。Leave-one-venue-out回答的是结论是否依赖某一家：</p>
+<script type="math/tex; mode=display">
+\hat g^{(-v)}(h)
+=
+E[r_{local,t+h}\mid R_t^{global,-v}],</script><p>若去掉任何venue后方向都保留，说明reference较稳健；若只有包含某一家才显著，应该把它标为single-source hypothesis，而不是“全球信号”。</p>
+<h2 id="从-reference-residual-到-maker-action-还差一次条件化"><a href="#从-reference-residual-到-maker-action-还差一次条件化" class="headerlink" title="从 reference residual 到 maker action 还差一次条件化"></a>从 reference residual 到 maker action 还差一次条件化</h2><p>global residual预测本地未来中价，不自动预测某张maker单的价值。假设external reference显示本地价格偏高，预期回落：对BUY exposure-add可能危险，对SELL exposure-add可能有利；但对已有SHORT的BUY reducing单，回落前是否成交、随后是否repair又会改变符号。动作方向必须同时条件于side与inventory role。</p>
+<p>更完整的对象是</p>
+<script type="math/tex; mode=display">
+\Delta V(a\mid R_t,q_t,role_t,queue_t),</script><p>而不是$E[\Delta mid\mid R_t]$。Stage0只检验reference与residual的可预测结构，合理地停在动作前。若后继要进入报价，应冻结一组局部actions，使用同一global reference、相同book与latency路径做paired full-path比较，并检查venue dropout、signal age和state support。</p>
+<h2 id="为什么阴性-Stage0-仍然有价值"><a href="#为什么阴性-Stage0-仍然有价值" class="headerlink" title="为什么阴性 Stage0 仍然有价值"></a>为什么阴性 Stage0 仍然有价值</h2><p>秒级maker alpha没有稳定出现，排除了“多接两家交易所就能直接预测赚钱”的简单故事。但项目同时建立了past-only basis、venue内融合、跨venue稳健中心与source outage处理，这些是任何后继外部信号研究的公共坐标系。</p>
+<p>阴性结论还限制了调参空间：不能在已读窗口上挑lead lag、venue subset或权重救结果；新的hypothesis必须说明为什么某个state、action或更短延迟能改变Stage0的失败机制，并在新身份上验证。这样三venue建设不是白费基础设施，而是把一个宽泛叙事压缩成更可证伪的问题。</p>
+<h2 id="价格归一化不只是除以一个汇率"><a href="#价格归一化不只是除以一个汇率" class="headerlink" title="价格归一化不只是除以一个汇率"></a>价格归一化不只是除以一个汇率</h2><p>不同venue可能交易BTCUSDC、BTCUSDT或不同contract multiplier。统一成USDC/BTC需要处理stablecoin basis、spot/perpetual basis、funding/expiry结构和tick rounding。短期signal若来自perpetual，还可能混入本地mark/index机制，而不是纯粹领先现货。</p>
+<p>past-only basis只能用$t$前信息估计，且要给age与uncertainty。source stale、basis jump或symbol state异常时，venue应降权而不是用最后值永久参与median。三家里两家同时stale，weighted median也会稳定地给出错误中心。</p>
+<h2 id="Residual-prediction-的-benchmark-应有多强"><a href="#Residual-prediction-的-benchmark-应有多强" class="headerlink" title="Residual prediction 的 benchmark 应有多强"></a>Residual prediction 的 benchmark 应有多强</h2><p>M0至少包含本地自身滞后、spread、volatility与session state，否则external模型可能只是补上本地遗漏的惯性。M1增加外部reference后，比较必须在相同common mask、相同loss和日期权重上进行。若M1只在外部齐全的容易时段评分，增量会被missing selection污染。</p>
+<p>预测horizon也应扣除ready/submit latency。Stage0在秒级残差上无稳定maker alpha，不能通过选择更短但不可执行的exchange-time horizon救援。后继若主张低延迟优势，必须提供policy-ready clock和目标环境延迟分布。</p>
+<h2 id="一条端到端的反事实时间线"><a href="#一条端到端的反事实时间线" class="headerlink" title="一条端到端的反事实时间线"></a>一条端到端的反事实时间线</h2><p>外部venue在$t_e$先动，消息在$t_r$ ready；策略于$t_d$ decision，订单在$t_a$ ACK。只有$t_a$之后market尚未完成本地调整，signal才可能影响fill path。有效领先窗口为</p>
+<script type="math/tex; mode=display">
+L_{usable}=t_{local\ adjust}-t_a.</script><p>若$L_{usable}\le0$，历史相关性无法交易。即使大于零，还要比较recenter/widen/skip哪个动作在inventory role下有价值。Stage0的阴性使这条时间线成为未来研究的第一张检查表。</p>
 <h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f04_external_market_alpha/docs/global_reference_stage0_retained111_20260711.md">Three-Venue Global Reference Stage 0</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f04_external_market_alpha/docs/global_market_reference_review_memo_20260711.md">Global Market Reference Review Memo</a></li>
@@ -571,9 +602,9 @@ T^{visible}_{t}=\max_i T^{event}_i\text{ in }[t,t+1s)+1\text{ bucket edge},</scr
       
         <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
       
-        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
-      
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
         <a href="/tags/%E8%B7%A8%E5%B8%82%E5%9C%BA/" class="print-no-link">#跨市场</a>
       

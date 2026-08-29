@@ -27,6 +27,7 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：绕过 opener&#x2F;reducing 后 fills 增加 13.85%，terminal value 反而少 11.67 USDC当前 BER guard 使用同一个 signal、threshold 1.2 与 spread multiplier 2.0，全局双边影响报价。本研究只改角色映射：candidat">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/ber-role-safe-add-only.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f09-campaign-action-causal-path.svg">
 <meta property="article:published_time" content="2026-08-29T12:22:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:22:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -332,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          5.6k 字
+          9.3k 字
         
       </span>
     
@@ -344,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          48 分钟
+          78 分钟
         
       </span>
     
@@ -395,7 +396,14 @@
 <p>这还是一个 outcome-informed owner Development screen，不是独立 confirmation；即使未来有正结果，也不能重标为 research-supported。当前 global BER 保持不变，candidate foundation 关闭，也没有 continuous confirmation、action 或 live authority。</p>
 <p><img src="/images/narrowgate/ber-role-safe-add-only.svg" srcset="/img/loading.gif" lazyload alt="BER role-safe add-only 的角色 DAG 与时钟"></p>
 <p><em>图 1：机制示意。相同 completed-10s BER state 在每个 completed-1s callback 被采样；candidate 只把 add side 接到 BER quote，opener/reducing 接 bypass quote，cross-zero 保持 control。</em></p>
-<h2 id="1-研究问题：BER-应保护所有报价角色，还是只保护加风险？"><a href="#1-研究问题：BER-应保护所有报价角色，还是只保护加风险？" class="headerlink" title="1. 研究问题：BER 应保护所有报价角色，还是只保护加风险？"></a>1. 研究问题：BER 应保护所有报价角色，还是只保护加风险？</h2><p>BER widening 的直觉是当 book-event ratio 异常时减少被动暴露。但 reducing quote 的目标是修复库存，flat opener 又决定参与入口；全局 widening 可能无差别阻碍它们。role-safe candidate 问：保留同一个 BER signal，只在 exposure-increasing add 上应用，能否提高完整路径价值？</p>
+<p><img src="/images/narrowgate/f09-campaign-action-causal-path.svg" srcset="/img/loading.gif" lazyload alt="Role-safe spread action 的完整 campaign 路径"></p>
+<p><em>图 2：历史 BER 状态只决定哪一套 quote source 进入角色合成；bypass 会改变 opener/reducing 的成交、库存与后续报价。fills 和风险 proxy改善后，仍须以 terminal value决定动作。</em></p>
+<h3 id="名称边界：这里的-BER-不是论文里的-Book-Exhaustion-Rate"><a href="#名称边界：这里的-BER-不是论文里的-Book-Exhaustion-Rate" class="headerlink" title="名称边界：这里的 BER 不是论文里的 Book Exhaustion Rate"></a>名称边界：这里的 BER 不是论文里的 Book Exhaustion Rate</h3><p><code>BER</code> 是历史代码与冻结 artifact 名称，本文保留它只是为了让读者能追踪同一研究身份。实际输入是 <code>trade_intensity_60s</code> 经快慢 EMA 形成的<strong>成交强度加速度代理</strong>，不是从订单簿队列耗尽事件估计的 Book Exhaustion Rate。</p>
+<p>概念上更接近：</p>
+<script type="math/tex; mode=display">
+R_t^{intensity}=\frac{EMA_{fast}(I_t)}{EMA_{slow}(I_t)+\epsilon},</script><p>当 ratio 高于 1.2 时，把 spread multiplier设为 2.0。它说明近期成交强度相对慢基线加速；没有直接计算某档 book被撤单/成交耗尽的 hazard，也不能引用 book-exhaustion论文把二者视为同一 estimand。</p>
+<p>因此后文出现“BER state/quote”时，都应读成“历史 BER 接口下的 trade-intensity-acceleration guard”。这个命名修正不改变冻结实验：control、candidate、threshold与multiplier字节仍按历史身份比较；它只避免理论解释越界。</p>
+<h2 id="1-研究问题：BER-应保护所有报价角色，还是只保护加风险？"><a href="#1-研究问题：BER-应保护所有报价角色，还是只保护加风险？" class="headerlink" title="1. 研究问题：BER 应保护所有报价角色，还是只保护加风险？"></a>1. 研究问题：BER 应保护所有报价角色，还是只保护加风险？</h2><p>历史 BER widening 的直觉是当成交强度加速度代理异常时减少被动暴露。但 reducing quote 的目标是修复库存，flat opener 又决定参与入口；全局 widening 可能无差别阻碍它们。role-safe candidate 问：保留同一个历史 BER signal，只在 exposure-increasing add 上应用，能否提高完整路径价值？</p>
 <p>目标比较为：</p>
 <script type="math/tex; mode=display">
 \tau=E[Y(\text{BER add-only})-Y(\text{global bilateral BER})].</script><p>这不是 fresh independent trial。候选建立在已经完成的 BER retirement outcomes 与 current-stack owner knowledge 上，因此被预先标为 owner screen。它可否定一个工程方向，却不能凭同一证据谱系获得“研究支持”标签。</p>
@@ -403,6 +411,10 @@
 <p>设 $x_k$ 是第 $k$ 个 completed 10s feature，$t_j$ 是 completed 1s callback，则：</p>
 <script type="math/tex; mode=display">
 BER(t_j)=g(x_{k^*}),\qquad k^*=\max\{k:t^{ready}_{10s,k}\le t_j\}.</script><p>threshold 为 1.2、multiplier 2.0，slow-EMA ready threshold $10^{-6}$。live/Python/C++ 在 quote composition 前必须输出同样的 raw BER input、EMA values、ratio、readiness 与 active state。当前 control 使用 corrected held-feature clock，不与旧 BER-retirement control 的 prior update semantics 数值互换。</p>
+<h3 id="2-1-10-秒-publish、1-秒-sample-与-100ms-loop-是三只时钟"><a href="#2-1-10-秒-publish、1-秒-sample-与-100ms-loop-是三只时钟" class="headerlink" title="2.1 10 秒 publish、1 秒 sample 与 100ms loop 是三只时钟"></a>2.1 10 秒 publish、1 秒 sample 与 100ms loop 是三只时钟</h3><p>强度 feature在 completed canonical 10s bucket发布；状态由每个 completed 1s callback采样；主循环可能更高频运行，但在新 1s callback前只能持有旧状态。于是同一 $x_k$ 可被多个 1s decisions读取，却不能在每个100ms evaluation重复推进 EMA。</p>
+<p>若 replay按100ms更新，effective half-life会缩短约一个数量级，threshold crossing和action rate都会改变。若在10s bucket结束前读取最终强度，又会提前知道未来 trades。clock parity不仅是时间戳格式，而是决定 signal dynamics 的一部分。</p>
+<h3 id="2-2-Ratio、threshold-与-multiplier-属于三种不同语义"><a href="#2-2-Ratio、threshold-与-multiplier-属于三种不同语义" class="headerlink" title="2.2 Ratio、threshold 与 multiplier 属于三种不同语义"></a>2.2 Ratio、threshold 与 multiplier 属于三种不同语义</h3><p>$R_t$ 是状态代理，1.2 是离散 active门，2.0 是报价宽度映射。研究只改变 active以后哪些 inventory role消费 widened quote，没有重新证明 ratio的预测价值、1.2的最优性或2.0的经济最优性。</p>
+<p>这也是为什么 candidate失败后，不能推出 global control经过研究确认。control只是现有 operational comparator；“candidate更差”不等于“control理论正确或最优”。</p>
 <h2 id="3-Role-composition"><a href="#3-Role-composition" class="headerlink" title="3. Role composition"></a>3. Role composition</h2><p>同一个 immutable decision snapshot 同时算 global BER quote 与 <code>ber_active=false</code> 的 bypass quote。role 由 decision-pre inventory 和 target quantity 确定：</p>
 <div class="table-container">
 <table>
@@ -447,6 +459,10 @@ BER(t_j)=g(x_{k^*}),\qquad k^*=\max\{k:t^{ready}_{10s,k}\le t_j\}.</script><p>th
 <h2 id="4-因果-denominator：不能由-treatment-path-重建"><a href="#4-因果-denominator：不能由-treatment-path-重建" class="headerlink" title="4. 因果 denominator：不能由 treatment path 重建"></a>4. 因果 denominator：不能由 treatment path 重建</h2><p>动作改变 fills 与 inventory，随后可用 decisions 也会改变。若按每臂各自出现的 requotes 计算 change rate，denominator 本身已被 treatment 污染。冻结方案使用两臂共同存在的 canonical requote timestamps，每 timestamp 两个 side rows：</p>
 <script type="math/tex; mode=display">
 \mathcal D=\{(t,s):t\in T_{control}\cap T_{candidate},\ s\in\{BUY,SELL\}\}.</script><p>任何 <code>n_requotes</code> mismatch 都 fail closed，不从 fills 或 inventory path 补建 denominator。append-only scorecard repair 曾修正 misplaced support metadata，恢复 canonical support 5,067 rows、40 days、zero support failures；economic hard-gate decision 没变。元数据修复不是新 outcome run。</p>
+<h3 id="4-1-为什么-cross-arm-requote-count-不应强制相等"><a href="#4-1-为什么-cross-arm-requote-count-不应强制相等" class="headerlink" title="4.1 为什么 cross-arm requote count 不应强制相等"></a>4.1 为什么 cross-arm requote count 不应强制相等</h3><p>price action可以改变 fill，fill改变inventory与circuit breaker，继而改变后续 replay何时终止或是否继续requote。要求两臂最终拥有相同 requote count，会错误拒绝真实 treatment effect。</p>
+<p>正确不变量是每个 arm内部 Python/C++对同一事件流和状态转移锁步，以及在预先定义的 canonical opportunity上计算支持。跨臂路径分叉本身是 estimand，不该被“修平”。早期 failure正是把不同 terminal time的BER EMA拿来比较；successor只修正了不合法 invariant，没有改变action。</p>
+<h3 id="4-2-Canonical-denominator-如何防止-action-rate自我美化"><a href="#4-2-Canonical-denominator-如何防止-action-rate自我美化" class="headerlink" title="4.2 Canonical denominator 如何防止 action-rate自我美化"></a>4.2 Canonical denominator 如何防止 action-rate自我美化</h3><p>若 candidate因多fill产生更多后续decision，按candidate rows算分母可能降低change rate；若它早终止campaign，又可能提高。共同 canonical timestamps把支持测量固定在两臂可比较的机会，不让 treatment自己决定分母。</p>
+<p>经济终局仍各自沿完整path计算。也就是说，support使用共同机会，outcome允许后续分叉；这两个分母服务不同问题，不能强迫相同。</p>
 <h2 id="5-Mechanics-结果"><a href="#5-Mechanics-结果" class="headerlink" title="5. Mechanics 结果"></a>5. Mechanics 结果</h2><p>one-day native preflight 先要求 role semantics 与 Python/C++ full-path parity；之后才允许读剩余 40 日 Development。正式结果：</p>
 <div class="table-container">
 <table>
@@ -523,6 +539,12 @@ BER(t_j)=g(x_{k^*}),\qquad k^*=\max\{k:t^{ready}_{10s,k}\le t_j\}.</script><p>th
 </div>
 <p>按 40 个 UTC 日配对，terminal delta 为 -0.2917 USDC/day，95% interval $[-1.1439,+0.6813]$，仅 13/40 日改善。negative-terminal protection 也恶化 -0.4621 USDC/day。</p>
 <p>候选改善 campaign q10、CVaR10、MAE、maximum inventory、inventory time 与 multi-level LONG/SHORT point estimates。看似矛盾，其实说明 opener/reducing bypass 增加参与和修复，但新增 fills 的 execution/selection value 足以让 terminal 变差。proxy 可以描述机制，不能覆盖经济 hard gate。</p>
+<h3 id="6-1-为什么绕过-reducing-与-opener-会同时增加-fills"><a href="#6-1-为什么绕过-reducing-与-opener-会同时增加-fills" class="headerlink" title="6.1 为什么绕过 reducing 与 opener 会同时增加 fills"></a>6.1 为什么绕过 reducing 与 opener 会同时增加 fills</h3><p>reducing bypass让库存修复报价更靠近市场，提高成交；回到flat后，opener bypass又让新campaign更容易启动。于是 candidate不只“更快结束旧库存”，也“更快重新开始下一段暴露”。+13.85% fills是两条路径共同结果。</p>
+<p>库存时间、MAE与max inventory下降，说明旧campaign修复机制确实增强；terminal变差则说明新增执行/selection与重复参与成本更大。只观察某个成功repair片段，会漏掉flat后的新opener和后续campaign。</p>
+<h3 id="6-2-一个数值一致性检查"><a href="#6-2-一个数值一致性检查" class="headerlink" title="6.2 一个数值一致性检查"></a>6.2 一个数值一致性检查</h3><p>terminal总差 -11.6663 USDC除以40日为 -0.2917 USDC/day，与paired daily point estimate一致。fills增加2,370，不能用 $-11.6663/2370$ 当“每个新增fill因果成本”，因为新增/删除fill没有一一配对，且已有fills的时点、价格与后续path也改变。</p>
+<p>这个粗比值最多是描述性规模，不能支持“每多一笔必亏多少”。真正action unit是整条daily/campaign full path。</p>
+<h3 id="6-3-Proxy改善为何不能隐式改成风险效用"><a href="#6-3-Proxy改善为何不能隐式改成风险效用" class="headerlink" title="6.3 Proxy改善为何不能隐式改成风险效用"></a>6.3 Proxy改善为何不能隐式改成风险效用</h3><p>如果owner愿意用terminal价值换更低inventory，应在结果前冻结效用权重，例如 $U=PnL-\lambda E|q|dt$。本项目primary是terminal与closed-campaign value，没有预注册 $\lambda$；结果后以MAE、q10或inventory time救援，会改变目标函数。</p>
+<p>这并不贬低风险proxy。它们解释动作怎么运作，也可为新risk-mandate提供设计依据；它们只是不能反向改写当前hard gate。</p>
 <h2 id="7-一个报价路径例子"><a href="#7-一个报价路径例子" class="headerlink" title="7. 一个报价路径例子"></a>7. 一个报价路径例子</h2><p>假设 inventory $q=-0.002$，BER active。global control 会同时 widen SELL add 与 BUY reducing；candidate 只 widen SELL，BUY 使用 bypass、更接近市场。candidate 更容易获得 reducing BUY fill，inventory time 下降。但若 BUY 在继续下跌的市场中更早成交，或者绕过 widening 损失了选择性，terminal value 可能变差。</p>
 <p>当 inventory 回到 near-flat，后续 opener 也 bypass BER，因此 candidate 可能比 control 更快重新参与，解释 fills +13.85%。这些都是 action path 的组成，不是 bug，也不能只选择“成功 repair 的 campaign”评价。</p>
 <h2 id="8-研究演进与证据地位"><a href="#8-研究演进与证据地位" class="headerlink" title="8. 研究演进与证据地位"></a>8. 研究演进与证据地位</h2><p>初版 mechanics implementation failure、execution amendments、estimand errata、offline projection 与最终 40 日 Development 都围绕同一 role-safe action。它们不因文件多就成为多个研究项目。第一次 scorecard support metadata 错位由 append-only repair 修正，结论不变。</p>
@@ -536,6 +558,14 @@ BER(t_j)=g(x_{k^*}),\qquad k^*=\max\{k:t^{ready}_{10s,k}\le t_j\}.</script><p>th
 <li>没有从 proxy 改善推出 terminal value；</li>
 <li>没有调整 threshold 1.2、multiplier 2.0、side/role 或 cross-zero semantics 的权限。</li>
 </ul>
+<h2 id="从代理状态到真正-Book-Exhaustion-Rate-的分界"><a href="#从代理状态到真正-Book-Exhaustion-Rate-的分界" class="headerlink" title="从代理状态到真正 Book Exhaustion Rate 的分界"></a>从代理状态到真正 Book Exhaustion Rate 的分界</h2><p>当前历史字段由快慢成交强度EMA之比构成，可示意为</p>
+<script type="math/tex; mode=display">
+R_t=\frac{EMA_{fast}(I_t)}{EMA_{slow}(I_t)}.</script><p>$R_t&gt;1$表示近期trade intensity相对慢基线加速；它没有直接测量某一侧book queue被消耗的速率、补单与撤单。真正的book-exhaustion对象至少需要side-specific depth depletion、replenishment和event-time exposure，语义不能由字段名<code>BER</code>继承。</p>
+<p>若未来实现真正Book Exhaustion Rate，应使用新名字、新ABI和新研究身份，不能把新特征悄悄替换旧ratio后宣称本篇结论被翻转。本篇所有数字只约束trade-intensity-acceleration proxy及其role-safe mapping。</p>
+<h2 id="三只时钟如何共同决定一次保护动作"><a href="#三只时钟如何共同决定一次保护动作" class="headerlink" title="三只时钟如何共同决定一次保护动作"></a>三只时钟如何共同决定一次保护动作</h2><p>慢/快EMA可能每1秒采样，状态每10秒发布，而maker loop每100ms检查。100个loop ticks可能消费同一个published state；这不等于100次独立信号。若在10秒内重复cancel/requote，action frequency由loop与lifecycle共同决定，而feature information只更新一次。</p>
+<p>因此canonical denominator应是有合法published state且role明确的decision opportunities，另行报告unique state updates与最终quote changes。把100ms evaluations当样本量会严重低估不确定性；interval仍应按day或campaign cluster。</p>
+<h2 id="Role-safe-失败之后还剩什么可研究"><a href="#Role-safe-失败之后还剩什么可研究" class="headerlink" title="Role-safe 失败之后还剩什么可研究"></a>Role-safe 失败之后还剩什么可研究</h2><p>结果说明“绕过opener/reducing、只惩罚add”确实提高participation，却恶化terminal value。它不区分失败来自ratio无信息、threshold错误、multiplier过强还是role mapping遗漏状态，但已读面板不能继续逐项调参救援。</p>
+<p>合法后继需要独立机制：例如直接构造side-specific depletion/replenishment features，或在随机化局部actions中估计$E[Y(widen)-Y(keep)\mid role,X]$。若仍使用旧ratio，只能作为预先指定的普通flow feature，不能引用BER论文赋予理论权威。</p>
 <h2 id="11-公共证据"><a href="#11-公共证据" class="headerlink" title="11. 公共证据"></a>11. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/ber_guard_role_safe_add_only_current_stack_owner_v1_development_20260809.md"><code>ber_guard_role_safe_add_only_current_stack_owner_v1_development_20260809.md</code></a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/ber_guard_role_safe_add_only_current_stack_owner_v1_spec_20260808.md"><code>ber_guard_role_safe_add_only_current_stack_owner_v1_spec_20260808.md</code></a></li>

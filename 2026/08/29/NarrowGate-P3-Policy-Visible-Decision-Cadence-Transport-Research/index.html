@@ -27,6 +27,7 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：预测质量通过，完整 transport identity 因样本支持停止在窗口起点上证明 conditional P3 比 static v2 更准，还不足以说明策略真正做决定时能看到同样的状态。F02 的 policy-visible decision-cadence transport 把 v4.1 surf">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/p3-policy-visible-dual-clock.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f02-p3-estimand-ladder.svg">
 <meta property="article:published_time" content="2026-08-29T12:35:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:35:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -332,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          4.9k 字
+          5.1k 字
         
       </span>
     
@@ -344,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          41 分钟
+          43 分钟
         
       </span>
     
@@ -495,6 +496,39 @@ t^{visible}_{i}=t^{exchange}_{i}+L_i,</script><p>其中 $L_i$ 不是任意常数
 <h2 id="8-支持、关闭与权限"><a href="#8-支持、关闭与权限" class="headerlink" title="8. 支持、关闭与权限"></a>8. 支持、关闭与权限</h2><p>支持：v4.1 在可复现的 sampled current-BBO clock 上保持强 Brier、calibration 与 monotonicity evidence。</p>
 <p>关闭/阻塞：当前 28-day/3-fold transport identity 不允许 direct value fitting；synthetic history 不具有 receive-time 或 exact persisted-state authority。</p>
 <p>本研究没有 quote mapping、action、Validation、sealed holdout、artifact replacement、shadow 或 live authority。未来 successor 需要持久化完整 feature state，或提供 event-lockstep replay parity，并重新冻结足够的 chronological support。</p>
+<h2 id="深入推导：transport-不是把时间戳列重命名"><a href="#深入推导：transport-不是把时间戳列重命名" class="headerlink" title="深入推导：transport 不是把时间戳列重命名"></a>深入推导：transport 不是把时间戳列重命名</h2><p>archive prediction 面板与真实策略 decision surface 之间至少有三类分布变化。第一是时间抽样：固定 100ms rows 与每 5–10 秒或事件驱动的报价决策并不等权。第二是状态选择：策略只在可报价、未触发 hard pause、订单角色明确时产生决策。第三是可见性：archive exchange time 上已经完整的 trade/L2 bucket，在 live feature-ready clock 上可能尚未到达。</p>
+<p>令 $P<em>{arc}(X,Y)$ 为 archive rows，$P</em>{dec}(X,Y)$ 为实际 decision rows。即使模型在前者上 calibration 良好，也需要确认：</p>
+<script type="math/tex; mode=display">
+E_{P_{dec}}[\ell(Y,\hat p(X))]-E_{P_{dec}}[\ell(Y,p_0(X))]<0.</script><p>不能用 $P_{arc}$ 上的改善替代这个不等式。若 decision rows 主要集中在窄 spread、低库存或某些 cooldown 阶段，archive 中的大量容易样本会让总指标显得更好，却不代表 policy surface 有增量。</p>
+<p><img src="/images/narrowgate/f02-p3-estimand-ladder.svg" srcset="/img/loading.gif" lazyload alt="P3 transport 的 estimand 与双时钟位置"></p>
+<p><em>图 2：transport 研究把第一级 P3 从 exchange-time archive 搬到 feature-ready decision surface；它仍未跨入 fill 或 action-value 层。</em></p>
+<h2 id="一个双时钟例子：同一笔-trade-何时可以被模型使用"><a href="#一个双时钟例子：同一笔-trade-何时可以被模型使用" class="headerlink" title="一个双时钟例子：同一笔 trade 何时可以被模型使用"></a>一个双时钟例子：同一笔 trade 何时可以被模型使用</h2><p>假设一笔 individual trade 在交易所时间 <code>12:00:00.420</code> 发生，它属于一个随后由公共 <code>aggTrade</code> parent 封装的 child block。撮合和 queue outcome 可以按 child exchange time 排序；但策略只能在 parent 消息到达并完成特征更新后看见整块信息。若 parent 的 feature-ready time 是 <code>12:00:00.610</code>，则 <code>12:00:00.500</code> 的报价决策不能使用这笔 trade，<code>12:00:00.700</code> 的决策才可以。</p>
+<p>历史对齐若直接把 child exchange time 当作 feature time，就向早一拍的 decision 注入未来信息。这种泄漏可能只有 100–200ms，却会系统性挑中“刚好发生在价格变化前”的 rows。policy-visible transport 必须在 row builder 中冻结：</p>
+<script type="math/tex; mode=display">
+t_{feature}(event)\le t_{decision},</script><p>并对缺少 parent mapping、stale book 或 readiness 不明的行 fail closed，而不是用最近值填充。</p>
+<h2 id="为什么预测通过后还会败在支持门"><a href="#为什么预测通过后还会败在支持门" class="headerlink" title="为什么预测通过后还会败在支持门"></a>为什么预测通过后还会败在支持门</h2><p>transport prediction pass 只说明在实际 cadence 的共同可评分 rows 上，模型仍保留某种排序或校准增量。下一步 value fitting 需要更严格的 support：候选 quotes 必须在足够日期、side、distance 与 order role 上实际可达；outcome 必须能从 activation 追踪到 fill/cancel/terminal；不同候选必须共享因果 denominator。</p>
+<p>若模型只在极少数 decision rows 有效，价值估计会面临两个问题。其一，effective sample size 远小于表面 row count；其二，候选 action 可能只发生在某一 regime，无法与 baseline 做同状态比较。此时停在 support gate 是研究结果，不是“缺一个训练脚本”。</p>
+<p>transport 文章因此应被读成一座桥的承重测试：archive prediction 已经搬到策略可见时钟，但桥的另一端——具有完整 lifecycle 和 action overlap 的 value panel——没有足够支撑。它支持继续改进 canonical data，却不许可在稀疏 rows 上外推经济效果。</p>
+<h2 id="Decision-weighted-与-time-weighted-estimand-不相同"><a href="#Decision-weighted-与-time-weighted-estimand-不相同" class="headerlink" title="Decision-weighted 与 time-weighted estimand 不相同"></a>Decision-weighted 与 time-weighted estimand 不相同</h2><p>若策略在波动大时更频繁requote，按decision row平均会自然给高波动时段更大权重。令$N_d$为第$d$日决策数，decision-weighted loss是</p>
+<script type="math/tex; mode=display">
+L_{decision}
+=
+\frac{\sum_d\sum_{i=1}^{N_d}\ell_{di}}{\sum_d N_d},</script><p>而day-weighted loss是</p>
+<script type="math/tex; mode=display">
+L_{day}
+=
+\frac1D\sum_d\frac1{N_d}\sum_{i=1}^{N_d}\ell_{di}.</script><p>前者回答随机抽取一次真实决策时模型表现怎样，后者回答随机抽取一天时平均表现怎样。若少数活跃日同时更容易预测，两个指标可能方向不同。transport报告应两者并列，并把不确定性按日期cluster，而不是把上百万相关rows当作独立样本。</p>
+<p>更进一步，决策cadence本身受策略状态影响。candidate若改变inventory或cooldown，就会改变未来decision times；此时拿baseline decision rows给candidate离线打分，只能评价固定surface prediction，不能评价candidate诱导出的新状态分布。完整action研究必须让两arms各自递归生成decision path，或明确限制为one-shot estimand。</p>
+<h2 id="Support-gate-应回答哪些具体问题"><a href="#Support-gate-应回答哪些具体问题" class="headerlink" title="Support gate 应回答哪些具体问题"></a>Support gate 应回答哪些具体问题</h2><p>一个<code>coverage=97%</code>数字不够。需要知道缺失是否连续集中、是否只发生在高波动状态、BUY/SELL是否对称、靠近实际quote distance的cells是否有共同支持、invalid原因是source gap还是lifecycle语义。连续十分钟缺失与全日随机散落3%对state reconstruction的影响完全不同。</p>
+<p>在value fitting之前，至少应冻结：每个side与action的distinct-day门槛；最大单日权重；feature-ready age上限；source gap与stale book规则；unsupported row回退baseline；以及候选与baseline的共同可执行集合。有效样本量可用权重集中度表示：</p>
+<script type="math/tex; mode=display">
+n_{eff}=\frac{(\sum_i w_i)^2}{\sum_i w_i^2}.</script><p>当少数日期或状态承担大部分权重时，表面rows很多、$n_{eff}$仍可能很小。本项目停在support门，保护的正是后续经济估计不被这种伪规模支配。</p>
+<h2 id="Event-sampling-与-fixed-grid-sampling-的选择偏差"><a href="#Event-sampling-与-fixed-grid-sampling-的选择偏差" class="headerlink" title="Event sampling 与 fixed-grid sampling 的选择偏差"></a>Event sampling 与 fixed-grid sampling 的选择偏差</h2><p>固定100ms grid在平静和活跃时段近似按wall time取样；event-driven decision则在book change、timer、fill或risk trigger附近过采样。模型若只在grid上评价，可能主要学会“绝大多数时刻没有touch”；搬到decision rows后，base rate与feature distribution都会改变。</p>
+<p>这种shift不一定能用简单importance weight修复，因为decision occurrence本身受历史policy state影响。权重$w(X)=p<em>{dec}(X)/p</em>{grid}(X)$只有在两分布共同支持且decision mechanism由已观测$X$解释时才成立。若inventory/cooldown lineage缺失，transport是结构问题。</p>
+<h2 id="Continuous-gap-对-rolling-state-的影响"><a href="#Continuous-gap-对-rolling-state-的影响" class="headerlink" title="Continuous gap 对 rolling state 的影响"></a>Continuous gap 对 rolling state 的影响</h2><p>缺11分钟并不只丢11分钟rows。一个60秒EMA在gap后需要重新warm，6小时/24小时state受影响更久；parent aggregate continuity与queue path也可能断开。coverage应传播到每个feature的ready validity，而不是gap结束就立即恢复全支持。</p>
+<p>可以为每个feature记录<code>last_complete_source_time</code>和<code>ready_time</code>，decision合法需同时满足lookback完整与age上限。不同lookback会产生不同valid masks；模型输入必须使用共同交集，不能用部分fresh、部分stale的向量再靠missing imputation掩盖。</p>
+<h2 id="Transport-pass-后的最小-value-panel"><a href="#Transport-pass-后的最小-value-panel" class="headerlink" title="Transport pass 后的最小 value panel"></a>Transport pass 后的最小 value panel</h2><p>每行应绑定decision id、pre-action state、baseline/candidate quote、合法性、activation、order lineage、terminal campaign outcome与censor reason。候选若只在某side/distance有共同支持，动作权限就限制在该region；其它rows固定fallback baseline。</p>
+<p>先做one-shot paired action可减少feedback复杂度，再用repeated full-path确认。只有prediction transport、lifecycle completeness、action overlap和terminal value全部通过，P3才从policy-visible probability升级为quote input。本项目只完成了前半座桥。</p>
 <h2 id="9-公共证据"><a href="#9-公共证据" class="headerlink" title="9. 公共证据"></a>9. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/docs/p3_touch_policy_visible_decision_cadence_transport_v1_development_20260803.md">Decision-Cadence Transport Development</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/docs/p3_touch_policy_visible_decision_cadence_transport_v1_contract_errata_20260803.md">Contract Errata</a></li>

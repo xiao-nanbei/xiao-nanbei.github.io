@@ -27,6 +27,7 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：BUY 有弱正点估计，SELL 偏负，但两侧都先败在可执行支持NarrowGate 的基线会在 exposure-increasing fill 后阻断同侧 add，实际冷却长度为 $85\text{s}\times$ 连续同侧 fill units。本项目没有搜索另一个固定秒数，而是在基线冷却真正到期后问：若">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/state-conditioned-rearm-after85.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f09-campaign-action-causal-path.svg">
 <meta property="article:published_time" content="2026-08-29T12:14:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:14:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -332,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          1.7k 字
+          1.8k 字
         
       </span>
     
@@ -344,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          15 分钟
+          16 分钟
         
       </span>
     
@@ -394,6 +395,8 @@
 <p>时间外 25 日里，SELL reward 历史 DR uplift 为 -0.00504 USDC，95% day-cluster interval $[-0.01314,+0.00226]$；BUY 为 +0.00493，区间 $[-0.00166,+0.01275]$。BUY 的 repair 为负，duration avoidance 更是 $[-0.01204,-0.00025]$，说明弱正 reward 线索伴随更长 campaign。两侧 Development 均关闭，Validation 与 sealed holdout 未读。旧精确经济数值后因 denominator 修复撤回当前校准权限，但 support failure 与无晋级结论不变。</p>
 <p><img src="/images/narrowgate/state-conditioned-rearm-after85.svg" srcset="/img/loading.gif" lazyload alt="85秒后状态条件 rearm 的双时钟状态机"></p>
 <p><em>图 1：机制示意。baseline cooldown 到期不是 candidate 的结束，而是随机化入口；只有四项 adverse conjunction 为真才继续 block，recovery hysteresis 退出。</em></p>
+<p><img src="/images/narrowgate/f09-campaign-action-causal-path.svg" srcset="/img/loading.gif" lazyload alt="状态型 rearm 的完整 campaign action 路径"></p>
+<p><em>图 2：entry 必须由 untreated baseline opportunity 决定；assignment 后 candidate 自己生成阻断、释放、fills 与 terminal。总 campaign 数、active treatment support 和经济结果是三个不同分母。</em></p>
 <h2 id="1-研究问题：固定时钟到期后，状态还危险怎么办？"><a href="#1-研究问题：固定时钟到期后，状态还危险怎么办？" class="headerlink" title="1. 研究问题：固定时钟到期后，状态还危险怎么办？"></a>1. 研究问题：固定时钟到期后，状态还危险怎么办？</h2><p>固定冷却有一个明显缺点：85 秒只是 wall-clock 规则，不保证盘口、流量与价格已经恢复。但简单延长到 flat 又会过度关闭活动。本项目试图在两者之间构造稀疏且因果可见的状态动作。</p>
 <p>对 side $s\in{BUY,SELL}$，目标是：</p>
 <script type="math/tex; mode=display">
@@ -445,6 +448,17 @@ G_t=\mathbf1\{M_t>m_0,F_t>f_0,R_t<r_0,P_t<p_0\}.</script><p>只有 baseline cool
 <script type="math/tex; mode=display">
 t_{release}=t_{fill,last}+85\text{s}\times n_{same-side},</script><p>其中 $n<em>{same-side}$ 按当前 operational contract 计数。market exchange time 决定价格与 L2 事件顺序，receive/ready time 决定状态何时可被策略使用。四个 entry components 必须在 $t</em>{decision}^{ready}$ 之前完成。</p>
 <p>具体例子：BUY campaign 有两个连续 exposure fills，基线不是 85 秒后而是相应 multiplier 到期后重新 eligible。到达 release 时，若价格仍向下、SELL taker flow 持续、bid refill 弱且 microprice 未恢复，candidate 继续 block；若下一 snapshot 恢复条件成立，则从下一 causal decision 起退出。不能用未来 5 秒的最低价判断“当时仍危险”。</p>
+<h3 id="3-1-Hysteresis-为什么是-treatment-contract，而非防抖细节"><a href="#3-1-Hysteresis-为什么是-treatment-contract，而非防抖细节" class="headerlink" title="3.1 Hysteresis 为什么是 treatment contract，而非防抖细节"></a>3.1 Hysteresis 为什么是 treatment contract，而非防抖细节</h3><p>若 entry 和 exit 使用同一瞬时阈值，score 在边界附近会让 permission 每个 decision 来回切换。hysteresis 用不同进入/退出条件，要求恢复达到更强标准后才释放；这会改变 block duration、订单数和 fill path，因此属于动作定义。</p>
+<p>把 candidate 状态记为 $B_t$：</p>
+<script type="math/tex; mode=display">
+B_{t+1}=
+\begin{cases}
+1,&B_t=0,\ G_t^{entry}=1,\\
+0,&B_t=1,\ G_t^{exit}=1,\\
+B_t,&\text{otherwise}.
+\end{cases}</script><p>看到结果后改变 exit threshold，并非“平滑参数”，而是改变 potential outcome $Y(B)$。这也是为什么未来不能在同一 Development 上松 conjunction 或 hysteresis。</p>
+<h3 id="3-2-四项-conjunction-的稀疏性是乘法问题"><a href="#3-2-四项-conjunction-的稀疏性是乘法问题" class="headerlink" title="3.2 四项 conjunction 的稀疏性是乘法问题"></a>3.2 四项 conjunction 的稀疏性是乘法问题</h3><p>即使每个 adverse condition 单独在 30% opportunities 上成立，若近似独立，四项同时成立只有 $0.3^4=0.81\%$。现实中它们相关，但 conjunction 仍会快速收缩 support。总 campaign rows 很多，并不能改变只有 81/82 active rows 的事实。</p>
+<p>这个设计刻意寻找非常明确的坏状态，换来的代价是难以估计 action value。放宽为“三项满足两项”或改连续 score 会增加支持，但也定义新 treatment surface；recovery-event successor 正是以新身份完成这种改变，而不是给本项目补样本。</p>
 <h2 id="4-证据面板与随机化完整性"><a href="#4-证据面板与随机化完整性" class="headerlink" title="4. 证据面板与随机化完整性"></a>4. 证据面板与随机化完整性</h2><p>同一组 76 个 strict event-L2 good days 分别分配给 BUY/SELL：56 Development、1 embargo、9 Validation、1 embargo、9 sealed holdout。后两块因 Development 失败保持锁定。</p>
 <div class="table-container">
 <table>
@@ -541,6 +555,12 @@ t_{release}=t_{fill,last}+85\text{s}\times n_{same-side},</script><p>其中 $n<e
 <script type="math/tex; mode=display">
 n_{eff}\lesssim 4\left(\frac1{n_0}+\frac1{n_1}\right)^{-1},</script><p>SELL 由 42/39、BUY 由 35/47 决定，而不是由 1,646/2,396 的总 campaign 数决定。</p>
 <p>看到稀疏后松动四项 conjunction、移动阈值或降低每臂 50 行的门槛，会在已读 outcomes 上改变 treatment definition。那是新 family，不是 v1 修补。</p>
+<h3 id="6-1-名义样本、active-sample-与有效样本"><a href="#6-1-名义样本、active-sample-与有效样本" class="headerlink" title="6.1 名义样本、active sample 与有效样本"></a>6.1 名义样本、active sample 与有效样本</h3><p>1,646/2,396 campaign rows 是名义分母；81/82 entry-active rows 才是 treatment 能产生差异的样本；按 arm 与日期聚类后的 $n_{eff}$ 更小。大量 $G_t=0$ rows 中两臂行为相同，能够验证 replay identity，却几乎不提供 $Y(1)-Y(0)$ 信息。</p>
+<p>因此正确 funnel 是：campaign eligible → cooldown actually releases non-flat → four-way conjunction active → both randomized arms represented → future terminal observed。报告只给第一层会让 action 看似有数千样本，掩盖真正 positivity 失败。</p>
+<h3 id="6-2-BUY-弱正点估计为什么不能成为-side-specific-loophole"><a href="#6-2-BUY-弱正点估计为什么不能成为-side-specific-loophole" class="headerlink" title="6.2 BUY 弱正点估计为什么不能成为 side-specific loophole"></a>6.2 BUY 弱正点估计为什么不能成为 side-specific loophole</h3><p>BUY 的 reward 点估计为正，但区间跨零、正日只有 8/25，repair 为负且 duration avoidance interval 完全低于零。若只挑 reward，candidate 可能是在延长未修复 exposure 的同时偶然获得账面收益。</p>
+<p>更基础的是 active control 35、candidate 47，未过预注册每臂 50。side-specific policy 也不能跳过自己的 support gate。SELL 偏负不支持 pooled，BUY 弱正也不支持“只开 BUY”；两侧各自关闭是预先分侧设计的必然后果。</p>
+<h3 id="6-3-一个合格的状态型-successor-需要什么"><a href="#6-3-一个合格的状态型-successor-需要什么" class="headerlink" title="6.3 一个合格的状态型 successor 需要什么"></a>6.3 一个合格的状态型 successor 需要什么</h3><p>首先应在 outcome-blind state census 上证明 entry rate、duration、action-change 和 fill retention落在预注册区间；其次明确 invalid feature 时是继续 block、回 baseline 还是 censor；最后才做 campaign-level assignment-to-terminal评价。</p>
+<p>如果使用连续 recovery score，还必须冻结 component scale 与 aggregation，因为 arithmetic mean、geometric mean 和 min operator 对“有一项没有恢复”给出完全不同的动作。模型形式不是装饰，它决定哪些 opportunities 进入 treatment。</p>
 <h2 id="7-研究演进、关闭与支持边界"><a href="#7-研究演进、关闭与支持边界" class="headerlink" title="7. 研究演进、关闭与支持边界"></a>7. 研究演进、关闭与支持边界</h2><p>本项目承接 48 小时 observational attribution 提出的 post-cooldown intervention surface，但把它变成了 50/50 randomized full-path replay。它也展示了 one-cycle 与 stop-until-flat 之间不必只有固定时间：状态机确实能多周期生效，只是当前四项 conjunction 没有足够支持。</p>
 <p>BUY 与 SELL 因 action side 不同各自拥有身份，但写在一起是因为它们共享同一个科学问题与冻结设计；不是为每个 side、spec 或执行尝试拆一篇文章。</p>
 <p>关闭边界只覆盖“85 秒后、四项 conjunction、冻结 hysteresis”的 exact rule。它不证明 85 秒最优，也不关闭 active-order keep/cancel、variance-time 或不同 recovery event。未来机制必须重新冻结 outcome-blind threshold、split 与 score profile。</p>
@@ -552,6 +572,20 @@ n_{eff}\lesssim 4\left(\frac1{n_0}+\frac1{n_1}\right)^{-1},</script><p>SELL 由 
 <li>没有把 BUY 弱正点估计当作方向性 alpha；</li>
 <li>没有把旧精确数值用于当前 baseline 标定。</li>
 </ul>
+<h2 id="Positivity-为什么会被-conjunction-快速耗尽"><a href="#Positivity-为什么会被-conjunction-快速耗尽" class="headerlink" title="Positivity 为什么会被 conjunction 快速耗尽"></a>Positivity 为什么会被 conjunction 快速耗尽</h2><p>若四个条件各自在40%的active rows成立，在近似独立时四项同时成立只剩$0.4^4=2.56\%$。现实中条件相关可能提高或降低比例，但再叠加side、inventory role、valid feature、candidate price与hysteresis，最终action region往往集中在少数日期。</p>
+<p>这类稀疏不能靠增加row频率解决。同一订单每100ms贡献上百rows，独立信息仍主要由order、campaign与day决定。支持应看distinct lineages与date concentration；若一个condition region只有三天，即使有十万rows，chronological transport仍不可识别。</p>
+<h2 id="Hysteresis-的两道阈值怎样改变估计量"><a href="#Hysteresis-的两道阈值怎样改变估计量" class="headerlink" title="Hysteresis 的两道阈值怎样改变估计量"></a>Hysteresis 的两道阈值怎样改变估计量</h2><p>设进入hold阈值$u$、退出阈值$l&lt;u$。状态递归为</p>
+<script type="math/tex; mode=display">
+H_t=\mathbf1[z_t\ge u]\lor\{H_{t-1}\land z_t>l\}.</script><p>它避免score在边界抖动，却使action依赖完整过去：两个当前$z_t$相同的orders，若一个此前已进入hold、另一个没有，permission不同。离线panel若只保存当前features而不保存历史state，就无法复现policy。</p>
+<p>阈值$u,l$、minimum hold与rearm cadence共同构成treatment。看到结果后只调其中一个，并不能称为同一动作的小修；它改变duration与support，必须创建新的冻结身份。</p>
+<h2 id="一个更可识别的-successor"><a href="#一个更可识别的-successor" class="headerlink" title="一个更可识别的 successor"></a>一个更可识别的 successor</h2><p>当前四项conjunction失败后，合理方向不是加入第五个条件，而是做消融：在outcome-blind面板上选择一到两个具有明确机制的状态，冻结宽support region；先验证它确实改变permission、fills与duration，再看价值。也可以把连续score用于ranked randomized exposure，在已知propensity下估计单调dose response，而不是硬切稀疏叶子。</p>
+<p>BUY弱正点估计与SELL偏负提示side可能需要分开，但不能从失败面板中只解锁BUY。新的side-specific研究要有自己的日期门、support与multiplicity账本。这样“简化”是新的可证伪设计，不是从旧结果里挑一个看起来较好的角落。</p>
+<h2 id="Missing-state-不应被解释为“恢复”或“危险”"><a href="#Missing-state-不应被解释为“恢复”或“危险”" class="headerlink" title="Missing state 不应被解释为“恢复”或“危险”"></a>Missing state 不应被解释为“恢复”或“危险”</h2><p>对conjunction rule，任何输入invalid时强制false会延长hold，强制true会提前rearm；两者都把数据质量变成动作方向。正确合同应单独定义<code>UNKNOWN</code>，通常fail closed到冻结baseline permission，并记录invalid原因。</p>
+<p>若baseline本身是固定85秒rearm，unknown时回baseline和继续hold也不是同一选择；必须在spec中明确。missing rate若集中在volatile days，fallback还会改变treatment population，因此support报告要按day/state拆分。</p>
+<h2 id="Rearm-触发后的-lineage"><a href="#Rearm-触发后的-lineage" class="headerlink" title="Rearm 触发后的 lineage"></a>Rearm 触发后的 lineage</h2><p>一旦允许add，后续order、fill与campaign必须携带触发该permission的assignment id；不能在每个decision根据当前条件重新标记。否则成功fill可能被归给最后一次“条件仍成立”，而不是最初release动作。</p>
+<p>lineage至少持续到action effect自然终止：该cycle结束、inventory flat或预注册窗口。若不同定义给出不同reward，duration就是treatment的一部分，不能当report细节。</p>
+<h2 id="Support-failure-给出的定量信息"><a href="#Support-failure-给出的定量信息" class="headerlink" title="Support failure 给出的定量信息"></a>Support failure 给出的定量信息</h2><p>它指出四项state rule在目标decision surface过窄，导致有效日期与lineage不足。这个结论比“PnL跨零”更早：即便点估计方向好，也无法可靠区分真实异质性和少数日期。</p>
+<p>后继可用更宽的单条件、ranked dose或随机化阈值来增加positivity；但这些是新actions。当前BUY点估计不能被用作只开放BUY的证据，因为side选择本身来自同一失败结果。</p>
 <h2 id="9-公共证据"><a href="#9-公共证据" class="headerlink" title="9. 公共证据"></a>9. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/state_conditioned_rearm_after85_v1_20260722.md"><code>state_conditioned_rearm_after85_v1_20260722.md</code></a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/dynamic_mechanism_campaign_audit_20260722.md"><code>dynamic_mechanism_campaign_audit_20260722.md</code></a></li>

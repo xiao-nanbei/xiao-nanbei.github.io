@@ -27,13 +27,14 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：不再只问“十秒会不会碰到”，而是估计何时、碰到多远固定 10 秒 P3 把一条完整 first-passage path 压成单个 Bernoulli label。两个状态即使十秒 touch probability 相同，也可能一个在 300ms 内就穿越近价，另一个直到第九秒才慢慢到达；对 quote cad">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/p3-aggressive-reach-time-hazard.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f02-p3-estimand-ladder.svg">
 <meta property="article:published_time" content="2026-08-29T12:36:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:36:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
-<meta property="article:tag" content="机器学习">
 <meta property="article:tag" content="生存分析">
+<meta property="article:tag" content="机器学习">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/p3-aggressive-reach-time-hazard.svg">
   
@@ -433,6 +434,41 @@ I_d=IBS_{0,d}-IBS_{1,d}.</script><p>正值表示新模型在该日改善。BUY �
 <h2 id="8-支持边界与没有获得的权限"><a href="#8-支持边界与没有获得的权限" class="headerlink" title="8. 支持边界与没有获得的权限"></a>8. 支持边界与没有获得的权限</h2><p>支持：side-specific conditioned first-passage hazard 在历史 Development 上相对 baseline 有稳定 proper-score improvement，结构与 aggregate source transport gates 通过。</p>
 <p>不支持：activation probability、queue fill、cancel/reentry value、campaign terminal PnL、当前 runtime artifact replacement 或 sub-100ms transport。</p>
 <p>本项目没有 quote mapping、action registration、Validation、sealed holdout、shadow 或 live authority。operational fixed-10s P3 v2 保持不变。</p>
+<h2 id="深入推导：固定-horizon-概率怎样展开成到达时间分布"><a href="#深入推导：固定-horizon-概率怎样展开成到达时间分布" class="headerlink" title="深入推导：固定 horizon 概率怎样展开成到达时间分布"></a>深入推导：固定 horizon 概率怎样展开成到达时间分布</h2><p>把未来分成 $K$ 个 100ms intervals。对给定距离 $\delta$，离散 hazard 定义为：</p>
+<script type="math/tex; mode=display">
+h_k(\delta,X)=P(T_\delta=k\mid T_\delta\ge k,X).</script><p>survival 与 cumulative incidence 分别是：</p>
+<script type="math/tex; mode=display">
+S_k(\delta,X)=\prod_{j=1}^{k}(1-h_j),\qquad
+F_k(\delta,X)=1-S_k(\delta,X).</script><p>固定十秒 P3 只是 $F_{100}$。hazard 展开以后，可以区分“前一秒很危险、随后迅速衰减”和“十秒内持续小概率靠近”两种路径；它也能自然处理到订单终止仍未触达的右删失，而不用把未触达一律标成负例。</p>
+<p>多距离研究还要避免逻辑冲突：若更远价位先被记录为触达，而更近价位尚未触达，说明时间对齐或路径构造有问题。对同一连续价格路径，first-passage times 应满足嵌套关系。模型可以对每个 band 使用 cause-specific hazard，最终用共同 survival 归一化，而不是训练互相独立、概率和超过 1 的 heads。</p>
+<p><img src="/images/narrowgate/f02-p3-estimand-ladder.svg" srcset="/img/loading.gif" lazyload alt="Reach-time hazard 在 P3 estimand 阶梯中的位置"></p>
+<p><em>图 2：hazard 把固定 horizon 的第一级展开为完整时间结构，但仍未加入 queue conversion、fill value 与 campaign action。</em></p>
+<h2 id="一个可计算例子：早触达与晚触达为何对报价不同"><a href="#一个可计算例子：早触达与晚触达为何对报价不同" class="headerlink" title="一个可计算例子：早触达与晚触达为何对报价不同"></a>一个可计算例子：早触达与晚触达为何对报价不同</h2><p>假设两种状态的十秒触达概率都为 30%。状态 A 的前十个 100ms buckets 每个 hazard 约 3.5%，之后接近零；状态 B 的 100 个 buckets 每个 hazard 约 0.36%。两者 $F_{100}$ 相近，但对一张预计 1 秒后就会 requote 的订单，A 的可达性远高于 B。</p>
+<p>若订单 TTL 为 5 秒，应该使用 $F_{50}$；若策略每秒重算但旧单可能继续 active，又必须结合实际 cancel ACK 和 remaining quantity。固定十秒概率把这些工程时钟压成一个数，hazard 才能与不同寿命做一致积分：</p>
+<script type="math/tex; mode=display">
+P(T_\delta\le L)=1-S_{\lfloor L/0.1s\rfloor}.</script><p>不过即便 A 更早触达，也不能推出报价应外移。早触达可能意味着高成交机会，也可能意味着 adverse jump 已在路上。动作仍取决于触达后的 queue、fill cause 与终局价值。</p>
+<h2 id="Calibration-要怎样读，near-distance-风险为何更重要"><a href="#Calibration-要怎样读，near-distance-风险为何更重要" class="headerlink" title="Calibration 要怎样读，near-distance 风险为何更重要"></a>Calibration 要怎样读，near-distance 风险为何更重要</h2><p>overall Brier 或 log loss 可能被大量低概率、远距离 cells 主导，而实际 maker quotes 集中在近距离。一个模型即使总体改善，如果在 near-distance 高支持区域系统性低估 hazard，接入报价后仍会过度靠近市场。</p>
+<p>因此需要按距离 band、side、horizon 和日期分别报告 observed/expected、ranking 与 calibration，并用 day cluster 构造 uncertainty。near-distance 的误差还应按实际 quote occupancy 加权，而不是由远端样本稀释。原研究保留的 near-distance calibration 风险，正是 prediction pass 以后不能继续越级的原因之一。</p>
+<p>未来若把 hazard 接到 queue 或 action value，必须冻结订单寿命与 policy-ready clock，使用真实 activation 到 cancel ACK 的风险集，并把 touch、fill、cancel、jump、repair 作为语义不同的事件。否则只是把一个更精细的时间模型重新压回错误对象。</p>
+<h2 id="Competing-distance-bands-怎样避免重复计算同一路径"><a href="#Competing-distance-bands-怎样避免重复计算同一路径" class="headerlink" title="Competing distance bands 怎样避免重复计算同一路径"></a>Competing distance bands 怎样避免重复计算同一路径</h2><p>如果分别训练“5 ticks内触达”“10 ticks内触达”“20 ticks内触达”三个独立binary heads，同一条价格穿越20 ticks的路径会同时成为三个正例，而模型输出又可能违反嵌套。更自然的做法是把首次到达的最远band视作按时间推进的ordered state：每个100ms bucket里，尚未触达的路径要么继续生存，要么首次进入某个distance band。</p>
+<p>设$J_k\in{5,10,20,\varnothing}$表示第$k$个bucket首次跨过的最大新band，则cause-specific hazard为</p>
+<script type="math/tex; mode=display">
+h_{k,j}=P(J_k=j\mid T\ge k,X),
+\qquad
+\sum_j h_{k,j}\le1.</script><p>共同survival$S<em>{k-1}$把各cause转换为CIF：$F</em>{k,j}=\sum<em>{u\le k}S</em>{u-1}h_{u,j}$。这样总概率质量天然闭合，远距离到达也会隐含近距离已经经过。实际实现可以使用累积最大reached-distance cache，但报告仍应检查distance-CDF、time-CDF与mass conservation三类不变量。</p>
+<h2 id="从-hazard-到订单寿命的反事实"><a href="#从-hazard-到订单寿命的反事实" class="headerlink" title="从 hazard 到订单寿命的反事实"></a>从 hazard 到订单寿命的反事实</h2><p>hazard模型最直接的用途不是找一个“最佳十秒概率”，而是对候选寿命$L$积分。若一张订单在第$r$个bucket收到cancel ACK，它的reach opportunity只累积到$r$；若在第$f&lt;r$个bucket被部分成交，remaining quantity的后续风险集又发生变化。</p>
+<p>候选寿命的粗略可达概率是$1-S_L$，但经济价值还要联合三类随时间变化的量：queue fill conversion$c_k$、成交条件价值$v_k$以及未成交后重挂成本$g_k$。一个示意式为</p>
+<script type="math/tex; mode=display">
+V(L,\delta)
+=
+\sum_{k=1}^{L}S_{k-1}h_k(\delta)c_k(\delta) v_k
+-G_{cancel/reentry}(L).</script><p>这说明相同的累计十秒P3为何可能支持不同TTL：早期hazard高且$v_k&lt;0$时，缩短寿命可能有利；早期hazard对应有利repair时，过快cancel则删除价值。Reach-time研究只识别了$h_k$，所以它为寿命实验提供坐标，却没有替实验作出动作结论。</p>
+<h2 id="右删失与-coverage-censor-不能共用一个标签"><a href="#右删失与-coverage-censor-不能共用一个标签" class="headerlink" title="右删失与 coverage censor 不能共用一个标签"></a>右删失与 coverage censor 不能共用一个标签</h2><p>订单/路径在完整观察窗结束前尚未触达，是正常right censor或survival；source中断、day-end不足horizon或timestamp失序则是数据不可观测。前者提供“至少生存到这里”的信息，后者不一定。把两者都记作0会系统性压低hazard。</p>
+<p>离散likelihood对完整未触达路径贡献$\log S<em>K$，对第$k$ bucket事件贡献$\log S</em>{k-1}+\log h_k$。若在第$c$ bucket因合法administrative censor结束，只贡献$\log S_c$；若coverage未知，通常应从可识别起点排除或给出bounds，而不是假设没有事件。</p>
+<h2 id="Integrated-Brier-通过仍需看-hazard-calibration"><a href="#Integrated-Brier-通过仍需看-hazard-calibration" class="headerlink" title="Integrated Brier 通过仍需看 hazard calibration"></a>Integrated Brier 通过仍需看 hazard calibration</h2><p>IBS对整个时间区间平均，早期与晚期误差可以互相抵消。实际订单寿命若集中在1–5秒，30秒后改善对动作价值很小。报告应同时给policy-weighted IBS、关键TTL上的CDF calibration和near-distance cells。</p>
+<p>另一个检查是survival probability mass：$S<em>k+\sum_jF</em>{k,j}=1$，随时间$S$单调下降、CIF单调上升。数值上零violation说明实现结构闭合，但不保证市场transport；每个日期、source与side仍要分别看误差。</p>
+<h2 id="一个-hazard-to-value-实验的冻结接口"><a href="#一个-hazard-to-value-实验的冻结接口" class="headerlink" title="一个 hazard-to-value 实验的冻结接口"></a>一个 hazard-to-value 实验的冻结接口</h2><p>对每个合法active/placement state，输入完整hazard slice而不是单个十秒概率；候选actions只改变quote distance或TTL。queue conversion与fill-conditioned terminal value使用独立模型或paired replay，三者的输入/输出类型明确区分。</p>
+<p>预注册scorecard先要求hazard在实际action support内校准，再要求candidate产生足够路径分叉，最后比较terminal value与tail。若经济失败，不能回头选择另一个horizon cell；那会把完整曲面的多重选择重新引入旧adapter问题。</p>
 <h2 id="9-公共证据"><a href="#9-公共证据" class="headerlink" title="9. 公共证据"></a>9. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/docs/p3_aggressive_reach_time_conditioned_hazard_v1_development_20260804.md">Aggressive Reach-Time Development 报告</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/docs/p3_aggressive_reach_time_conditioned_hazard_v1_spec_20260804.md">冻结人类可读 Spec</a></li>
@@ -477,9 +513,9 @@ I_d=IBS_{0,d}-IBS_{1,d}.</script><p>正值表示新模型在该日改善。BUY �
       
         <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
       
-        <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
-      
         <a href="/tags/%E7%94%9F%E5%AD%98%E5%88%86%E6%9E%90/" class="print-no-link">#生存分析</a>
+      
+        <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
       
     </div>
   

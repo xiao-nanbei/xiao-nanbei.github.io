@@ -27,14 +27,15 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：把报价移远确实会少成交，但“少成交”没有变成可识别的正终局价值F06 Placement Fill CIF 研究从一个看似简单的问题出发：同一个 maker 决策上，把被动报价向市场靠近或远离若干 ticks，成交概率会怎样变化？ 这个问题很快暴露出三个层次：  mechanics：同一未来行情路径上，更深的被动">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/placement-distance-paired-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f06-placement-counterfactual-bridge.svg">
 <meta property="article:published_time" content="2026-08-28T16:00:00.000Z">
 <meta property="article:modified_time" content="2026-08-28T16:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
-<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="机器学习">
 <meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/placement-distance-paired-kline.svg">
   
@@ -625,6 +626,61 @@ V_{\text{shallower-only marginal fills}}
 <p>主指标是：</p>
 <script type="math/tex; mode=display">
 \text{campaign-terminal overlay delta USDC/decision}.</script><p>它仍是 no-policy-feedback feasibility estimand，不是完整 randomized strategy value；但比固定 markout 更接近真正问题。</p>
+<p><img src="/images/narrowgate/f06-placement-counterfactual-bridge.svg" srcset="/img/loading.gif" lazyload alt="从配对 placement 到边际终局价值的反事实桥梁"></p>
+<p><em>图 2：近、中、远三张虚拟订单共享同一条未来市场路径，各自保留 activation、fill 与 cancel-ACK 生命周期。共同风险集先识别 fill CIF 差异，再把 shared fills 的价差收益与 shallower-only marginal fills 的终局价值合并。</em></p>
+<h3 id="9-1-为什么-pathwise-pairing-比“分别跑三次策略”更强"><a href="#9-1-为什么-pathwise-pairing-比“分别跑三次策略”更强" class="headerlink" title="9.1 为什么 pathwise pairing 比“分别跑三次策略”更强"></a>9.1 为什么 pathwise pairing 比“分别跑三次策略”更强</h3><p>设 $U_i$ 表示第 $i$ 个决策以后所有共同的市场事件、延迟抽样与撮合随机性。正确的局部 placement 对比是：</p>
+<script type="math/tex; mode=display">
+Y_i(a)-Y_i(a_0)
+=
+g(a,U_i)-g(a_0,U_i).</script><p>两臂共享同一个 $U_i$，市场路径噪声在差分中大量抵消。若分别运行两套策略，则实际比较变成 $g(a,U_i^{(a)},S_i^{(a)})$ 与 $g(a_0,U_i^{(0)},S_i^{(0)})$；早先某次 fill 已经改变库存和未来报价，后面的 decision denominator 也不再相同。那种差值混合了 placement effect、policy feedback 与样本选择。</p>
+<p>F06 的 cohort replay 刻意不让 counterfactual fills 反馈到 baseline，换取干净的局部识别。代价是它不能宣称完整策略价值。这个取舍不是缺陷，而是研究阶段：先确认 matcher、概率和边际事件，再决定是否值得支付全路径顺序回放的成本。</p>
+<h3 id="9-2-一个两-tick-对比的完整算例"><a href="#9-2-一个两-tick-对比的完整算例" class="headerlink" title="9.2 一个两 tick 对比的完整算例"></a>9.2 一个两 tick 对比的完整算例</h3><p>假设 BUY current 为 100.00，farther 2 ticks 为 99.98，订单量为 $z$。同一行情路径可能产生三类 cohort：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>事件类型</th>
+<th>current</th>
+<th>farther 2</th>
+<th>对价值差的贡献</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>shared fill</td>
+<td>两者都成交</td>
+<td>两者都成交</td>
+<td>farther 每单位改善 0.02，但可能更晚成交</td>
+</tr>
+<tr>
+<td>current-only marginal fill</td>
+<td>成交</td>
+<td>不成交</td>
+<td>贡献该 fill 的完整后续 terminal value</td>
+</tr>
+<tr>
+<td>shared no-fill</td>
+<td>不成交</td>
+<td>不成交</td>
+<td>局部 placement delta 近似为零</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>若 shared-fill 比例为 $p_s$，current-only 比例为 $p_m$，忽略示意中未写出的成本，则：</p>
+<script type="math/tex; mode=display">
+\Delta V_{farther-current}
+\approx
+p_s\cdot z\cdot 0.02
+-
+p_m\cdot\mathbb E[V_{marginal}].</script><p>第一项容易精确计算，第二项决定符号。如果 marginal fills 都很有毒，移远值得；如果它们多数帮助库存修复，移远反而有害。F06 识别了 $p<em>m&gt;0$，却没有把 $\mathbb E[V</em>{marginal}]$ 的 terminal 贡献估到足够窄。这正是“成交概率通过、价值失败”的数学位置。</p>
+<h3 id="9-3-一-tick不可识别是一条工程尺度结论"><a href="#9-3-一-tick不可识别是一条工程尺度结论" class="headerlink" title="9.3 一 tick不可识别是一条工程尺度结论"></a>9.3 一 tick不可识别是一条工程尺度结论</h3><p>一 tick 的 effect 小，并不等于永远为零。它说明在当前 tick size、订单量、日间相关、TTL/cancel policy 和 50 日 Development 路径下，单侧一 tick的原始 probability increment 约为五个万分点，低于同时推断能稳定分辨的尺度。</p>
+<p>这对工程设计有直接含义：如果执行层允许连续扫描大量相邻 tick，并用同一批数据选 winner，就会在 resolution 以下追逐噪声。两 tick与四 tick的 mechanics effect 可见，才适合作为正式 value contrast；一 tick保留为 negative control，可以检验模型是否凭空放大一个原始数据并不支持的微小差异。</p>
+<h3 id="9-4-从-feasibility-到-full-path-policy-还缺哪一座桥"><a href="#9-4-从-feasibility-到-full-path-policy-还缺哪一座桥" class="headerlink" title="9.4 从 feasibility 到 full-path policy 还缺哪一座桥"></a>9.4 从 feasibility 到 full-path policy 还缺哪一座桥</h3><p>若某个 cell 的 overlay value 真正通过，下一步仍应重新运行完整两臂策略：target decision 之后让 fill 反馈库存、角色、cooldown、reprice 与 campaign birth/death，直到共同 terminal。此时 estimand 才是：</p>
+<script type="math/tex; mode=display">
+\tau^{policy}(a)
+=
+\mathbb E[E_T^{\pi(a)}-E_T^{\pi(a_0)}].</script><p>full-path 还要报告 action rate、fills retained、inventory-time、campaign duration、terminal left tail 和跨日方向，而不能只报告每 decision 的平均值。F06 在更便宜的 feasibility 层已经 0/24，因此没有理由打开这项更昂贵的 successor；这是一种预先承诺的停止规则，不是因为没有能力继续算。</p>
 <h2 id="10-最终-Development-结果"><a href="#10-最终-Development-结果" class="headerlink" title="10. 最终 Development 结果"></a>10. 最终 Development 结果</h2><p>最终 replay 形成 6,882,642 contrast rows。每个正式 cell 的 shallower-only marginal fills 为 40–740 笔，占决策的约 0.068%–0.365%。</p>
 <p>24 个正式两 tick与四 tick side-role-contrast cells 的结果：</p>
 <div class="table-container">
@@ -747,11 +803,11 @@ V_{\text{shallower-only marginal fills}}
       
         <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
       
-        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
-      
         <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
       
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
     </div>
   

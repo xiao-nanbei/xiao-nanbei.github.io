@@ -27,12 +27,13 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：无条件点估计有一点好看，时间外条件策略却没有学到稳定正区域buy_add_conditional_widen_causal_v4_v1 只研究一个动作：当 BUY quote 会继续增加已有 LONG 暴露时，将它向外移动一个 tick。SELL 全程 baseline，reducing quote、size、i">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/buy-conditional-widen-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f09-campaign-action-causal-path.svg">
 <meta property="article:published_time" content="2026-08-29T12:11:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:11:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
-<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="异质性处理效应">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/buy-conditional-widen-kline.svg">
@@ -332,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          4.6k 字
+          8.5k 字
         
       </span>
     
@@ -344,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          39 分钟
+          71 分钟
         
       </span>
     
@@ -394,6 +395,8 @@
 <p>旧精确经济数值随后因 denominator 与 replay identity 修复而撤回；本文把它们只作为冻结历史报告的诊断，不把它们重新包装成当前 alpha。当前仍有权限的结论是：<strong>这一个 BUY one-tick conditional-widen family 失败，不能靠换树、换阈值或打开锁定日期救援。</strong></p>
 <p><img src="/images/narrowgate/buy-conditional-widen-kline.svg" srcset="/img/loading.gif" lazyload alt="BUY Add 条件加宽的 K 线与完整路径"></p>
 <p><em>图 1：机制示意。候选只把 exposure-increasing BUY bid 外移一 tick；是否少一个 fill 会继续改变 inventory、reducing quote、cooldown 与 terminal。</em></p>
+<p><img src="/images/narrowgate/f09-campaign-action-causal-path.svg" srcset="/img/loading.gif" lazyload alt="BUY conditional action 的完整 campaign 路径"></p>
+<p><em>图 2：CATE tree 只决定在什么 untreated opportunity 上执行 widen；真正结果仍由 candidate 自己的订单、queue、fill、inventory 与 terminal 生成。全局 overlap 通过，不代表每个 leaf 都有经济信息。</em></p>
 <h2 id="1-为什么单独研究-BUY-add"><a href="#1-为什么单独研究-BUY-add" class="headerlink" title="1. 为什么单独研究 BUY add"></a>1. 为什么单独研究 BUY add</h2><p>BUY add 与 SELL add 不是一组正负号。BUY add 增加 LONG inventory，它面对的直接流是 aggressive SELL taker；它的后续修复由 reducing SELL 完成。一个同样的“一 tick 外移”在 SHORT campaign 上对应不同对手方、queue 与修复路径。</p>
 <p>研究问题因此冻结为：</p>
 <script type="math/tex; mode=display">
@@ -450,6 +453,21 @@
 <h2 id="4-一个订单例子：外移一-tick并不只改变价格"><a href="#4-一个订单例子：外移一-tick并不只改变价格" class="headerlink" title="4. 一个订单例子：外移一 tick并不只改变价格"></a>4. 一个订单例子：外移一 tick并不只改变价格</h2><p>假设 baseline BUY add 为 100,000.0，candidate 为 99,999.9，order size 0.001 BTC。后续 aggressive SELL trade 最低打到 99,999.95。baseline order 可能在 queue 支持下成交，candidate 则不触价。candidate 看似“避开”了一笔 fill，但真正差额是：</p>
 <script type="math/tex; mode=display">
 \Delta Y=Y(\text{no fill, altered future path})-Y(\text{fill, inventory repair path}).</script><p>若 baseline fill 后几秒内 reducing SELL 以更好价格修复，widen 反而失去 maker spread；若市场继续下跌，widen 可能避免 toxic inventory。模型必须在 decision-visible state 上稳定区分这两种路径，而不能只预测下一段价格方向。</p>
+<h3 id="4-1-一-tick动作的价值可拆成“是否分叉”与“分叉后符号”"><a href="#4-1-一-tick动作的价值可拆成“是否分叉”与“分叉后符号”" class="headerlink" title="4.1 一 tick动作的价值可拆成“是否分叉”与“分叉后符号”"></a>4.1 一 tick动作的价值可拆成“是否分叉”与“分叉后符号”</h3><p>令 $D=1$ 表示 baseline 与 widen 最终产生不同路径。则：</p>
+<script type="math/tex; mode=display">
+\mathbb E[\Delta Y\mid X=x]
+=
+\Pr(D=1\mid x)\,
+\mathbb E[\Delta Y\mid D=1,x].</script><p>第一项近似由未来价格是否进入两张 bid 之间、activation 与 queue 决定；第二项还要看成交后的 trend、repair 与 terminal。一个价格方向模型可能预测第一项，却未必预测第二项。若一 tick 间隔很少改变 fill，$\Pr(D=1)$ 很小，conditional value 也会变成由少量路径支配的稀疏标签。</p>
+<p>因此动作强度不能只用“widen 在 50% campaigns 上分配”衡量。assignment rate、quote-change rate、path-change rate 与 terminal-nonzero rate 是四个不同层级；只有最后两个直接决定可学习的经济信息。</p>
+<h3 id="4-2-为什么无条件略正与条件策略为负并不矛盾"><a href="#4-2-为什么无条件略正与条件策略为负并不矛盾" class="headerlink" title="4.2 为什么无条件略正与条件策略为负并不矛盾"></a>4.2 为什么无条件略正与条件策略为负并不矛盾</h3><p>无条件动作值是：</p>
+<script type="math/tex; mode=display">
+\tau_{all}=\mathbb E[\psi].</script><p>conditional policy 只在集合 $G(X)=1$ 上 widen，其值取决于：</p>
+<script type="math/tex; mode=display">
+\tau_G=\mathbb E[\psi\mid G(X)=1].</script><p>如果 treatment heterogeneity 很弱，而 tree 在有限样本中按 noisy pseudo-outcomes 切分，它可能把总体少量正值留在 baseline leaf、把负噪声误识别为 candidate leaf。于是 $\tau_{all}&gt;0$ 与 $\tau_G&lt;0$ 可以同时发生。</p>
+<p>这也是 honest tree 分离结构选择与 leaf value估计的原因。但 honest 不会凭空创造 signal；它只是降低同一噪声既选 split 又评估 split 的偏差。未来日仍然没有正下界，说明冻结特征没有形成稳定 effect modifier。</p>
+<h3 id="4-3-35-个特征为什么不等于-35-个独立证据来源"><a href="#4-3-35-个特征为什么不等于-35-个独立证据来源" class="headerlink" title="4.3 35 个特征为什么不等于 35 个独立证据来源"></a>4.3 35 个特征为什么不等于 35 个独立证据来源</h3><p>shock、refill、queue、campaign 与 markout state 之间高度相关，许多又来自同一段 BBO/trade history。feature count 不能当成信息维度。depth-2 tree 最多形成少量 leaves，却仍在大量候选 split 中选择；若不在 inner train 中完成，阈值搜索会泄漏到 OOF。</p>
+<p>研究把结构学习限制在过去 pseudo-outcomes，并让 unsupported leaf回退 baseline，正是为了允许“没有条件区域”这一答案。强迫每棵树选一个 positive leaf，只会把最大噪声命名为 regime。</p>
 <h2 id="5-Replay-integrity-与-support"><a href="#5-Replay-integrity-与-support" class="headerlink" title="5. Replay integrity 与 support"></a>5. Replay integrity 与 support</h2><p>相对 no-randomization control，fills、placed actions、campaigns 分别保留 99.988%、99.979%、99.945%，inventory time 约 1.0009 倍。由此可以排除“候选停止报价，所以少亏”的粗糙解释。</p>
 <p>conditional policy 层在 28 个未来评估日上覆盖 1,267 rows，candidate rate 37.96%，policy ESS 642。support 与 overlap 通过，所以 failure 不是 propensity 崩溃或样本完全不足。</p>
 <h2 id="6-Development-结果与不确定性"><a href="#6-Development-结果与不确定性" class="headerlink" title="6. Development 结果与不确定性"></a>6. Development 结果与不确定性</h2><p>冻结历史报告给出的 conditional DR reward 为 -0.00742 USDC/decision，day-cluster 95% interval 为 $[-0.02657,+0.01304]$。campaign-cost avoidance、negative-terminal protection、Development-q10 protection 与 intervention-fill probability 的区间也都跨零；repair probability 仅有很小正点估计。</p>
@@ -495,6 +513,10 @@
 <p>旧 numeric estimates 因后续 data/replay repair 不再是当前 calibration authority；但所有 interval 原本就未过门，因此撤回数值不会把 family 变成候选。</p>
 <h2 id="7-为什么“树没学好”不是重开理由"><a href="#7-为什么“树没学好”不是重开理由" class="headerlink" title="7. 为什么“树没学好”不是重开理由"></a>7. 为什么“树没学好”不是重开理由</h2><p>depth-2 tree 很简单，这确实限制 interaction capacity。但 action、feature surface、tree depth、threshold 与 split 都是冻结身份的一部分。看到结果后换更深树、删弱特征或降低 candidate-rate gate，会在已消费 Development 上进行 post-selection。</p>
 <p>若未来提出 interaction-capable 新机制，需要新 family identity、新 split 与新 score profile；它不能沿用 <code>buy_add_conditional_widen_causal_v4_v1</code> 名字，也不能打开旧 Validation 来验证新树。</p>
+<h3 id="7-1-Support-通过为什么仍不足以说明-leaf-可用"><a href="#7-1-Support-通过为什么仍不足以说明-leaf-可用" class="headerlink" title="7.1 Support 通过为什么仍不足以说明 leaf 可用"></a>7.1 Support 通过为什么仍不足以说明 leaf 可用</h3><p>policy ESS 642 衡量的是整个学得 policy 相对于日志行为的权重集中度。它没有保证某个 split 两侧跨足够日期，也没有保证 path-changing fills 足够。一个 leaf 可能有数百 assignment rows，却只有几条真正因一 tick移动而改变 terminal 的路径。</p>
+<p>因此 leaf audit 还需要支持日数、两臂 assignment、path-change count、positive/negative terminal delta 与最大单日权重。只报告全局 ESS 会把大量 zero-delta rows 当成精确的 treatment information。</p>
+<h3 id="7-2-什么结果会真正反驳这次关闭"><a href="#7-2-什么结果会真正反驳这次关闭" class="headerlink" title="7.2 什么结果会真正反驳这次关闭"></a>7.2 什么结果会真正反驳这次关闭</h3><p>不是在相同 100 日上找到更深树，而是在新的、未参与当前假设形成的日期上，事先注册一个不同 state representation 或 intervention，建立稳定的 path-change support，并让 decision-to-terminal reward 的日期聚类下界为正，同时 campaign cost、tail、fills 与 inventory consistency 不恶化。</p>
+<p>如果新项目仍然是 exact BUY add one-tick widen、相同 features 与相同 Development，只改算法名字，它只是对已消费噪声的再次搜索。反之，若动作变为连续 inventory price penalty 或 active-order KEEP/CANCEL，则 treatment 与生命周期已经不同，应独立研究，不能说是“修复这棵树”。</p>
 <h2 id="8-关闭与支持边界"><a href="#8-关闭与支持边界" class="headerlink" title="8. 关闭与支持边界"></a>8. 关闭与支持边界</h2><p>关闭的是 BUY exposure-add 上“baseline vs widen exactly one tick”、35-feature local surface 与冻结 CATE contract。它不关闭 BUY selection research，不证明所有 quote-distance action 无效，也不把 SELL 纳入结论。</p>
 <p>这个 family 的合理后续不是“再 widen 0.5 tick”或“等更多日期”，而是寻找真正不同的经济杠杆，例如 active-order keep/cancel、inventory-conditioned price 或可识别外部 fair center，并从 outcome-blind identity 重新开始。</p>
 <p>这里的支持结论也有明确范围：99.988% fill retention 证明随机化行为路径没有整体停摆，policy ESS 642 证明 0.5/0.5 logging overlap 可用；它们不证明任何特定 tree leaf 有足够 treatment-effect information。leaf-level 仍受未来日数量、candidate count 与日内相关性限制，所以不能用全局 ESS 为某个小 leaf 背书。</p>
@@ -504,6 +526,23 @@
 <li>没有换 tree、threshold、feature subset 后复用锁定面板的权限；</li>
 <li>没有把无条件正点估计称为 conditional action alpha 的权限。</li>
 </ul>
+<h2 id="条件策略面对的是-policy-learning，不是-subgroup-reporting"><a href="#条件策略面对的是-policy-learning，不是-subgroup-reporting" class="headerlink" title="条件策略面对的是 policy learning，不是 subgroup reporting"></a>条件策略面对的是 policy learning，不是 subgroup reporting</h2><p>在Development上先找“widen表现好的rows”，再报告这些rows的收益，会把outcome同时用于定义subgroup和评价subgroup。合法policy learning必须nested：外层fold只评价由更早inner data训练、选择threshold并冻结的policy。每个外层row的action在看到该row outcome前已经确定。</p>
+<p>policy value可写为</p>
+<script type="math/tex; mode=display">
+V(\pi)=E[Y(\pi(X))],
+\qquad
+\Delta V=V(\pi)-V(a_0).</script><p>它与$E[Y(widen)-Y(keep)]$的无条件平均不同。即使平均widen略正，learner若在错误state触发，$\Delta V$也可以为负；反过来，平均action为负也可能存在一个稳定正subgroup。关键证据是chronological OOF policy value与support，而不是某棵树的in-sample leaf means。</p>
+<h2 id="一-tick分叉的-overlap-该怎样检查"><a href="#一-tick分叉的-overlap-该怎样检查" class="headerlink" title="一 tick分叉的 overlap 该怎样检查"></a>一 tick分叉的 overlap 该怎样检查</h2><p>对每个decision row，keep与widen都必须是合法maker quotes，并且queue/lifecycle outcome可由paired replay或随机assignment识别。若widen后价格落到未被市场路径覆盖的深度，candidate outcome更多依赖queue模型；若keep会cross或被risk guard替换，两arms不再是预注册的一tick比较。</p>
+<p>支持报告至少应包含：报价确实不同的fraction、两arms都激活的共同机会、fill路径分叉率、distinct days、每个leaf的effective sample、最大单日贡献与inventory-role composition。全局ESS通过不能补救一个被policy频繁选中的稀疏leaf。</p>
+<h2 id="什么样的后继不是重复搜索"><a href="#什么样的后继不是重复搜索" class="headerlink" title="什么样的后继不是重复搜索"></a>什么样的后继不是重复搜索</h2><p>“换一棵树”“多加几个features”或在同一35维面板上调depth，仍是当前family内的outcome-informed rescue。真正的新假说应来自独立机制，例如只用预先指定的inventory level与queue pressure构造两三个可解释states，或用后来的multiscale Boolean state形成固定selector。</p>
+<p>随后在新chronological rows上先做outcome-blind support，冻结policy，再估计paired terminal value。若selector仍不能超过无条件widen，它说明异质性不稳定；若通过，也只能授权该精确定义的BUY add动作，不能扩展到SELL、reducing或live。</p>
+<h2 id="Policy-regret-比-leaf-命中率更接近目标"><a href="#Policy-regret-比-leaf-命中率更接近目标" class="headerlink" title="Policy regret 比 leaf 命中率更接近目标"></a>Policy regret 比 leaf 命中率更接近目标</h2><p>一个selector可能在大多数rows预测action符号正确，却在少数大损失campaign上选错，terminal value仍差。策略学习真正关心相对最好可行动作的regret：</p>
+<script type="math/tex; mode=display">
+R(\pi)=E\left[Y(a^*(X))-Y(\pi(X))\right].</script><p>$a^*$在现实中不可观测，只能通过随机化/paired outcomes和可信模型近似。因此报告应同时给policy value、action frequency、worst-day/tail与fallback；classification accuracy不是替代。</p>
+<h2 id="Hierarchical-state-可以减少无边界搜索"><a href="#Hierarchical-state-可以减少无边界搜索" class="headerlink" title="Hierarchical state 可以减少无边界搜索"></a>Hierarchical state 可以减少无边界搜索</h2><p>BUY add先按campaign level、inventory magnitude与quote distance形成少量机制层，再在层内用有限features排序，比35维树直接切叶更可审计。层级必须在旧outcomes之外定义，并保证每层有多个日期与两动作support。</p>
+<p>若粗层没有任何稳定异质性，增加细粒度feature大概率只提高过拟合自由度；若某粗层稳定，再在新数据上细化。这种先机制、后模型的顺序能把“树没学好”的无限借口变成可停止的研究程序。</p>
+<h2 id="日级-transport-的直观检查"><a href="#日级-transport-的直观检查" class="headerlink" title="日级 transport 的直观检查"></a>日级 transport 的直观检查</h2><p>逐日画出policy action rate与paired value，检查正收益是否只来自高触发日、某个spread regime或单一极端campaign。leave-one-day-out policy若不断改写阈值/叶子，说明时间稳定性不足。</p>
+<p>当前条件策略在时间外未找到稳定正区域，意味着不能从无条件略正推导“只差更好模型”。新的证据需要新的days和更窄hypothesis，而不是同一面板更多复杂度。</p>
 <h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/buy_add_conditional_widen_causal_v4_v1_20260718.md"><code>buy_add_conditional_widen_causal_v4_v1_20260718.md</code></a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/side_specific_action_uplift_existing_split_20260718.md"><code>side_specific_action_uplift_existing_split_20260718.md</code></a></li>
@@ -545,9 +584,9 @@
       
         <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
       
-        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
-      
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
         <a href="/tags/%E5%BC%82%E8%B4%A8%E6%80%A7%E5%A4%84%E7%90%86%E6%95%88%E5%BA%94/" class="print-no-link">#异质性处理效应</a>
       

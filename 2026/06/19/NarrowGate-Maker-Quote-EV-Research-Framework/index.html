@@ -2280,7 +2280,7 @@ E\!\left[
 </table>
 </div>
 <p>正式输出还有 1,042 行 apparent monotonicity violation，涉及 399 个 cohort。复核发现这 399 个 cohort 的三 action realized exposure 全部不同，max-minus-min 中位差为 3,713ms：filled closer action 可能在实际 fill time 停止积分，而 surviving farther action 积分到更晚的 cancel request。<strong>单调 hazard 在不同时钟上积分，不保证 CIF 仍有序。</strong> 所以这是 common-lifecycle evaluator contract failure，不是 LightGBM distance constraint 失败，也不能事后用 isotonic projection 修复。</p>
-<p>同样需要克制的是 constrained-versus-unconstrained 比较。18/18 “not significantly worse”只表示没有检测到显著损害，不是预冻结 margin 下的 non-inferiority 证明。未来若要声称非劣，必须事前冻结 (\epsilon_L)，并要求：</p>
+<p>同样需要克制的是 constrained-versus-unconstrained 比较。18/18 “not significantly worse”只表示没有检测到显著损害，不是预冻结 margin 下的 non-inferiority 证明。未来若要声称非劣，必须事前冻结 $\epsilon_L$，并要求：</p>
 <script type="math/tex; mode=display">
 \operatorname{UCB}_{95\%}
 \left(L_{\mathrm{ordered}}-L_{\mathrm{unconstrained}}\right)

@@ -27,6 +27,7 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：机制强、路径完整、支持充分，但 BUY 与 SELL 的主 reward 下界都没过零固定 85 秒把平静市场与剧烈市场视为同样长。本研究把 exposure-increasing add 的 rearm clock 改为累计 realized variance：每个 same-side cooldown lin">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/variance-time-add-rearm.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f09-campaign-action-causal-path.svg">
 <meta property="article:published_time" content="2026-08-29T12:16:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:16:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -332,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          5.8k 字
+          9.3k 字
         
       </span>
     
@@ -344,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          49 分钟
+          78 分钟
         
       </span>
     
@@ -394,6 +395,8 @@
 <p>正式 Development 覆盖 40 日（24 Grade A、16 Grade B）、17,460 条 lineages；BUY/SELL 为 9,140/8,320。candidate 的 final-action change 达 37.02%/24.41%，fill retention 104.80%/99.41%，所以既非 no-op 也非 participation shutdown。可是 primary lineage reward 为 BUY +0.000738 USDC，95% UTC-day interval $[-0.002000,+0.003577]$；SELL +0.001875，区间 $[-0.002303,+0.006242]$。两侧 hard gates 均失败，Validation 与 sealed holdout 未读。</p>
 <p><img src="/images/narrowgate/variance-time-add-rearm.svg" srcset="/img/loading.gif" lazyload alt="Variance-time add rearm 双时钟机制"></p>
 <p><em>图 1：机制示意。同一价格路径上，wall time 均匀走动，variance time 只在已完成且已 ready 的一秒 bucket 上累积；高波动时可能更早释放，低波动时更晚。</em></p>
+<p><img src="/images/narrowgate/f09-campaign-action-causal-path.svg" srcset="/img/loading.gif" lazyload alt="Variance-time action 的完整 campaign 因果路径"></p>
+<p><em>图 2：clock difference 只是 mechanics 起点；它还要穿过 downstream blocker、quote action、fill、inventory 与 terminal。timing 改变而最终动作不变时，不会自动产生经济 treatment。</em></p>
 <h2 id="1-研究问题：同样的-85-秒具有同样的市场信息量吗？"><a href="#1-研究问题：同样的-85-秒具有同样的市场信息量吗？" class="headerlink" title="1. 研究问题：同样的 85 秒具有同样的市场信息量吗？"></a>1. 研究问题：同样的 85 秒具有同样的市场信息量吗？</h2><p>冷却的目的不是崇拜秒数，而是在 toxic fill 后等待足够市场演化。若局部波动剧烈，20 秒可能已经经历大量价格风险；若盘口静止，85 秒可能只包含很少信息。于是候选用“波动时间”衡量 elapsed exposure。</p>
 <p>对 lineage $e$、side $s$，control release 为：</p>
 <script type="math/tex; mode=display">
@@ -406,6 +409,12 @@ B_{s,e}=\nu_{ref,s}\cdot85\text{s}\cdot\max(1,n_{same-side\ fill\ units}),
 \nu_t=10^8\frac{\sigma^2_{p,t}}{m_t^2}\quad[\mathrm{bps}^2/\mathrm{s}].</script><p>对 bucket $[t,t+1s)$，只使用 timestamp 严格小于 $t+1s$ 的最后 valid BBO；bucket 在结束时刻加冻结 ready delay 后才可见。missing 或 stale variance 让时钟暂停，不用未来数据回填，也没有默认方差。</p>
 <p>前 20 个 Development 日 outcome-blind 拟合 reference rate：BUY 0.3664154173 bps²/s，SELL 0.6020856312 bps²/s。随后 20 日含 3,376 BUY、2,107 SELL episodes；在 0/250/1000ms ready-delay 三个场景中，start-valid 均约 99.6% 以上，valid-clock 约 99.8% 以上，Python/C++ mismatch 为 0。</p>
 <p>一个例子：若 BUY budget 为 $0.3664\times85\approx31.15$ bps²，高波动阶段每秒累计 1.5 bps²，约 21 秒可能达到预算；低波动阶段每秒 0.1 bps²，则需更久并受 liveness cap。candidate 既可早于 control，也可晚于 control，这种 two-sided variation 是可识别 action 的必要条件。</p>
+<h3 id="2-1-量纲为什么在这里闭合"><a href="#2-1-量纲为什么在这里闭合" class="headerlink" title="2.1 量纲为什么在这里闭合"></a>2.1 量纲为什么在这里闭合</h3><p>$\nu_t$ 的单位是 bps²/s，乘以秒得到 bps² budget；累计完成 bucket 的 $\nu_t\Delta t$ 也为 bps²。因此：</p>
+<script type="math/tex; mode=display">
+[B]=[QV]=\mathrm{bps}^2.</script><p>这和报价核心中“60 个 1 秒变化估计方差，再乘风险 horizon”的问题不同。这里的 85 秒不是又乘进价格方差的 AS horizon，而是用于把历史 reference variance rate 转成累计市场演化预算。若把未归一化 price variance 与 bps² reference 混用，budget 会随 BTC 价格水平平方漂移。</p>
+<p>completed bucket 还解决了一个时间问题：$[t,t+1s)$ 的方差只有到 $t+1s$ 并经过 ready delay 后才存在。若在区间中间用最终 close，candidate 会提前累计未来波动，通常在剧烈行情中更早 rearm，形成方向性泄漏。</p>
+<h3 id="2-2-Two-sided-variation-为什么比“总是更久”更可识别"><a href="#2-2-Two-sided-variation-为什么比“总是更久”更可识别" class="headerlink" title="2.2 Two-sided variation 为什么比“总是更久”更可识别"></a>2.2 Two-sided variation 为什么比“总是更久”更可识别</h3><p>如果 candidate 永远晚于 baseline，它容易退化成 participation suppression；如果永远更早，则近似放松安全门。variance time 在高波动时提前、低波动时延后，提供相反方向的 timing contrasts，使研究能够检验“市场演化量”而不是单纯更保守或更激进。</p>
+<p>但 two-sided mechanics 不保证正净效应。高波动早放可能在风险最大时增加 exposure，低波动晚放又可能丢失平稳 spread；两边都可能负。只有 terminal replay 能决定哪种机会成本占主导。</p>
 <h2 id="3-输入、动作与-estimand"><a href="#3-输入、动作与-estimand" class="headerlink" title="3. 输入、动作与 estimand"></a>3. 输入、动作与 estimand</h2><div class="table-container">
 <table>
 <thead>
@@ -483,6 +492,12 @@ Y=V^{maker}_{30s}-R^{campaign}_{accounting}-C_{queue/reset}.</script><p>$R^{camp
 </table>
 </div>
 <p>fill retention 超过 100% 并非复制错误：更早或更晚 rearm 会重排 queue 与后续 fills，candidate 可能多成交。重要的是两侧 participation 没崩塌，且 final action 差异充足。</p>
+<h3 id="5-1-从-clock-change-到-final-action-change-的传导"><a href="#5-1-从-clock-change-到-final-action-change-的传导" class="headerlink" title="5.1 从 clock change 到 final-action change 的传导"></a>5.1 从 clock change 到 final-action change 的传导</h3><p>candidate release 与 wall release 不同，只是潜在 action difference。真实 quote 还可能被 q90、markout guard、consecutive-loss cooldown、sync degrade、inventory limit 或其它 blocker 同时禁止。若两臂最终都不能提交，clock 差异不会进入订单层。</p>
+<p>这就是 preflight 同时报告 unmasked support 与 final-action change 的原因。BUY/SELL 37.02%/24.41% 说明传导足够强，却也说明大量 timing differences 被后续机制吸收。一个只模拟 clock、不重放完整 blocker stack 的简化回测会夸大 treatment rate。</p>
+<h3 id="5-2-Lineage-assignment-防止-later-fill-重新随机化"><a href="#5-2-Lineage-assignment-防止-later-fill-重新随机化" class="headerlink" title="5.2 Lineage assignment 防止 later fill 重新随机化"></a>5.2 Lineage assignment 防止 later fill 重新随机化</h3><p>same-side later fills 会扩大 wall 与 variance budget，但 arm 必须保持不变。否则 candidate 早放导致额外 fill，额外 fill又触发新随机数，assignment 本身受 treatment path 影响，破坏 0.5/0.5 propensity。</p>
+<p>冻结 lineage 可表达为：</p>
+<script type="math/tex; mode=display">
+A_e=H(day,side,lineage\ identity),</script><p>直到 opposite fill、reset 或 censor 才结束。所有由当前 arm 产生的 same-side fills 继承 $A_e$。这是一种 sequential consistency 约束，不只是去重字段。</p>
 <h2 id="6-经济结果与不确定性"><a href="#6-经济结果与不确定性" class="headerlink" title="6. 经济结果与不确定性"></a>6. 经济结果与不确定性</h2><p>所有差异为 candidate-control，interval 用完整 UTC-day cluster bootstrap：</p>
 <div class="table-container">
 <table>
@@ -542,6 +557,14 @@ Y=V^{maker}_{30s}-R^{campaign}_{accounting}-C_{queue/reset}.</script><p>$R^{camp
 </table>
 </div>
 <p>BUY terminal campaign secondary metric 有正下界，却不能覆盖 primary reward、q10、MAE、repair、censor 与 inventory-time 的联合失败。SELL reward 点估计及正日率看起来更好，但 interval 仍跨零，其 terminal 与 tail gates 也失败。BUY/SELL 不允许 pooled rescue，两个 scorecards 均 <code>ranking_score=null</code>。</p>
+<h3 id="6-1-BUY-primary-与-campaign-terminal-为什么会给出不同方向强度"><a href="#6-1-BUY-primary-与-campaign-terminal-为什么会给出不同方向强度" class="headerlink" title="6.1 BUY primary 与 campaign terminal 为什么会给出不同方向强度"></a>6.1 BUY primary 与 campaign terminal 为什么会给出不同方向强度</h3><p>primary lineage reward 从 assignment 开始，以 lineage terminal 的直接权益变化为准；campaign terminal 可能包含 assignment 前已经积累的 campaign PnL，或 assignment 后但不完全属于 lineage treatment 的 continuation。若 candidate/control 在进入 assignment 时历史状态稍有不平衡，campaign-level secondary 容易吸收 pre-assignment value。</p>
+<p>正确归因要求：</p>
+<script type="math/tex; mode=display">
+Y_{decision\to terminal}
+=
+R_{lineage}+C_{post-lineage},</script><p>而 pre-assignment campaign PnL只能作 covariate/balance diagnostic。后续 negative-result attribution 正发现 BUY 的漂亮 campaign terminal下界含有这类上游成分；因此 primary failure 不能由 secondary 覆盖。</p>
+<h3 id="6-2-机械证据越强，经济阴性越不能归咎于实现"><a href="#6-2-机械证据越强，经济阴性越不能归咎于实现" class="headerlink" title="6.2 机械证据越强，经济阴性越不能归咎于实现"></a>6.2 机械证据越强，经济阴性越不能归咎于实现</h3><p>本项目有 causal clock、three-delay sensitivity、full-path blocker、数百万 book/evaluation 的 C++ kernel parity、两臂完整支持和可观 final-action change。它排除了许多常见借口：不是没触发、不是 C++ 算错 q90、不是全部被 blocker mask、也不是停止交易。</p>
+<p>剩余结论更集中：在冻结 40 日、budget 与 liveness 下，variance-time 对主 terminal reward 的平均贡献没有建立正下界。机制漂亮并不削弱阴性，反而让它更有解释力。</p>
 <h2 id="7-结果边界与剩余不确定性"><a href="#7-结果边界与剩余不确定性" class="headerlink" title="7. 结果边界与剩余不确定性"></a>7. 结果边界与剩余不确定性</h2><p>daily fresh-start replay 不等价于连续 live carry。历史 40 日没有出现真实 q90 cancel-request 到 ACK 之间的 fill branch；该分支只有 synthetic contract coverage，不能声称有历史市场覆盖。AWS receive-time transport 也没有获得支持，exchange-time BBO clock 不能直接转成 live authority。</p>
 <p>Development q10 threshold 曾从 pooled control rows 计算，这是 nuisance limitation；它不能用作 side-specific tail artifact。但两侧已分别失败 primary reward 与额外 hard gates，所以该问题不会把关闭反转成晋级。</p>
 <h2 id="8-关闭边界与没有获得的权限"><a href="#8-关闭边界与没有获得的权限" class="headerlink" title="8. 关闭边界与没有获得的权限"></a>8. 关闭边界与没有获得的权限</h2><p>关闭的是冻结 variance budget 与 liveness bounds 替代 wall clock 的 action。variance clock 本身仍是可复现 mechanics component，但不是已验证的经济策略。</p>
@@ -552,6 +575,14 @@ Y=V^{maker}_{30s}-R^{campaign}_{accounting}-C_{queue/reset}.</script><p>$R^{camp
 <li>没有重调 $\nu_{ref}$、budget、liveness 或 score profile 的权限；</li>
 <li>没有用 BUY secondary terminal metric 覆盖 primary failure 的权限。</li>
 </ul>
+<h2 id="Variance-clock-与固定秒钟回答不同问题"><a href="#Variance-clock-与固定秒钟回答不同问题" class="headerlink" title="Variance clock 与固定秒钟回答不同问题"></a>Variance clock 与固定秒钟回答不同问题</h2><p>固定85秒把所有市场状态视作同样的信息演化；variance clock累计的是价格路径活动量。若每个小区间absolute-price variance估计为$\hat\sigma^2_j$、长度$\Delta t_j$，累计业务时间为</p>
+<script type="math/tex; mode=display">
+B(t)=\sum_{j:t_j\le t}\hat\sigma_j^2\Delta t_j.</script><p>达到阈值$B^*$时rearm，平静期可能等待更久、剧烈期更快。它不是“vol高就永远延迟”或“总比85秒长”，而是让相同累计variation对应相近的市场演化量。</p>
+<p>不过$\hat\sigma_j^2$本身必须在bucket完成后ready，不能用包含未来价格的同区间估计。若缺失state被当零，clock会在数据断档时虚假停滞；若用未来补值，又形成lookahead。完整报告需要区分calendar elapsed、valid variance exposure与invalid hold时间。</p>
+<h2 id="Clock-change、action-change-与-value-change-是三层门"><a href="#Clock-change、action-change-与-value-change-是三层门" class="headerlink" title="Clock change、action change 与 value change 是三层门"></a>Clock change、action change 与 value change 是三层门</h2><p>第一层检查$B(t)$是否真的让rearm time相对control双向变化；第二层检查时间变化是否落到permission、quote、activation与fill；第三层才比较terminal value。若clock每次都变但final action被其它guard挡住，economics近似no-op；若action充分分叉却value不改善，才是对机制的有力阴性。</p>
+<p>本研究恰好属于后者：lineage、action与support足够，BUY/SELL primary reward下界仍未过零。此时不能把失败解释成“实现没动”或“样本完全没有动作”。强mechanics让经济结论更清楚：累计variation作为单独release clock没有提供稳定terminal uplift。</p>
+<h2 id="可保留的系统能力与不可保留的动作结论"><a href="#可保留的系统能力与不可保留的动作结论" class="headerlink" title="可保留的系统能力与不可保留的动作结论"></a>可保留的系统能力与不可保留的动作结论</h2><p>causal variance clock仍是可复用primitive。它可以用于duration标准化、risk reporting或其它预注册动作，但不能因为工程完整就默认rearm有利。未来若与inventory budget或external recovery结合，组合rule属于新treatment，需要新support；不允许把本篇阴性主效应和另一个弱信号事后相乘寻找winner。</p>
+<p>一个更小的后继可以只研究固定秒钟与variance clock在明确campaign role上的one-shot release，并把风险utility预先写明。若目标是降低库存时间而允许轻微mean成本，权重应在结果前冻结；否则“风险更好”与“价值更好”会继续被混用。</p>
 <h2 id="9-公共证据"><a href="#9-公共证据" class="headerlink" title="9. 公共证据"></a>9. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/volatility_time_add_rearm_randomized_replay_v1_development_20260729.md"><code>volatility_time_add_rearm_randomized_replay_v1_development_20260729.md</code></a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/volatility_time_add_rearm_feasibility_v2_1_development_20260729.md"><code>volatility_time_add_rearm_feasibility_v2_1_development_20260729.md</code></a></li>

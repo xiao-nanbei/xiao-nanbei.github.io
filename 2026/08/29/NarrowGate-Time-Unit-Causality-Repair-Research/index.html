@@ -27,12 +27,13 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：单位、feature-ready clock 或 timer event 错一个，改变的不只是指标，而是整条订单生命周期maker replay 常被误认为“把历史 trades 依次送进策略”。NarrowGate 的系统审计发现，真实 replay 还需要正确处理 variance unit、quote ho">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/time-unit-causality-repair.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/sys-replay-causality-repair-stack.svg">
 <meta property="article:published_time" content="2026-08-28T16:00:00.000Z">
 <meta property="article:modified_time" content="2026-08-28T16:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
-<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="低延迟系统">
 <meta property="article:tag" content="可复现性">
 <meta name="twitter:card" content="summary_large_image">
@@ -333,7 +334,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          8.7k 字
+          10k 字
         
       </span>
     
@@ -345,7 +346,7 @@
         
         
           <!-- compatible with older versions-->
-          73 分钟
+          87 分钟
         
       </span>
     
@@ -399,6 +400,8 @@
 <p>本文只讨论公开 system-engineering evidence，不构成交易建议。图中的 K 线、event stream 与订单状态为合成机制图，不是实盘。</p>
 <p><img src="/images/narrowgate/time-unit-causality-repair.svg" srcset="/img/loading.gif" lazyload alt="NarrowGate replay 的单位、feature clock 与 merged causal event stream"></p>
 <p><em>图 1：价格 variance 先按 horizon积分并乘 BTC quantity；feature 只能在 bucket end ready；trades、book changes 与 100ms timers共同推进生命周期。任何一层错误都会改变 fills、inventory与 terminal value。</em></p>
+<p><img src="/images/narrowgate/sys-replay-causality-repair-stack.svg" srcset="/img/loading.gif" lazyload alt="从物理单位、因果时钟到策略证据的修复栈"></p>
+<p><em>图 2：修复按依赖顺序向上推进。底层单位和时间不成立时，上层Python/C++ parity只会稳定地复现同一个错误；event与state正确后，才轮到action economics。</em></p>
 <h2 id="1-为什么这些修复是一项研究，而不是九个小-bug"><a href="#1-为什么这些修复是一项研究，而不是九个小-bug" class="headerlink" title="1. 为什么这些修复是一项研究，而不是九个小 bug"></a>1. 为什么这些修复是一项研究，而不是九个小 bug</h2><p>这些缺陷看似分散：一个公式多乘 mid、一个 timestamp单位错、一个 timer没有 tick、一个 commission asset丢失。但它们都回答同一个系统研究问题：<strong>历史 replay 是否在正确单位、正确可见时间和完整 wall clock 上重现策略可执行的状态转移？</strong></p>
 <p>研究 identity 的终点也一致：建立一个 frozen formal replay contract，让 Python/C++ 对相同 causal inputs锁步，再看修复后的模型或动作是否通过 promotion gate。每个实现修正只是这条链的 component，不应拆成独立 alpha article。</p>
 <h2 id="2-Variance-unit：不要把价格波动再乘一次-mid"><a href="#2-Variance-unit：不要把价格波动再乘一次-mid" class="headerlink" title="2. Variance unit：不要把价格波动再乘一次 mid"></a>2. Variance unit：不要把价格波动再乘一次 mid</h2><p>若 $\sigma_p^2$ 是一秒 absolute-price variance，单位为</p>
@@ -418,6 +421,11 @@
 USDC.</script><p>旧实现又乘 mid-price，会多出 USDC/BTC，结果不再是 USDC。这个错误会扭曲 circuit breaker、exit urgency 与 quote risk，而不是只让 report label难看。</p>
 <p>quote_horizon_s 与 pnl_volatility_horizon_s 也必须分开。per-second variance没有天然的“10 秒风险”；当前 public quote horizon明确为 1 秒，PnL risk horizon是另一项冻结参数，不能从 quote horizon推断。</p>
 <p>ML-OFF 时 neutral prediction令 vol_10s=0，不能拿 dimensionless realized-return volatility替换 absolute-price variance。Post-fill接口则明确接收 volatility_bps，live/replay按同一公式转换。</p>
+<h3 id="2-1-一个量纲算例"><a href="#2-1-一个量纲算例" class="headerlink" title="2.1 一个量纲算例"></a>2.1 一个量纲算例</h3><p>假设absolute-price volatility为 $20\ \mathrm{USDC/BTC}/\sqrt{s}$，风险horizon为10秒，inventory为$0.01\ BTC$。正确的PnL标准差是</p>
+<script type="math/tex; mode=display">
+20\times\sqrt{10}\times0.01
+\approx0.632\ \mathrm{USDC}.</script><p>若再乘一个60,000 USDC/BTC的mid，数值会膨胀到约37,947，而且单位变成$\mathrm{USDC}^2/\mathrm{BTC}$，已经不是损益。这个例子说明“vol是价格还是收益”“variance按秒还是按窗口”“quantity以BTC还是订单单位计”必须作为接口类型，而不能留给参数调优吸收。</p>
+<p>同理，若输入已经是10秒累计variance，再乘$H=10$会重复积分；若输入是dimensionless return variance，则必须先乘价格尺度才能转成absolute-price风险。数值相近不能替代量纲闭合。</p>
 <h2 id="3-Feature-visibility：index-time-不是-ready-time"><a href="#3-Feature-visibility：index-time-不是-ready-time" class="headerlink" title="3. Feature visibility：index time 不是 ready time"></a>3. Feature visibility：index time 不是 ready time</h2><p>左标 10 秒 row at $t$ 覆盖区间 $[t,t+10s)$。策略直到 bucket结束才可能知道完整统计，因此</p>
 <script type="math/tex; mode=display">
 t_{feature\ ready}=t_{index}+10s.</script><p>replay lookup必须用 $t_{ready}$，不是 raw index。旧 cache在 timestamp semantics变化后整体失效，不能只改 metadata让历史 predictions看起来 causal。</p>
@@ -437,6 +445,9 @@ t_{feature\ ready}=t_{index}+10s.</script><p>replay lookup必须用 $t_{ready}$�
 \cup
 \mathcal D_{100ms\ deadlines},</script><p>按 causal timestamp稳定合并。synthetic book/timer row携带最新可见 execution price、quantity zero，可以推进 state machine和 inventory-time integral；它不能 consume queue、create fill或制造 inferred touch。real trades同毫秒保留 stable input order。</p>
 <p>formal mode拒绝 trade-only clock，并要求 positive timer interval。exploratory mode可以显式重现 legacy diagnostic，但没有 promotion eligibility。</p>
+<h3 id="5-1-一条无成交区间里的事件序列"><a href="#5-1-一条无成交区间里的事件序列" class="headerlink" title="5.1 一条无成交区间里的事件序列"></a>5.1 一条无成交区间里的事件序列</h3><p>设订单在12:00:00.000激活，TTL为5秒，requote interval为1秒，12:00:00.400之后直到12:00:07.000没有execution trade，但BBO在12:00:02.300变化。现实系统仍会在每个timer edge检查quote，在12:00:02.300读取新book，并最迟于12:00:05.000触发expiry/cancel逻辑。</p>
+<p>trade-only replay却会把状态冻结到12:00:07.000：订单虚构地多暴露两秒，cooldown与markout也同时停摆；若12:00:07的trade触及旧价，replay甚至可能给一张现实中已经撤掉的订单记fill。merged stream并非为了制造更多event，而是为了让“时间经过”本身成为可观测状态转移。</p>
+<p>synthetic timer row的quantity为零这一约束非常关键。若为了推进clock而复制上一笔trade quantity，它会同时消耗queue；若timer row可以触发touch，它会凭空制造fill。clock completeness与market-event authority必须是两个独立字段。</p>
 <h2 id="6-Wall-time、exposure-与-capacity"><a href="#6-Wall-time、exposure-与-capacity" class="headerlink" title="6. Wall time、exposure 与 capacity"></a>6. Wall time、exposure 与 capacity</h2><p>旧 day exposure使用</p>
 <script type="math/tex; mode=display">
 \frac{\#\{seconds\ containing\ trades\}}{86400},</script><p>这衡量 activity coverage，不是 replay elapsed time。一个完整但稀疏的 UTC day可能被报成“半天”，fills/day随之虚高。</p>
@@ -524,6 +535,8 @@ E_T=cash_T+inventory_T\cdot mark_T,</script><p>不在窗口末尾虚构 taker cl
 </table>
 </div>
 <p>这是 migration diagnostic，不是 live baseline或 alpha。它证明 timer/order lifecycle改变后，旧 exact values和A/B deltas都不应继续使用。</p>
+<h3 id="9-1-Parity-的三层边界"><a href="#9-1-Parity-的三层边界" class="headerlink" title="9.1 Parity 的三层边界"></a>9.1 Parity 的三层边界</h3><p>第一层是kernel parity：同一个feature vector进入Python与C++，输出是否一致。第二层是lifecycle parity：相同event stream下，两侧是否以同样顺序产生submit、ACK、fill、cancel、inventory与cash。第三层是environment validity：event stream、queue与latency是否足以代表目标市场。</p>
+<p>前两层通过只能排除实现漂移，不能证明第三层。两套runtime完全一致地使用一秒snapshot、错误queue或不完整ACK，也会得到漂亮的零差异。相反，若第三层输入正确而kernel parity失败，economics仍然不可解释。研究报告因此必须同时说清“对什么输入一致”和“这些输入代表什么”。</p>
 <h2 id="10-causal-v7：修复后的-successor-仍未晋级"><a href="#10-causal-v7：修复后的-successor-仍未晋级" class="headerlink" title="10. causal-v7：修复后的 successor 仍未晋级"></a>10. causal-v7：修复后的 successor 仍未晋级</h2><p>后续 contract把 calendar、commission、daily PnL、tick/lot、post-fill volatility与bar clock纳入 authoritative replacement causal-v7。bundle含742,998 train、172,798 validation、172,799 historical test rows；13 heads每个195个 strict metadata features。</p>
 <p>selected test diagnostics包括 dir_10s AUC 0.5363、ret_10s IC 0.0396、vol_10s IC 0.5779、toxicity heads AUC约0.5413–0.5726。它们是 prediction diagnostics，不是 action/PnL evidence。</p>
 <p>42日 corrected formal replay完成776,048 order rows。相对 v6同日 denominator：</p>
@@ -533,6 +546,8 @@ E_T=cash_T+inventory_T\cdot mark_T,</script><p>不在窗口末尾虚构 taker cl
 \Delta fills=+88,
 \quad
 \Delta I_{abs}=+205.02\ \text{BTC-hours}.</script><p>不能把差异单独归因于 calendar bug，因为多个 semantics共同变化；它只证明 v6 nonlinear results没有跨 identity存活。</p>
+<h3 id="10-1-修复前后为什么必须划断-evidence-identity"><a href="#10-1-修复前后为什么必须划断-evidence-identity" class="headerlink" title="10.1 修复前后为什么必须划断 evidence identity"></a>10.1 修复前后为什么必须划断 evidence identity</h3><p>causal-v7不是把v6的某几列更正后继续追加一行，而是换了calendar、fees、clock、tick/lot、volatility和label semantics的联合数据生成过程。每个变化都可能改变feature分布或订单路径，联合变化更不可能用一个线性adjustment还原旧PnL。</p>
+<p>因此迁移后的正确比较有两类：一类是同一新identity内的paired arms，用于回答action question；另一类是old-vs-new migration diagnostic，只用于量化修复有多material。把后一类的$-3.7363$解释为新系统更差，或把$+88$ fills解释为新模型更好，都把系统差异误当成策略效应。</p>
 <h2 id="11-Strict-ML-A-B-与-BUY-fill-selection-都失败-joint-gate"><a href="#11-Strict-ML-A-B-与-BUY-fill-selection-都失败-joint-gate" class="headerlink" title="11. Strict ML A/B 与 BUY fill-selection 都失败 joint gate"></a>11. Strict ML A/B 与 BUY fill-selection 都失败 joint gate</h2><p>strict ML A/B只改变 ML OFF vs causal-v7 13 heads，BUY actions disabled。Validation20 raw PnL delta总计 $+1.038$，daily interval跨零；terminal delta $-2.6465$，区间也跨零；fills减少772，absolute inventory time增加276.65 BTC-hours。Historical Test17 raw与terminal deltas均为负、interval跨零。</p>
 <p>inventory-adjusted diagnostic有局部正值，不能补偿 raw/terminal、activity与inventory-time gates。13-head inference因此不 promoted，保持 disabled。</p>
 <p>BUY fill-selection的四个 targets也没有同时改善 markout、terminal campaign value、bad rate与tail。例如 non_toxic hit组20s/30s markout更好，却terminal PnL/campaign差 $-0.1053$、bad rate高 $+0.2001$、tail高 $+0.0368$。prediction slice好看没有形成 joint action value。</p>
@@ -588,9 +603,9 @@ E_T=cash_T+inventory_T\cdot mark_T,</script><p>不在窗口末尾虚构 taker cl
       
         <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
       
-        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
-      
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
         <a href="/tags/%E4%BD%8E%E5%BB%B6%E8%BF%9F%E7%B3%BB%E7%BB%9F/" class="print-no-link">#低延迟系统</a>
       

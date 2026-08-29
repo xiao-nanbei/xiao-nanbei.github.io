@@ -27,13 +27,14 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：曲线复现了，但这只证明 P(touch) 稳定NarrowGate 的经验 P3 是一个很容易被误读的量。它估计的是：从当前同侧最优价出发，side-correct aggressive flow 在固定时间内是否到达距离 $d$。它不是订单进入队列后的 fill probability，不包含 queue pr">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/p3-normalized-100ms-recalibration-curves.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f02-p3-estimand-ladder.svg">
 <meta property="article:published_time" content="2026-08-29T12:31:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T12:31:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="市场微观结构">
-<meta property="article:tag" content="回测">
 <meta property="article:tag" content="生存分析">
+<meta property="article:tag" content="回测">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/p3-normalized-100ms-recalibration-curves.svg">
   
@@ -332,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          4.8k 字
+          8.7k 字
         
       </span>
     
@@ -344,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          41 分钟
+          73 分钟
         
       </span>
     
@@ -466,6 +467,37 @@ P_{touch,s}(d;H)=P\bigl(Z_{s,d,H}=1\bigr).</script><p>历史 runtime 需要两�
 <h2 id="9-支持边界与没有获得的权限"><a href="#9-支持边界与没有获得的权限" class="headerlink" title="9. 支持边界与没有获得的权限"></a>9. 支持边界与没有获得的权限</h2><p>本研究支持：固定 5s/10s 经验 touch curve 对 mixed-to-normalized BBO 修复不敏感；normalized artifact 是后续研究应绑定的正确输入身份。</p>
 <p>它不支持：touch 等于 fill、局部 log-slope 等于 fill intensity、曲线能优化 quote、更多 touches 会改善 PnL、旧 queue/campaign 证据被恢复。</p>
 <p>本次校准没有 quote action、artifact replacement、Validation 晋级、sealed holdout、shadow 或 live 权限。任何把 P3 映射到报价的研究，都必须另行冻结 mapping 和 full-path economic A/B。</p>
+<h2 id="深入推导：一条十秒触达曲线隐含了什么"><a href="#深入推导：一条十秒触达曲线隐含了什么" class="headerlink" title="深入推导：一条十秒触达曲线隐含了什么"></a>深入推导：一条十秒触达曲线隐含了什么</h2><p>对固定报价距离 $\delta$，令首次触达时间为 $T_\delta$。十秒 P3 曲线报告的是累积分布的一点：</p>
+<script type="math/tex; mode=display">
+P_{10}(\delta)=P(T_\delta\le 10\text{s}).</script><p>如果把时间离散为 100ms bucket，并令 $h_k(\delta)$ 为在此前尚未触达时第 $k$ 个 bucket 首次触达的条件概率，则：</p>
+<script type="math/tex; mode=display">
+P_{10}(\delta)=1-\prod_{k=1}^{100}\left(1-h_k(\delta)\right).</script><p>所以同一条十秒曲线可以由许多完全不同的时间结构产生：一种市场可能在前 500ms 集中触达，另一种可能把相同总概率均匀分散在十秒内。二者对 1 秒决策、5 秒订单寿命和撤单时钟的意义并不相同。v2 recalibration 证明固定 horizon 的聚合曲线在规范化盘口下稳定，却没有识别这 100 个 hazard bucket。</p>
+<p>距离维度也一样。合理曲线通常满足 $\delta<em>1&lt;\delta_2\Rightarrow P</em>{10}(\delta<em>1)\ge P</em>{10}(\delta_2)$，但单调性只是一种 shape constraint。它不能告诉我们触达后前方 queue 有多少、是否轮到自己的订单、成交后价格是否继续穿越，更不能告诉我们未成交的机会成本。</p>
+<p><img src="/images/narrowgate/f02-p3-estimand-ladder.svg" srcset="/img/loading.gif" lazyload alt="P3 从触达到完整动作价值的 estimand 阶梯"></p>
+<p><em>图 2：<code>P(touch)</code>、reach-time hazard、queue-conditioned fill、fill value 与 campaign action value 是五级不同 estimand。v2 位于第一级。</em></p>
+<h2 id="一个数值例子：同样的-P3，不同的执行价值"><a href="#一个数值例子：同样的-P3，不同的执行价值" class="headerlink" title="一个数值例子：同样的 P3，不同的执行价值"></a>一个数值例子：同样的 P3，不同的执行价值</h2><p>假设离 mid 0.5 USDC 的 BUY quote 在十秒内有 40% 触达概率。场景 A 中，盘口前方只有很小队列，触达后本单有 70% 概率成交；场景 B 中，前方深度很厚，成交概率只有 10%。即便忽略撤单，两者的粗略成交概率已经分别是 $0.4\times0.7=28\%$ 与 $0.4\times0.1=4\%$。</p>
+<p>再假设 A 的成交多发生在单边下跌开始时，成交后 30 秒 maker-signed value 均值为 -0.8 USDC；B 的少量成交主要发生在均值回归阶段，均值为 +0.3 USDC。相同的 P3 可以对应完全不同的 fill value。把 40% 直接叫作 fill probability，或把它压成一个“有效 $\kappa$”，会同时丢掉 queue conversion 与成交条件价值。</p>
+<p>这个例子也说明 recalibration 的正确用途：它可以检查“给定距离，市场多久会走到这里”，可以作为报价可达性、订单寿命和 support 设计的输入；它不能单独决定应该把报价放在哪里。报价动作至少需要联合：</p>
+<script type="math/tex; mode=display">
+V(\delta)=P(\text{fill}\mid \delta, X)\,E[Y_{fill}\mid \text{fill},\delta,X]
+-C_{queue/cancel}(\delta,X)-C_{inventory}(\delta,X).</script><p>其中任何一项缺失，都不能由更精确的 $P(touch)$ 替代。</p>
+<h2 id="为什么-identity-drift-会改变曲线而不仅是小数位"><a href="#为什么-identity-drift-会改变曲线而不仅是小数位" class="headerlink" title="为什么 identity drift 会改变曲线而不仅是小数位"></a>为什么 identity drift 会改变曲线而不仅是小数位</h2><p>100ms 规范化不仅改变文件路径。它固定了 book snapshot 的时间边界、档位深度、价格与数量单位、缺失 bucket 的处理、跨日 warmup 和 source-day admission。若旧数据在某些时段更稀疏，距离较近的触达可能被低估；若时间标签提前，未来价格变化会被错误归入当前窗口，曲线可能被高估。</p>
+<p>因此“新旧曲线几乎重合”并不意味着 recalibration 多余。它表示在更严格 identity 下，一个旧形状获得了新的、可审计的支持；同时也把不允许继承的部分说清楚：旧 artifact 的 hash、面板与本地路径不能继续充当现行证据，旧报价 adapter 的经济结果也不会因为曲线相近而自动恢复。</p>
+<h2 id="复算视角：怎样从-BBO-路径得到一条不偷看未来的-P3-曲线"><a href="#复算视角：怎样从-BBO-路径得到一条不偷看未来的-P3-曲线" class="headerlink" title="复算视角：怎样从 BBO 路径得到一条不偷看未来的 P3 曲线"></a>复算视角：怎样从 BBO 路径得到一条不偷看未来的 P3 曲线</h2><p>对每个决策起点 $t$，先用当时可见的 best bid/ask构造参考价 $m_t$。BUY 与 SELL 必须分开定义未来的aggressive reach：BUY报价关注未来卖压是否把可成交边界推到$m_t-\delta$，SELL报价关注未来买压是否推到$m_t+\delta$。在半开窗口$[t,t+H)$内，只要对应边界首次达到目标距离，label就是1；否则在数据覆盖完整的前提下记0。</p>
+<p>真正困难的不是写出indicator，而是保证三个分母一致。起点必须有合法BBO；整个forward horizon必须有足够覆盖；day-end不足$H$的尾部不能被当作“未触达”。若不同distance使用不同可用rows，曲线单调性可能只是分母变化造成。规范化recalibration应让同一起点的整组distance labels共享coverage decision，再在day与side内聚合。</p>
+<p>静态曲线可以用生存函数理解。对连续距离$D<em>H=\max</em>{u\in[t,t+H)}|m_u-m_t|$，有</p>
+<script type="math/tex; mode=display">
+P_H(\delta)=P(D_H\ge\delta)=1-F_{D_H}(\delta^-).</script><p>因此它本质上是未来最大位移的尾分布，而不是订单成交通道。这个表述还提供了一个直接复算方法：先对每个起点求未来最大有向位移，再对各距离阈值计算经验生存率。若离散tick、side符号和窗口边界都固定，曲线应随$\delta$单调不增、随$H$单调不减。</p>
+<h2 id="稳定曲线仍可能在策略中失效的三种路径"><a href="#稳定曲线仍可能在策略中失效的三种路径" class="headerlink" title="稳定曲线仍可能在策略中失效的三种路径"></a>稳定曲线仍可能在策略中失效的三种路径</h2><p>第一种是寿命错配。十秒P3被用于一秒后就会撤换的订单时，真正相关的是$P(T<em>\delta\le1s)$，不是$P(T</em>\delta\le10s)$。第二种是queue错配：价格触达并不意味着排在前面的数量已经耗尽。第三种是value错配：成交恰好可能发生在最不利的价格延续阶段。</p>
+<p>这三种路径说明recalibration的“几乎不变”应怎样使用：它允许后续研究把normalized v2作为稳定的reachability baseline，不需要把所有失败归咎于BBO cadence；它不允许把稳定性扩写成策略有效性。若一个quote adapter失败，应该检查估计量映射、订单寿命和fill条件价值，而不是重新宣称P3曲线本身不可靠。</p>
+<h2 id="一条-100ms-路径的逐格标注"><a href="#一条-100ms-路径的逐格标注" class="headerlink" title="一条 100ms 路径的逐格标注"></a>一条 100ms 路径的逐格标注</h2><p>假设BUY侧起点mid为60,000.0，未来十秒的最低可见ask依次到达59,999.8、59,999.3、59,998.9后反弹。对$\delta=0.5$，首次触达发生在ask不高于59,999.5的第一个bucket；对$\delta=1.0$，发生在不高于59,999.0的bucket；对$\delta=1.5$则整个窗口censor为未触达。三个labels共享同一条路径，而不是三次独立观测。</p>
+<p>若在中间有500ms source gap，不能简单用下一张snapshot把整个gap解释成连续价格路径。最保守做法是按预注册freshness/coverage规则把该起点从所有距离分母删除；若只删远距离label、保留近距离，就会让曲线的不同点基于不同样本。day end最后十秒同理：没有完整未来窗口不是负例。</p>
+<p>BUY与SELL也不能把absolute move共用后再随手乘负号。BUY reach用下行边界，SELL reach用上行边界；spread与tick rounding可能让两侧可执行距离不同。规范化曲线要先在side内估计，再决定是否用共享参数汇总。</p>
+<h2 id="delta-star-与-kappa-eff-的统计不确定性"><a href="#delta-star-与-kappa-eff-的统计不确定性" class="headerlink" title="delta_star 与 kappa_eff 的统计不确定性"></a><code>delta_star</code> 与 <code>kappa_eff</code> 的统计不确定性</h2><p><code>delta_star</code>常由曲线跨过某个固定概率的位置插值，<code>kappa_eff</code>由选定区间的log slope得到。二者不是原始观测：一个cell概率的小变化，在曲线很平时可能造成较大的交点移动；clipping与grid边界也会让估计非光滑。</p>
+<p>因此新旧artifact比较不应只给两个点参数，还要比较整条曲线、day/side cells与source-overlap。若参数近似相同而局部实际报价区间差异较大，策略仍可能改变；反之，远端小概率cell差异即使相对百分比很大，也可能与实际quote无关。</p>
+<p>一个更严格的bootstrap会按日重采样整条曲线，每次重新计算$\delta<em>\star$与$\kappa</em>{eff}$，保留它们的联合变化。不能把数百万重叠100ms windows当独立样本，否则置信区间会虚假狭窄。</p>
+<h2 id="复算时最容易混淆的五个字段"><a href="#复算时最容易混淆的五个字段" class="headerlink" title="复算时最容易混淆的五个字段"></a>复算时最容易混淆的五个字段</h2><p>第一是reference price：mid、weighted-mid proxy还是某侧BBO。第二是distance单位：USDC/BTC、ticks还是bps。第三是horizon：5秒/10秒及半开端点。第四是time identity：exchange snapshot还是策略ready。第五是event object：价格触达、aggressive trade reach还是本单fill。</p>
+<p>只要这五项没有写在artifact contract里，即使SHA吻合，读者也无法判断曲线语义。本文把v2定位在normalized BBO的固定horizon price-touch层，就是为了让后续hazard、queue与action项目能明确知道自己在此基础上增加了什么，而不是不断复用一个含糊的P3名字。</p>
 <h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/README.md">F02 Empirical P3 Touch README</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/docs/p3_touch_recalibration_normalized100ms_v2_20260725.md">P3 Touch Recalibration on Normalized 100ms v2</a></li>
@@ -508,9 +540,9 @@ P_{touch,s}(d;H)=P\bigl(Z_{s,d,H}=1\bigr).</script><p>历史 runtime 需要两�
       
         <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
       
-        <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
-      
         <a href="/tags/%E7%94%9F%E5%AD%98%E5%88%86%E6%9E%90/" class="print-no-link">#生存分析</a>
+      
+        <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
       
     </div>
   
