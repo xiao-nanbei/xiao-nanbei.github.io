@@ -19,26 +19,26 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Last materially modified: 2026-08-29 TL;DR：文章数量应该跟研究问题走，不应该跟文件数量走NarrowGate 公共仓库包含十个策略&#x2F;证据研究族、一个研究型系统工程分支，以及大量 spec、amendment、preflight、failure receipt、producer、parity 和 execution attempt。后面这些文件对于证据链很重">
+    <meta name="description" content="Last materially modified: 2026-08-30 TL;DR：研究 identity 可以很多，读者层面的主文章不应该跟着碎裂NarrowGate 公共仓库包含十个策略&#x2F;证据研究族、一个系统工程分支，以及大量 spec、amendment、preflight、failure receipt、producer、parity 和 execution attempt。此前博客把其">
 <meta property="og:type" content="article">
-<meta property="og:title" content="NarrowGate 研究地图：十个研究族、48 个真实项目与证据状态">
+<meta property="og:title" content="NarrowGate 研究地图：十个研究族如何收敛为 12 篇主研究长文">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Research-Project-Map/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：文章数量应该跟研究问题走，不应该跟文件数量走NarrowGate 公共仓库包含十个策略&#x2F;证据研究族、一个研究型系统工程分支，以及大量 spec、amendment、preflight、failure receipt、producer、parity 和 execution attempt。后面这些文件对于证据链很重">
+<meta property="og:description" content="Last materially modified: 2026-08-30 TL;DR：研究 identity 可以很多，读者层面的主文章不应该跟着碎裂NarrowGate 公共仓库包含十个策略&#x2F;证据研究族、一个系统工程分支，以及大量 spec、amendment、preflight、failure receipt、producer、parity 和 execution attempt。此前博客把其">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-08-29T13:30:00.000Z">
+<meta property="article:modified_time" content="2026-08-29T19:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
-<meta property="article:tag" content="市场微观结构">
-<meta property="article:tag" content="回测">
 <meta property="article:tag" content="因果推断">
 <meta property="article:tag" content="研究治理">
+<meta property="article:tag" content="市场微观结构">
+<meta property="article:tag" content="回测">
 <meta name="twitter:card" content="summary_large_image">
   
   
   
-  <title>NarrowGate 研究地图：十个研究族、48 个真实项目与证据状态 - databrains</title>
+  <title>NarrowGate 研究地图：十个研究族如何收敛为 12 篇主研究长文 - databrains</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
 
@@ -307,7 +307,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="NarrowGate 研究地图：十个研究族、48 个真实项目与证据状态"></span>
+            <span id="subtitle" data-typed-text="NarrowGate 研究地图：十个研究族如何收敛为 12 篇主研究长文"></span>
           
         </div>
 
@@ -331,7 +331,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          5.8k 字
+          4.6k 字
         
       </span>
     
@@ -343,7 +343,7 @@
         
         
           <!-- compatible with older versions-->
-          48 分钟
+          39 分钟
         
       </span>
     
@@ -382,483 +382,183 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">NarrowGate 研究地图：十个研究族、48 个真实项目与证据状态</h1>
+            <h1 id="seo-header">NarrowGate 研究地图：十个研究族如何收敛为 12 篇主研究长文</h1>
             
             
               <div class="markdown-body">
                 
-                <p>Last materially modified: 2026-08-29</p>
-<h2 id="TL-DR：文章数量应该跟研究问题走，不应该跟文件数量走"><a href="#TL-DR：文章数量应该跟研究问题走，不应该跟文件数量走" class="headerlink" title="TL;DR：文章数量应该跟研究问题走，不应该跟文件数量走"></a>TL;DR：文章数量应该跟研究问题走，不应该跟文件数量走</h2><p>NarrowGate 公共仓库包含十个策略/证据研究族、一个研究型系统工程分支，以及大量 spec、amendment、preflight、failure receipt、producer、parity 和 execution attempt。后面这些文件对于证据链很重要，却不代表新的科学问题。按照冻结样本、baseline/candidate、fold、estimand 与统计合同去重后，当前共有 <strong>48 个应当独立讲清楚的研究项目</strong>。</p>
-<p>每个项目在博客中只对应一篇完整主文章。一次项目内部从 v1 修到 v4、从静态标签走到 native lifecycle，或者从 Python 扩展到 C++ lockstep，都写成同一篇文章里的研究演进；Feature hierarchy、nested OOF、same-millisecond ordering、evidence ladder 等方法也回到使用它们的研究正文，不再伪装成独立研究。</p>
-<p>研究身份可以写成：</p>
+                <p>Last materially modified: 2026-08-30</p>
+<h2 id="TL-DR：研究-identity-可以很多，读者层面的主文章不应该跟着碎裂"><a href="#TL-DR：研究-identity-可以很多，读者层面的主文章不应该跟着碎裂" class="headerlink" title="TL;DR：研究 identity 可以很多，读者层面的主文章不应该跟着碎裂"></a>TL;DR：研究 identity 可以很多，读者层面的主文章不应该跟着碎裂</h2><p>NarrowGate 公共仓库包含十个策略/证据研究族、一个系统工程分支，以及大量 spec、amendment、preflight、failure receipt、producer、parity 和 execution attempt。此前博客把其中 47 个阶段分别写成文章，并称为“48 个真实项目”；这个粒度是错误的。它混淆了用于证据治理的 research identity 与用于解释科学问题的 research narrative。</p>
+<p>Research identity 必须严格区分样本、baseline/candidate、fold、estimand 和统计合同：</p>
 <script type="math/tex; mode=display">
-\mathcal R=(D,B,C,F,\theta,S),</script><p>其中 $D$ 是样本与时间支持，$B$ 是 baseline，$C$ 是候选或动作，$F$ 是时间折叠，$\theta$ 是 estimand，$S$ 是统计与权限合同。只有这些字段中的实质内容改变，才算新的 research project；scheduler、cache、mmap、ABI、manifest 或 receipt 的变化只属于 execution provenance。</p>
-<p>本文是阅读索引，不提供投资建议，也不把历史 Development、预测或 mechanics 证据解释成当前 live 权限。精确私有 artifact、OOF rows、原始 live 记录与 owner-side evidence 不随公共博客分发。</p>
-<h2 id="研究族总览"><a href="#研究族总览" class="headerlink" title="研究族总览"></a>研究族总览</h2><div class="table-container">
+\mathcal R=(D,B,C,F,\theta,S).</script><p>只要其中实质字段改变，机器证据就需要新 identity，不能覆盖旧结果。但一篇面向读者的研究文章应当解释完整问题如何经过这些 identity 演进：为什么换样本、为什么修时钟、为什么预测通过仍不能动作、为什么某个 successor 关闭。Full‑Multiscale 主文章一直采用这种叙事粒度；现在其余研究也统一按同一标准整理。</p>
+<p>整理后共有 <strong>12 条主研究叙事</strong>。每篇覆盖一条完整的科学问题、方法演进、反例、经济检验和权限边界；校准版本、时钟修复、prediction gate、mechanics preflight 与失败 attempt 回到对应正文中，不再单独占一篇文章。</p>
+<h2 id="12-篇主研究长文"><a href="#12-篇主研究长文" class="headerlink" title="12 篇主研究长文"></a>12 篇主研究长文</h2><div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:right">#</th>
+<th>主研究</th>
+<th>覆盖研究族</th>
+<th>完整问题</th>
+<th>当前结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">1</td>
+<td><a href="/2026/08/29/NarrowGate-Fixed-Parameter-Racing-Research/">报价动作：从固定参数竞速到随机化 Widen/Recenter</a></td>
+<td>F01、F09</td>
+<td>参数 winner 能否升级为有反事实支持的报价动作？</td>
+<td>固定参数仅可 screening；已测局部动作与 BUY 条件加宽均无稳定晋级</td>
+</tr>
+<tr>
+<td style="text-align:right">2</td>
+<td><a href="/2026/08/29/NarrowGate-P3-Aggressive-Reach-Time-Hazard-Research/">Empirical P3：从十秒触达到 Reach-Time Hazard 与报价价值</a></td>
+<td>F02、F05</td>
+<td>P(touch) 能否经过策略时钟、queue 与终局价值变成报价动作？</td>
+<td>Prediction successor 有支持；scalar adapter 与 joint quote selector 关闭</td>
+</tr>
+<tr>
+<td style="text-align:right">3</td>
+<td><a href="/2026/08/29/NarrowGate-Causal-13-Head-Source-Aware-v12-Research/">Causal 13-Head：从 v4 重建到一秒 Cadence</a></td>
+<td>F03</td>
+<td>十三个预测头能否跨数据修复、来源和频率形成完整 maker alpha？</td>
+<td>局部 prediction 存在；所有完整经济 identity 均未晋级</td>
+</tr>
+<tr>
+<td style="text-align:right">4</td>
+<td><a href="/2026/08/29/NarrowGate-Three-Venue-Global-Reference-Stage0-Research/">External Market Alpha：三交易所参考、信息衰减与 Fair-Center</a></td>
+<td>F04、F09</td>
+<td>外部市场信息如何从 receive-time state 走到本地报价动作？</td>
+<td>短时信息与 fair coordinate 有证据；first-add/guard/action 链未闭合</td>
+</tr>
+<tr>
+<td style="text-align:right">5</td>
+<td><a href="/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/">Fill Quality 与 First-Add Quote EV</a></td>
+<td>F05、F10</td>
+<td>坏成交从何处开始，能否提前识别并用 soft-widen 改善？</td>
+<td>历史损失存在；无稳定 decision-visible subset，直接动作关闭</td>
+</tr>
+<tr>
+<td style="text-align:right">6</td>
+<td><a href="/2026/08/29/NarrowGate-Full-Multiscale-Boolean-Cooldown-Research/">Full-Multiscale Boolean Cooldown</a></td>
+<td>F05</td>
+<td>多尺度 EMA Boolean state 能否选择重复执行的 cooldown duration？</td>
+<td>BUY 有 point signal，但 simultaneous gate 未过；<code>supported_sides=[]</code></td>
+</tr>
+<tr>
+<td style="text-align:right">7</td>
+<td><a href="/2026/08/29/NarrowGate-Active-Order-Queue-Value-Keep-Cancel-Research/">Order-Level Quote Value：Placement、Queue Value 与 Continuation</a></td>
+<td>F06、F07</td>
+<td>报价应放多远，激活后应 KEEP 还是 CANCEL/RE-ENTER？</td>
+<td>2/4 tick fill 差可辨；marginal value 与 continuation action 均未通过</td>
+</tr>
+<tr>
+<td style="text-align:right">8</td>
+<td><a href="/2026/08/29/NarrowGate-Side-Taker-Flow-Research/">Side-Taker Lifecycle：微观流、双时钟与 Risk Set</a></td>
+<td>F08</td>
+<td>主动成交流如何在合法可见时钟上进入订单动态风险集？</td>
+<td>静态 M0 关闭；双时钟与 v2 risk-set 前置仍未完成</td>
+</tr>
+<tr>
+<td style="text-align:right">9</td>
+<td><a href="/2026/08/29/NarrowGate-Volatility-Time-Add-Rearm-Research/">Cooldown Temporal-Permission Action Frontier</a></td>
+<td>F09</td>
+<td>One-cycle、stop-until-flat、state、recovery、variance-time 哪个控制强度有效？</td>
+<td>从 near-noop 到 participation shutdown 均无稳定正终局价值</td>
+</tr>
+<tr>
+<td style="text-align:right">10</td>
+<td><a href="/2026/08/29/NarrowGate-Sell-Add-Inventory-Price-Penalty-Research/">Inventory Control：Budget、SELL 抑制与 Passive Repair</a></td>
+<td>F09</td>
+<td>少进入风险库存或更快减仓，能否同时改善 terminal value？</td>
+<td>库存代理可改善，但 reward、tail 或 action resolution 失败</td>
+</tr>
+<tr>
+<td style="text-align:right">11</td>
+<td><a href="/2026/08/29/NarrowGate-Ranked-Toxicity-Exposure-Guard-Research/">Exposure Guards：BER Proxy、BUY q90 与 Ranked Toxicity</a></td>
+<td>F09、F10</td>
+<td>风险分数如何绑定合法订单、ACK 风险集和跨 campaign ownership？</td>
+<td>旧 add-only guard 有经济伤害；q90 身份失效；新 guard 仅完成 plumbing</td>
+</tr>
+<tr>
+<td style="text-align:right">12</td>
+<td><a href="/2026/08/29/NarrowGate-Time-Unit-Causality-Repair-Research/">Replay Evidence Revalidation：时间、量纲与因果时钟</a></td>
+<td>F10、SYS</td>
+<td>基础时钟/单位修复后，旧回测证据还能保留什么？</td>
+<td>No-promotion 权限方向保留；旧 PnL、winner 与排名撤回</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="为什么这些合并是必要的"><a href="#为什么这些合并是必要的" class="headerlink" title="为什么这些合并是必要的"></a>为什么这些合并是必要的</h2><h3 id="P3-不是六个互不相干的模型"><a href="#P3-不是六个互不相干的模型" class="headerlink" title="P3 不是六个互不相干的模型"></a>P3 不是六个互不相干的模型</h3><p>Normalized-100ms、source-aware v3、volatility-conditioned v4/v4.1、scalar adapter、policy-visible cadence、joint quote value 与 reach-time hazard 依次回答同一条链上的问题。分别阅读时，读者容易把“条件概率预测通过”和“报价动作失败”当成矛盾；合并后可以看见失败发生在 estimand mapping，而不是概率模型自动失效。</p>
+<h3 id="Causal-13-Head-的-v4、v5、v9、v12-与一秒-cadence-是一次持续重建"><a href="#Causal-13-Head-的-v4、v5、v9、v12-与一秒-cadence-是一次持续重建" class="headerlink" title="Causal 13-Head 的 v4、v5、v9、v12 与一秒 cadence 是一次持续重建"></a>Causal 13-Head 的 v4、v5、v9、v12 与一秒 cadence 是一次持续重建</h3><p>这些版本更换了 P3、数据身份、taker-tempo、source semantics 和决策频率，但没有改变最高层问题：prediction 是否能穿过 full path 形成经济增量。把每次修复各写一篇，会让局部通过的 head 或某个正 PnL 点估计脱离最终 gate。</p>
+<h3 id="Placement-与-Active-Order-Continuation-是同一张订单的前后半段"><a href="#Placement-与-Active-Order-Continuation-是同一张订单的前后半段" class="headerlink" title="Placement 与 Active-Order Continuation 是同一张订单的前后半段"></a>Placement 与 Active-Order Continuation 是同一张订单的前后半段</h3><p>Placement 决定初始价格与 queue position；KEEP/CANCEL 决定是否保留已经获得的 queue option。Fill CIF、cancel-ACK competing risk 和 lifecycle parity 是动作估值的前置层，不应被包装成与 action value 平行的研究结论。</p>
+<h3 id="Cooldown-五个候选必须放在同一-leverage-frontier-上"><a href="#Cooldown-五个候选必须放在同一-leverage-frontier-上" class="headerlink" title="Cooldown 五个候选必须放在同一 leverage frontier 上"></a>Cooldown 五个候选必须放在同一 leverage frontier 上</h3><p>One-cycle skip 改得太少，stop-until-flat 改得太多，state/recovery/variance-time 在中间寻找可执行区域。只有合并后才能看见结构性阴性结果：当前测试范围内，没有候选同时满足真实 path divergence、活动保留和正 terminal reward lower bound。</p>
+<h3 id="Guard-的共同难点是订单所有权，不是阈值名字"><a href="#Guard-的共同难点是订单所有权，不是阈值名字" class="headerlink" title="Guard 的共同难点是订单所有权，不是阈值名字"></a>Guard 的共同难点是订单所有权，不是阈值名字</h3><p>历史 <code>BER</code> 实际是 trade-intensity acceleration proxy；BUY q90 是 active-order hazard 分位；ranked toxicity 是 persistent exposure permission。三者信号不同，却都必须处理 feature-ready clock、cancel ACK、terminal risk set、dynamic role 和 carryover ownership。把它们拆开，会重复讲状态机，却看不见同一执行合同如何逐步收紧。</p>
+<h2 id="按研究族寻找文章"><a href="#按研究族寻找文章" class="headerlink" title="按研究族寻找文章"></a>按研究族寻找文章</h2><div class="table-container">
 <table>
 <thead>
 <tr>
 <th>研究族</th>
-<th style="text-align:right">项目数</th>
-<th>研究主题</th>
-<th>当前总体状态</th>
+<th>应阅读的主文</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>F01</td>
-<td style="text-align:right">1</td>
-<td>固定参数竞速</td>
-<td>Alpha 家族关闭，只保留 screening</td>
+<td>F01 Fixed Parameter Racing</td>
+<td>报价动作主文</td>
 </tr>
 <tr>
-<td>F02</td>
-<td style="text-align:right">6</td>
-<td>P3 touch/reach probability</td>
-<td>v2 是历史/运维依赖；新 prediction successor 有支持，但无报价动作</td>
+<td>F02 Empirical P3</td>
+<td>P3 主文</td>
 </tr>
 <tr>
-<td>F03</td>
-<td style="text-align:right">5</td>
-<td>13-head 因果模型</td>
-<td>多个训练/时钟/cadence identity 均无经济晋级</td>
+<td>F03 Causal 13-Head</td>
+<td>Causal 13-Head 主文</td>
 </tr>
 <tr>
-<td>F04</td>
-<td style="text-align:right">5</td>
-<td>外部市场信息</td>
-<td>Prediction/mechanics 有部分支持，经济 action 未建立</td>
+<td>F04 External Market Alpha</td>
+<td>External Market Alpha 主文</td>
 </tr>
 <tr>
-<td>F05</td>
-<td style="text-align:right">4</td>
-<td>Fill quality、Quote EV 与 cooldown</td>
-<td>Prediction/diagnostic 多数关闭；Full-Multiscale 无 supported side</td>
+<td>F05 Fill Quality / Quote EV</td>
+<td>P3、Fill Quality、Full-Multiscale 三篇</td>
 </tr>
 <tr>
-<td>F06</td>
-<td style="text-align:right">1</td>
-<td>Placement distance、fill CIF 与边际价值</td>
-<td>距离价值在 Development 不可识别</td>
+<td>F06 Placement Fill CIF</td>
+<td>Order-Level Quote Value 主文</td>
 </tr>
 <tr>
-<td>F07</td>
-<td style="text-align:right">2</td>
-<td>Active-order continuation 与 lifecycle CIF</td>
-<td>KEEP/CANCEL action 关闭；100ms CIF mechanics 完成</td>
+<td>F07 Active Order Continuation</td>
+<td>Order-Level Quote Value 主文</td>
 </tr>
 <tr>
-<td>F08</td>
-<td style="text-align:right">4</td>
-<td>Side-taker、trade identity 与 risk set</td>
-<td>Hazard action 前置未建立；双时钟身份仍有阻塞</td>
+<td>F08 Side-Taker Lifecycle</td>
+<td>Side-Taker Lifecycle 主文</td>
 </tr>
 <tr>
-<td>F09</td>
-<td style="text-align:right">13</td>
-<td>Campaign action uplift</td>
-<td>多个动作子空间完成 Development，多数关闭或尚未正式运行</td>
+<td>F09 Campaign Action Uplift</td>
+<td>报价动作、External、Cooldown、Inventory、Exposure Guards 五篇</td>
 </tr>
 <tr>
-<td>F10</td>
-<td style="text-align:right">6</td>
-<td>Live/replay attribution</td>
-<td>机制定位与证据重验证，不独立授予 alpha</td>
+<td>F10 Live/Replay Attribution</td>
+<td>Fill Quality、Exposure Guards、Replay Revalidation 三篇</td>
 </tr>
 <tr>
 <td>SYS</td>
-<td style="text-align:right">1</td>
-<td>时间、单位与因果时钟</td>
-<td>修复完成；旧回测证据大面积撤回</td>
+<td>Replay Evidence Revalidation 主文</td>
 </tr>
 </tbody>
 </table>
 </div>
-<h2 id="F01：Fixed-Parameter-Racing"><a href="#F01：Fixed-Parameter-Racing" class="headerlink" title="F01：Fixed Parameter Racing"></a>F01：Fixed Parameter Racing</h2><div class="table-container">
-<table>
-<thead>
-<tr>
-<th>项目</th>
-<th>文章</th>
-<th>状态</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>固定参数全局竞速</td>
-<td><a href="/2026/08/29/NarrowGate-Fixed-Parameter-Racing-Research/">固定参数竞速为何不是 Alpha</a></td>
-<td>Alpha family closed；screening only</td>
-</tr>
-</tbody>
-</table>
-</div>
-<h2 id="F02：Empirical-P3-Touch-Reach"><a href="#F02：Empirical-P3-Touch-Reach" class="headerlink" title="F02：Empirical P3 Touch / Reach"></a>F02：Empirical P3 Touch / Reach</h2><div class="table-container">
-<table>
-<thead>
-<tr>
-<th>项目</th>
-<th>文章</th>
-<th>状态</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Normalized-100ms v2 recalibration</td>
-<td><a href="/2026/08/29/NarrowGate-P3-Normalized-100ms-Recalibration-Research/">P3 触达曲线在归一化 100ms 盘口下是否稳定</a></td>
-<td>曲线稳定复现；不等于 fill/action</td>
-</tr>
-<tr>
-<td>Source-aware static v3</td>
-<td><a href="/2026/08/29/NarrowGate-P3-Source-Aware-Static-Touch-Curve-Research/">扩样本为何让静态 P3 变差</a></td>
-<td>Replacement closed</td>
-</tr>
-<tr>
-<td>Volatility-conditioned v4/v4.1</td>
-<td><a href="/2026/08/29/NarrowGate-P3-Volatility-Conditioned-Touch-Surface-Research/">把 P3 做成波动率条件面</a></td>
-<td>Prediction supported；outcome-informed threshold；无 action</td>
-</tr>
-<tr>
-<td>Conditional-curve scalar adapter</td>
-<td><a href="/2026/08/29/NarrowGate-P3-Conditional-Curve-Scalar-Quote-Adapter-Research/">预测更准，报价却更差</a></td>
-<td>Scalar compression adapter closed</td>
-</tr>
-<tr>
-<td>Policy-visible decision cadence</td>
-<td><a href="/2026/08/29/NarrowGate-P3-Policy-Visible-Decision-Cadence-Transport-Research/">P3 能否穿过真实决策时钟</a></td>
-<td>Prediction transport passed；support gate failed</td>
-</tr>
-<tr>
-<td>Aggressive reach-time hazard</td>
-<td><a href="/2026/08/29/NarrowGate-P3-Aggressive-Reach-Time-Hazard-Research/">从固定 10 秒到完整到达时间</a></td>
-<td>Development prediction passed；无 queue/fill/value authority</td>
-</tr>
-</tbody>
-</table>
-</div>
-<h2 id="F03：Causal-13-Head"><a href="#F03：Causal-13-Head" class="headerlink" title="F03：Causal 13-Head"></a>F03：Causal 13-Head</h2><div class="table-container">
-<table>
-<thead>
-<tr>
-<th>项目</th>
-<th>文章</th>
-<th>状态</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Empirical-P3 v4 retrain/replay</td>
-<td><a href="/2026/08/29/NarrowGate-Causal-13-Head-Empirical-P3-v4-Research/">经验 P3 后的 13 头因果模型</a></td>
-<td>Future-metric leakage；经济数字撤回</td>
-</tr>
-<tr>
-<td>Normalized-100ms v5 revalidation</td>
-<td><a href="/2026/08/29/NarrowGate-Causal-13-Head-Normalized-100ms-Revalidation-Research/">归一化 100ms 重建</a></td>
-<td>No promotion；后被语义 successor 取代</td>
-</tr>
-<tr>
-<td>Taker-tempo v9</td>
-<td><a href="/2026/08/29/NarrowGate-Causal-13-Head-Taker-Tempo-v9-Research/">Taker Tempo 能否转化为做市 Alpha</a></td>
-<td>Formal denominator/support failed</td>
-</tr>
-<tr>
-<td>Source-aware v12</td>
-<td><a href="/2026/08/29/NarrowGate-Causal-13-Head-Source-Aware-v12-Research/">跨源 13 头模型的最终经济筛选</a></td>
-<td>Prediction 5/13 heads；full-path screen failed</td>
-</tr>
-<tr>
-<td>One-second cadence</td>
-<td><a href="/2026/08/29/NarrowGate-Causal-13-Head-One-Second-Cadence-Research/">更快不等于更好</a></td>
-<td>40-day Development closed</td>
-</tr>
-</tbody>
-</table>
-</div>
-<h2 id="F04：External-Market-Alpha"><a href="#F04：External-Market-Alpha" class="headerlink" title="F04：External Market Alpha"></a>F04：External Market Alpha</h2><div class="table-container">
-<table>
-<thead>
-<tr>
-<th>项目</th>
-<th>文章</th>
-<th>状态</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Three-venue reference Stage 0</td>
-<td><a href="/2026/08/29/NarrowGate-Three-Venue-Global-Reference-Stage0-Research/">三交易所 Global Reference Stage 0</a></td>
-<td>旧 denominator 数值撤回；无 action</td>
-</tr>
-<tr>
-<td>External information decay</td>
-<td><a href="/2026/08/29/NarrowGate-External-Information-Decay-Research/">外部信息能活多久</a></td>
-<td>1–7s prediction increment；prediction only</td>
-</tr>
-<tr>
-<td>Cross-venue causal fair price</td>
-<td><a href="/2026/08/29/NarrowGate-Cross-Venue-Causal-Fair-Price-Research/">三市场共识如何变成因果 Fair Price</a></td>
-<td>Coordinate/mechanics evidence only</td>
-</tr>
-<tr>
-<td>First-add M0/M1</td>
-<td><a href="/2026/08/29/NarrowGate-First-Add-External-Incremental-Value-Research/">外部状态能否识别负价值首个加仓</a></td>
-<td>Preregistered；exact lifecycle/common-row gates blocked</td>
-</tr>
-<tr>
-<td>External adverse quote-edge guard</td>
-<td><a href="/2026/08/29/NarrowGate-External-Adverse-Quote-Edge-Guard-Research/">外部 Adverse Edge 能否安全外移报价</a></td>
-<td>Mechanics complete；support too low；无 action</td>
-</tr>
-</tbody>
-</table>
-</div>
-<h2 id="F05：Fill-Quality、Quote-EV-与-Full-Multiscale"><a href="#F05：Fill-Quality、Quote-EV-与-Full-Multiscale" class="headerlink" title="F05：Fill Quality、Quote EV 与 Full-Multiscale"></a>F05：Fill Quality、Quote EV 与 Full-Multiscale</h2><div class="table-container">
-<table>
-<thead>
-<tr>
-<th>项目</th>
-<th>文章</th>
-<th>状态</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Decision-visible negative fill value</td>
-<td><a href="/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/">决策时可见状态能否识别负价值成交</a></td>
-<td>Development prediction branches closed</td>
-</tr>
-<tr>
-<td>Conditional-P3 joint quote value</td>
-<td><a href="/2026/08/29/NarrowGate-Conditional-P3-Joint-Quote-Value-Research/">从触达概率到联合报价价值</a></td>
-<td>0/126 non-baseline selection；selector closed</td>
-</tr>
-<tr>
-<td>BUY soft-widen release</td>
-<td><a href="/2026/08/29/NarrowGate-Buy-Soft-Widen-Release-Action-Value-Research/">单次解除放宽的动作价值</a></td>
-<td>Both roles negative；Development closed</td>
-</tr>
-<tr>
-<td>Full-Multiscale Boolean cooldown</td>
-<td><a href="/2026/08/29/NarrowGate-Full-Multiscale-Boolean-Cooldown-Research/">从多尺度 EMA 到 Boolean Cooldown</a></td>
-<td><code>supported_sides=[]</code>；Validation/holdout unread</td>
-</tr>
-</tbody>
-</table>
-</div>
-<h2 id="F06：Placement-Fill-CIF"><a href="#F06：Placement-Fill-CIF" class="headerlink" title="F06：Placement Fill CIF"></a>F06：Placement Fill CIF</h2><div class="table-container">
-<table>
-<thead>
-<tr>
-<th>项目</th>
-<th>文章</th>
-<th>状态</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Placement distance full evidence chain</td>
-<td><a href="/2026/08/29/NarrowGate-Placement-Distance-Fill-CIF-Marginal-Value-Research/">从 Fill CIF 到边际成交价值</a></td>
-<td>Placement-distance value unidentified</td>
-</tr>
-</tbody>
-</table>
-</div>
-<h2 id="F07：Active-Order-Continuation"><a href="#F07：Active-Order-Continuation" class="headerlink" title="F07：Active Order Continuation"></a>F07：Active Order Continuation</h2><div class="table-container">
-<table>
-<thead>
-<tr>
-<th>项目</th>
-<th>文章</th>
-<th>状态</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Queue value KEEP/CANCEL</td>
-<td><a href="/2026/08/29/NarrowGate-Active-Order-Queue-Value-Keep-Cancel-Research/">KEEP 还是 CANCEL/RE-ENTER</a></td>
-<td>Net-hazard action harmful/unsupported；closed</td>
-</tr>
-<tr>
-<td>Lifecycle competing-risk CIF 100ms</td>
-<td><a href="/2026/08/29/NarrowGate-Active-Order-Lifecycle-CIF-100ms-Research/">100ms 竞争风险与 Python/C++ 锁步</a></td>
-<td>Mechanics/training/parity completed；无 economics/action</td>
-</tr>
-</tbody>
-</table>
-</div>
-<h2 id="F08：Side-Taker-Lifecycle"><a href="#F08：Side-Taker-Lifecycle" class="headerlink" title="F08：Side-Taker Lifecycle"></a>F08：Side-Taker Lifecycle</h2><div class="table-container">
-<table>
-<thead>
-<tr>
-<th>项目</th>
-<th>文章</th>
-<th>状态</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Side-specific taker flow</td>
-<td><a href="/2026/08/29/NarrowGate-Side-Taker-Flow-Research/">BUY/SELL 微观流与短时冲击</a></td>
-<td>Descriptive signal；无 action</td>
-</tr>
-<tr>
-<td>Side-taker hazard M0</td>
-<td><a href="/2026/08/29/NarrowGate-Side-Taker-Hazard-M0-Research/">一个未能复现的静态风险模型</a></td>
-<td>Closed</td>
-</tr>
-<tr>
-<td>Binance trade clock parity</td>
-<td><a href="/2026/08/29/NarrowGate-Binance-Trade-Clock-Parity-Research/">Individual Trades、aggTrade 与 Live 可见性</a></td>
-<td>Recorder contract passed；finalized-parent parity blocked</td>
-</tr>
-<tr>
-<td>Event identity and risk set</td>
-<td><a href="/2026/08/29/NarrowGate-Event-Identity-Riskset-Research/">为什么 Cancel、Jump、Repair 不能混成一个 Cause</a></td>
-<td>v2 panel/gate incomplete；无 action</td>
-</tr>
-</tbody>
-</table>
-</div>
-<h2 id="F09：Campaign-Action-Uplift"><a href="#F09：Campaign-Action-Uplift" class="headerlink" title="F09：Campaign Action Uplift"></a>F09：Campaign Action Uplift</h2><div class="table-container">
-<table>
-<thead>
-<tr>
-<th>项目</th>
-<th>文章</th>
-<th>状态</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Fixed local quote actions</td>
-<td><a href="/2026/08/29/NarrowGate-Fixed-Local-Quote-Actions-Research/">Widen、Recenter 与 Prevent-Over-Widen</a></td>
-<td>Development unstable；Validation rotation；closed</td>
-</tr>
-<tr>
-<td>BUY conditional widen</td>
-<td><a href="/2026/08/29/NarrowGate-Buy-Conditional-Widen-Research/">BUY Add 一 Tick 条件加宽</a></td>
-<td>Development failed；family closed</td>
-</tr>
-<tr>
-<td>SELL one-cycle skip</td>
-<td><a href="/2026/08/29/NarrowGate-Sell-One-Cycle-Skip-Research/">SELL Add 单周期跳过</a></td>
-<td>Near-noop fill leverage；closed</td>
-</tr>
-<tr>
-<td>Stop-add-until-flat</td>
-<td><a href="/2026/08/29/NarrowGate-Sell-Stop-Add-Until-Flat-Research/">风险下降还是参与度关机</a></td>
-<td>Overbroad risk control；closed</td>
-</tr>
-<tr>
-<td>State-conditioned rearm</td>
-<td><a href="/2026/08/29/NarrowGate-State-Conditioned-Rearm-Research/">85 秒后的四重状态重启</a></td>
-<td>Support/value failed；closed</td>
-</tr>
-<tr>
-<td>Recovery-event rearm</td>
-<td><a href="/2026/08/29/NarrowGate-Recovery-Event-Rearm-Research/">等到市场恢复再允许加仓</a></td>
-<td>SELL harmful；BUY outcome not opened；closed identity</td>
-</tr>
-<tr>
-<td>Volatility-time rearm</td>
-<td><a href="/2026/08/29/NarrowGate-Volatility-Time-Add-Rearm-Research/">用方差时钟替代固定 85 秒</a></td>
-<td>Mechanics passed；economic/lifecycle gates failed</td>
-</tr>
-<tr>
-<td>Post-cooldown inventory budget</td>
-<td><a href="/2026/08/29/NarrowGate-Post-Cooldown-Inventory-Budget-Research/">为什么 B=1 仍不是好控制面</a></td>
-<td>Mechanics resolution insufficient；economics unread</td>
-</tr>
-<tr>
-<td>SELL-add price penalty</td>
-<td><a href="/2026/08/29/NarrowGate-Sell-Add-Inventory-Price-Penalty-Research/">更远报价能否减少 SHORT 尾部</a></td>
-<td>Proxy improved；reward/tail failed</td>
-</tr>
-<tr>
-<td>Multi-short reducing BUY</td>
-<td><a href="/2026/08/29/NarrowGate-Multi-Short-Reducing-Buy-Research/">更激进 Reducing BUY 能否创造终局价值</a></td>
-<td>Repair faster；terminal value failed</td>
-</tr>
-<tr>
-<td>Cross-venue fair-center action</td>
-<td><a href="/2026/08/29/NarrowGate-Cross-Venue-Fair-Center-Research/">三交易所中心偏移能否改善整对报价</a></td>
-<td>Pooled point positive；CI/LOO failed</td>
-</tr>
-<tr>
-<td>Ranked-toxicity exposure guard</td>
-<td><a href="/2026/08/29/NarrowGate-Ranked-Toxicity-Exposure-Guard-Research/">从 10 秒毒性排名到持久 Guard</a></td>
-<td>Carryover-safe smoke only；formal panel/economics not run</td>
-</tr>
-<tr>
-<td>BER role-safe add-only</td>
-<td><a href="/2026/08/29/NarrowGate-BER-Role-Safe-Add-Only-Research/">保护加仓侧为何反而恶化终局</a></td>
-<td>Mechanics passed；economic harm；closed</td>
-</tr>
-</tbody>
-</table>
-</div>
-<h2 id="F10：Live-Replay-Attribution"><a href="#F10：Live-Replay-Attribution" class="headerlink" title="F10：Live/Replay Attribution"></a>F10：Live/Replay Attribution</h2><div class="table-container">
-<table>
-<thead>
-<tr>
-<th>项目</th>
-<th>文章</th>
-<th>状态</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Fill-to-inventory lifecycle</td>
-<td><a href="/2026/08/29/NarrowGate-Fill-Inventory-Lifecycle-Research/">30 秒 Markout 为什么不是成交 PnL</a></td>
-<td>Estimand retained；旧数值撤回</td>
-</tr>
-<tr>
-<td>Dynamic campaign mechanism attribution</td>
-<td><a href="/2026/08/29/NarrowGate-Dynamic-Campaign-Mechanism-Attribution-Research/">Add Toxicity、Repair Failure 与动态控制器</a></td>
-<td>Descriptive mechanism only</td>
-</tr>
-<tr>
-<td>First-add terminal loss</td>
-<td><a href="/2026/08/29/NarrowGate-First-Add-Decision-Terminal-Loss-Research/">负价值究竟从哪一刻开始</a></td>
-<td>Stable negative mean；no stable subgroup/action</td>
-</tr>
-<tr>
-<td>BUY q90 causal clock/lifecycle</td>
-<td><a href="/2026/08/29/NarrowGate-Buy-Q90-Causal-Clock-Lifecycle-Research/">Cancel ACK 之后为什么不能继续打分</a></td>
-<td>Parity failed；terminal-risk-set defect confirmed</td>
-</tr>
-<tr>
-<td>BUY q90 portfolio attribution</td>
-<td><a href="/2026/08/29/NarrowGate-Buy-Q90-Portfolio-Attribution-Research/">过滤 BUY 是否把库存推向 SHORT</a></td>
-<td>Mechanism chain mostly failed；no policy conclusion</td>
-</tr>
-<tr>
-<td>Historical evidence revalidation</td>
-<td><a href="/2026/08/29/NarrowGate-Historical-Backtest-Evidence-Revalidation/">哪些旧结论在修复后仍成立</a></td>
-<td>Exact old PnL/rankings withdrawn；no old alpha authority</td>
-</tr>
-</tbody>
-</table>
-</div>
-<h2 id="SYS：Time、Unit-与-Causality"><a href="#SYS：Time、Unit-与-Causality" class="headerlink" title="SYS：Time、Unit 与 Causality"></a>SYS：Time、Unit 与 Causality</h2><div class="table-container">
-<table>
-<thead>
-<tr>
-<th>项目</th>
-<th>文章</th>
-<th>状态</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Replay time/unit/causal-clock repair</td>
-<td><a href="/2026/08/29/NarrowGate-Time-Unit-Causality-Repair-Research/">一次修复如何让旧回测整体失效</a></td>
-<td>Defects repaired；successor still no promotion</td>
-</tr>
-</tbody>
-</table>
-</div>
-<h2 id="怎样阅读这些阴性与未完成结果"><a href="#怎样阅读这些阴性与未完成结果" class="headerlink" title="怎样阅读这些阴性与未完成结果"></a>怎样阅读这些阴性与未完成结果</h2><p><code>closed</code> 只关闭对应的冻结 identity，不表示整个研究族没有信息；<code>prediction passed</code> 不等于 quote/action passed；<code>mechanics completed</code> 不等于经济效果存在；<code>blocked</code> 也不是失败后的委婉改名，而是证据合同尚缺必要字段、时钟、支持或生命周期。</p>
-<p>同理，某项 owner operational decision 可以显式接受研究尚未闭合的风险，却不能倒写成历史 gate 已通过。每篇文章都会同时写明“看到了什么”和“没有获得什么权限”，并尽量把 K 线、报单、queue、inventory 与 campaign terminal 放在同一幅机制图中，让读者看到动作怎样沿完整路径产生后果。</p>
+<h2 id="两篇基础长文不计入-12-个研究项目"><a href="#两篇基础长文不计入-12-个研究项目" class="headerlink" title="两篇基础长文不计入 12 个研究项目"></a>两篇基础长文不计入 12 个研究项目</h2><p><a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/">Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift</a> 是整个项目的算法、术语与证据框架总览；<a href="/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/">回测吞吐与 Live 尾延迟工程</a> 是 Python/C++、回放吞吐和运行时延迟的工程专著。它们为各研究主文提供背景，但不因为篇幅更长就被重复计算成策略研究项目。</p>
+<h2 id="怎样阅读阴性、阻塞与未完成结果"><a href="#怎样阅读阴性、阻塞与未完成结果" class="headerlink" title="怎样阅读阴性、阻塞与未完成结果"></a>怎样阅读阴性、阻塞与未完成结果</h2><p><code>closed</code> 只关闭对应冻结 identity，不表示整个研究族没有信息；<code>prediction supported</code> 不等于 quote/action supported；<code>mechanics complete</code> 不等于经济效果存在；<code>blocked</code> 表示必要字段、时钟、支持或生命周期尚未闭合。<code>withdrawn</code> 则表示旧数值不再具有当前引用权限，不自动等于反向结论。</p>
+<p>同理，owner operational decision 可以显式接受研究尚未闭合的风险，却不能倒写成历史 gate 已通过。每篇主文同时写明“看到了什么”“没有获得什么权限”，并把 K 线、报单、queue、inventory 与 campaign terminal 放在同一机制链中。</p>
+<p>精确私有 artifact、OOF rows、缓存、原始 live 记录与 owner-side evidence 不随公共博客分发。公共文章提供可审计的方法、聚合结果、公开仓库链接和证据边界；它不把“公开可审计”夸大成“第三方可端到端复算所有私有结果”。</p>
+<h2 id="结语：文章应该按问题合并，证据仍要按-identity-分开"><a href="#结语：文章应该按问题合并，证据仍要按-identity-分开" class="headerlink" title="结语：文章应该按问题合并，证据仍要按 identity 分开"></a>结语：文章应该按问题合并，证据仍要按 identity 分开</h2><p>合并文章不等于合并证据。正文可以把同一科学问题的失败、修复和 successor 写成一条连贯故事；机器 manifest、fold、artifact 与 receipt 仍必须保持各自不可混用的 identity。前者服务理解，后者保护因果与统计完整性。</p>
+<p>这也是 Full-Multiscale 给出的正确模板：不是把每个执行 attempt 单独发布，而是让读者在一篇文章中看到问题、状态空间、nested OOF、one-shot/repeated distinction、BUY/SELL 分侧、结果、失败原因与权限边界。现在其余 NarrowGate 研究也按同一标准阅读。</p>
 
                 
               </div>
@@ -894,13 +594,13 @@
       
         <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
       
-        <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
-      
-        <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
-      
         <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
         <a href="/tags/%E7%A0%94%E7%A9%B6%E6%B2%BB%E7%90%86/" class="print-no-link">#研究治理</a>
+      
+        <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
+      
+        <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
       
     </div>
   
@@ -912,7 +612,7 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>NarrowGate 研究地图：十个研究族、48 个真实项目与证据状态</div>
+      <div>NarrowGate 研究地图：十个研究族如何收敛为 12 篇主研究长文</div>
       <div>https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Research-Project-Map/</div>
     </div>
     <div class="license-meta">
@@ -957,9 +657,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Full-Multiscale-Boolean-Cooldown-Research/" title="NarrowGate Full-Multiscale：从多尺度 EMA 到 Boolean Cooldown 的一次阴性研究">
+                      <a href="/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/" title="NarrowGate Fill Quality 与 First-Add Quote EV：从 Markout、Campaign Loss 到 Soft-Widen 动作">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">NarrowGate Full-Multiscale：从多尺度 EMA 到 Boolean Cooldown 的一次阴性研究</span>
+                        <span class="hidden-mobile">NarrowGate Fill Quality 与 First-Add Quote EV：从 Markout、Campaign Loss 到 Soft-Widen 动作</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -967,8 +667,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Active-Order-Lifecycle-CIF-100ms-Research/" title="NarrowGate Active-Order Lifecycle CIF：100ms 竞争风险与 Python/C++ 锁步">
-                        <span class="hidden-mobile">NarrowGate Active-Order Lifecycle CIF：100ms 竞争风险与 Python/C++ 锁步</span>
+                      <a href="/2026/08/29/NarrowGate-Sell-Add-Inventory-Price-Penalty-Research/" title="NarrowGate Inventory Control：Post-Cooldown Budget、SELL 抑制与 Multi-Short 被动修复">
+                        <span class="hidden-mobile">NarrowGate Inventory Control：Post-Cooldown Budget、SELL 抑制与 Multi-Short 被动修复</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
