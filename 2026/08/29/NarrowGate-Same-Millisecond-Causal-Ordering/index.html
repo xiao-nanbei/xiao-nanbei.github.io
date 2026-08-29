@@ -26,9 +26,10 @@
 <meta property="og:site_name" content="databrains">
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：时间戳相同不等于顺序已知，排个序也不会创造证据历史订单簿回放经常同时使用 book stream 与 individual trade stream。每条流内部可能有自己的顺序：book delta 有更新序列，trade 有成交 ID；但如果两条流没有共同的跨流 sequence number，而 trade">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/dual-clock-order-lifecycle-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-evidence-boundary.svg">
 <meta property="article:published_time" content="2026-08-29T07:30:00.000Z">
-<meta property="article:modified_time" content="2026-08-29T07:30:00.000Z">
+<meta property="article:modified_time" content="2026-08-29T11:45:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="因果推断">
@@ -36,7 +37,7 @@
 <meta property="article:tag" content="市场微观结构">
 <meta property="article:tag" content="订单簿">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-evidence-boundary.svg">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/dual-clock-order-lifecycle-kline.svg">
   
   
   
@@ -333,7 +334,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          6.6k 字
+          6.9k 字
         
       </span>
     
@@ -345,7 +346,7 @@
         
         
           <!-- compatible with older versions-->
-          55 分钟
+          58 分钟
         
       </span>
     
@@ -414,6 +415,9 @@ F_B\circ F_T\neq F_T\circ F_B.</script><p>原因是 trade 会消耗排在模拟�
 <script type="math/tex; mode=display">
 o_m\rightarrow Q_{m^+}\rightarrow \text{fill}\rightarrow q_t
 \rightarrow \text{next action}\rightarrow Y_{\text{campaign}}.</script><p>$o<em>m$ 是未知的跨流顺序，$Q$ 是 queue state，$q_t$ 是库存，$Y</em>{\text{campaign}}$ 是 campaign 终局价值。只要 $Y$ 对 $o_m$ 敏感，精确点标签就不可识别。</p>
+<p><img src="/images/narrowgate/dual-clock-order-lifecycle-kline.svg" srcset="/img/loading.gif" lazyload alt="K 线上的订单生命周期与 exchange visibility 双时钟"></p>
+<p><em>机制图：K 线碰到 maker price 以后，订单仍要经历 active、queue consumption、partial/full fill、cancel request 与 cancel ACK；cancel request 后、ACK 前仍在风险集。交易所发生时刻与策略可见时刻是两条时钟，跨流同毫秒却没有共同序号时，图上的左右位置不能被拿来补造因果顺序。</em></p>
+<p>图中纵向虚线只表示一个可审计的生命周期例子，不意味着 candle 能提供这些事件的真实先后。真正的研究输入必须来自冻结的 book、trade、order-event 和 visibility contract；当两个相容顺序会给出不同 fill 或 inventory 路径时，唯一诚实的点标签就是 unidentified。</p>
 <h2 id="3-“不可识别”与“程序跑不动”是两种问题"><a href="#3-“不可识别”与“程序跑不动”是两种问题" class="headerlink" title="3. “不可识别”与“程序跑不动”是两种问题"></a>3. “不可识别”与“程序跑不动”是两种问题</h2><p>如果只是程序不知道怎样比较两个对象，可以添加一个任意排序键，让代码继续运行；那是 implementation problem。如果数据本身没有记录真实先后，而两个先后会改变结果，缺少的是 identification，不是算法技巧。</p>
 <p>形式化地说，观测数据为 $D$，未观测的同毫秒顺序为 $o\in{T\prec B,B\prec T}$。若两种顺序都与 $D$ 相容，而且：</p>
 <script type="math/tex; mode=display">

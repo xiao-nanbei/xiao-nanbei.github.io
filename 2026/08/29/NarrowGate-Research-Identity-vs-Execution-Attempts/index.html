@@ -26,15 +26,17 @@
 <meta property="og:site_name" content="databrains">
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：模型没变、问题没变，就不要用版本号伪装一次修复问题：Full-Multiscale 的历史记录里出现了 formal-v13 到 formal-v27。这是否意味着研究连续迭代了十五代，或者看了十五次经济结果以后不断调模型？ 结论：不是。这些名称是历史 execution-attempt aliases，也就是执">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-kline-to-oof-pipeline.svg">
 <meta property="article:published_time" content="2026-08-29T08:30:00.000Z">
-<meta property="article:modified_time" content="2026-08-29T08:30:00.000Z">
+<meta property="article:modified_time" content="2026-08-29T11:45:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
-<meta property="article:tag" content="回测">
 <meta property="article:tag" content="研究治理">
+<meta property="article:tag" content="回测">
 <meta property="article:tag" content="可复现性">
 <meta property="article:tag" content="软件工程">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-kline-to-oof-pipeline.svg">
   
   
   
@@ -331,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          6.9k 字
+          7.2k 字
         
       </span>
     
@@ -343,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          58 分钟
+          61 分钟
         
       </span>
     
@@ -402,6 +404,9 @@
 \mathcal R'\ne\mathcal R
 \iff
 D'\ne D\ \lor\ B'\ne B\ \lor\ C'\ne C\ \lor\ F'\ne F\ \lor\ \theta'\ne\theta\ \lor\ S'\ne S.</script><p>“程序这次没有崩”不在这个等式右侧。</p>
+<p><img src="/images/narrowgate/full-multiscale-kline-to-oof-pipeline.svg" srcset="/img/loading.gif" lazyload alt="从 K 线状态到 nested OOF 的单一冻结研究身份"></p>
+<p><em>身份图：同一条研究链从因果可见 K 线、十个 half-life、45 个 pair、pair/trade/depth state 和有界 Boolean policy，走到四个 chronological outer folds。45 个 pair、30 日、四折和多次 execution attempt 都不是独立研究版本；只有样本、baseline、candidate、fold、estimand 或统计合同改变，才产生新 research identity。</em></p>
+<p>图里每个 outer fold 都会重新学习一条 fold-specific policy，但它们共同评价同一个学习算法合同；这和“研究做了四次”也不是一回事。后续 scheduler、mmap 或 cache 修复只是在尝试执行这条既定管线，不能制造新的经济证据身份。</p>
 <h2 id="2-Execution-attempt-又是什么"><a href="#2-Execution-attempt-又是什么" class="headerlink" title="2. Execution attempt 又是什么"></a>2. Execution attempt 又是什么</h2><p>Execution attempt，简称执行尝试，是用一组确定的源码、运行时与输入绑定去执行同一个研究合同。可以把第 $k$ 次尝试写成：</p>
 <script type="math/tex; mode=display">
 \mathcal A_k=(\mathcal R,G_k,M_k,X_k,O_k,P_k),</script><p>其中 $G_k$ 是 Git commit/tree 与 annotated execution tag，$M_k$ 是 pre-run manifest，$X_k$ 是运行时与 cache namespace，$O_k$ 是输出 schema，$P_k$ 是权限字段。不同 attempt 可以有不同的实现字节和运行环境，但仍绑定同一个 $\mathcal R$。</p>
@@ -589,9 +594,9 @@ D'\ne D\ \lor\ B'\ne B\ \lor\ C'\ne C\ \lor\ F'\ne F\ \lor\ \theta'\ne\theta\ \l
       
         <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
       
-        <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
-      
         <a href="/tags/%E7%A0%94%E7%A9%B6%E6%B2%BB%E7%90%86/" class="print-no-link">#研究治理</a>
+      
+        <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
       
         <a href="/tags/%E5%8F%AF%E5%A4%8D%E7%8E%B0%E6%80%A7/" class="print-no-link">#可复现性</a>
       

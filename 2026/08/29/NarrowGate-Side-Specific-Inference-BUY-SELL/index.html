@@ -26,9 +26,10 @@
 <meta property="og:site_name" content="databrains">
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：BUY 与 SELL 不是同一机制的正负号副本这篇文章回答一个看似简单的问题：maker BUY 与 maker SELL 都是在盘口提供流动性，为什么不能把两侧样本放在一起训练、算一个 pooled 平均，再给同一套策略结论？ 因为两侧面对的库存变化、主动成交对手方、订单簿位置、cooldown action、">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/cooldown-side-selective-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-buy-intervals.svg">
 <meta property="article:published_time" content="2026-08-29T07:10:00.000Z">
-<meta property="article:modified_time" content="2026-08-29T07:10:00.000Z">
+<meta property="article:modified_time" content="2026-08-29T11:45:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="因果推断">
@@ -36,7 +37,7 @@
 <meta property="article:tag" content="市场微观结构">
 <meta property="article:tag" content="BUY SELL">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-buy-intervals.svg">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/cooldown-side-selective-kline.svg">
   
   
   
@@ -333,7 +334,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          6.1k 字
+          6.4k 字
         
       </span>
     
@@ -345,7 +346,7 @@
         
         
           <!-- compatible with older versions-->
-          52 分钟
+          54 分钟
         
       </span>
     
@@ -416,6 +417,9 @@ q_t-z, & \text{maker SELL fill}.
 <p>用统一的 maker-signed horizon value 表示，令 $\eta<em>{BUY}=+1$、$\eta</em>{SELL}=-1$，价格为 $P$、数量为 $z$，则最简单的方向对齐项是：</p>
 <script type="math/tex; mode=display">
 V_h^{(s)}=\eta_s\,z\,(P_{t+h}-P_t).</script><p>价格上升对 BUY inventory 有利，对 SELL inventory 不利。真实研究还会加入 campaign cost、queue、repair 和 terminal inventory，因此不能仅靠把标签乘以 $-1$ 就假设两侧可交换。</p>
+<p><img src="/images/narrowgate/cooldown-side-selective-kline.svg" srcset="/img/loading.gif" lazyload alt="多头库存下 BUY 与 SELL 报单的 cooldown 角色"></p>
+<p><em>机制图：当 $q&gt;0$ 时，BUY bid 会继续加多风险，SELL ask 则减少库存；一次 BUY fill 后，cooldown 只作用于 exposure-increasing BUY。若 $q&lt;0$，角色镜像：SELL 才是加空风险的一侧，BUY 是 reducing side。图为候选机制示意，不是当前 live 状态。</em></p>
+<p>因此同一段下跌 K 线对两侧不是简单乘以 $-1$：它既改变持仓的 maker-signed value，也改变哪一侧成交会继续扩大库存、哪一侧报价是退出路径。Side-specific gate 必须从 feature transform、动作 vocabulary、replay state 一直保持到最后的 interval 和权限判断。</p>
 <h2 id="3-Action-与-baseline-本身就是-side-specific-的"><a href="#3-Action-与-baseline-本身就是-side-specific-的" class="headerlink" title="3. Action 与 baseline 本身就是 side-specific 的"></a>3. Action 与 baseline 本身就是 side-specific 的</h2><p>Full-Multiscale 的 action 不是 <code>BUY / HOLD / SELL</code>，而是一次 exposure-increasing fill 后选择 total cooldown duration。BUY 与 SELL 各自有八档冻结动作，并且 baseline 是逐行复现实验冻结时的 exact owner baseline，不是一列独立的固定 85 秒常数。</p>
 <p>候选策略对 target side 运行；另一侧继续委托 B0，reducing quote 始终不变。这个设计把问题限定为：只改变 BUY cooldown 时，BUY 侧的 sequential campaign economics 如何；只改变 SELL cooldown 时，SELL 侧如何。</p>
 <p>形式上，一侧的目标量是：</p>

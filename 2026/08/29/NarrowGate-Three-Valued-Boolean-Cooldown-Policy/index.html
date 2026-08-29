@@ -27,8 +27,9 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：三值是信息状态，八档才是动作空间“三值 Boolean cooldown”最容易被误解成“策略只有三种动作”。实际恰好相反：三值描述每个条件是 TRUE、FALSE 还是 UNOBSERVED；BUY 与 SELL 的动作仍分别从八个预先冻结的 cooldown duration 中选择。UNOBSERVED 的">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-boolean-policy.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/cooldown-side-selective-kline.svg">
 <meta property="article:published_time" content="2026-08-29T07:20:00.000Z">
-<meta property="article:modified_time" content="2026-08-29T07:20:00.000Z">
+<meta property="article:modified_time" content="2026-08-29T11:45:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="因果推断">
@@ -554,6 +555,9 @@ a_{B0,s}(x),&\text{否则}.
 </div>
 <p><img src="/images/narrowgate/full-multiscale-boolean-policy.svg" srcset="/img/loading.gif" lazyload alt="三值 Boolean ordered first-match policy"></p>
 <p><em>图 1：只有连续经过明确 FALSE 的前置规则，后面的 TRUE 才能获得动作所有权；遇到更早的 UNOBSERVED 就 fail closed。</em></p>
+<p><img src="/images/narrowgate/cooldown-side-selective-kline.svg" srcset="/img/loading.gif" lazyload alt="K 线状态、三值规则与逐侧 cooldown 报单"></p>
+<p><em>机制图：以多头库存为例，BUY fill 以后 BUY bid 属于 exposure-increasing side，规则输出的 duration 决定它在 K 线时间轴上被屏蔽到何时；SELL ask 是 reducing side，cooldown 本身不应把它一起关掉。状态只在 fill 时刻冻结，不能看见未来 K 线后再选择 duration。</em></p>
+<p>这张图把 predicate 与 action 的区别落到了报单上：<code>T/F/U</code> 只决定某条规则能否拥有动作；真正输出的是一档 $\tau_k$。如果更早规则为 $U$，系统回到逐行 B0，而不是把缺失当作“短 cooldown”或让后面的规则补票。公开结果仍是 <code>supported_sides=[]</code>，所以图只解释候选机制，不声明 live 行为。</p>
 <h2 id="5-三值不是三个动作：BUY-与-SELL-各有八档-duration"><a href="#5-三值不是三个动作：BUY-与-SELL-各有八档-duration" class="headerlink" title="5. 三值不是三个动作：BUY 与 SELL 各有八档 duration"></a>5. 三值不是三个动作：BUY 与 SELL 各有八档 duration</h2><p>predicate 状态集合是：</p>
 <script type="math/tex; mode=display">
 \mathcal V=\{T,F,U\}.</script><p>动作集合则是另外一件事。研究冻结了 side-specific 的八档 vocabulary，第一档是该行由 exact baseline 给出的控制动作，另外七档是固定 duration：</p>

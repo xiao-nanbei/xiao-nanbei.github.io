@@ -27,21 +27,25 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：这是一个有正信号、但没有通过研究门槛的实验NarrowGate 的 Full-Multiscale 研究问了一个很具体的问题：在一次 maker 成交增加库存以后，能否根据从 0.5 秒到 256 秒的多尺度市场状态，动态决定下一次允许继续加仓前要等待多久，并且比实验冻结时的精确 owner baseline 获">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-research-loop.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/cooldown-side-selective-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-kline-to-oof-pipeline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-ema-bank.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-kline-policy-mechanism.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-pair-state.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-boolean-policy.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-candidate-ladder.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-nested-oof.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-one-shot-vs-repeated.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-frozen-result-authority.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-buy-intervals.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-evidence-boundary.svg">
 <meta property="article:published_time" content="2026-08-29T06:25:53.000Z">
-<meta property="article:modified_time" content="2026-08-29T08:45:00.000Z">
+<meta property="article:modified_time" content="2026-08-29T11:45:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="因果推断">
-<meta property="article:tag" content="机器学习">
 <meta property="article:tag" content="回测">
+<meta property="article:tag" content="机器学习">
 <meta property="article:tag" content="市场微观结构">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-research-loop.svg">
@@ -341,7 +345,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          5.8k 字
+          6.3k 字
         
       </span>
     
@@ -353,7 +357,7 @@
         
         
           <!-- compatible with older versions-->
-          49 分钟
+          53 分钟
         
       </span>
     
@@ -432,6 +436,9 @@
 -&gt; 相对冻结 exact baseline 的 campaign-terminal USDC increment</code></pre></div>
 <p><img src="/images/narrowgate/full-multiscale-research-loop.svg" srcset="/img/loading.gif" lazyload alt="Full-Multiscale 从状态到动作价值的研究链"></p>
 <p><em>图 1：one-shot label 只帮助训练；正式结论来自 candidate 与 B0 各自运行的重复顺序完整路径。</em></p>
+<p><img src="/images/narrowgate/cooldown-side-selective-kline.svg" srcset="/img/loading.gif" lazyload alt="成交后逐侧 cooldown 如何改变 K 线上的 maker 报单"></p>
+<p><em>图 2：以已有多头库存为例，BUY fill 后的 BUY bid 会继续增加暴露，cooldown 因而只屏蔽这一侧；SELL ask 是 reducing quote，原则上继续可用。Full-Multiscale 只在 fill 时刻用因果可见状态选择冻结 duration，不会看见未来 K 线后再改时长。</em></p>
+<p>图里的红叉才是研究动作真正落到报单层的地方：候选不是预测“下一根 K 线涨跌”，而是决定 exposure-increasing quote 何时恢复。K 线随后怎样走，会通过少接到哪些成交、库存怎样变化和减仓是否完成，进入 repeated full-path 的终局价值。</p>
 <p>这是整项研究最重要的边界：<strong>state ranking 不等于 action uplift，one-shot label 也不等于 repeated-policy PnL。</strong></p>
 <h2 id="2-为什么要做-Full-Multiscale-successor"><a href="#2-为什么要做-Full-Multiscale-successor" class="headerlink" title="2. 为什么要做 Full-Multiscale successor"></a>2. 为什么要做 Full-Multiscale successor</h2><p>这项研究之前，NarrowGate 已经测试过 ADD 与 WAIT、固定八档 cooldown、有限 Boolean predicate、modeled-queue persistent policy，以及 50/71 日 full-path diagnostics。它们暴露了几个不能靠“再加一个特征”解决的问题。</p>
 <p>第一，早期 Boolean 搜索并没有真正实现完整 feature hierarchy。部分大 feature block 被压缩成少数 outcome-blind predicates，外层 policy 也退化成很浅的一条规则，所以阴性结果只能关闭那个受限实现，不能证明高阶 multiscale structure 没有价值。</p>
@@ -442,6 +449,9 @@
 <p>离线研究在 outcome-blind source audit 后冻结了 30 个按时间排列的历史日期，共有 3,516 个机会。用于此前精确 F05 cooldown-selection chain 的日期被排除为 target；它们最多只能作为 D−1 warmup 或 D+1 washout context。这些日期是“对本研究族未消费”，不是“全项目从未看过”。</p>
 <p>证据时钟是 exchange time，queue identity 是 <code>modeled_queue_with_same_millisecond_ambiguity_censoring</code>。这意味着同毫秒但没有共同 sequence 的 trade/book 事件会被 censor，而不是被赋予乐观顺序。它不是 receive-time authority、strict exchange-queue truth、current-host transport parity，也不是 exact live-lifecycle confirmation。</p>
 <p>研究没有创建 shadow、companion、observer、writer、feature dump 或 hypothetical-action log。公开仓库保留方法、Spec、聚合结果和 machine receipt；精确 OOF rows、cache、scorecard 和 owner-side artifacts 位于 private evidence store，不随公共仓库分发。</p>
+<p><img src="/images/narrowgate/full-multiscale-kline-to-oof-pipeline.svg" srcset="/img/loading.gif" lazyload alt="从一段 K 线到 45 个 EMA pair 与 nested chronological OOF"></p>
+<p><em>图 3：十个 half-life 形成的 45 个 fast/slow pair 是同一个相关特征全集，不是 45 次独立研究。每个 outer fold 都只在过去日期的 inner folds 里筛状态、编译规则和选 duration，再到紧接着的未来五日运行 repeated full-path replay。</em></p>
+<p>这张总览图把“特征很多”和“偷看答案”分开了：状态空间可以很丰富，但每一折能使用的数据仍严格向左看；外层测试 K 线不会反过来改阈值、规则或时长。30 日、四个 outer folds 和后来多次执行尝试仍然属于一个冻结研究身份。</p>
 <h2 id="4-状态空间：十个-half-life、45-个-EMA-pair-和三值逻辑"><a href="#4-状态空间：十个-half-life、45-个-EMA-pair-和三值逻辑" class="headerlink" title="4. 状态空间：十个 half-life、45 个 EMA pair 和三值逻辑"></a>4. 状态空间：十个 half-life、45 个 EMA pair 和三值逻辑</h2><p>先把最容易把读者劝退的那句话拆开。设 $p_i$ 是时刻 $t_i$ 已经因果可见的本地 mid price，半衰期为 $h$ 的不规则时钟 EMA 按下面的式子更新：</p>
 <script type="math/tex; mode=display">
 \lambda_{i,h}=\exp\!\left(-\ln 2\,\frac{t_i-t_{i-1}}{h}\right)=2^{-\Delta t_i/h},
@@ -450,7 +460,7 @@ E_h(t_i)=\lambda_{i,h}E_h(t_{i-1})+(1-\lambda_{i,h})p_i.</script><p>$h$ 的直�
 <script type="math/tex; mode=display">
 H=\{0.5,1,2,4,8,16,32,64,128,256\}\ \text{seconds}.</script><p>任取 $f&lt;s$ 作为 fast 与 slow，就得到 $\binom{10}{2}=45$ 个合法配对。这里不是先在全部 30 天中挑一对“历史赢家”，而是让每个 inner fold 只用自己的过去训练段决定哪些 pair 值得进入规则。</p>
 <p><img src="/images/narrowgate/full-multiscale-ema-bank.svg" srcset="/img/loading.gif" lazyload alt="十个 EMA half-life 与全部 45 个 fast slow 配对"></p>
-<p><em>图 2：十个二倍间隔的时间尺度形成 45 个 fast/slow pair；每个方格是一组候选状态，不是一条独立策略。</em></p>
+<p><em>图 4：十个二倍间隔的时间尺度形成 45 个 fast/slow pair；每个方格是一组候选状态，不是一条独立策略。</em></p>
 <p>对一个配对 $(f,s)$，先定义以 basis point 表示的两线距离与距离速度：</p>
 <script type="math/tex; mode=display">
 d_{f,s}(t)=10^4\frac{E_f(t)-E_s(t)}{p(t)},
@@ -464,8 +474,11 @@ a^{\mathrm{persist}}_{f,s}(t)=t-t^{\text{current ordering start}}_{f,s}.</script
 d_{f,s}(t)v_{f,s}(t)>0\Rightarrow\text{expanding},
 \qquad
 d_{f,s}(t)v_{f,s}(t)<0\Rightarrow\text{converging}.</script><p>单条 EMA 的 slope 是 $\dot E_h$，curvature 是 $\ddot E_h$；配对的 curvature 则来自快慢 acceleration 之差。实现还会按 maker side 统一“有利 / 不利”方向，并在相应特征上使用因果可见的波动尺度做 normalization；上面的式子刻意省略这些符号变换，只保留最容易理解的几何关系。</p>
+<p><img src="/images/narrowgate/full-multiscale-kline-policy-mechanism.svg" srcset="/img/loading.gif" lazyload alt="一段 K 线如何变成 EMA pair state 并进入三值 Boolean policy"></p>
+<p><em>图 5：合成 K 线展示 fast/slow EMA 从扩张转为收敛。ordering 尚未反转，但 cross age、persistence、distance、slope、curvature 与 $d\cdot v$ 已经变化；这些状态再与 trade、depth、campaign 和 readiness 拼接，进入有界三值 first-match policy。图不是历史 E3 私有规则或实盘证据。</em></p>
+<p>从图上看，“fast 仍在 slow 上方”只是一个截面。前半段两线继续拉开，后半段虽然还没发生反叉，却已经开始靠拢；如果只保留 golden/death cross，一个 bit 会把这两个可能对应不同加仓风险的阶段压成同一状态。</p>
 <p><img src="/images/narrowgate/full-multiscale-pair-state.svg" srcset="/img/loading.gif" lazyload alt="一个 EMA 配对如何产生 cross age distance 与 expansion"></p>
-<p><em>图 3：同一个交叉方向下，“刚交叉且继续扩张”与“交叉很久且正在收敛”是两种不同的市场状态。</em></p>
+<p><em>图 6：同一个交叉方向下，“刚交叉且继续扩张”与“交叉很久且正在收敛”是两种不同的市场状态。</em></p>
 <p>因此每个 pair 不只提供 golden/death cross，而是提供一组带方向和持续性的状态：</p>
 <ul>
 <li>当前 fast/slow 的方向与上一次 cross 方向；</li>
@@ -494,7 +507,7 @@ R_\ell(x)=
 \tau_{\ell,s}, & R_1(x)=\cdots=R_{\ell-1}(x)=F,\ R_\ell(x)=T,\\
 \tau_{B0,s}(x), & \text{没有规则为真，或更早规则为 }U.
 \end{cases}</script><p><img src="/images/narrowgate/full-multiscale-boolean-policy.svg" srcset="/img/loading.gif" lazyload alt="三值 Boolean first match policy"></p>
-<p><em>图 4：三值属于 predicate；duration action 仍是八档。更早规则若不可观测，policy fail closed 回到 B0，而不会让后规则捡漏。</em></p>
+<p><em>图 7：三值属于 predicate；duration action 仍是八档。更早规则若不可观测，policy fail closed 回到 B0，而不会让后规则捡漏。</em></p>
 <p>搜索是有意限制的。每个 purged inner-training fold 最多经济筛选 1,024 个特征；per-action tree 深度最多 6、最多 32 个叶子，最终 policy 最多 7 条有序规则，每条规则最多 16 个 OR clause、每个 clause 最多 6 个 literal。这个约束减少了自由度，但也决定了结论边界：它是一个 bounded successor，不是对所有 Boolean architecture 的穷尽证明。</p>
 <h2 id="5-Candidate-ladder：从简单-campaign-状态逐层增加信息"><a href="#5-Candidate-ladder：从简单-campaign-状态逐层增加信息" class="headerlink" title="5. Candidate ladder：从简单 campaign 状态逐层增加信息"></a>5. Candidate ladder：从简单 campaign 状态逐层增加信息</h2><p>研究没有直接把 E3 与一个随意的 85 秒常数比较，而是冻结了逐层 candidate ladder。</p>
 <div class="table-container">
@@ -548,16 +561,16 @@ R_\ell(x)=
 <p>BUY 与 SELL 分开学习、分开报告、分开晋级；reducing quote 不变。duration vocabulary 也没有在看到结果后重选，BUY 与 SELL 各自继续使用既有的八档动作，包括 <code>CONTROL_85N</code> 和七个预先冻结的 fixed-duration arm。</p>
 <p>冻结 hierarchy 要求先回答 E1 相对 B0 是否成立，再回答 E2 相对 E1、E3 相对 E2，以及 M2 相对最佳 EMA representation 是否有增量价值。后层即使点估计更好，也不能绕过前层失败变成 confirmatory success。</p>
 <p><img src="/images/narrowgate/full-multiscale-candidate-ladder.svg" srcset="/img/loading.gif" lazyload alt="Full-Multiscale candidate ladder 与冻结晋级门"></p>
-<p><em>图 5：BUY E3 是后层最强点信号，但 E1→B0 的第一道确认门已经失败，所以 E3 不能跨级晋级。</em></p>
+<p><em>图 8：BUY E3 是后层最强点信号，但 E1→B0 的第一道确认门已经失败，所以 E3 不能跨级晋级。</em></p>
 <h2 id="6-为什么必须-nested-chronological-OOF"><a href="#6-为什么必须-nested-chronological-OOF" class="headerlink" title="6. 为什么必须 nested chronological OOF"></a>6. 为什么必须 nested chronological OOF</h2><p>30 个日期被组织成四个 expanding outer fold：前 10 日训练、接下来 5 日测试；前 15 日训练、接下来 5 日测试；然后是 20→5 和 25→5。最终共有 20 个 untouched outer-test days。</p>
 <p>每个 outer-training block 内还有三组 expanding inner fold。feature census、support calculation、economic screening、complexity selection 和 policy freeze 都只能发生在 purged inner-train。只要某个 assignment 的后代订单、queue、inventory、cooldown 或 campaign state 穿过测试边界，就必须从训练中 purge。</p>
 <p>这套结构是为了防止两种常见泄漏：一是先在全部 30 日里挑出“看起来最有效”的 EMA pair，再假装 outer fold 没看过；二是用未来 campaign 的 terminal outcome 帮助当前规则选择。</p>
 <p>外层测试只执行已经冻结的 fold policy，不再修改 feature、threshold、duration 或 complexity。因而它提供的是“学习算法在不同历史时点会产生什么 policy”的 OOF 证据，而不是一个最后 refit 出来的固定 artifact 的 OOF 证据。</p>
 <p><img src="/images/narrowgate/full-multiscale-nested-oof.svg" srcset="/img/loading.gif" lazyload alt="30 日 nested chronological out of fold 结构"></p>
-<p><em>图 6：四个 expanding outer folds 产生 20 个外层测试日；每个蓝色训练窗内部还要独立完成 inner-fold 搜索与 purge。</em></p>
+<p><em>图 9：四个 expanding outer folds 产生 20 个外层测试日；每个蓝色训练窗内部还要独立完成 inner-fold 搜索与 purge。</em></p>
 <h2 id="7-One-shot-label-只负责发现，repeated-replay-才负责经济结论"><a href="#7-One-shot-label-只负责发现，repeated-replay-才负责经济结论" class="headerlink" title="7. One-shot label 只负责发现，repeated replay 才负责经济结论"></a>7. One-shot label 只负责发现，repeated replay 才负责经济结论</h2><p>在 outer-training 内，为每个机会生成多个 duration arm 的 one-shot counterfactual label，是为了让 learner 看见“如果这里等待 79 秒、173 秒或更久，局部路径会怎样”。但这些 label 不能直接相加，因为前一个动作会改变下一个机会是否存在。</p>
 <p><img src="/images/narrowgate/full-multiscale-one-shot-vs-repeated.svg" srcset="/img/loading.gif" lazyload alt="One shot label 与 repeated sequential replay 的差别"></p>
-<p><em>图 7：候选 duration 会改变后续订单、fill、inventory 与 eligibility；把仍按 baseline 世界生成的局部效果相加，不等于 policy PnL。</em></p>
+<p><em>图 10：候选 duration 会改变后续订单、fill、inventory 与 eligibility；把仍按 baseline 世界生成的局部效果相加，不等于 policy PnL。</em></p>
 <p>外层 evaluation 因此采用 repeated sequential full-path replay：每一次符合条件的 exposure-increasing fill 都调用该 fold 已冻结的 policy，candidate 与 B0 分别重建后续订单、fill、inventory 和 campaign path。</p>
 <p>这也是 action-matched control 的意义。它复制 candidate 的 action rate 与 duration distribution，但不复制其状态语义。如果 candidate 只是通过“少做一点”改善亏损，matched control 应该得到相近结果；只有超出 matched control 的部分，才可能来自状态选择本身。</p>
 <h2 id="8-BUY：一个值得保留、但不能晋级的-E3-点信号"><a href="#8-BUY：一个值得保留、但不能晋级的-E3-点信号" class="headerlink" title="8. BUY：一个值得保留、但不能晋级的 E3 点信号"></a>8. BUY：一个值得保留、但不能晋级的 E3 点信号</h2><p>BUY E3 是所有非 baseline 候选中最强的经济点结果。</p>
@@ -596,6 +609,9 @@ R_\ell(x)=
 <p>按这个 modeled replay denominator 计算，terminal loss 降低 15.79%，closed-campaign loss 降低 20.01%。四个 outer fold 的平均 uplift 全部为正，20 个 OOF test days 中有 13 日改善。</p>
 <p>action-matched control 的 fills 从 8,565 降到 8,312，比 E3 还略少，但 terminal uplift 只有 <code>+0.264689 USDC/day</code>。E3 在它之上还有 <code>+0.193888 USDC/day</code> 的 semantic increment，因此这个结果并不能简单解释成“少成交，所以少亏”。</p>
 <p>这正是一个有研究价值的信号：它同时具有跨四个 fold 的正方向、有限的 fill sacrifice，以及超出 matched control 的正点估计。如果只看排行榜，E3 很容易被描述成 winner。</p>
+<p><img src="/images/narrowgate/full-multiscale-frozen-result-authority.svg" srcset="/img/loading.gif" lazyload alt="Full-Multiscale 冻结结果、区间与研究权限"></p>
+<p><em>图 11：BUY E3 的绝对 terminal value 仍为负，<code>+0.458577 USDC/day</code> 只是相对 baseline 少亏；相对 action-matched control 的 <code>+0.193888 USDC/day</code> 也只是语义增量点估计。两条 primary day interval 均跨零，所以权限链停在 Development hard-gate failure。</em></p>
+<p>这张图必须从左往右读：先看绝对值仍是亏损，再看相对改善，再看不确定区间，最后才看权限。跳过任何一层，都可能把“样本中少亏”误写成“策略盈利”、把“正点估计”误写成“因果确认”，或把 owner decision 倒写成 research authorization。</p>
 <h2 id="9-为什么它仍然失败"><a href="#9-为什么它仍然失败" class="headerlink" title="9. 为什么它仍然失败"></a>9. 为什么它仍然失败</h2><p>首先，primary day-level simultaneous band 没有排除伤害。E3 gross terminal uplift 的 simultaneous interval 是：</p>
 <script type="math/tex; mode=display">
 [-0.348400,\ +1.265554]\ \text{USDC/day}.</script><p>week-block simultaneous interval 为 <code>[+0.140288, +0.917819] USDC/day</code>，方向更乐观，但冻结合同并不允许在结果出来后只选择更有利的聚类方式。day-level family 仍跨零，所以 primary lower-bound gate 失败。</p>
@@ -603,7 +619,7 @@ R_\ell(x)=
 <script type="math/tex; mode=display">
 [-0.715169,\ +1.102945]\ \text{USDC/day}.</script><p>它仍然无法排除状态语义没有稳定增量，甚至在某些日期造成伤害。</p>
 <p><img src="/images/narrowgate/full-multiscale-buy-intervals.svg" srcset="/img/loading.gif" lazyload alt="BUY E3 gross 与 semantic uplift 的 simultaneous intervals"></p>
-<p><em>图 8：week-block interval 为正，但预先规定的 primary day interval 与 semantic day interval 都跨零；不能在看到结果后只挑绿色口径。</em></p>
+<p><em>图 12：week-block interval 为正，但预先规定的 primary day interval 与 semantic day interval 都跨零；不能在看到结果后只挑绿色口径。</em></p>
 <p>第三，冻结 hierarchy 的第一层 <code>E1_FULL_EMA_BANK</code> 对 B0 没有通过。E3 位于 E1/E2 之后；如果最基础的 full EMA feature block 尚未建立 confirmatory increment，就不能用后层 winner 绕过前层门槛。这是在控制多层搜索带来的 winner bias，而不是否认 E3 点估计存在。</p>
 <p>第四，tail 与 lifecycle gates 没有被较好的均值补偿。scorecard 记录的失败包括 conditional net-value lower bound 非正、negative-terminal protection 和 q10 shortfall protection 下界为负，以及 repair-event、censoring-avoidance 等指标方向不满足要求。</p>
 <p>因此，<code>ranking_score</code> 必须保持 null，candidate class 是 <code>hard_gate_failed</code>。这不是“保守一点所以暂不部署”，而是正式的 Development failure。</p>
@@ -623,7 +639,7 @@ R_\ell(x)=
 + frozen simultaneous hierarchy and scorecard gates</code></pre></div>
 <p>在这个身份下，BUY 与 SELL 都没有 supported side，不能进行 final refit，也不能打开 Validation 或 sealed holdout 来“救”候选。</p>
 <p><img src="/images/narrowgate/full-multiscale-evidence-boundary.svg" srcset="/img/loading.gif" lazyload alt="Full-Multiscale 的证据与权限边界"></p>
-<p><em>图 9：研究完成到 historical Development OOF，并在门槛处停止；final refit、Validation、holdout、action 与 live authority 都没有被创建。</em></p>
+<p><em>图 13：研究完成到 historical Development OOF，并在门槛处停止；final refit、Validation、holdout、action 与 live authority 都没有被创建。</em></p>
 <p>它没有证明多尺度状态毫无信息，也没有证明所有 state-to-duration policy 都无效。搜索本身是 bounded 的，queue 是 modeled 的，证据是 exchange-time Development，strict-native 同毫秒顺序、receive-time transport、exact lifecycle 和 final-artifact confirmation 都不在它的 authority 内。</p>
 <p>BUY E3 可以被保留为高优先级 hypothesis，但未来若确认，必须在读取新证据前冻结 E3 的 feature、rule、threshold、action 和 statistical contract，并建立新的 confirmation identity。不能回到这 30 日上修改 hierarchy、缩窄区间、挑选聚类方法或重调 action rate。</p>
 <p>任何后续 owner operational decision 也是独立权限。它可以显式接受未闭合风险，但不能倒写成本文的 research hard gates 已经通过。</p>
@@ -683,9 +699,9 @@ R_\ell(x)=
       
         <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
-        <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
-      
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
       
         <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
       

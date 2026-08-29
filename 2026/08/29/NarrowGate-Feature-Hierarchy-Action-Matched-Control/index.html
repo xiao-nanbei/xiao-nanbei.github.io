@@ -27,13 +27,14 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：少成交带来的少亏，不等于状态选择创造了价值问题：一个冷却策略比 baseline 少亏了，但它也减少了成交。怎样判断改善来自“在正确的市场状态采取了动作”，而不只是“整体少做了一点”？ 结论：NarrowGate Full-Multiscale 研究同时冻结了两道对照。第一道是 feature hierarchy">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-candidate-ladder.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-frozen-result-authority.svg">
 <meta property="article:published_time" content="2026-08-29T08:10:00.000Z">
-<meta property="article:modified_time" content="2026-08-29T08:10:00.000Z">
+<meta property="article:modified_time" content="2026-08-29T11:45:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="因果推断">
-<meta property="article:tag" content="机器学习">
 <meta property="article:tag" content="回测">
+<meta property="article:tag" content="机器学习">
 <meta property="article:tag" content="实验设计">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-candidate-ladder.svg">
@@ -333,7 +334,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          5.8k 字
+          6.1k 字
         
       </span>
     
@@ -345,7 +346,7 @@
         
         
           <!-- compatible with older versions-->
-          49 分钟
+          52 分钟
         
       </span>
     
@@ -496,6 +497,9 @@
 <p>但“点估计来自状态选择”与“状态选择已经被确认”仍是两句话。E3 semantic increment 的 day-level simultaneous interval 是：</p>
 <script type="math/tex; mode=display">
 [-0.715169,+1.102945]\ \text{USDC/day}.</script><p>区间跨零，意味着这 20 个 outer-test days 尚不能排除状态语义没有稳定增量，也不能排除它在某些日期造成伤害。</p>
+<p><img src="/images/narrowgate/full-multiscale-frozen-result-authority.svg" srcset="/img/loading.gif" lazyload alt="BUY E3、action-matched control 与研究权限的冻结结果"></p>
+<p><em>结果图：gross <code>+0.458577</code> 可以拆成 matched-control <code>+0.264689</code> 与语义增量 <code>+0.193888 USDC/day</code>，但候选绝对 terminal value 仍是 <code>-2.445540 USDC/day</code>，gross 与 semantic 的 primary day intervals 均跨零。Matched control 排除了“纯粹更少成交”这一种解释，没有完成因果确认或授权。</em></p>
+<p>所以 action matching 的作用是让问题更尖锐，而不是自动把候选变成 winner。它告诉我们正点估计不完全来自参与率下降；是否稳定来自状态分配，仍要由 semantic interval、hierarchy、tail 与 lifecycle gates 共同回答。</p>
 <h2 id="6-为什么-E3-仍不能越级成为-winner"><a href="#6-为什么-E3-仍不能越级成为-winner" class="headerlink" title="6. 为什么 E3 仍不能越级成为 winner"></a>6. 为什么 E3 仍不能越级成为 winner</h2><p>BUY E3 的 gross terminal uplift 为 <code>+0.458577 USDC/day</code>，四个 outer fold 平均值全部为正，20 个 outer-test days 中有 13 日改善，fills 只减少 2.71%。如果研究规则是“挑最终均值最大的候选”，它会显得很强。</p>
 <p>但冻结合同问的是一组更严格的问题：E1 相对 B0 是否建立了 full EMA bank 的增量；E2 的方向信息是否再增加价值；E3 的高阶 Boolean interaction 是否再增加价值；候选是否在 simultaneous uncertainty、tail、campaign 与 lifecycle 上都没有不可接受的失败。</p>
 <p>第一道 <code>E1 vs B0</code> hierarchy gate 没通过，E3 的 semantic day interval 也跨零；required tail 与 lifecycle gates 同样失败。因此它的 <code>candidate_class</code> 是 <code>hard_gate_failed</code>，不能获得 ranking、final refit 或 promotion 权限。</p>
@@ -549,9 +553,9 @@
       
         <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
       
-        <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
-      
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
       
         <a href="/tags/%E5%AE%9E%E9%AA%8C%E8%AE%BE%E8%AE%A1/" class="print-no-link">#实验设计</a>
       

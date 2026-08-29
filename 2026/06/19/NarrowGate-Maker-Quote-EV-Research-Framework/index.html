@@ -28,15 +28,19 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/maker-hot-path.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/data-lineage.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/reservation-inventory-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/quote-ladder.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/center-shift-vs-spread-widening-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/cooldown-side-selective-kline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/touch-vs-fill-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/order-lifecycle.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/paired-fixed-spread-curve-20260726.png">
 <meta property="article:published_time" content="2026-06-19T08:50:48.000Z">
-<meta property="article:modified_time" content="2026-08-29T10:30:00.000Z">
+<meta property="article:modified_time" content="2026-08-29T11:45:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
-<meta property="article:tag" content="机器学习">
 <meta property="article:tag" content="回测">
+<meta property="article:tag" content="机器学习">
 <meta property="article:tag" content="市场微观结构">
 <meta property="article:tag" content="数据质量">
 <meta name="twitter:card" content="summary_large_image">
@@ -337,7 +341,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          89k 字
+          90k 字
         
       </span>
     
@@ -349,7 +353,7 @@
         
         
           <!-- compatible with older versions-->
-          741 分钟
+          750 分钟
         
       </span>
     
@@ -897,6 +901,9 @@ r(s,q,t)=s-q\gamma\sigma^2(T-t)</script><script type="math/tex; mode=display">
 +\frac{2}{\gamma}\ln\left(1+\frac{\gamma}{k_{\mathrm{exec}}}\right)</script><script type="math/tex; mode=display">
 \operatorname{bid}=r-\frac{\delta}{2},\qquad
 \operatorname{ask}=r+\frac{\delta}{2}</script><p>其中 $q$ 是库存，$\sigma$ 是短期波动，<code>k_exec</code> 描述<strong>成交订单到达强度</strong>随报价距离的衰减速度，不是固定 10 秒内的 touch probability 斜率。直觉上，库存偏多时 reservation price 下移，报价会更愿意卖出、更不愿继续买入；波动上升时 spread 变宽，以补偿更高的逆向选择风险。</p>
+<p><img src="/images/narrowgate/reservation-inventory-kline.svg" srcset="/img/loading.gif" lazyload alt="同一段 K 线下库存如何移动 reservation center 与双边报价"></p>
+<p><em>机制图：在 K 线、fair price、波动和 half-spread 都相同的控制对照里，正库存先把 reservation center 下移，再让 bid 与 ask 同量下移。它不是只关掉 bid：bid 变远意味着减少继续买入，ask 变近意味着更愿意卖出减仓。图为合成示意，不是实盘证据。</em></p>
+<p>读图时可以把蓝线看成“报价围绕的中心”，绿线和红线分别看成最终 bid/ask 的连续轨迹。库存项决定三条线整体往哪边移；half-spread 决定 bid/ask 离中心有多远。这两个自由度不能混成一个参数。</p>
 <p>这几个式子背后的论文假设可以压缩成三步。</p>
 <p>第一步，Avellaneda-Stoikov 假设中间价近似服从扩散过程：</p>
 <script type="math/tex; mode=display">
@@ -965,7 +972,10 @@ h
 \operatorname{final\ ask}
 &=\operatorname{ceil\_to\_tick}
 \left(\max(\operatorname{ask}_{\text{candidate}},a_{\text{best}})\right).
-\end{aligned}</script><p>这里最容易误解的是代码旧名 <code>microprice</code>。仓库中的 helper 实际计算的是 weighted-mid proxy：如果买一数量很厚、卖一很薄，$m_w$ 会向卖一侧偏移；反过来则向买一侧偏移。它没有估计订单簿状态转移，也没有输出未来价格的条件期望，因此不是 Stoikov micro-price estimator。</p>
+\end{aligned}</script><p><img src="/images/narrowgate/center-shift-vs-spread-widening-kline.svg" srcset="/img/loading.gif" lazyload alt="K 线冲击下中心位移与价差变宽的区别"></p>
+<p><em>机制图：左图只改变 weighted-mid proxy 对报价中心的偏移，bid/ask 同向移动而宽度不变；右图只提高风险 half-spread，bid/ask 反向远离中心。真实冲击可以同时触发两条机制，但解释和校准必须分开。图为合成示意，不是实盘证据。</em></p>
+<p>这张图也给出了读 K 线时最重要的区分：上涨或下跌本身不会唯一决定报单动作。盘口数量不平衡可能移动中心，波动、流动性和 adverse guard 可能改变宽度，库存又会额外移动 reservation center；最终 bid/ask 是这些正交分量叠加后再经过 tick、BBO 与 Post-Only 约束的结果。</p>
+<p>这里最容易误解的是代码旧名 <code>microprice</code>。仓库中的 helper 实际计算的是 weighted-mid proxy：如果买一数量很厚、卖一很薄，$m_w$ 会向卖一侧偏移；反过来则向买一侧偏移。它没有估计订单簿状态转移，也没有输出未来价格的条件期望，因此不是 Stoikov micro-price estimator。</p>
 <p>把 weighted-mid proxy 写成这个形式，只能把它理解为当前 top-N 数量不平衡的坐标。若 <code>bid_qty</code> 远大于 <code>ask_qty</code>，它靠近 <code>best_ask</code>；这本身不等于“下一笔成交方向概率”已经被估计：</p>
 <script type="math/tex; mode=display">
 m_w-\operatorname{mid}
@@ -988,6 +998,9 @@ allow_ask =
     and inventory &gt; -max_inventory
     and not fill_cooldown_blocks_ask</code></pre></div>
 <p>当库存偏多时，bid 是增加风险的一侧，ask 是降低风险的一侧；库存偏空时反过来。因此同一个 adverse guard 对 bid/ask 的含义并不对称，这也是 quote EV 必须按 side 训练和评估的原因。</p>
+<p><img src="/images/narrowgate/cooldown-side-selective-kline.svg" srcset="/img/loading.gif" lazyload alt="成交后 cooldown 如何逐侧影响 K 线上的报单"></p>
+<p><em>机制图：在已有多头库存的例子里，BUY fill 之后继续挂 bid 会增加暴露，cooldown 因而屏蔽或延后这一侧；SELL ask 是减仓方向，原则上继续可用。Full-Multiscale 研究的是在 fill 时刻用因果可见状态选择冻结时长，而不是看见未来 K 线后再改时长；其公开研究状态仍是 <code>supported_sides=[]</code>。</em></p>
+<p>如果图中的 K 线在 fill 后继续下跌，屏蔽加仓 bid 可以减少在 adverse path 上连续接单；如果随后反弹，仍可用的 reducing ask 给库存留下退出路径。这里的“仍可用”不绕过 freshness、Post-Only、inventory limit 或其他硬安全门，它只说明 cooldown 自身不应误伤减仓方向。</p>
 <p>但真实盘口不会只服从这几个变量。因此项目后来逐步加入：</p>
 <ul>
 <li>weighted-mid proxy（代码旧名 <code>microprice</code>）与盘口 imbalance；</li>
@@ -1003,6 +1016,9 @@ allow_ask =
 <p>AS 在这里不是一个直接给答案的“万能公式”，而是稳定的报价坐标系。机器学习和策略 guard 不应该随意取代这个坐标系，而应该回答更局部的问题：这一侧现在是否值得挂、要离 BBO 多远、该暴露多久、库存代价是否已经过高。</p>
 <p>主模型和 quote EV 在这里扮演不同角色。主 LightGBM 描述市场状态，例如短期收益、波动与 toxicity；quote EV 则站在某一笔候选报价的角度，估计“是否会成交、成交后是否有利、尾部是否危险”。前者回答市场正在发生什么，后者回答这一侧是否值得承担一次具体的 maker 暴露。把二者混成一个方向预测器，反而会丢掉 maker 最关心的条件性。</p>
 <p>项目也因此从早期 1s-bar 回测逐渐转向 tick replay。bar 回测适合快速检查公式和参数方向，但只知道价格是否触及；maker 是否真的成交，还取决于挂单前方的队列、订单到达时间、撤单延迟和同价位主动成交量。没有这些状态，回测很容易把“价格碰到过”错误地当成“我成交了”。</p>
+<p><img src="/images/narrowgate/touch-vs-fill-kline.svg" srcset="/img/loading.gif" lazyload alt="K 线触价与 maker 真正成交的对照"></p>
+<p><em>机制图：两段 K 线都碰到同一条 maker bid；左边前方队列没有被主动卖单耗尽，所以只有 touch、没有 fill，右边主动量穿透 queue ahead 后才轮到自己的订单。固定期限 $P(\text{touch})$ 不能直接当成 $P(\text{fill})$ 或 execution-arrival intensity。图为合成示意，不是实盘证据。</em></p>
+<p>因此 K 线在这里是价格路径的可视化，不是成交判定器。真正的 fill 还要求订单已经 active、主动成交方向与价格能够穿过我方报价、前方数量被消耗，并且订单没有在 cancel ACK 或 full fill 后离开风险集。</p>
 <p>简化后的 queue/fill 逻辑可以写成：</p>
 <p><img src="/images/narrowgate/order-lifecycle.svg" srcset="/img/loading.gif" lazyload alt="NarrowGate maker order lifecycle"></p>
 <div class="code-wrapper"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">process_aggressive_trade</span>(<span class="hljs-params">order, trade</span>):
@@ -2438,9 +2454,9 @@ multi-level SHORT terminal value: -13.5910 USDC</code></pre></div>
       
         <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
       
-        <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
-      
         <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
       
         <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
       

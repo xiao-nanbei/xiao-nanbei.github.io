@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="760" viewBox="0 0 1040 760" role="img" aria-labelledby="title desc">
+  <title id="title">K 线之上的 maker 订单生命周期与双时钟</title>
+  <desc id="desc">一段示意 K 线叠加订单提交、激活、触价、部分或完全成交、撤单请求、撤单确认和待撤期间成交。下方用交换所匹配时钟和策略可见时钟说明事件发生与策略可使用之间存在延迟。</desc>
+  <defs>
+    <pattern id="down-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#fef2f2"/><line x1="0" y1="0" x2="0" y2="6" stroke="#f97066" stroke-width="2"/></pattern>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#344054"/></marker>
+    <style>
+      .bg{fill:#fbfcfe}.plot{fill:#fff;stroke:#d0d5dd;stroke-width:1.2}.grid{stroke:#eaecf0;stroke-width:1}.axis{stroke:#667085;stroke-width:1.2}.title{font:500 23px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.subtitle{font:400 13px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#475467}.text{font:500 14px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.small{font:400 12px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#475467}.tiny{font:400 11px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#667085}.mono{font:400 11px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#344054}.wick-up{stroke:#027a48;stroke-width:2}.body-up{fill:#ecfdf3;stroke:#027a48;stroke-width:2}.wick-down{stroke:#b42318;stroke-width:2}.body-down{fill:url(#down-hatch);stroke:#b42318;stroke-width:2}.quote{stroke:#175cd3;stroke-width:2.1;stroke-dasharray:8 5}.event-line{stroke:#344054;stroke-width:1.2;stroke-dasharray:4 4}.event-circle{fill:#fff;stroke:#344054;stroke-width:2}.event-diamond{fill:#fff7ed;stroke:#b45309;stroke-width:2}.event-fill{fill:#ecfdf3;stroke:#027a48;stroke-width:2}.event-cancel{fill:#fef2f2;stroke:#b42318;stroke-width:2}.state{stroke-width:1.2}.submitted{fill:#eff8ff;stroke:#175cd3}.active{fill:#ecfdf3;stroke:#027a48}.partial{fill:#fff7ed;stroke:#b45309}.pending{fill:#fef2f2;stroke:#b42318}.terminal{fill:#f4f3ff;stroke:#6941c6}.state-label{font:500 11px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#101828}.lane{stroke:#667085;stroke-width:1.5}.exchange{fill:#fff;stroke:#b42318;stroke-width:2}.visible{fill:#fff;stroke:#175cd3;stroke-width:2}.latency{stroke:#98a2b3;stroke-width:1.3;stroke-dasharray:4 4;marker-end:url(#arrow)}.note{fill:#f8fafc;stroke:#98a2b3;stroke-width:1.1;stroke-dasharray:5 4}.risk-note{fill:#fef2f2;stroke:#b42318;stroke-width:1.2}.branch{fill:none;stroke:#6941c6;stroke-width:1.4;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="bg" width="1040" height="760"/>
+  <text class="title" x="40" y="42">订单不是在 K 线碰价时瞬间“从无到有再消失”</text>
+  <text class="subtitle" x="40" y="68">maker 风险集要经过提交、激活、排队、部分/完全成交与 cancel ACK；下图为机制示意，非实盘证据。</text>
+
+  <g aria-label="图例">
+    <circle class="event-circle" cx="54" cy="95" r="7"/><text class="small" x="68" y="100">本地动作</text>
+    <rect class="event-diamond" x="164" y="89" width="12" height="12" transform="rotate(45 170 95)"/><text class="small" x="186" y="100">交易所事件</text>
+    <circle class="event-fill" cx="302" cy="95" r="7"/><text class="small" x="316" y="100">成交事件</text>
+    <rect class="event-cancel" x="414" y="88" width="14" height="14"/><text class="small" x="438" y="100">撤单相关</text>
+    <line class="quote" x1="548" y1="95" x2="594" y2="95"/><text class="small" x="604" y="100">活动 maker 买单价格</text>
+  </g>
+
+  <rect class="plot" x="56" y="120" width="930" height="278" rx="8"/>
+  <line class="grid" x1="94" y1="168" x2="964" y2="168"/><line class="grid" x1="94" y1="224" x2="964" y2="224"/><line class="grid" x1="94" y1="280" x2="964" y2="280"/><line class="grid" x1="94" y1="336" x2="964" y2="336"/>
+  <line class="axis" x1="94" y1="148" x2="94" y2="366"/><line class="axis" x1="94" y1="366" x2="964" y2="366"/>
+  <text class="tiny" x="63" y="172">100.6</text><text class="tiny" x="63" y="228">100.4</text><text class="tiny" x="63" y="284">100.2</text><text class="tiny" x="63" y="340">100.0</text>
+  <text class="small" transform="translate(58 310) rotate(-90)">价格（归一化）</text>
+
+  <g aria-label="示意 K 线">
+    <line class="wick-up" x1="146" y1="188" x2="146" y2="250"/><rect class="body-up" x="136" y="204" width="20" height="28"/>
+    <line class="wick-up" x1="254" y1="166" x2="254" y2="230"/><rect class="body-up" x="244" y="184" width="20" height="28"/>
+    <line class="wick-down" x1="362" y1="178" x2="362" y2="342"/><rect class="body-down" x="352" y="202" width="20" height="78"/>
+    <line class="wick-down" x1="470" y1="258" x2="470" y2="358"/><rect class="body-down" x="460" y="276" width="20" height="42"/>
+    <line class="wick-up" x1="578" y1="274" x2="578" y2="350"/><rect class="body-up" x="568" y="292" width="20" height="34"/>
+    <line class="wick-down" x1="686" y1="278" x2="686" y2="360"/><rect class="body-down" x="676" y="298" width="20" height="34"/>
+    <line class="wick-up" x1="794" y1="266" x2="794" y2="350"/><rect class="body-up" x="784" y="288" width="20" height="38"/>
+    <line class="wick-up" x1="902" y1="236" x2="902" y2="314"/><rect class="body-up" x="892" y="252" width="20" height="42"/>
+  </g>
+  <line class="quote" x1="215" y1="336" x2="844" y2="336"/><text class="small" x="724" y="326" fill="#175cd3">order price = 100.0</text>
+
+  <g aria-label="订单事件标记">
+    <line class="event-line" x1="134" y1="132" x2="134" y2="366"/><circle class="event-circle" cx="134" cy="146" r="7"/><text class="tiny" text-anchor="middle" x="134" y="128">placed / send NEW</text>
+    <line class="event-line" x1="222" y1="132" x2="222" y2="366"/><rect class="event-diamond" x="216" y="140" width="12" height="12" transform="rotate(45 222 146)"/><text class="tiny" text-anchor="middle" x="222" y="382">NEW ACK → active</text>
+    <line class="event-line" x1="362" y1="132" x2="362" y2="366"/><rect class="event-diamond" x="356" y="330" width="12" height="12" transform="rotate(45 362 336)"/><text class="tiny" text-anchor="middle" x="362" y="382">touch / queue consume</text>
+    <line class="event-line" x1="470" y1="132" x2="470" y2="366"/><circle class="event-fill" cx="470" cy="336" r="8"/><path d="M466 336l3 3 6-7" fill="none" stroke="#027a48" stroke-width="1.7"/><text class="tiny" text-anchor="middle" x="470" y="128">PARTIAL_FILL</text>
+    <line class="event-line" x1="616" y1="132" x2="616" y2="366"/><rect class="event-cancel" x="609" y="139" width="14" height="14"/><text class="tiny" text-anchor="middle" x="616" y="128">cancel request</text>
+    <line class="event-line" x1="704" y1="132" x2="704" y2="366"/><circle class="event-fill" cx="704" cy="336" r="8"/><text class="tiny" text-anchor="middle" x="704" y="382">ACK 前仍可再 fill</text>
+    <line class="event-line" x1="844" y1="132" x2="844" y2="366"/><rect class="event-cancel" x="837" y="139" width="14" height="14"/><text class="tiny" text-anchor="middle" x="844" y="128">cancel ACK</text>
+  </g>
+
+  <g aria-label="订单状态带">
+    <rect class="state submitted" x="134" y="410" width="88" height="44" rx="5"/><text class="state-label" text-anchor="middle" x="178" y="437">SUBMITTED</text>
+    <rect class="state active" x="222" y="410" width="248" height="44" rx="5"/><text class="state-label" text-anchor="middle" x="346" y="437">ACTIVE / queue at risk</text>
+    <rect class="state partial" x="470" y="410" width="146" height="44" rx="5"/><text class="state-label" text-anchor="middle" x="543" y="437">PARTIALLY_FILLED</text>
+    <rect class="state pending" x="616" y="410" width="228" height="44" rx="5"/><text class="state-label" text-anchor="middle" x="730" y="429">CANCEL_PENDING</text><text class="tiny" text-anchor="middle" x="730" y="447">仍在 exchange-live 风险集</text>
+    <rect class="state terminal" x="844" y="410" width="120" height="44" rx="5"/><text class="state-label" text-anchor="middle" x="904" y="437">TERMINAL</text>
+    <path class="branch" d="M470 410C470 382 520 382 520 360"/><rect class="state terminal" x="498" y="316" width="152" height="38" rx="5"/><text class="state-label" text-anchor="middle" x="574" y="340">若余量=0：FULL_FILL</text>
+  </g>
+
+  <rect class="risk-note" x="616" y="466" width="348" height="48" rx="6"/>
+  <text class="text" x="632" y="487">cancel request ≠ 风险结束</text>
+  <text class="small" x="632" y="505">只有 cancel ACK 或 FULL_FILL 才让剩余订单离开风险集。</text>
+
+  <text class="text" x="56" y="548">双时钟：发生在交易所，不等于策略已经看见</text>
+  <line class="lane" x1="190" y1="584" x2="940" y2="584"/>
+  <line class="lane" x1="190" y1="654" x2="940" y2="654"/>
+  <text class="text" x="56" y="589">exchange time</text><text class="small" x="56" y="606">匹配 / queue truth</text>
+  <text class="text" x="56" y="659">visibility time</text><text class="small" x="56" y="676">策略因果可用时刻</text>
+
+  <g aria-label="双时钟事件映射">
+    <rect class="exchange" x="250" y="577" width="14" height="14" transform="rotate(45 257 584)"/><text class="tiny" text-anchor="middle" x="257" y="570">NEW ACK</text>
+    <rect class="exchange" x="430" y="577" width="14" height="14" transform="rotate(45 437 584)"/><text class="tiny" text-anchor="middle" x="437" y="570">trade / touch</text>
+    <rect class="exchange" x="588" y="577" width="14" height="14" transform="rotate(45 595 584)"/><text class="tiny" text-anchor="middle" x="595" y="570">partial fill</text>
+    <rect class="exchange" x="794" y="577" width="14" height="14" transform="rotate(45 801 584)"/><text class="tiny" text-anchor="middle" x="801" y="570">cancel ACK</text>
+
+    <circle class="visible" cx="292" cy="654" r="7"/><text class="tiny" text-anchor="middle" x="292" y="686">ACK visible</text>
+    <circle class="visible" cx="488" cy="654" r="7"/><text class="tiny" text-anchor="middle" x="488" y="686">flow feature ready</text>
+    <circle class="visible" cx="635" cy="654" r="7"/><text class="tiny" text-anchor="middle" x="635" y="686">fill visible</text>
+    <circle class="visible" cx="848" cy="654" r="7"/><text class="tiny" text-anchor="middle" x="848" y="686">terminal visible</text>
+
+    <path class="latency" d="M257 594L288 644"/><path class="latency" d="M437 594L484 644"/><path class="latency" d="M595 594L631 644"/><path class="latency" d="M801 594L844 644"/>
+  </g>
+  <rect class="note" x="56" y="704" width="930" height="34" rx="5"/>
+  <text class="small" x="72" y="726">策略特征只能在 visibility time 之后使用；跨流同毫秒却无共同序号时必须 censor / fail closed，不能靠 K 线顺序补造事件先后。</text>
+  <text class="small" x="810" y="750">机制示意，非实盘证据</text>
+</svg>

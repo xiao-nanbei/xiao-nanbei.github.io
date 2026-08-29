@@ -27,9 +27,10 @@
 <meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：局部动作标签能教模型，不能直接充当策略 PnL这篇文章讨论一个很容易被低估的回测错误：如果我们已经知道每个机会分别改成 79 秒、173 秒或更长 cooldown 的局部反事实，能不能把模型选中的所有局部改善直接相加，得到整条策略的收益？这里 cooldown 是一次增加同侧库存的成交以后，再次允许同侧加仓前的">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-one-shot-vs-repeated.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/cooldown-side-selective-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-research-loop.svg">
 <meta property="article:published_time" content="2026-08-29T07:05:00.000Z">
-<meta property="article:modified_time" content="2026-08-29T07:05:00.000Z">
+<meta property="article:modified_time" content="2026-08-29T11:45:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="因果推断">
@@ -334,7 +335,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          5.7k 字
+          6k 字
         
       </span>
     
@@ -346,7 +347,7 @@
         
         
           <!-- compatible with older versions-->
-          48 分钟
+          50 分钟
         
       </span>
     
@@ -423,6 +424,9 @@ Y(\pi)=G\!\left(S_0,X_{1:T},A_{1:T}^\pi\right),
 Y(\pi)-Y(B0)
 =
 \sum_i\delta_i^{\mathrm{one}}\!\left(\pi(H_i^{B0})\right).</script><p>右边成立需要非常强的条件，例如动作不改变任何未来状态、机会集合固定、每次 reward 完全可加且没有库存或 campaign 交互。Cooldown 动作几乎逐条违反这些条件。</p>
+<p><img src="/images/narrowgate/cooldown-side-selective-kline.svg" srcset="/img/loading.gif" lazyload alt="成交后 cooldown 如何让候选路径与 baseline 路径分叉"></p>
+<p><em>机制图：第一次 BUY fill 之后，候选 duration 决定 exposure-increasing bid 在后续 K 线上的缺席区间，而 reducing ask 仍可存在。这个缺席会改变下一笔 fill、库存与后续 eligibility，所以第二个 one-shot 标签未必还存在于 candidate 世界。</em></p>
+<p>图中的固定 $\tau_{fixed}$ 与状态选择 $\tau_k$ 不是两条可以逐点相加的收益曲线，而是两套会生成不同订单集合的策略路径。Repeated replay 必须让每一条 arm 按自己的成交和库存继续走下去，直到 campaign terminal；否则看见的仍是 baseline 世界上的局部替换。</p>
 <h2 id="4-Full-Multiscale-怎样分工：one-shot-负责学，repeated-负责判"><a href="#4-Full-Multiscale-怎样分工：one-shot-负责学，repeated-负责判" class="headerlink" title="4. Full-Multiscale 怎样分工：one-shot 负责学，repeated 负责判"></a>4. Full-Multiscale 怎样分工：one-shot 负责学，repeated 负责判</h2><p>One-shot 并没有因此变得无用。它仍然承担一个清晰角色：只在每个 outer-training period 内，为训练机会生成 side-specific duration targets，帮助 learner 比较冻结的八档动作。它不能请求 outer-test rows，unsupported target 必须保持 <code>NaN</code>，也不能被当作零收益动作。</p>
 <p>对外层评价，研究采用两条独立 arm：</p>
 <ul>
