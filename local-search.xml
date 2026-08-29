@@ -123,9 +123,9 @@
       
       <tag>市场微观结构</tag>
       
-      <tag>机器学习</tag>
-      
       <tag>因果推断</tag>
+      
+      <tag>机器学习</tag>
       
       <tag>跨市场</tag>
       
@@ -156,9 +156,9 @@
       
       <tag>市场微观结构</tag>
       
-      <tag>回测</tag>
-      
       <tag>因果推断</tag>
+      
+      <tag>回测</tag>
       
       <tag>跨市场</tag>
       
@@ -222,11 +222,11 @@
       
       <tag>市场微观结构</tag>
       
+      <tag>因果推断</tag>
+      
       <tag>机器学习</tag>
       
       <tag>回测</tag>
-      
-      <tag>因果推断</tag>
       
     </tags>
     
@@ -255,11 +255,11 @@
       
       <tag>市场微观结构</tag>
       
+      <tag>因果推断</tag>
+      
       <tag>机器学习</tag>
       
       <tag>回测</tag>
-      
-      <tag>因果推断</tag>
       
     </tags>
     
@@ -288,11 +288,11 @@
       
       <tag>市场微观结构</tag>
       
+      <tag>因果推断</tag>
+      
       <tag>机器学习</tag>
       
       <tag>回测</tag>
-      
-      <tag>因果推断</tag>
       
     </tags>
     
@@ -321,11 +321,11 @@
       
       <tag>市场微观结构</tag>
       
+      <tag>因果推断</tag>
+      
       <tag>机器学习</tag>
       
       <tag>回测</tag>
-      
-      <tag>因果推断</tag>
       
     </tags>
     
@@ -354,9 +354,9 @@
       
       <tag>市场微观结构</tag>
       
-      <tag>生存分析</tag>
-      
       <tag>机器学习</tag>
+      
+      <tag>生存分析</tag>
       
     </tags>
     
@@ -416,9 +416,9 @@
       
       <tag>市场微观结构</tag>
       
-      <tag>回测</tag>
-      
       <tag>因果推断</tag>
+      
+      <tag>回测</tag>
       
     </tags>
     
@@ -509,9 +509,9 @@
       
       <tag>市场微观结构</tag>
       
-      <tag>生存分析</tag>
-      
       <tag>回测</tag>
+      
+      <tag>生存分析</tag>
       
     </tags>
     
@@ -540,9 +540,9 @@
       
       <tag>市场微观结构</tag>
       
-      <tag>回测</tag>
-      
       <tag>因果推断</tag>
+      
+      <tag>回测</tag>
       
     </tags>
     
@@ -910,9 +910,9 @@
       
       <tag>Market Making</tag>
       
-      <tag>回测</tag>
-      
       <tag>因果推断</tag>
+      
+      <tag>回测</tag>
       
       <tag>异质性处理效应</tag>
       
@@ -941,9 +941,9 @@
       
       <tag>Market Making</tag>
       
-      <tag>回测</tag>
-      
       <tag>因果推断</tag>
+      
+      <tag>回测</tag>
       
       <tag>离线策略评估</tag>
       
@@ -974,9 +974,9 @@
       
       <tag>市场微观结构</tag>
       
-      <tag>生存分析</tag>
-      
       <tag>因果推断</tag>
+      
+      <tag>生存分析</tag>
       
     </tags>
     
@@ -1036,9 +1036,9 @@
       
       <tag>市场微观结构</tag>
       
-      <tag>生存分析</tag>
-      
       <tag>回测</tag>
+      
+      <tag>生存分析</tag>
       
     </tags>
     
@@ -1067,9 +1067,9 @@
       
       <tag>市场微观结构</tag>
       
-      <tag>回测</tag>
-      
       <tag>因果推断</tag>
+      
+      <tag>回测</tag>
       
     </tags>
     
@@ -1098,11 +1098,11 @@
       
       <tag>市场微观结构</tag>
       
+      <tag>因果推断</tag>
+      
       <tag>机器学习</tag>
       
       <tag>回测</tag>
-      
-      <tag>因果推断</tag>
       
     </tags>
     
@@ -1131,44 +1131,11 @@
       
       <tag>市场微观结构</tag>
       
-      <tag>回测</tag>
-      
       <tag>因果推断</tag>
       
-      <tag>研究治理</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>NarrowGate Active-Order Lifecycle CIF：100ms 竞争风险与 Python/C++ 锁步</title>
-    <link href="/2026/08/29/NarrowGate-Active-Order-Lifecycle-CIF-100ms-Research/"/>
-    <url>/2026/08/29/NarrowGate-Active-Order-Lifecycle-CIF-100ms-Research/</url>
-    
-    <content type="html"><![CDATA[<p>Last materially modified: 2026-08-29</p><h2 id="TL-DR：这项研究校准的是订单生命周期概率，不是撤单动作价值"><a href="#TL-DR：这项研究校准的是订单生命周期概率，不是撤单动作价值" class="headerlink" title="TL;DR：这项研究校准的是订单生命周期概率，不是撤单动作价值"></a>TL;DR：这项研究校准的是订单生命周期概率，不是撤单动作价值</h2><p>一个 maker order 激活以后，不会只面对“十秒内成交或不成交”这一种二元结局。它可能先部分成交、继续保留剩余数量；可能收到撤单请求却仍在交易所风险集中；可能被拒绝撤单后重新回到 active；也可能最终被完整成交、收到 cancel ACK，或以其它受支持的交易所终局结束。若把这些事件压成互相独立的四个二元分类器，概率质量会重复；若把 cancel request 当作终局，风险集会过早消失；若把本地回放结束当作交易所终局，模型又会学到一个不存在的市场事件。</p><p>F07 Active-Order Lifecycle CIF 因此冻结了一个更窄、也更基础的问题：<strong>对一段具有正 remaining quantity 的 active-order risk spell，在严格 100ms 因果可见网格上，如何联合估计 favorable fill、adverse fill、cancel ACK 与 other terminal 的 cumulative incidence，并让 Python 与 C++ 在每一个事件、每一条概率曲线和 checkpoint 恢复后保持锁步？</strong></p><p>完整研究链依次经过概率合同、journal 预检、双时钟、strict-native queue 资格、40 日 replay、event lockstep、CIF 训练与 native parity；这些都是同一 lifecycle-CIF 项目的完成门。</p><p>最终 Development mechanics 结果覆盖 40 日、2,712,262 个 lifecycle events 与 686,224 个 journal rows。665,831 个 exact-native eligible spells 贡献 5,172,921.02 秒风险暴露，另有 20,393 个 spells 因 native queue 证据不足而显式 censor。终局由 636,186 个 cancel ACK 与 29,645 个 full fill 构成；120 个 CIF cells 分布在 30 个 parent cells。Python/C++ event mismatch 为零，post-terminal hazard 或 queue reuse 为零，CIF 最大绝对差为 $1.1102230246251565\times10^{-16}$，checkpoint-resume 最大绝对差为零。</p><p>这证明了历史 replay 上的 lifecycle 与概率 mechanics 可以被确定性复现。它<strong>没有</strong>证明当前环境的 score calibration，没有比较 KEEP 与 CANCEL 的因果价值，没有读取 PnL、reward、markout、Validation 或 sealed holdout，也没有给予 q90 action、部署或 baseline 变更权限。</p><p>本文是历史 Development mechanics 复盘，不构成交易建议。图中的状态机是冻结合同的抽象图，右侧 CIF 曲线为合成概率示意，不是行情、实盘订单或经济结果。</p><p><img src="/images/narrowgate/active-order-lifecycle-cif-state-machine.svg" alt="Active-order 生命周期状态机与 100ms 竞争风险 CIF"></p><p><em>图 1：左侧严格区分风险阶段、非终局转移与交易所终局；右侧以联合归一化的 100ms hazard 更新 survival 和四条 cause-specific CIF。示意曲线只解释概率守恒，不代表任何实盘校准。</em></p><h2 id="1-为什么-snapshot-fill-probability-不够"><a href="#1-为什么-snapshot-fill-probability-不够" class="headerlink" title="1. 为什么 snapshot fill probability 不够"></a>1. 为什么 snapshot fill probability 不够</h2><p>静态 fill classifier 常问：给定当前状态 $x_t$，订单在未来 $H$ 秒内是否成交？其目标可写成</p><script type="math/tex; mode=display">\Pr(T_{fill}\le H\mid x_t).</script><p>这个问题适合排序，却无法完整描述 active order。第一，同一订单会随着时间进入不同 phase；在 cancel request 已发送、ACK 尚未可见时，它仍可能成交。第二，部分成交改变 remaining quantity 和 queue exposure，却不一定结束订单。第三，cancel ACK 与 fill 会竞争：一旦其中一个终局先发生，其它终局在这个 spell 上就不可能再发生。第四，模型若只预测“最终成交”，无法回答概率质量在 favorable、adverse、cancel 与其它终局之间如何分配。</p><p>因此 F07 的观测单位不是某一张快照，也不是整个 order_id 的一行摘要，而是 <strong>remaining-quantity risk spell</strong>。一个 spell 从 authoritative activation 或上一段 partial-fill 边界开始，只在 causal visibility 已经允许模型看到的 100ms edges 上累积风险。它在完整成交、cancel ACK 或其它受支持的交易所终局到来时停止；本地回放结束、缺失 exact-native queue path 等情况则保持为明确 censor，而不是伪造终局。</p><p>这个定义把两个常被混淆的问题拆开：CIF 负责回答“如果继续暴露，未来各类终局的联合概率如何累积”；action study 才负责回答“现在 KEEP 或 CANCEL 哪个终局价值更高”。前者是状态概率，后者是政策反事实。即使 CIF 完美，也不能在没有动作对照和经济标签的情况下越级得到 action uplift。</p><h2 id="2-State-machine：请求撤单不等于已经退出风险集"><a href="#2-State-machine：请求撤单不等于已经退出风险集" class="headerlink" title="2. State machine：请求撤单不等于已经退出风险集"></a>2. State machine：请求撤单不等于已经退出风险集</h2><p>冻结状态机有三个风险阶段：ACTIVE、PARTIALLY_FILLED、CANCEL_PENDING；EXCHANGE_TERMINAL 是吸收态。概率 kernel 不自行猜测事件类型，所有 phase 与 terminal cause 都由上游 lifecycle adapter 按冻结语义给出。</p><p>ACTIVE 表示订单已经具备交易所 active 语义且 remaining quantity 为正。PARTIALLY_FILLED 表示订单发生了部分成交、仍有正余量；这一事件结束当前 remaining-quantity spell，并以新的 spell_id、相同的 last evaluated edge 和重置后的 survival/CIF 启动下一段 spell。这样，成交前的旧余量风险不会被错误继承到成交后的新余量。</p><p>CANCEL_PENDING 表示撤单请求已经成为策略可见事实，但 cancel ACK 尚未成为可见的交易所终局。这个阶段仍属于 fill-risk：订单在请求与 ACK 之间可能被成交。把 request timestamp 当作 terminal 会系统性漏掉 request/ACK race，并让高延迟区间看起来异常安全。</p><p>cancel reject 也不是终局。它把生命周期送回 ACTIVE 或 PARTIALLY_FILLED，继续使用同一个订单语义上的风险阶段。cancel ACK 才以 cause cancel_ack 终止当前风险集。full fill 使 remaining quantity 归零，并使用独立冻结的上游分类把它路由为 favorable_fill 或 adverse_fill。其它受支持的交易所终局进入 other_terminal；kernel 不得从 PnL、reward 或 markout 反推这些 cause。</p><p>partial fill 的边界尤其重要。若把它当作 complete fill，后续剩余量风险会被丢弃；若完全忽略它，模型又会把不同 remaining quantity、不同 queue state 的时间拼成一条虚假的长 spell。正确做法是“order 未终止，risk spell 重启”，同时保证 last edge 不倒退、不重复。</p><h2 id="3-100ms-联合-hazard：四个-cause-只能共享一份事件概率"><a href="#3-100ms-联合-hazard：四个-cause-只能共享一份事件概率" class="headerlink" title="3. 100ms 联合 hazard：四个 cause 只能共享一份事件概率"></a>3. 100ms 联合 hazard：四个 cause 只能共享一份事件概率</h2><p>设当前 100ms interval 上四个 cause-specific rates 为 $\lambda_{k,t}\ge0$，网格宽度为 $\Delta=0.1$ 秒，并令</p><script type="math/tex; mode=display">\Lambda_t=\sum_{j=1}^{4}\lambda_{j,t}.</script><p>当 $\Lambda_t&gt;0$ 时，第 $k$ 个 cause 在该 interval 的条件事件概率为</p><script type="math/tex; mode=display">h_{k,t}=\frac{\lambda_{k,t}}{\Lambda_t}\left(1-e^{-\Delta\Lambda_t}\right),</script><p>而 interval 内没有任何终局事件的概率为</p><script type="math/tex; mode=display">p_{0,t}=e^{-\Delta\Lambda_t}.</script><p>因此概率质量在同一个 interval 上严格守恒：</p><script type="math/tex; mode=display">p_{0,t}+\sum_{k=1}^{4}h_{k,t}=1.</script><p>若进入 interval 前的 survival 为 $S<em>t$，第 $k$ 个 cause 的 cumulative incidence 为 $F</em>{k,t}$，更新为</p><script type="math/tex; mode=display">S_{t+\Delta}=S_t p_{0,t},</script><script type="math/tex; mode=display">F_{k,t+\Delta}=F_{k,t}+S_t h_{k,t}.</script><p>于是每个被接受的 grid edge 都必须满足</p><script type="math/tex; mode=display">S_t+\sum_{k=1}^{4}F_{k,t}=1,</script><p>同时 $S<em>t$ 单调不增，每条 $F</em>{k,t}$ 单调不减。零 rate interval 保持全部状态不变；非有限 rate、负 rate、概率质量破坏或 edge 顺序错误全部 fail closed。</p><p>一个纯说明性的合成例子可以看出联合归一化的意义。假设某一 edge 的每秒 rates 依次为 0.02、0.04、0.30、0.01，则 $\Lambda=0.37$，100ms 内任一终局概率约为 $1-e^{-0.037}=3.6324\%$。这份 3.6324% 的概率质量按 rate 比例分成约 0.1963%、0.3927%、2.9452% 与 0.0982%，no-event 约为 96.3676%。四个 cause 不是各自从一整份 100% 概率中取值。</p><p>若分别训练四个二元概率再各自归一化，很容易得到 interval event probabilities 之和大于一，或者在各 cause 单独看似校准时破坏整体 survival。竞争风险 CIF 的核心不是“多画四条曲线”，而是让四种互斥终局共同消费同一份条件风险质量。</p><h2 id="4-两个时钟：市场发生时间与策略可见时间不能互换"><a href="#4-两个时钟：市场发生时间与策略可见时间不能互换" class="headerlink" title="4. 两个时钟：市场发生时间与策略可见时间不能互换"></a>4. 两个时钟：市场发生时间与策略可见时间不能互换</h2><p>研究使用严格的 causal visibility grid。也就是说，一个 100ms edge 能使用的信息，必须在该 edge 的策略可见时间之前已经 feature-ready。交易所时间用于识别事件物理顺序与终局语义，visibility time 决定模型何时允许消费这条信息。二者相等是一种特殊情况，不是默认假设。</p><p>若 exchange event 先发生、网络或处理链稍后才让策略看到，模型不能在 visibility 之前提前停止风险或使用 terminal label。反过来，若时间戳发生回归、event visibility 早于其允许的上游因果事实，记录也不能靠排序或插值“修好”。缺失 exchange timestamp 可以带明确 invalid reason，但不能默默用 visibility timestamp 代替。</p><p>100ms 只是概率状态网格，不是行情 bar，也不是固定持有期。重复 edge、反向 edge 或跳过一个应评估 edge 都会失败；kernel 不为错过的 edge 回填。这个限制保证 Python 与 C++ 对“已经消费到哪里”的理解完全一致，也让 checkpoint 恢复具有可验证含义。</p><p>UTC 日同样只是历史 replay 的数据分片和统计单位，不是订单生命周期边界。一个 prospective order 可能跨过午夜，因此未来 transport 若要继承 mechanics，必须保留完整 session/epoch cursor 或冻结的 delayed-entry 状态，不能因为换日就把 survival 重置为一。40 日结果只证明其绑定的 historical replay contract，不能自动外推到不同 clock 或 cursor 语义。</p><h2 id="5-输入、输出与-estimand-边界"><a href="#5-输入、输出与-estimand-边界" class="headerlink" title="5. 输入、输出与 estimand 边界"></a>5. 输入、输出与 estimand 边界</h2><p>Lifecycle CIF 的输入不是经济 outcome。它消费的是经过 admission 的 lifecycle event stream、risk phase、remaining quantity、spell identity、grid identity、因果可见的冻结 conditioning state，以及各 cause 的 rate matrix。strict-native queue 是否有效是资格与 censor 条件；market-context book 不能冒充 exact queue authority。</p><p>模型输出包括每个 interval 的四个 hazards、no-event probability、survival、四条 cumulative incidence 和可恢复的 final probability state。对于 horizon $u$，主预测 estimand 是</p><script type="math/tex; mode=display">F_k(u\mid x_{0:u})=\Pr(T\le u, J=k\mid x_{0:u},\text{spell remains observable}),</script><p>其中 $T$ 是当前 spell 的终局时间，$J$ 是四个冻结 terminal causes 之一，$x_{0:u}$ 只包含沿 causal grid 已经可见的 time-varying state。</p><p>它不输出 campaign-terminal USDC，不估计 KEEP 与 CANCEL 的 potential-outcome difference，也不把 q90 threshold 当作 estimand。经济字段在这条 mechanics 链中保持关闭。这样做不是缺少一步“顺手评估”，而是防止 probability mechanics 在尚未证明 transport、动作定义与共同 support 时偷渡成政策结论。</p><h2 id="6-数据-admission：unknown-不能当作-zero"><a href="#6-数据-admission：unknown-不能当作-zero" class="headerlink" title="6. 数据 admission：unknown 不能当作 zero"></a>6. 数据 admission：unknown 不能当作 zero</h2><p>研究最早的 training preflight 没有打开 lifecycle rows，只检查 baseline identity 与 journal metadata 能否支持注册训练身份。它把 readiness 拆成四层：baseline epoch 完整绑定、lifecycle tape admission、40 日 training identity 注册，以及 chronological Python/C++ lockstep execution readiness。</p><p>初始预检失败并不是一篇阴性模型文章，而是本项目的第一道工程证据：当时的 snapshot-style journal 不能证明一次 callback 内的 activation 与 fill 都被无损持久化，也没有完整的 batch cursor、writer-health、atomic admission、spell/censor 与 dual-clock 证据。未知的 dropped-event count 不能按零处理，缺少的 partial-fill spell count 不能靠推断补齐，本地 shutdown 也不能沿用旧 terminal 编码。</p><p>后续链路因此要求每个 callback 发布所有未见事件，事件批次与 cursor 原子提交，并在训练前绑定 schema、event identity、order/lifecycle identity、clock coverage、queue authority 与唯一 terminal/censor。每个 target day 还需要冻结的 warmup 与市场输入，使 active order 的开始状态不是凭空出现。</p><p>exact-native queue 是本项目的一条资格边界。只要从 activation 开始的 fill-risk path 使用了 fitted、top-N、稀疏观察或后来失效的 queue approximation，该 spell 可以保留在 baseline replay 轨迹中，却必须从 CIF eligible denominator 显式 censor。最终 20,393 个 native queue-censored spells 正是这种 fail-closed 规则的可见结果，而不是把不完整证据偷偷丢掉。</p><p>orphan adoption 也不能伪造完整历史。若系统首次权威观察某个已存在订单，只能在第一次可见时 delayed entry，并记录 entry reason 与 timestamp。左侧未观测暴露不会被补成零风险。相似地，本地回放结束只构成 right censor；它没有资格变成 other_terminal。</p><h2 id="7-为什么许多-spec、amendment-与-execution-attempt-仍只算一个项目"><a href="#7-为什么许多-spec、amendment-与-execution-attempt-仍只算一个项目" class="headerlink" title="7. 为什么许多 spec、amendment 与 execution attempt 仍只算一个项目"></a>7. 为什么许多 spec、amendment 与 execution attempt 仍只算一个项目</h2><p>公共目录里的 probability spec、preflight、journal adapter、input admission、native queue authority、event lockstep、C++ parity 与 40-day completion 都服务于同一个 estimand：相同 event stream 产生相同 spell transitions，相同 rates 产生相同 probability state，checkpoint 后仍相同。它们改变的是证据成熟度，不是研究问题；实现修正与失败 execution attempts 也不能被包装成新的 alpha 项目。</p><h2 id="8-Python-C-锁步到底验证什么"><a href="#8-Python-C-锁步到底验证什么" class="headerlink" title="8. Python/C++ 锁步到底验证什么"></a>8. Python/C++ 锁步到底验证什么</h2><p>Python 端拥有 lifecycle authority：创建 spell、partial-fill reset、phase transition 与 terminal routing。C++ 端实现相同的概率状态更新，并消费 chronological cause-specific rate matrix。锁步因此分两层。</p><p>第一层是 event lockstep。对同一冻结 journal，双方必须在每个 event 后同意当前 order 是否处于 fill-risk、phase 是什么、remaining quantity 与 spell_id 是什么、是否已经 terminal/censored，以及 terminal 之后是否还错误复用 queue 或 hazard state。只比较最终行数不够，因为中间一次短暂错位可能随后“碰巧”回到相同终态，却已经污染 exposure。</p><p>第二层是 inference lockstep。对每个 100ms edge，双方比较 interval hazards、no-event probability、survival、四条 CIF 与最终可恢复状态。suite 还覆盖 time-varying rates、zero-rate intervals、invalid-rate rejection、duplicate/missed edges、monotonicity 与 probability-mass conservation。</p><p>checkpoint/restore 必须保存 identity、grid、spell ownership、phase、remaining quantity、last edge、survival、所有 CIF 以及 terminal metadata。恢复不是重新从一开始计算再比较，而是从序列中间的冻结状态继续消费后续事件。任何 schema、identity、mass 或 edge mismatch 都拒绝恢复。</p><p>早期 native kernel 修复过一个纯浮点边界：如果先独立舍入每个 hazard，再用普通求和检查总概率，合法有限 rate vector 也可能因为末位舍入被误拒。后续实现用 residual complement 构造 no-event mass，没有改变 estimand，只消除了虚假的数值失败。正式 40 日结果中，CIF 最大绝对差仅为 $1.1102230246251565\times10^{-16}$，checkpoint-resume 差为零，说明不同语言没有产生可观测的累计漂移。</p><h2 id="9-40-日完成面板：数字如何互相校验"><a href="#9-40-日完成面板：数字如何互相校验" class="headerlink" title="9. 40 日完成面板：数字如何互相校验"></a>9. 40 日完成面板：数字如何互相校验</h2><p>最终 Development mechanics 面板汇总如下：</p><div class="table-container"><table><thead><tr><th>Evidence item</th><th style="text-align:right">Frozen aggregate</th></tr></thead><tbody><tr><td>Development days</td><td style="text-align:right">40</td></tr><tr><td>Lifecycle events</td><td style="text-align:right">2,712,262</td></tr><tr><td>Journal rows</td><td style="text-align:right">686,224</td></tr><tr><td>Exact-native eligible spells</td><td style="text-align:right">665,831</td></tr><tr><td>Native queue-censored spells</td><td style="text-align:right">20,393</td></tr><tr><td>Risk exposure</td><td style="text-align:right">5,172,921.02 seconds</td></tr><tr><td>Cancel ACK terminals</td><td style="text-align:right">636,186</td></tr><tr><td>Full-fill terminals</td><td style="text-align:right">29,645</td></tr><tr><td>Unsupported terminal causes</td><td style="text-align:right">0</td></tr><tr><td>CIF cells / parent cells</td><td style="text-align:right">120 / 30</td></tr><tr><td>Python/C++ event mismatches</td><td style="text-align:right">0</td></tr><tr><td>Post-terminal hazard/queue reuse</td><td style="text-align:right">0</td></tr><tr><td>CIF maximum absolute difference</td><td style="text-align:right">$1.1102230246251565\times10^{-16}$</td></tr><tr><td>Checkpoint-resume maximum difference</td><td style="text-align:right">0</td></tr></tbody></table></div><p>两个主要 terminal counts 之和恰好等于 eligible spells：</p><script type="math/tex; mode=display">636{,}186+29{,}645=665{,}831.</script><p>这项等式是 accounting cross-check：eligible denominator 没有未解释的 terminal residue，20,393 个 native-queue censors 也没有混入 event causes。event、journal row 与 spell 本来就是不同层级的计数单位；要求是各自语义冻结、identity 可追踪并逐事件锁步，而不是强迫它们相等。120 个 CIF cells 则统一服从同一套守恒、单调与 checkpoint 合同。</p><h2 id="10-这份证据支持什么"><a href="#10-这份证据支持什么" class="headerlink" title="10. 这份证据支持什么"></a>10. 这份证据支持什么</h2><p>它支持四件具体的事：冻结 adapter 能正确路由 risk phases、terminal causes 与 censors；100ms update 在长期累计后仍保持联合概率守恒；strict-native admission 会明确隔离证据不完整的 spells；同一 rate stream 的 Python/C++ inference 达到机器精度级 parity，checkpoint 恢复不改变后续状态。换言之，未来独立 transport 与 calibration audit 已有可执行 kernel，而不是只有数学说明。</p><h2 id="11-这份证据没有支持什么"><a href="#11-这份证据没有支持什么" class="headerlink" title="11. 这份证据没有支持什么"></a>11. 这份证据没有支持什么</h2><p>Mechanics completion 不等于 prediction calibration completion。公开聚合没有证明新 prospective epoch 的 CIF 仍与观察频率一致，也没有跨 epoch drift audit；40 日历史 exposure 不能替代新的可见性合同。</p><p>Mechanics completion 更不等于 action value。CIF 不知道 CANCEL 丢失多少 favorable queue option、何时 re-entry 或怎样改变库存 campaign。KEEP/CANCEL 仍需要独立 treatment、共同 eligibility、完整路径与经济 estimand；adverse CIF 高不能直接翻译成“应该撤”。</p><p>这条研究链明确没有读取或获得：</p><ul><li>PnL、reward、markout 或 campaign-terminal value；</li><li>Validation 或 family-specific sealed holdout；</li><li>q90 action threshold 变更；</li><li>randomized KEEP/CANCEL action registration；</li><li>prospective deployment、baseline update 或实盘权限；</li><li>对当前环境 calibration、跨午夜 cursor 或 transport 的公共背书。</li></ul><p>因此项目最终状态应该写成 <strong>40-day lifecycle/CIF mechanics complete；经济、动作与 prospective transport closed</strong>，而不是“策略通过”或“模型上线”。</p><h2 id="12-失败门与未来重开条件"><a href="#12-失败门与未来重开条件" class="headerlink" title="12. 失败门与未来重开条件"></a>12. 失败门与未来重开条件</h2><p>这套合同在任何一个关键不变量被破坏时都应失败：重复、反向或遗漏 100ms edge；terminal 后继续评估 hazard；partial fill 不重置 spell；cancel request 被当作 ACK；local shutdown 被写成 exchange terminal；event visibility 倒穿因果时钟；缺失 queue authority 却进入 eligible denominator；checkpoint identity 不一致；四个 causes 的概率质量不守恒。</p><p>下一阶段需要独立、完整绑定的 prospective epoch/session transport，而不是继续调历史 cell 或 q90 阈值。它必须保持 lossless batching、dual-clock、cross-midnight cursor 或明确 delayed entry、zero post-terminal reuse，并在新可见性环境中通过 calibration 与 parity audit。</p><p>只有 transport 与 current calibration 独立通过后，才可以另行预注册经济研究。那项新研究需要明确 action、eligibility、randomization 或可识别的 counterfactual、campaign-terminal estimand、成本与不确定性门；它不会因为本文 mechanics 成功而自动继承权限。</p><h2 id="13-最终结论"><a href="#13-最终结论" class="headerlink" title="13. 最终结论"></a>13. 最终结论</h2><p>Active-Order Lifecycle CIF 的主要贡献不是找到一个赚钱信号，而是把 active order 中最容易偷换的语义冻结下来：</p><script type="math/tex; mode=display">\text{event semantics}\rightarrow\text{risk spell}\rightarrow\text{causal 100ms grid}\rightarrow\text{joint hazards}\rightarrow\text{survival/CIF}\rightarrow\text{event and checkpoint lockstep}.</script><p>40 日结果证明这条 mechanics 链在绑定的 Development replay 上闭合。它也以同样清楚的方式证明了一条边界：<strong>概率会计做对，是动作研究的必要条件，却从来不是经济权限。</strong></p><h2 id="14-公共证据"><a href="#14-公共证据" class="headerlink" title="14. 公共证据"></a>14. 公共证据</h2><ul><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/README.md">F07 Active Order Continuation README</a></li><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/docs/active_order_competing_risk_cif_100ms_v1_spec_20260804.md">Active-Order Competing-Risk CIF 100ms v1 Spec</a></li><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/docs/active_order_cif_training_preflight_v1_design_20260804.md">Lifecycle-CIF Training Preflight v1</a></li><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/docs/order_lifecycle_journal_v2_authoritative_python_replay_adapter_v1_20260805.md">Authoritative Python Replay Adapter</a></li><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/docs/order_lifecycle_v2_event_lockstep_v1_implementation_20260805.md">Lifecycle v2 Event Lockstep Implementation</a></li><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/docs/active_order_competing_risk_cif_cpp_inference_parity_v1_20260805.md">C++ Inference Parity v1</a></li><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/docs/active_order_lifecycle_cif_100ms_v1_6_40day_completion_20260808.md">Lifecycle CIF 100ms v1.6 40-Day Completion</a></li></ul><p>公共仓库提供合同、实现入口、聚合数字与权限边界；原始 lifecycle rows、机器 artifacts、prospective telemetry 与 owner-side evidence 不随仓库分发。</p>]]></content>
-    
-    
-    <categories>
-      
-      <category>Market Making</category>
-      
-    </categories>
-    
-    
-    <tags>
-      
-      <tag>Market Making</tag>
-      
-      <tag>市场微观结构</tag>
-      
-      <tag>生存分析</tag>
-      
-      <tag>机器学习</tag>
-      
       <tag>回测</tag>
+      
+      <tag>研究治理</tag>
       
     </tags>
     
@@ -1197,11 +1164,44 @@
       
       <tag>市场微观结构</tag>
       
+      <tag>因果推断</tag>
+      
       <tag>机器学习</tag>
       
       <tag>回测</tag>
       
-      <tag>因果推断</tag>
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>NarrowGate Active-Order Lifecycle CIF：100ms 竞争风险与 Python/C++ 锁步</title>
+    <link href="/2026/08/29/NarrowGate-Active-Order-Lifecycle-CIF-100ms-Research/"/>
+    <url>/2026/08/29/NarrowGate-Active-Order-Lifecycle-CIF-100ms-Research/</url>
+    
+    <content type="html"><![CDATA[<p>Last materially modified: 2026-08-29</p><h2 id="TL-DR：这项研究校准的是订单生命周期概率，不是撤单动作价值"><a href="#TL-DR：这项研究校准的是订单生命周期概率，不是撤单动作价值" class="headerlink" title="TL;DR：这项研究校准的是订单生命周期概率，不是撤单动作价值"></a>TL;DR：这项研究校准的是订单生命周期概率，不是撤单动作价值</h2><p>一个 maker order 激活以后，不会只面对“十秒内成交或不成交”这一种二元结局。它可能先部分成交、继续保留剩余数量；可能收到撤单请求却仍在交易所风险集中；可能被拒绝撤单后重新回到 active；也可能最终被完整成交、收到 cancel ACK，或以其它受支持的交易所终局结束。若把这些事件压成互相独立的四个二元分类器，概率质量会重复；若把 cancel request 当作终局，风险集会过早消失；若把本地回放结束当作交易所终局，模型又会学到一个不存在的市场事件。</p><p>F07 Active-Order Lifecycle CIF 因此冻结了一个更窄、也更基础的问题：<strong>对一段具有正 remaining quantity 的 active-order risk spell，在严格 100ms 因果可见网格上，如何联合估计 favorable fill、adverse fill、cancel ACK 与 other terminal 的 cumulative incidence，并让 Python 与 C++ 在每一个事件、每一条概率曲线和 checkpoint 恢复后保持锁步？</strong></p><p>完整研究链依次经过概率合同、journal 预检、双时钟、strict-native queue 资格、40 日 replay、event lockstep、CIF 训练与 native parity；这些都是同一 lifecycle-CIF 项目的完成门。</p><p>最终 Development mechanics 结果覆盖 40 日、2,712,262 个 lifecycle events 与 686,224 个 journal rows。665,831 个 exact-native eligible spells 贡献 5,172,921.02 秒风险暴露，另有 20,393 个 spells 因 native queue 证据不足而显式 censor。终局由 636,186 个 cancel ACK 与 29,645 个 full fill 构成；120 个 CIF cells 分布在 30 个 parent cells。Python/C++ event mismatch 为零，post-terminal hazard 或 queue reuse 为零，CIF 最大绝对差为 $1.1102230246251565\times10^{-16}$，checkpoint-resume 最大绝对差为零。</p><p>这证明了历史 replay 上的 lifecycle 与概率 mechanics 可以被确定性复现。它<strong>没有</strong>证明当前环境的 score calibration，没有比较 KEEP 与 CANCEL 的因果价值，没有读取 PnL、reward、markout、Validation 或 sealed holdout，也没有给予 q90 action、部署或 baseline 变更权限。</p><p>本文是历史 Development mechanics 复盘，不构成交易建议。图中的状态机是冻结合同的抽象图，右侧 CIF 曲线为合成概率示意，不是行情、实盘订单或经济结果。</p><p><img src="/images/narrowgate/active-order-lifecycle-cif-state-machine.svg" alt="Active-order 生命周期状态机与 100ms 竞争风险 CIF"></p><p><em>图 1：左侧严格区分风险阶段、非终局转移与交易所终局；右侧以联合归一化的 100ms hazard 更新 survival 和四条 cause-specific CIF。示意曲线只解释概率守恒，不代表任何实盘校准。</em></p><h2 id="1-为什么-snapshot-fill-probability-不够"><a href="#1-为什么-snapshot-fill-probability-不够" class="headerlink" title="1. 为什么 snapshot fill probability 不够"></a>1. 为什么 snapshot fill probability 不够</h2><p>静态 fill classifier 常问：给定当前状态 $x_t$，订单在未来 $H$ 秒内是否成交？其目标可写成</p><script type="math/tex; mode=display">\Pr(T_{fill}\le H\mid x_t).</script><p>这个问题适合排序，却无法完整描述 active order。第一，同一订单会随着时间进入不同 phase；在 cancel request 已发送、ACK 尚未可见时，它仍可能成交。第二，部分成交改变 remaining quantity 和 queue exposure，却不一定结束订单。第三，cancel ACK 与 fill 会竞争：一旦其中一个终局先发生，其它终局在这个 spell 上就不可能再发生。第四，模型若只预测“最终成交”，无法回答概率质量在 favorable、adverse、cancel 与其它终局之间如何分配。</p><p>因此 F07 的观测单位不是某一张快照，也不是整个 order_id 的一行摘要，而是 <strong>remaining-quantity risk spell</strong>。一个 spell 从 authoritative activation 或上一段 partial-fill 边界开始，只在 causal visibility 已经允许模型看到的 100ms edges 上累积风险。它在完整成交、cancel ACK 或其它受支持的交易所终局到来时停止；本地回放结束、缺失 exact-native queue path 等情况则保持为明确 censor，而不是伪造终局。</p><p>这个定义把两个常被混淆的问题拆开：CIF 负责回答“如果继续暴露，未来各类终局的联合概率如何累积”；action study 才负责回答“现在 KEEP 或 CANCEL 哪个终局价值更高”。前者是状态概率，后者是政策反事实。即使 CIF 完美，也不能在没有动作对照和经济标签的情况下越级得到 action uplift。</p><h2 id="2-State-machine：请求撤单不等于已经退出风险集"><a href="#2-State-machine：请求撤单不等于已经退出风险集" class="headerlink" title="2. State machine：请求撤单不等于已经退出风险集"></a>2. State machine：请求撤单不等于已经退出风险集</h2><p>冻结状态机有三个风险阶段：ACTIVE、PARTIALLY_FILLED、CANCEL_PENDING；EXCHANGE_TERMINAL 是吸收态。概率 kernel 不自行猜测事件类型，所有 phase 与 terminal cause 都由上游 lifecycle adapter 按冻结语义给出。</p><p>ACTIVE 表示订单已经具备交易所 active 语义且 remaining quantity 为正。PARTIALLY_FILLED 表示订单发生了部分成交、仍有正余量；这一事件结束当前 remaining-quantity spell，并以新的 spell_id、相同的 last evaluated edge 和重置后的 survival/CIF 启动下一段 spell。这样，成交前的旧余量风险不会被错误继承到成交后的新余量。</p><p>CANCEL_PENDING 表示撤单请求已经成为策略可见事实，但 cancel ACK 尚未成为可见的交易所终局。这个阶段仍属于 fill-risk：订单在请求与 ACK 之间可能被成交。把 request timestamp 当作 terminal 会系统性漏掉 request/ACK race，并让高延迟区间看起来异常安全。</p><p>cancel reject 也不是终局。它把生命周期送回 ACTIVE 或 PARTIALLY_FILLED，继续使用同一个订单语义上的风险阶段。cancel ACK 才以 cause cancel_ack 终止当前风险集。full fill 使 remaining quantity 归零，并使用独立冻结的上游分类把它路由为 favorable_fill 或 adverse_fill。其它受支持的交易所终局进入 other_terminal；kernel 不得从 PnL、reward 或 markout 反推这些 cause。</p><p>partial fill 的边界尤其重要。若把它当作 complete fill，后续剩余量风险会被丢弃；若完全忽略它，模型又会把不同 remaining quantity、不同 queue state 的时间拼成一条虚假的长 spell。正确做法是“order 未终止，risk spell 重启”，同时保证 last edge 不倒退、不重复。</p><h2 id="3-100ms-联合-hazard：四个-cause-只能共享一份事件概率"><a href="#3-100ms-联合-hazard：四个-cause-只能共享一份事件概率" class="headerlink" title="3. 100ms 联合 hazard：四个 cause 只能共享一份事件概率"></a>3. 100ms 联合 hazard：四个 cause 只能共享一份事件概率</h2><p>设当前 100ms interval 上四个 cause-specific rates 为 $\lambda_{k,t}\ge0$，网格宽度为 $\Delta=0.1$ 秒，并令</p><script type="math/tex; mode=display">\Lambda_t=\sum_{j=1}^{4}\lambda_{j,t}.</script><p>当 $\Lambda_t&gt;0$ 时，第 $k$ 个 cause 在该 interval 的条件事件概率为</p><script type="math/tex; mode=display">h_{k,t}=\frac{\lambda_{k,t}}{\Lambda_t}\left(1-e^{-\Delta\Lambda_t}\right),</script><p>而 interval 内没有任何终局事件的概率为</p><script type="math/tex; mode=display">p_{0,t}=e^{-\Delta\Lambda_t}.</script><p>因此概率质量在同一个 interval 上严格守恒：</p><script type="math/tex; mode=display">p_{0,t}+\sum_{k=1}^{4}h_{k,t}=1.</script><p>若进入 interval 前的 survival 为 $S<em>t$，第 $k$ 个 cause 的 cumulative incidence 为 $F</em>{k,t}$，更新为</p><script type="math/tex; mode=display">S_{t+\Delta}=S_t p_{0,t},</script><script type="math/tex; mode=display">F_{k,t+\Delta}=F_{k,t}+S_t h_{k,t}.</script><p>于是每个被接受的 grid edge 都必须满足</p><script type="math/tex; mode=display">S_t+\sum_{k=1}^{4}F_{k,t}=1,</script><p>同时 $S<em>t$ 单调不增，每条 $F</em>{k,t}$ 单调不减。零 rate interval 保持全部状态不变；非有限 rate、负 rate、概率质量破坏或 edge 顺序错误全部 fail closed。</p><p>一个纯说明性的合成例子可以看出联合归一化的意义。假设某一 edge 的每秒 rates 依次为 0.02、0.04、0.30、0.01，则 $\Lambda=0.37$，100ms 内任一终局概率约为 $1-e^{-0.037}=3.6324\%$。这份 3.6324% 的概率质量按 rate 比例分成约 0.1963%、0.3927%、2.9452% 与 0.0982%，no-event 约为 96.3676%。四个 cause 不是各自从一整份 100% 概率中取值。</p><p>若分别训练四个二元概率再各自归一化，很容易得到 interval event probabilities 之和大于一，或者在各 cause 单独看似校准时破坏整体 survival。竞争风险 CIF 的核心不是“多画四条曲线”，而是让四种互斥终局共同消费同一份条件风险质量。</p><h2 id="4-两个时钟：市场发生时间与策略可见时间不能互换"><a href="#4-两个时钟：市场发生时间与策略可见时间不能互换" class="headerlink" title="4. 两个时钟：市场发生时间与策略可见时间不能互换"></a>4. 两个时钟：市场发生时间与策略可见时间不能互换</h2><p>研究使用严格的 causal visibility grid。也就是说，一个 100ms edge 能使用的信息，必须在该 edge 的策略可见时间之前已经 feature-ready。交易所时间用于识别事件物理顺序与终局语义，visibility time 决定模型何时允许消费这条信息。二者相等是一种特殊情况，不是默认假设。</p><p>若 exchange event 先发生、网络或处理链稍后才让策略看到，模型不能在 visibility 之前提前停止风险或使用 terminal label。反过来，若时间戳发生回归、event visibility 早于其允许的上游因果事实，记录也不能靠排序或插值“修好”。缺失 exchange timestamp 可以带明确 invalid reason，但不能默默用 visibility timestamp 代替。</p><p>100ms 只是概率状态网格，不是行情 bar，也不是固定持有期。重复 edge、反向 edge 或跳过一个应评估 edge 都会失败；kernel 不为错过的 edge 回填。这个限制保证 Python 与 C++ 对“已经消费到哪里”的理解完全一致，也让 checkpoint 恢复具有可验证含义。</p><p>UTC 日同样只是历史 replay 的数据分片和统计单位，不是订单生命周期边界。一个 prospective order 可能跨过午夜，因此未来 transport 若要继承 mechanics，必须保留完整 session/epoch cursor 或冻结的 delayed-entry 状态，不能因为换日就把 survival 重置为一。40 日结果只证明其绑定的 historical replay contract，不能自动外推到不同 clock 或 cursor 语义。</p><h2 id="5-输入、输出与-estimand-边界"><a href="#5-输入、输出与-estimand-边界" class="headerlink" title="5. 输入、输出与 estimand 边界"></a>5. 输入、输出与 estimand 边界</h2><p>Lifecycle CIF 的输入不是经济 outcome。它消费的是经过 admission 的 lifecycle event stream、risk phase、remaining quantity、spell identity、grid identity、因果可见的冻结 conditioning state，以及各 cause 的 rate matrix。strict-native queue 是否有效是资格与 censor 条件；market-context book 不能冒充 exact queue authority。</p><p>模型输出包括每个 interval 的四个 hazards、no-event probability、survival、四条 cumulative incidence 和可恢复的 final probability state。对于 horizon $u$，主预测 estimand 是</p><script type="math/tex; mode=display">F_k(u\mid x_{0:u})=\Pr(T\le u, J=k\mid x_{0:u},\text{spell remains observable}),</script><p>其中 $T$ 是当前 spell 的终局时间，$J$ 是四个冻结 terminal causes 之一，$x_{0:u}$ 只包含沿 causal grid 已经可见的 time-varying state。</p><p>它不输出 campaign-terminal USDC，不估计 KEEP 与 CANCEL 的 potential-outcome difference，也不把 q90 threshold 当作 estimand。经济字段在这条 mechanics 链中保持关闭。这样做不是缺少一步“顺手评估”，而是防止 probability mechanics 在尚未证明 transport、动作定义与共同 support 时偷渡成政策结论。</p><h2 id="6-数据-admission：unknown-不能当作-zero"><a href="#6-数据-admission：unknown-不能当作-zero" class="headerlink" title="6. 数据 admission：unknown 不能当作 zero"></a>6. 数据 admission：unknown 不能当作 zero</h2><p>研究最早的 training preflight 没有打开 lifecycle rows，只检查 baseline identity 与 journal metadata 能否支持注册训练身份。它把 readiness 拆成四层：baseline epoch 完整绑定、lifecycle tape admission、40 日 training identity 注册，以及 chronological Python/C++ lockstep execution readiness。</p><p>初始预检失败并不是一篇阴性模型文章，而是本项目的第一道工程证据：当时的 snapshot-style journal 不能证明一次 callback 内的 activation 与 fill 都被无损持久化，也没有完整的 batch cursor、writer-health、atomic admission、spell/censor 与 dual-clock 证据。未知的 dropped-event count 不能按零处理，缺少的 partial-fill spell count 不能靠推断补齐，本地 shutdown 也不能沿用旧 terminal 编码。</p><p>后续链路因此要求每个 callback 发布所有未见事件，事件批次与 cursor 原子提交，并在训练前绑定 schema、event identity、order/lifecycle identity、clock coverage、queue authority 与唯一 terminal/censor。每个 target day 还需要冻结的 warmup 与市场输入，使 active order 的开始状态不是凭空出现。</p><p>exact-native queue 是本项目的一条资格边界。只要从 activation 开始的 fill-risk path 使用了 fitted、top-N、稀疏观察或后来失效的 queue approximation，该 spell 可以保留在 baseline replay 轨迹中，却必须从 CIF eligible denominator 显式 censor。最终 20,393 个 native queue-censored spells 正是这种 fail-closed 规则的可见结果，而不是把不完整证据偷偷丢掉。</p><p>orphan adoption 也不能伪造完整历史。若系统首次权威观察某个已存在订单，只能在第一次可见时 delayed entry，并记录 entry reason 与 timestamp。左侧未观测暴露不会被补成零风险。相似地，本地回放结束只构成 right censor；它没有资格变成 other_terminal。</p><h2 id="7-为什么许多-spec、amendment-与-execution-attempt-仍只算一个项目"><a href="#7-为什么许多-spec、amendment-与-execution-attempt-仍只算一个项目" class="headerlink" title="7. 为什么许多 spec、amendment 与 execution attempt 仍只算一个项目"></a>7. 为什么许多 spec、amendment 与 execution attempt 仍只算一个项目</h2><p>公共目录里的 probability spec、preflight、journal adapter、input admission、native queue authority、event lockstep、C++ parity 与 40-day completion 都服务于同一个 estimand：相同 event stream 产生相同 spell transitions，相同 rates 产生相同 probability state，checkpoint 后仍相同。它们改变的是证据成熟度，不是研究问题；实现修正与失败 execution attempts 也不能被包装成新的 alpha 项目。</p><h2 id="8-Python-C-锁步到底验证什么"><a href="#8-Python-C-锁步到底验证什么" class="headerlink" title="8. Python/C++ 锁步到底验证什么"></a>8. Python/C++ 锁步到底验证什么</h2><p>Python 端拥有 lifecycle authority：创建 spell、partial-fill reset、phase transition 与 terminal routing。C++ 端实现相同的概率状态更新，并消费 chronological cause-specific rate matrix。锁步因此分两层。</p><p>第一层是 event lockstep。对同一冻结 journal，双方必须在每个 event 后同意当前 order 是否处于 fill-risk、phase 是什么、remaining quantity 与 spell_id 是什么、是否已经 terminal/censored，以及 terminal 之后是否还错误复用 queue 或 hazard state。只比较最终行数不够，因为中间一次短暂错位可能随后“碰巧”回到相同终态，却已经污染 exposure。</p><p>第二层是 inference lockstep。对每个 100ms edge，双方比较 interval hazards、no-event probability、survival、四条 CIF 与最终可恢复状态。suite 还覆盖 time-varying rates、zero-rate intervals、invalid-rate rejection、duplicate/missed edges、monotonicity 与 probability-mass conservation。</p><p>checkpoint/restore 必须保存 identity、grid、spell ownership、phase、remaining quantity、last edge、survival、所有 CIF 以及 terminal metadata。恢复不是重新从一开始计算再比较，而是从序列中间的冻结状态继续消费后续事件。任何 schema、identity、mass 或 edge mismatch 都拒绝恢复。</p><p>早期 native kernel 修复过一个纯浮点边界：如果先独立舍入每个 hazard，再用普通求和检查总概率，合法有限 rate vector 也可能因为末位舍入被误拒。后续实现用 residual complement 构造 no-event mass，没有改变 estimand，只消除了虚假的数值失败。正式 40 日结果中，CIF 最大绝对差仅为 $1.1102230246251565\times10^{-16}$，checkpoint-resume 差为零，说明不同语言没有产生可观测的累计漂移。</p><h2 id="9-40-日完成面板：数字如何互相校验"><a href="#9-40-日完成面板：数字如何互相校验" class="headerlink" title="9. 40 日完成面板：数字如何互相校验"></a>9. 40 日完成面板：数字如何互相校验</h2><p>最终 Development mechanics 面板汇总如下：</p><div class="table-container"><table><thead><tr><th>Evidence item</th><th style="text-align:right">Frozen aggregate</th></tr></thead><tbody><tr><td>Development days</td><td style="text-align:right">40</td></tr><tr><td>Lifecycle events</td><td style="text-align:right">2,712,262</td></tr><tr><td>Journal rows</td><td style="text-align:right">686,224</td></tr><tr><td>Exact-native eligible spells</td><td style="text-align:right">665,831</td></tr><tr><td>Native queue-censored spells</td><td style="text-align:right">20,393</td></tr><tr><td>Risk exposure</td><td style="text-align:right">5,172,921.02 seconds</td></tr><tr><td>Cancel ACK terminals</td><td style="text-align:right">636,186</td></tr><tr><td>Full-fill terminals</td><td style="text-align:right">29,645</td></tr><tr><td>Unsupported terminal causes</td><td style="text-align:right">0</td></tr><tr><td>CIF cells / parent cells</td><td style="text-align:right">120 / 30</td></tr><tr><td>Python/C++ event mismatches</td><td style="text-align:right">0</td></tr><tr><td>Post-terminal hazard/queue reuse</td><td style="text-align:right">0</td></tr><tr><td>CIF maximum absolute difference</td><td style="text-align:right">$1.1102230246251565\times10^{-16}$</td></tr><tr><td>Checkpoint-resume maximum difference</td><td style="text-align:right">0</td></tr></tbody></table></div><p>两个主要 terminal counts 之和恰好等于 eligible spells：</p><script type="math/tex; mode=display">636{,}186+29{,}645=665{,}831.</script><p>这项等式是 accounting cross-check：eligible denominator 没有未解释的 terminal residue，20,393 个 native-queue censors 也没有混入 event causes。event、journal row 与 spell 本来就是不同层级的计数单位；要求是各自语义冻结、identity 可追踪并逐事件锁步，而不是强迫它们相等。120 个 CIF cells 则统一服从同一套守恒、单调与 checkpoint 合同。</p><h2 id="10-这份证据支持什么"><a href="#10-这份证据支持什么" class="headerlink" title="10. 这份证据支持什么"></a>10. 这份证据支持什么</h2><p>它支持四件具体的事：冻结 adapter 能正确路由 risk phases、terminal causes 与 censors；100ms update 在长期累计后仍保持联合概率守恒；strict-native admission 会明确隔离证据不完整的 spells；同一 rate stream 的 Python/C++ inference 达到机器精度级 parity，checkpoint 恢复不改变后续状态。换言之，未来独立 transport 与 calibration audit 已有可执行 kernel，而不是只有数学说明。</p><h2 id="11-这份证据没有支持什么"><a href="#11-这份证据没有支持什么" class="headerlink" title="11. 这份证据没有支持什么"></a>11. 这份证据没有支持什么</h2><p>Mechanics completion 不等于 prediction calibration completion。公开聚合没有证明新 prospective epoch 的 CIF 仍与观察频率一致，也没有跨 epoch drift audit；40 日历史 exposure 不能替代新的可见性合同。</p><p>Mechanics completion 更不等于 action value。CIF 不知道 CANCEL 丢失多少 favorable queue option、何时 re-entry 或怎样改变库存 campaign。KEEP/CANCEL 仍需要独立 treatment、共同 eligibility、完整路径与经济 estimand；adverse CIF 高不能直接翻译成“应该撤”。</p><p>这条研究链明确没有读取或获得：</p><ul><li>PnL、reward、markout 或 campaign-terminal value；</li><li>Validation 或 family-specific sealed holdout；</li><li>q90 action threshold 变更；</li><li>randomized KEEP/CANCEL action registration；</li><li>prospective deployment、baseline update 或实盘权限；</li><li>对当前环境 calibration、跨午夜 cursor 或 transport 的公共背书。</li></ul><p>因此项目最终状态应该写成 <strong>40-day lifecycle/CIF mechanics complete；经济、动作与 prospective transport closed</strong>，而不是“策略通过”或“模型上线”。</p><h2 id="12-失败门与未来重开条件"><a href="#12-失败门与未来重开条件" class="headerlink" title="12. 失败门与未来重开条件"></a>12. 失败门与未来重开条件</h2><p>这套合同在任何一个关键不变量被破坏时都应失败：重复、反向或遗漏 100ms edge；terminal 后继续评估 hazard；partial fill 不重置 spell；cancel request 被当作 ACK；local shutdown 被写成 exchange terminal；event visibility 倒穿因果时钟；缺失 queue authority 却进入 eligible denominator；checkpoint identity 不一致；四个 causes 的概率质量不守恒。</p><p>下一阶段需要独立、完整绑定的 prospective epoch/session transport，而不是继续调历史 cell 或 q90 阈值。它必须保持 lossless batching、dual-clock、cross-midnight cursor 或明确 delayed entry、zero post-terminal reuse，并在新可见性环境中通过 calibration 与 parity audit。</p><p>只有 transport 与 current calibration 独立通过后，才可以另行预注册经济研究。那项新研究需要明确 action、eligibility、randomization 或可识别的 counterfactual、campaign-terminal estimand、成本与不确定性门；它不会因为本文 mechanics 成功而自动继承权限。</p><h2 id="13-最终结论"><a href="#13-最终结论" class="headerlink" title="13. 最终结论"></a>13. 最终结论</h2><p>Active-Order Lifecycle CIF 的主要贡献不是找到一个赚钱信号，而是把 active order 中最容易偷换的语义冻结下来：</p><script type="math/tex; mode=display">\text{event semantics}\rightarrow\text{risk spell}\rightarrow\text{causal 100ms grid}\rightarrow\text{joint hazards}\rightarrow\text{survival/CIF}\rightarrow\text{event and checkpoint lockstep}.</script><p>40 日结果证明这条 mechanics 链在绑定的 Development replay 上闭合。它也以同样清楚的方式证明了一条边界：<strong>概率会计做对，是动作研究的必要条件，却从来不是经济权限。</strong></p><h2 id="14-公共证据"><a href="#14-公共证据" class="headerlink" title="14. 公共证据"></a>14. 公共证据</h2><ul><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/README.md">F07 Active Order Continuation README</a></li><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/docs/active_order_competing_risk_cif_100ms_v1_spec_20260804.md">Active-Order Competing-Risk CIF 100ms v1 Spec</a></li><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/docs/active_order_cif_training_preflight_v1_design_20260804.md">Lifecycle-CIF Training Preflight v1</a></li><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/docs/order_lifecycle_journal_v2_authoritative_python_replay_adapter_v1_20260805.md">Authoritative Python Replay Adapter</a></li><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/docs/order_lifecycle_v2_event_lockstep_v1_implementation_20260805.md">Lifecycle v2 Event Lockstep Implementation</a></li><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/docs/active_order_competing_risk_cif_cpp_inference_parity_v1_20260805.md">C++ Inference Parity v1</a></li><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/docs/active_order_lifecycle_cif_100ms_v1_6_40day_completion_20260808.md">Lifecycle CIF 100ms v1.6 40-Day Completion</a></li></ul><p>公共仓库提供合同、实现入口、聚合数字与权限边界；原始 lifecycle rows、机器 artifacts、prospective telemetry 与 owner-side evidence 不随仓库分发。</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>Market Making</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Market Making</tag>
+      
+      <tag>市场微观结构</tag>
+      
+      <tag>机器学习</tag>
+      
+      <tag>回测</tag>
+      
+      <tag>生存分析</tag>
       
     </tags>
     
@@ -1230,9 +1230,9 @@
       
       <tag>市场微观结构</tag>
       
-      <tag>回测</tag>
-      
       <tag>因果推断</tag>
+      
+      <tag>回测</tag>
       
       <tag>低延迟系统</tag>
       
@@ -1263,9 +1263,9 @@
       
       <tag>市场微观结构</tag>
       
-      <tag>回测</tag>
-      
       <tag>因果推断</tag>
+      
+      <tag>回测</tag>
       
       <tag>组合归因</tag>
       
@@ -1296,11 +1296,11 @@
       
       <tag>市场微观结构</tag>
       
+      <tag>因果推断</tag>
+      
       <tag>机器学习</tag>
       
       <tag>回测</tag>
-      
-      <tag>因果推断</tag>
       
     </tags>
     
@@ -1329,44 +1329,11 @@
       
       <tag>市场微观结构</tag>
       
-      <tag>机器学习</tag>
-      
-      <tag>回测</tag>
-      
       <tag>因果推断</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>NarrowGate Fill Quality：决策时可见状态能否识别负价值成交</title>
-    <link href="/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/"/>
-    <url>/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/</url>
-    
-    <content type="html"><![CDATA[<p>Last materially modified: 2026-08-29</p><h2 id="TL-DR：坏成交确实存在，但当时可见的局部状态没有把它们挑出来"><a href="#TL-DR：坏成交确实存在，但当时可见的局部状态没有把它们挑出来" class="headerlink" title="TL;DR：坏成交确实存在，但当时可见的局部状态没有把它们挑出来"></a>TL;DR：坏成交确实存在，但当时可见的局部状态没有把它们挑出来</h2><p>这项研究问的不是“成交以后平均会不会亏”，而是一个更严格的问题：<strong>在被动订单真正成为一笔增加风险暴露的成交之前，仅凭当时已经可见的订单、盘口与 campaign 状态，能否稳定识别出价值特别差、因而可能值得未来动作研究回避的那一小群决策？</strong></p><p>F05 用两个互补的冻结身份回答了这个问题。第一条分支观察每个 inventory campaign 的首个 exposure-increasing ADD 决策，BUY 与 SELL 分开；第二条分支聚焦 first-opener fill，以 SELL 为主、BUY 为描述性对照。两条分支的角色不同，但都在检验同一件事：局部微观结构能否在 campaign-state baseline 之上提供可迁移的负价值选择信息。</p><p>答案分成两层。第一层成立：在冻结的 Development 分母里，first-add 或 first-opener 的后续平均价值经常为负。第二层没有成立：局部模型没有稳定优于只看 campaign 状态的基线，也没有选出置信区间可靠低于零的“更坏子集”。因此研究关闭的是这套冻结的预测身份，不是“所有 fill quality 信号”，更不是直接证明取消、放宽或抑制订单会赚钱。</p><p>本文只讨论历史 Development 研究证据，不构成交易建议。图中的 K 线、报价与成交均为合成机制示意，不是实盘行情。</p><p><img src="/images/narrowgate/decision-visible-negative-fill-value-kline.svg" alt="决策时可见状态与 campaign-terminal 目标的因果边界"></p><p><em>图 1：模型只能读取决策线左侧已经 feature-ready 的状态；右侧成交、库存路径与 campaign terminal 只用于构造标签。观察到负标签不等于已经识别出一个可执行动作。</em></p><h2 id="1-为什么“平均坏”与“能避开坏”是两回事"><a href="#1-为什么“平均坏”与“能避开坏”是两回事" class="headerlink" title="1. 为什么“平均坏”与“能避开坏”是两回事"></a>1. 为什么“平均坏”与“能避开坏”是两回事</h2><p>设第 $i$ 个决策发生在 $t_i$，当时的策略权益为 $E_i^{decision}$，同一 campaign 最终终止或按冻结规则记账时的权益为 $E_i^{terminal}$。主目标是直接的 USDC 值：</p><script type="math/tex; mode=display">Y_i=E_i^{terminal}-E_i^{decision}.</script><p>如果 $\mathbb E[Y_i] &lt; 0$，只能说明这类成交在该 Development 分母里平均较差。要把它变成选择器，还需要一个只使用 $t_i$ 前信息的函数 $f(x_i)$，并证明它挑出的高风险集合真的比其余集合更差，而且这种差异在日期聚类的不确定性下仍然存在。</p><p>研究因此比较两个模型：</p><script type="math/tex; mode=display">\widehat Y_i^{M0}=f_0(\text{campaign state at }t_i),</script><script type="math/tex; mode=display">\widehat Y_i^{M1}=f_1(\text{campaign state},\text{local microstructure at }t_i).</script><p>真正的增量问题不是 $M1$ 能否在样本内给出漂亮排序，而是：</p><script type="math/tex; mode=display">\Delta L=L(M0)-L(M1)>0</script><p>是否能在严格向前的 chronological OOF 中获得正的同时置信下界。高风险阈值也只能由每个 outer-train 的过去预测分布产生，不能看见 outer-test 的实际价值后再移动。</p><p>这套设计刻意不把 maker-signed 30 秒 markout 当成 USDC 动作价值。markout 可以描述成交后的局部价格方向，但它没有自动包含成交数量、费用、后续库存、减仓、campaign 持续时间与终局记账。</p><h2 id="2-为什么把-first-add-与-first-opener-写在同一篇"><a href="#2-为什么把-first-add-与-first-opener-写在同一篇" class="headerlink" title="2. 为什么把 first-add 与 first-opener 写在同一篇"></a>2. 为什么把 first-add 与 first-opener 写在同一篇</h2><p>两个冻结身份不是同一行数据，但属于同一个研究项目的两个角色切面。</p><h3 id="2-1-First-add：已经有暴露以后，第一次继续增加库存"><a href="#2-1-First-add：已经有暴露以后，第一次继续增加库存" class="headerlink" title="2.1 First-add：已经有暴露以后，第一次继续增加库存"></a>2.1 First-add：已经有暴露以后，第一次继续增加库存</h3><p>first-add 分支以每个 campaign 的首个实际 exposure-increasing ADD 成交生成决策为单位。opener 与 reducing 行被排除；BUY 和 SELL 独立训练与报告。</p><p>它的 campaign-state baseline 使用：</p><ul><li>决策前库存；</li><li>campaign age；</li><li>campaign 已实现或记账价值；</li><li>campaign MAE；</li><li>已发生的 exposure-increasing fill 数；</li><li>已发生的 reducing fill 数。</li></ul><p>增量局部特征包括：</p><ul><li>报价到参考价的 tick 距离；</li><li>可用时的 exact queue ahead，以及 queue 是否可用的显式指示；</li><li>microprice shift；</li><li>L2 refresh 与 cancel ratio；</li><li>local toxicity；</li><li>policy-visible parent aggTrade flow imbalance。</li></ul><p>队列缺失不能被解释为“观测到零队列”。模型矩阵可以使用确定性占位值，但必须同时携带 unavailable 指示；否则结构性缺失会伪装成有利的空队列状态。</p><h3 id="2-2-First-opener：从空仓进入一段新-campaign-的第一次成交"><a href="#2-2-First-opener：从空仓进入一段新-campaign-的第一次成交" class="headerlink" title="2.2 First-opener：从空仓进入一段新 campaign 的第一次成交"></a>2.2 First-opener：从空仓进入一段新 campaign 的第一次成交</h3><p>first-opener 分支观察 exact native lifecycle 中的第一笔 opener fill。SELL 是冻结的主侧，BUY 只作描述性运输检查。</p><p>其目标仍然是：</p><script type="math/tex; mode=display">Y_i^{opener}=E_i^{campaign\ terminal}-E_i^{submit}.</script><p>但它是一个 <strong>fill-conditioned observational estimand</strong>：</p><script type="math/tex; mode=display">\mathbb E[Y_i^{opener}\mid F_i=1,x_i].</script><p>它回答“已经成交的 opener 后来价值如何”，不回答：</p><script type="math/tex; mode=display">\mathbb E[Y_i(\text{suppress opener})-Y_i(\text{submit baseline opener})].</script><p>后一个式子才是取消、延迟或放宽 opener 的动作效应，需要新的成对或随机 action identity。</p><h2 id="3-数据、时钟与因果边界"><a href="#3-数据、时钟与因果边界" class="headerlink" title="3. 数据、时钟与因果边界"></a>3. 数据、时钟与因果边界</h2><p>两条分支都使用 exact lifecycle，而不是靠最近时间戳拼接订单与 campaign。其公共证据边界包括：</p><ol><li>决策特征必须在 decision 或 submit clock 前完成：$\text{feature-ready timestamp}\le t_i$。</li><li>native 100ms L2 目标日要求完整的 previous-natural-day warmup；缺失 warmup 的目标日不能用更早日期悄悄补种。</li><li>terminal target 来自同一订单与 campaign 身份，不允许 nearest-time join，也不允许用 fallback mid 填补缺失的终局权益。</li><li>Grade A 是主 Development 证据，Grade B 只作预注册 sensitivity；两者不能池化成更漂亮的样本量。</li><li>每个 outer fold 只用更早日期拟合、标准化、确定高风险分位数；test 日不反向参与阈值选择。</li><li>Validation 与 family-specific sealed holdout 保持未读。</li></ol><p>first-add 的冻结面板来自 24 个 Grade-A 与 16 个 Grade-B Development 日；正式 chronological OOF 覆盖 13 个 Grade-A 测试日和 6 个 Grade-B sensitivity 日。first-opener 的 native producer 完成 22 个 Grade-A 与 11 个 Grade-B Development 日，正式评估同样使用 13 个 Grade-A OOF 日与 6 个 Grade-B transport 日。</p><p>这些日期是历史 Development 证据，不是 prospective live confirmation。100ms 是盘口源分辨率，也不是动作持有时长。</p><h2 id="4-研究链：先证明标签，再证明增量选择能力"><a href="#4-研究链：先证明标签，再证明增量选择能力" class="headerlink" title="4. 研究链：先证明标签，再证明增量选择能力"></a>4. 研究链：先证明标签，再证明增量选择能力</h2><p>完整链路是：</p><blockquote><p>exact order/campaign identity → decision-time causal feature snapshot → direct decision-to-terminal USDC label → past-only campaign-state M0 → campaign + local-microstructure M1 → chronological OOF loss and high-risk group → day/campaign clustered simultaneous intervals → prediction gate，而不是 action gate。</p></blockquote><p>这个顺序很重要。如果连 direct terminal label 都不能精确绑定，后面的模型再复杂也只是拟合错位标签。如果局部模型没有超过 campaign-state baseline，就不能因为某些成交平均为负而跳过预测证据，直接注册“阻止这些成交”的动作。</p><h2 id="5-First-add-结果：负平均值存在，局部增量不存在"><a href="#5-First-add-结果：负平均值存在，局部增量不存在" class="headerlink" title="5. First-add 结果：负平均值存在，局部增量不存在"></a>5. First-add 结果：负平均值存在，局部增量不存在</h2><p>Grade-A 主 OOF 包含 327 个 BUY 与 346 个 SELL campaign；Grade-B sensitivity 包含 172 个 BUY 与 154 个 SELL campaign。</p><div class="table-container"><table><thead><tr><th>Side</th><th style="text-align:right">MSE improvement，M0 minus local</th><th style="text-align:right">预测高风险组平均 USDC</th><th style="text-align:right">familywise interval</th><th style="text-align:right">支持</th></tr></thead><tbody><tr><td>BUY</td><td style="text-align:right">-0.70865</td><td style="text-align:right">-0.04115</td><td style="text-align:right">[-0.11369, 0.03795]</td><td style="text-align:right">否</td></tr><tr><td>SELL</td><td style="text-align:right">-0.000986</td><td style="text-align:right">-0.05798</td><td style="text-align:right">[-0.14776, 0.01086]</td><td style="text-align:right">否</td></tr></tbody></table></div><p>两侧预测高风险组的点估计都为负，但同时区间跨过零。更关键的是，局部模型没有以正下界改进 campaign-state baseline；BUY 的冻结损失比较甚至明显更差。</p><p>因此，这个分支支持“first-add 平均存在负 downstream value”，但不支持“这些局部字段能可靠定位可避免的负价值子集”。</p><h2 id="6-First-opener-结果：SELL-平均负值明确，选择器方向却没有成立"><a href="#6-First-opener-结果：SELL-平均负值明确，选择器方向却没有成立" class="headerlink" title="6. First-opener 结果：SELL 平均负值明确，选择器方向却没有成立"></a>6. First-opener 结果：SELL 平均负值明确，选择器方向却没有成立</h2><p>corrected Grade-A native OOF 的核心结果是：</p><div class="table-container"><table><thead><tr><th>Panel</th><th>Side</th><th style="text-align:right">OOF rows</th><th style="text-align:right">平均 terminal value，USDC</th><th style="text-align:right">simultaneous interval</th><th style="text-align:right">local MSE improvement</th><th style="text-align:right">支持</th></tr></thead><tbody><tr><td>Grade A</td><td>SELL</td><td style="text-align:right">2,330</td><td style="text-align:right">-0.007151</td><td style="text-align:right">[-0.014335, -0.000496]</td><td style="text-align:right">-0.0000782</td><td style="text-align:right">否</td></tr><tr><td>Grade B</td><td>SELL</td><td style="text-align:right">1,254</td><td style="text-align:right">-0.008095</td><td style="text-align:right">[-0.020291, -0.000857]</td><td style="text-align:right">-0.0001753</td><td style="text-align:right">否</td></tr><tr><td>Grade A</td><td>BUY</td><td style="text-align:right">2,228</td><td style="text-align:right">-0.011994</td><td style="text-align:right">[-0.018521, -0.004809]</td><td style="text-align:right">+0.0000008</td><td style="text-align:right">否</td></tr><tr><td>Grade B</td><td>BUY</td><td style="text-align:right">1,287</td><td style="text-align:right">-0.007831</td><td style="text-align:right">[-0.018774, +0.000719]</td><td style="text-align:right">-0.0000264</td><td style="text-align:right">否</td></tr></tbody></table></div><p>Grade-A SELL 的平均值区间完全低于零，因此“已成交 first-opener 平均有负后续价值”得到支持。然而冻结模型挑出的 SELL 高风险组，平均值为 $-0.002960$ USDC，区间仍跨零；selected-minus-complement 的点估计还是正的，意味着被称为“高风险”的组在点估计上反而没有更差。</p><p>这不是调一个 threshold 就能修复的问题。模型没有建立出稳定的 conditional selection，继续换高风险分位数、目标时长或模型容量，会是在已经读过的 Development 上追逐噪声。</p><h2 id="7-最终结论：预测身份关闭，动作问题仍然开放"><a href="#7-最终结论：预测身份关闭，动作问题仍然开放" class="headerlink" title="7. 最终结论：预测身份关闭，动作问题仍然开放"></a>7. 最终结论：预测身份关闭，动作问题仍然开放</h2><p>这项研究得到三个清楚的边界：</p><ol><li><strong>支持</strong>：若干 first-add 与 first-opener 成交在冻结 Development 分母里有负平均 terminal value。</li><li><strong>不支持</strong>：冻结的 decision-visible local microstructure 没有稳定超过 campaign-state baseline，也没有可靠挑出更坏子集。</li><li><strong>未识别</strong>：取消、放宽、延迟或抑制这些订单的反事实收益。</li></ol><p>所以正确状态是：</p><ul><li>first-add negative-value prediction：Development closed；</li><li>SELL first-opener local prediction：Development closed；</li><li>Validation：未读；</li><li>sealed holdout：未读；</li><li>action experiment：未创建；</li><li>live 或 baseline 变更：未授权。</li></ul><p>阴性结果并不等于“盘口没有信息”。它说明当时冻结的特征、模型类、决策角色和 direct terminal target 没有产生足够稳定的增量预测。一个未来项目若要重开，必须带来新的因果可见信息或不同的动作机制，而不是在同一 Development 面板上换一个阈值。</p><h2 id="8-公共证据"><a href="#8-公共证据" class="headerlink" title="8. 公共证据"></a>8. 公共证据</h2><p>公开仓库提供方法、聚合结论和权限边界，不分发 owner-side OOF rows 或机器结果目录。主要公共入口：</p><ul><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/README.md">F05 Fill Quality, Toxicity, And Quote EV README</a></li><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/decision_visible_negative_fill_value_evidence_m0_v1_1_development_20260729.md">Decision-Visible Negative Fill-Value Evidence M0 v1.1</a></li><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/sell_first_fill_conditional_value_feasibility_v3_development_20260730.md">SELL First-Fill Conditional Value Feasibility v3</a></li></ul><p>这些链接用于理解当前公开叙述。精确复现历史冻结结果时，应使用相应报告声明的 source identity 与 artifact manifest，而不是把滚动的 main 分支当成证据快照。</p>]]></content>
-    
-    
-    <categories>
-      
-      <category>Market Making</category>
-      
-    </categories>
-    
-    
-    <tags>
-      
-      <tag>Market Making</tag>
-      
-      <tag>市场微观结构</tag>
       
       <tag>机器学习</tag>
       
       <tag>回测</tag>
-      
-      <tag>因果推断</tag>
       
     </tags>
     
@@ -1395,9 +1362,9 @@
       
       <tag>市场微观结构</tag>
       
-      <tag>回测</tag>
-      
       <tag>因果推断</tag>
+      
+      <tag>回测</tag>
       
       <tag>风险管理</tag>
       
@@ -1408,11 +1375,11 @@
   
   
   <entry>
-    <title>NarrowGate Fill-to-Inventory Lifecycle：30 秒 Markout 为什么不是成交 PnL</title>
-    <link href="/2026/08/29/NarrowGate-Fill-Inventory-Lifecycle-Research/"/>
-    <url>/2026/08/29/NarrowGate-Fill-Inventory-Lifecycle-Research/</url>
+    <title>NarrowGate Fill Quality：决策时可见状态能否识别负价值成交</title>
+    <link href="/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/"/>
+    <url>/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/</url>
     
-    <content type="html"><![CDATA[<p>Last materially modified: 2026-08-29</p><h2 id="TL-DR：成交后的-30-秒只是早期毒性窗口，库存风险可能再持续几分钟甚至几小时"><a href="#TL-DR：成交后的-30-秒只是早期毒性窗口，库存风险可能再持续几分钟甚至几小时" class="headerlink" title="TL;DR：成交后的 30 秒只是早期毒性窗口，库存风险可能再持续几分钟甚至几小时"></a>TL;DR：成交后的 30 秒只是早期毒性窗口，库存风险可能再持续几分钟甚至几小时</h2><p>被动成交以后，研究者很容易在 30 秒处读取 mid-price，计算 maker-signed markout，然后把它叫作“这笔成交赚了多少”。F10 Fill-to-Inventory Lifecycle 审计证明这种命名混合了至少四个不同问题：短期价格是否向不利方向移动、该 fill 创建的库存 lot 何时被 reducing fill 对冲、整个 inventory campaign 何时回到 flat，以及 replay 结束时仍未关闭的库存怎样 censor。</p><p>这项研究保留下来的结论是 <strong>estimand contract</strong>，不是旧数字。30 秒 markout 可以作为 early adverse-selection label，却不能替代 lot value 或 campaign-terminal PnL；inventory 是 fungible 的，一笔 reducing fill 究竟关闭哪一笔历史 add fill并不是交易所事实，因此 FIFO 与 LIFO 只能作为两种归因约定；未关闭的 lot 不能假装按 replay 终点成交，必须保留 censoring 或另行计算 terminal MTM。</p><p>历史 Retained111 审计曾报告 43,183 个 fill events、21,884 个 exposure lots、97.3% closed rate，并显示大量 lot 在 30 秒后仍然存活。后来确认其 order/fill denominator 使用了旧 mixed-L2 与 operational queue path，这些 count、duration、survival 和 PnL 数字全部撤回，不能作为当前 calibration 或 promotion evidence。<strong>数字被撤回不等于问题消失；恰恰说明 lifecycle estimand 必须与数据、queue 和时钟身份一起冻结。</strong></p><p>本文只复盘公开的历史 Development 方法与撤回边界，不构成交易建议。图中的 K 线、成交、库存和 campaign 路径为合成机制示意，不是实盘记录。</p><p><img src="/images/narrowgate/fill-inventory-lifecycle.svg" alt="Fill、30 秒 markout、inventory lot 与 campaign terminal 的生命周期"></p><p><em>图 1：同一 opening fill 同时启动短期 markout clock、库存 lot 和更长的 campaign path。30 秒价格标签先结束，不代表库存已经修复；replay boundary 到来时仍未关闭的 lot 只能 censor。</em></p><h2 id="1-一个-fill-同时启动了三只时钟"><a href="#1-一个-fill-同时启动了三只时钟" class="headerlink" title="1. 一个 fill 同时启动了三只时钟"></a>1. 一个 fill 同时启动了三只时钟</h2><p>假设 maker BUY 在 $t_f$ 以价格 $P_f$ 成交，创建正库存。第一只时钟是 micro markout clock：在预先冻结的 $h=1,5,20,30$ 秒读取因果可见的 mid-price，测量成交后的短期价格方向。第二只时钟是 lot lifecycle：等待未来 reducing SELL fills 按某种归因规则抵消该 opening quantity。第三只时钟是 campaign lifecycle：从库存离开零开始，直到整个策略库存重新回到 flat。</p><p>三只时钟的终点通常不同。价格可能在 30 秒内向上，使 BUY markout 为正，但该库存随后长时间占用风险预算；也可能 30 秒 markout 为负，却在后续 reducing fill 与 spread capture 中修复。只读取任意一个终点都会遗漏其它机制。</p><p>因此“fill PnL”不是一个天然字段。研究必须先说明分母是一笔 fill、一个 attributed lot、一次 campaign，还是一个随机化 intervention；再说明终点是固定 horizon、lot close、campaign flat 或 replay terminal MTM。</p><h2 id="2-Micro-markout：它回答的是早期-adverse-selection"><a href="#2-Micro-markout：它回答的是早期-adverse-selection" class="headerlink" title="2. Micro markout：它回答的是早期 adverse selection"></a>2. Micro markout：它回答的是早期 adverse selection</h2><p>令 maker side sign 为</p><script type="math/tex; mode=display">s=\begin{cases}+1,&\text{BUY maker},\\-1,&\text{SELL maker}.\end{cases}</script><p>以 fill price 为起点的 $h$ 秒 maker-signed markout 可以写为</p><script type="math/tex; mode=display">M_h=s\frac{P_{mid}(t_f+h)-P_f}{P_f}\times10^4\quad\text{bps}.</script><p>$M_h&gt;0$ 表示价格随后向 maker 有利方向移动，$M_h&lt;0$ 表示早期 adverse selection。这个标签适合回答“刚成交的流是否有毒”，但它没有包含订单在 fill 前的 queue cost、后续 inventory holding risk、reducing execution、commission 或 campaign tail。</p><p>实际观测还需要区分 target time 与 observation time。若目标是 $t_f+30s$，却只在更晚一次 quote decision 才读取 markout，那么名义 30 秒可能变成 10–20 秒额外延迟。后续 time/unit repair 因此要求用频繁 wall-clock tick 解析 pending markout，并记录 target、actual observation、source age 与 censoring。</p><h2 id="3-Inventory-lot：交易所不会告诉你-FIFO-还是-LIFO"><a href="#3-Inventory-lot：交易所不会告诉你-FIFO-还是-LIFO" class="headerlink" title="3. Inventory lot：交易所不会告诉你 FIFO 还是 LIFO"></a>3. Inventory lot：交易所不会告诉你 FIFO 还是 LIFO</h2><p>opening/add fill 会增加绝对库存，reducing fill 会降低绝对库存，但 inventory 是 fungible 的。若策略先后买入两笔，再卖出一笔，交易所只知道净数量变化，不知道该 SELL 关闭第一笔 BUY 还是第二笔 BUY。</p><p>FIFO 把最早 opening quantity 先关闭，LIFO 把最近 opening quantity 先关闭。对一个 attributed lot $\ell$，可定义</p><script type="math/tex; mode=display">T_{lot,\ell}=t_{close,\ell}-t_{open,\ell}.</script><p>若 opening 与 reducing 都是 passive fills，closed-lot realized value 可以按配对 quantity、成交价和费用计算。但 FIFO/LIFO 的差异是 model uncertainty，不是 exchange-observed truth。报告一条 lot-duration 曲线时，至少应同时给出两种归因、closed rate、median、tail quantiles 与 censoring rate。</p><p>对 replay 结束仍未关闭的 lot，$T_{lot}$ 是右删失。不能把 replay boundary 当作一笔虚构 taker close，也不能无依据扣除假设性 taker fee。若研究需要价值，应独立报告 terminal MTM：</p><script type="math/tex; mode=display">V_{terminal}=cash_T+inventory_T\cdot P_{mark,T}-fees_T.</script><p>它是窗口终点上的策略权益，不是 realized lot PnL。</p><h2 id="4-Campaign：真正的库存终局通常比-30-秒晚得多"><a href="#4-Campaign：真正的库存终局通常比-30-秒晚得多" class="headerlink" title="4. Campaign：真正的库存终局通常比 30 秒晚得多"></a>4. Campaign：真正的库存终局通常比 30 秒晚得多</h2><p>inventory campaign 从净库存离开零开始，到再次回到零结束。一次 campaign 可以包含 opener、多个 exposure-increasing adds、部分 reducing fills、quote pauses、cancel/re-entry 与其它反馈。一个 early fill 的价值会通过整条路径传递。</p><p>对第 $c$ 个 campaign，终局变化可写为</p><script type="math/tex; mode=display">Y_c=E_c(T_{flat})-E_c(T_{birth}),</script><p>并与 maximum adverse excursion、absolute inventory time、repair latency、duration 和 tail indicator 一起报告。若 campaign 到 replay boundary 仍未 flat，同样必须 censor 或使用冻结 terminal-MTM 规则。</p><p>动作研究尤其不能把同一个 $Y_c$ 复制给 campaign 内每个 decision。那会把一次终局损失重复计入多行，产生伪精度。正确做法是每个 intervention identity 只拥有一次 campaign-level attribution，或使用明确的 incremental contribution contract。</p><h2 id="5-生存视角：平均-duration-会被长尾支配"><a href="#5-生存视角：平均-duration-会被长尾支配" class="headerlink" title="5. 生存视角：平均 duration 会被长尾支配"></a>5. 生存视角：平均 duration 会被长尾支配</h2><p>令 $T$ 是 lot close 或 campaign flat time，$C$ 是 replay censor time，观察到的是</p><script type="math/tex; mode=display">\widetilde T=\min(T,C),\qquad\delta=\mathbf 1[T\le C].</script><p>生存函数</p><script type="math/tex; mode=display">S(u)=\Pr(T>u)</script><p>回答在 $u$ 时刻仍未修复的比例。仅报告 closed rows 的平均 duration 会丢掉所有长寿 censor，并倾向于把修复速度说得过快。仅报告均值又会被极少数长 campaign 拉高，所以 median、P75、P90、Kaplan–Meier median 与固定 horizon survival 应共同出现。</p><p>若 fill、cancel ACK、campaign flat 等结局竞争，还需要 competing-risk 方法，而不是把每个 horizon 当作彼此独立的 binary label。Lifecycle research 的贡献就在于先定义风险集和终局，再谈预测。</p><h2 id="6-被撤回的-Retained111-数字该怎样阅读"><a href="#6-被撤回的-Retained111-数字该怎样阅读" class="headerlink" title="6. 被撤回的 Retained111 数字该怎样阅读"></a>6. 被撤回的 Retained111 数字该怎样阅读</h2><p>旧审计的历史表如下，<strong>全部只用于说明为何 estimand 不能被压成 30 秒；不得视为当前校准值</strong>：</p><div class="table-container"><table><thead><tr><th>Historical withdrawn item</th><th style="text-align:right">FIFO</th><th style="text-align:right">LIFO</th></tr></thead><tbody><tr><td>Closed rate</td><td style="text-align:right">97.3%</td><td style="text-align:right">97.3%</td></tr><tr><td>Closed median</td><td style="text-align:right">5.8 minutes</td><td style="text-align:right">2.3 minutes</td></tr><tr><td>P90</td><td style="text-align:right">88.3 minutes</td><td style="text-align:right">52.1 minutes</td></tr><tr><td>KM median</td><td style="text-align:right">6.3 minutes</td><td style="text-align:right">2.5 minutes</td></tr><tr><td>Alive at 30s</td><td style="text-align:right">92.1%</td><td style="text-align:right">79.8%</td></tr></tbody></table></div><p>旧 denominator 还报告 closed campaign fill-to-flat median 11.2 分钟、P90 251.4 分钟。它们曾直观展示“30 秒以后仍有大量库存风险”，但后来 mixed-L2、queue identity、trade-side、merged clock 与 cross-day warmup 修复改变了订单和成交路径，因此这些 exact durations 必须重建。</p><p>这里有一个重要的证据治理原则：方法语义可以在数据身份失效后保留，数值却不能。FIFO/LIFO、censoring、lot versus campaign 与 terminal MTM 的区分不依赖某个具体 replay；43,183 fills 或 92.1% survival 则依赖完整 denominator，身份改变后必须撤回。</p><h2 id="7-数据与因果边界"><a href="#7-数据与因果边界" class="headerlink" title="7. 数据与因果边界"></a>7. 数据与因果边界</h2><p>一个可用的 lifecycle panel 至少要绑定：exact order/fill identity、maker side、fill quantity、campaign identity、execution price、commission unit、因果可见 mid、reducing fills、terminal inventory/mark、replay boundary，以及 queue、L2、trade 与 clock identities。</p><p>固定 horizon markout 只能使用目标时刻已经存在的 historical book；不能用未来第一笔 trade 代替 midpoint。若精确目标没有 book observation，应记录 actual observation 和 age，按冻结规则 censor，而不是向未来搜索一条方便的价格。</p><p>lot attribution 可以读取后续 reducing fills来构造 outcome，但这些未来字段绝不能进入 $t_f$ 前的预测 feature。campaign terminal 也只能作为标签。预测 score 与动作触发必须停在 feature-ready cutoff 左侧。</p><h2 id="8-从描述性标签到动作-estimand"><a href="#8-从描述性标签到动作-estimand" class="headerlink" title="8. 从描述性标签到动作 estimand"></a>8. 从描述性标签到动作 estimand</h2><p>观察到 $M_{30s}&lt;0$ 或 $Y_c&lt;0$，不等于已经证明取消 opening order 会改善结果。一个 action 会同时改变 fill probability、queue position、inventory birth、后续 adds、reducing path 与 campaign terminal。</p><p>动作 $a$ 的完整价值应更接近</p><script type="math/tex; mode=display">V(a)=\mathbb E[\text{fill value}-\text{incremental campaign cost}-\text{queue reset cost}\mid a],</script><p>并使用 paired full-path replay、随机化或其它可识别设计。30 秒 markout 可作为机制分量，却不能独自晋级 keep、cancel、widen、skip 或 re-center。</p><h2 id="9-最终状态与没有获得的权限"><a href="#9-最终状态与没有获得的权限" class="headerlink" title="9. 最终状态与没有获得的权限"></a>9. 最终状态与没有获得的权限</h2><p>项目最终状态是 <strong>lifecycle estimand retained；Retained111 exact numbers withdrawn</strong>。</p><p>保留的结论：</p><ul><li>30 秒 markout 是 early toxicity，不是 fill PnL；</li><li>lot close 与 campaign flat 是不同终点；</li><li>FIFO/LIFO 是归因不确定性；</li><li>open lot/campaign 必须 censor 或按冻结 terminal MTM 处理；</li><li>action reward 不能重复复制 campaign outcome。</li></ul><p>没有获得的权限：当前 survival calibration、当前 queue/lifecycle 参数、策略 promotion、Validation 或 sealed holdout 读取、任何 live action 或 baseline 变更。旧数值不能被其它文章重新包装成“长期库存风险已精确量化”。</p><h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/README.md">F10 Live/Replay Attribution README</a></li><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/fill_inventory_lifecycle_retained111_20260713.md">Fill Inventory Lifecycle Audit</a></li><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/system_engineering/docs/replay_time_unit_causality_repair_20260715.md">Replay Time, Unit, and Causality Repair</a></li><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/system_engineering/docs/time_unit_contract_repair_20260726.md">Time and Unit Contract Repair</a></li></ul><p>公开仓库保留方法、撤回声明和实现入口；旧 owner-side lot tables 与当前重建 artifacts 不随仓库分发。</p>]]></content>
+    <content type="html"><![CDATA[<p>Last materially modified: 2026-08-29</p><h2 id="TL-DR：坏成交确实存在，但当时可见的局部状态没有把它们挑出来"><a href="#TL-DR：坏成交确实存在，但当时可见的局部状态没有把它们挑出来" class="headerlink" title="TL;DR：坏成交确实存在，但当时可见的局部状态没有把它们挑出来"></a>TL;DR：坏成交确实存在，但当时可见的局部状态没有把它们挑出来</h2><p>这项研究问的不是“成交以后平均会不会亏”，而是一个更严格的问题：<strong>在被动订单真正成为一笔增加风险暴露的成交之前，仅凭当时已经可见的订单、盘口与 campaign 状态，能否稳定识别出价值特别差、因而可能值得未来动作研究回避的那一小群决策？</strong></p><p>F05 用两个互补的冻结身份回答了这个问题。第一条分支观察每个 inventory campaign 的首个 exposure-increasing ADD 决策，BUY 与 SELL 分开；第二条分支聚焦 first-opener fill，以 SELL 为主、BUY 为描述性对照。两条分支的角色不同，但都在检验同一件事：局部微观结构能否在 campaign-state baseline 之上提供可迁移的负价值选择信息。</p><p>答案分成两层。第一层成立：在冻结的 Development 分母里，first-add 或 first-opener 的后续平均价值经常为负。第二层没有成立：局部模型没有稳定优于只看 campaign 状态的基线，也没有选出置信区间可靠低于零的“更坏子集”。因此研究关闭的是这套冻结的预测身份，不是“所有 fill quality 信号”，更不是直接证明取消、放宽或抑制订单会赚钱。</p><p>本文只讨论历史 Development 研究证据，不构成交易建议。图中的 K 线、报价与成交均为合成机制示意，不是实盘行情。</p><p><img src="/images/narrowgate/decision-visible-negative-fill-value-kline.svg" alt="决策时可见状态与 campaign-terminal 目标的因果边界"></p><p><em>图 1：模型只能读取决策线左侧已经 feature-ready 的状态；右侧成交、库存路径与 campaign terminal 只用于构造标签。观察到负标签不等于已经识别出一个可执行动作。</em></p><h2 id="1-为什么“平均坏”与“能避开坏”是两回事"><a href="#1-为什么“平均坏”与“能避开坏”是两回事" class="headerlink" title="1. 为什么“平均坏”与“能避开坏”是两回事"></a>1. 为什么“平均坏”与“能避开坏”是两回事</h2><p>设第 $i$ 个决策发生在 $t_i$，当时的策略权益为 $E_i^{decision}$，同一 campaign 最终终止或按冻结规则记账时的权益为 $E_i^{terminal}$。主目标是直接的 USDC 值：</p><script type="math/tex; mode=display">Y_i=E_i^{terminal}-E_i^{decision}.</script><p>如果 $\mathbb E[Y_i] &lt; 0$，只能说明这类成交在该 Development 分母里平均较差。要把它变成选择器，还需要一个只使用 $t_i$ 前信息的函数 $f(x_i)$，并证明它挑出的高风险集合真的比其余集合更差，而且这种差异在日期聚类的不确定性下仍然存在。</p><p>研究因此比较两个模型：</p><script type="math/tex; mode=display">\widehat Y_i^{M0}=f_0(\text{campaign state at }t_i),</script><script type="math/tex; mode=display">\widehat Y_i^{M1}=f_1(\text{campaign state},\text{local microstructure at }t_i).</script><p>真正的增量问题不是 $M1$ 能否在样本内给出漂亮排序，而是：</p><script type="math/tex; mode=display">\Delta L=L(M0)-L(M1)>0</script><p>是否能在严格向前的 chronological OOF 中获得正的同时置信下界。高风险阈值也只能由每个 outer-train 的过去预测分布产生，不能看见 outer-test 的实际价值后再移动。</p><p>这套设计刻意不把 maker-signed 30 秒 markout 当成 USDC 动作价值。markout 可以描述成交后的局部价格方向，但它没有自动包含成交数量、费用、后续库存、减仓、campaign 持续时间与终局记账。</p><h2 id="2-为什么把-first-add-与-first-opener-写在同一篇"><a href="#2-为什么把-first-add-与-first-opener-写在同一篇" class="headerlink" title="2. 为什么把 first-add 与 first-opener 写在同一篇"></a>2. 为什么把 first-add 与 first-opener 写在同一篇</h2><p>两个冻结身份不是同一行数据，但属于同一个研究项目的两个角色切面。</p><h3 id="2-1-First-add：已经有暴露以后，第一次继续增加库存"><a href="#2-1-First-add：已经有暴露以后，第一次继续增加库存" class="headerlink" title="2.1 First-add：已经有暴露以后，第一次继续增加库存"></a>2.1 First-add：已经有暴露以后，第一次继续增加库存</h3><p>first-add 分支以每个 campaign 的首个实际 exposure-increasing ADD 成交生成决策为单位。opener 与 reducing 行被排除；BUY 和 SELL 独立训练与报告。</p><p>它的 campaign-state baseline 使用：</p><ul><li>决策前库存；</li><li>campaign age；</li><li>campaign 已实现或记账价值；</li><li>campaign MAE；</li><li>已发生的 exposure-increasing fill 数；</li><li>已发生的 reducing fill 数。</li></ul><p>增量局部特征包括：</p><ul><li>报价到参考价的 tick 距离；</li><li>可用时的 exact queue ahead，以及 queue 是否可用的显式指示；</li><li>microprice shift；</li><li>L2 refresh 与 cancel ratio；</li><li>local toxicity；</li><li>policy-visible parent aggTrade flow imbalance。</li></ul><p>队列缺失不能被解释为“观测到零队列”。模型矩阵可以使用确定性占位值，但必须同时携带 unavailable 指示；否则结构性缺失会伪装成有利的空队列状态。</p><h3 id="2-2-First-opener：从空仓进入一段新-campaign-的第一次成交"><a href="#2-2-First-opener：从空仓进入一段新-campaign-的第一次成交" class="headerlink" title="2.2 First-opener：从空仓进入一段新 campaign 的第一次成交"></a>2.2 First-opener：从空仓进入一段新 campaign 的第一次成交</h3><p>first-opener 分支观察 exact native lifecycle 中的第一笔 opener fill。SELL 是冻结的主侧，BUY 只作描述性运输检查。</p><p>其目标仍然是：</p><script type="math/tex; mode=display">Y_i^{opener}=E_i^{campaign\ terminal}-E_i^{submit}.</script><p>但它是一个 <strong>fill-conditioned observational estimand</strong>：</p><script type="math/tex; mode=display">\mathbb E[Y_i^{opener}\mid F_i=1,x_i].</script><p>它回答“已经成交的 opener 后来价值如何”，不回答：</p><script type="math/tex; mode=display">\mathbb E[Y_i(\text{suppress opener})-Y_i(\text{submit baseline opener})].</script><p>后一个式子才是取消、延迟或放宽 opener 的动作效应，需要新的成对或随机 action identity。</p><h2 id="3-数据、时钟与因果边界"><a href="#3-数据、时钟与因果边界" class="headerlink" title="3. 数据、时钟与因果边界"></a>3. 数据、时钟与因果边界</h2><p>两条分支都使用 exact lifecycle，而不是靠最近时间戳拼接订单与 campaign。其公共证据边界包括：</p><ol><li>决策特征必须在 decision 或 submit clock 前完成：$\text{feature-ready timestamp}\le t_i$。</li><li>native 100ms L2 目标日要求完整的 previous-natural-day warmup；缺失 warmup 的目标日不能用更早日期悄悄补种。</li><li>terminal target 来自同一订单与 campaign 身份，不允许 nearest-time join，也不允许用 fallback mid 填补缺失的终局权益。</li><li>Grade A 是主 Development 证据，Grade B 只作预注册 sensitivity；两者不能池化成更漂亮的样本量。</li><li>每个 outer fold 只用更早日期拟合、标准化、确定高风险分位数；test 日不反向参与阈值选择。</li><li>Validation 与 family-specific sealed holdout 保持未读。</li></ol><p>first-add 的冻结面板来自 24 个 Grade-A 与 16 个 Grade-B Development 日；正式 chronological OOF 覆盖 13 个 Grade-A 测试日和 6 个 Grade-B sensitivity 日。first-opener 的 native producer 完成 22 个 Grade-A 与 11 个 Grade-B Development 日，正式评估同样使用 13 个 Grade-A OOF 日与 6 个 Grade-B transport 日。</p><p>这些日期是历史 Development 证据，不是 prospective live confirmation。100ms 是盘口源分辨率，也不是动作持有时长。</p><h2 id="4-研究链：先证明标签，再证明增量选择能力"><a href="#4-研究链：先证明标签，再证明增量选择能力" class="headerlink" title="4. 研究链：先证明标签，再证明增量选择能力"></a>4. 研究链：先证明标签，再证明增量选择能力</h2><p>完整链路是：</p><blockquote><p>exact order/campaign identity → decision-time causal feature snapshot → direct decision-to-terminal USDC label → past-only campaign-state M0 → campaign + local-microstructure M1 → chronological OOF loss and high-risk group → day/campaign clustered simultaneous intervals → prediction gate，而不是 action gate。</p></blockquote><p>这个顺序很重要。如果连 direct terminal label 都不能精确绑定，后面的模型再复杂也只是拟合错位标签。如果局部模型没有超过 campaign-state baseline，就不能因为某些成交平均为负而跳过预测证据，直接注册“阻止这些成交”的动作。</p><h2 id="5-First-add-结果：负平均值存在，局部增量不存在"><a href="#5-First-add-结果：负平均值存在，局部增量不存在" class="headerlink" title="5. First-add 结果：负平均值存在，局部增量不存在"></a>5. First-add 结果：负平均值存在，局部增量不存在</h2><p>Grade-A 主 OOF 包含 327 个 BUY 与 346 个 SELL campaign；Grade-B sensitivity 包含 172 个 BUY 与 154 个 SELL campaign。</p><div class="table-container"><table><thead><tr><th>Side</th><th style="text-align:right">MSE improvement，M0 minus local</th><th style="text-align:right">预测高风险组平均 USDC</th><th style="text-align:right">familywise interval</th><th style="text-align:right">支持</th></tr></thead><tbody><tr><td>BUY</td><td style="text-align:right">-0.70865</td><td style="text-align:right">-0.04115</td><td style="text-align:right">[-0.11369, 0.03795]</td><td style="text-align:right">否</td></tr><tr><td>SELL</td><td style="text-align:right">-0.000986</td><td style="text-align:right">-0.05798</td><td style="text-align:right">[-0.14776, 0.01086]</td><td style="text-align:right">否</td></tr></tbody></table></div><p>两侧预测高风险组的点估计都为负，但同时区间跨过零。更关键的是，局部模型没有以正下界改进 campaign-state baseline；BUY 的冻结损失比较甚至明显更差。</p><p>因此，这个分支支持“first-add 平均存在负 downstream value”，但不支持“这些局部字段能可靠定位可避免的负价值子集”。</p><h2 id="6-First-opener-结果：SELL-平均负值明确，选择器方向却没有成立"><a href="#6-First-opener-结果：SELL-平均负值明确，选择器方向却没有成立" class="headerlink" title="6. First-opener 结果：SELL 平均负值明确，选择器方向却没有成立"></a>6. First-opener 结果：SELL 平均负值明确，选择器方向却没有成立</h2><p>corrected Grade-A native OOF 的核心结果是：</p><div class="table-container"><table><thead><tr><th>Panel</th><th>Side</th><th style="text-align:right">OOF rows</th><th style="text-align:right">平均 terminal value，USDC</th><th style="text-align:right">simultaneous interval</th><th style="text-align:right">local MSE improvement</th><th style="text-align:right">支持</th></tr></thead><tbody><tr><td>Grade A</td><td>SELL</td><td style="text-align:right">2,330</td><td style="text-align:right">-0.007151</td><td style="text-align:right">[-0.014335, -0.000496]</td><td style="text-align:right">-0.0000782</td><td style="text-align:right">否</td></tr><tr><td>Grade B</td><td>SELL</td><td style="text-align:right">1,254</td><td style="text-align:right">-0.008095</td><td style="text-align:right">[-0.020291, -0.000857]</td><td style="text-align:right">-0.0001753</td><td style="text-align:right">否</td></tr><tr><td>Grade A</td><td>BUY</td><td style="text-align:right">2,228</td><td style="text-align:right">-0.011994</td><td style="text-align:right">[-0.018521, -0.004809]</td><td style="text-align:right">+0.0000008</td><td style="text-align:right">否</td></tr><tr><td>Grade B</td><td>BUY</td><td style="text-align:right">1,287</td><td style="text-align:right">-0.007831</td><td style="text-align:right">[-0.018774, +0.000719]</td><td style="text-align:right">-0.0000264</td><td style="text-align:right">否</td></tr></tbody></table></div><p>Grade-A SELL 的平均值区间完全低于零，因此“已成交 first-opener 平均有负后续价值”得到支持。然而冻结模型挑出的 SELL 高风险组，平均值为 $-0.002960$ USDC，区间仍跨零；selected-minus-complement 的点估计还是正的，意味着被称为“高风险”的组在点估计上反而没有更差。</p><p>这不是调一个 threshold 就能修复的问题。模型没有建立出稳定的 conditional selection，继续换高风险分位数、目标时长或模型容量，会是在已经读过的 Development 上追逐噪声。</p><h2 id="7-最终结论：预测身份关闭，动作问题仍然开放"><a href="#7-最终结论：预测身份关闭，动作问题仍然开放" class="headerlink" title="7. 最终结论：预测身份关闭，动作问题仍然开放"></a>7. 最终结论：预测身份关闭，动作问题仍然开放</h2><p>这项研究得到三个清楚的边界：</p><ol><li><strong>支持</strong>：若干 first-add 与 first-opener 成交在冻结 Development 分母里有负平均 terminal value。</li><li><strong>不支持</strong>：冻结的 decision-visible local microstructure 没有稳定超过 campaign-state baseline，也没有可靠挑出更坏子集。</li><li><strong>未识别</strong>：取消、放宽、延迟或抑制这些订单的反事实收益。</li></ol><p>所以正确状态是：</p><ul><li>first-add negative-value prediction：Development closed；</li><li>SELL first-opener local prediction：Development closed；</li><li>Validation：未读；</li><li>sealed holdout：未读；</li><li>action experiment：未创建；</li><li>live 或 baseline 变更：未授权。</li></ul><p>阴性结果并不等于“盘口没有信息”。它说明当时冻结的特征、模型类、决策角色和 direct terminal target 没有产生足够稳定的增量预测。一个未来项目若要重开，必须带来新的因果可见信息或不同的动作机制，而不是在同一 Development 面板上换一个阈值。</p><h2 id="8-公共证据"><a href="#8-公共证据" class="headerlink" title="8. 公共证据"></a>8. 公共证据</h2><p>公开仓库提供方法、聚合结论和权限边界，不分发 owner-side OOF rows 或机器结果目录。主要公共入口：</p><ul><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/README.md">F05 Fill Quality, Toxicity, And Quote EV README</a></li><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/decision_visible_negative_fill_value_evidence_m0_v1_1_development_20260729.md">Decision-Visible Negative Fill-Value Evidence M0 v1.1</a></li><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/sell_first_fill_conditional_value_feasibility_v3_development_20260730.md">SELL First-Fill Conditional Value Feasibility v3</a></li></ul><p>这些链接用于理解当前公开叙述。精确复现历史冻结结果时，应使用相应报告声明的 source identity 与 artifact manifest，而不是把滚动的 main 分支当成证据快照。</p>]]></content>
     
     
     <categories>
@@ -1428,11 +1395,11 @@
       
       <tag>市场微观结构</tag>
       
-      <tag>生存分析</tag>
+      <tag>因果推断</tag>
+      
+      <tag>机器学习</tag>
       
       <tag>回测</tag>
-      
-      <tag>因果推断</tag>
       
     </tags>
     
@@ -1461,11 +1428,44 @@
       
       <tag>市场微观结构</tag>
       
+      <tag>因果推断</tag>
+      
       <tag>回测</tag>
+      
+      <tag>风险归因</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>NarrowGate Fill-to-Inventory Lifecycle：30 秒 Markout 为什么不是成交 PnL</title>
+    <link href="/2026/08/29/NarrowGate-Fill-Inventory-Lifecycle-Research/"/>
+    <url>/2026/08/29/NarrowGate-Fill-Inventory-Lifecycle-Research/</url>
+    
+    <content type="html"><![CDATA[<p>Last materially modified: 2026-08-29</p><h2 id="TL-DR：成交后的-30-秒只是早期毒性窗口，库存风险可能再持续几分钟甚至几小时"><a href="#TL-DR：成交后的-30-秒只是早期毒性窗口，库存风险可能再持续几分钟甚至几小时" class="headerlink" title="TL;DR：成交后的 30 秒只是早期毒性窗口，库存风险可能再持续几分钟甚至几小时"></a>TL;DR：成交后的 30 秒只是早期毒性窗口，库存风险可能再持续几分钟甚至几小时</h2><p>被动成交以后，研究者很容易在 30 秒处读取 mid-price，计算 maker-signed markout，然后把它叫作“这笔成交赚了多少”。F10 Fill-to-Inventory Lifecycle 审计证明这种命名混合了至少四个不同问题：短期价格是否向不利方向移动、该 fill 创建的库存 lot 何时被 reducing fill 对冲、整个 inventory campaign 何时回到 flat，以及 replay 结束时仍未关闭的库存怎样 censor。</p><p>这项研究保留下来的结论是 <strong>estimand contract</strong>，不是旧数字。30 秒 markout 可以作为 early adverse-selection label，却不能替代 lot value 或 campaign-terminal PnL；inventory 是 fungible 的，一笔 reducing fill 究竟关闭哪一笔历史 add fill并不是交易所事实，因此 FIFO 与 LIFO 只能作为两种归因约定；未关闭的 lot 不能假装按 replay 终点成交，必须保留 censoring 或另行计算 terminal MTM。</p><p>历史 Retained111 审计曾报告 43,183 个 fill events、21,884 个 exposure lots、97.3% closed rate，并显示大量 lot 在 30 秒后仍然存活。后来确认其 order/fill denominator 使用了旧 mixed-L2 与 operational queue path，这些 count、duration、survival 和 PnL 数字全部撤回，不能作为当前 calibration 或 promotion evidence。<strong>数字被撤回不等于问题消失；恰恰说明 lifecycle estimand 必须与数据、queue 和时钟身份一起冻结。</strong></p><p>本文只复盘公开的历史 Development 方法与撤回边界，不构成交易建议。图中的 K 线、成交、库存和 campaign 路径为合成机制示意，不是实盘记录。</p><p><img src="/images/narrowgate/fill-inventory-lifecycle.svg" alt="Fill、30 秒 markout、inventory lot 与 campaign terminal 的生命周期"></p><p><em>图 1：同一 opening fill 同时启动短期 markout clock、库存 lot 和更长的 campaign path。30 秒价格标签先结束，不代表库存已经修复；replay boundary 到来时仍未关闭的 lot 只能 censor。</em></p><h2 id="1-一个-fill-同时启动了三只时钟"><a href="#1-一个-fill-同时启动了三只时钟" class="headerlink" title="1. 一个 fill 同时启动了三只时钟"></a>1. 一个 fill 同时启动了三只时钟</h2><p>假设 maker BUY 在 $t_f$ 以价格 $P_f$ 成交，创建正库存。第一只时钟是 micro markout clock：在预先冻结的 $h=1,5,20,30$ 秒读取因果可见的 mid-price，测量成交后的短期价格方向。第二只时钟是 lot lifecycle：等待未来 reducing SELL fills 按某种归因规则抵消该 opening quantity。第三只时钟是 campaign lifecycle：从库存离开零开始，直到整个策略库存重新回到 flat。</p><p>三只时钟的终点通常不同。价格可能在 30 秒内向上，使 BUY markout 为正，但该库存随后长时间占用风险预算；也可能 30 秒 markout 为负，却在后续 reducing fill 与 spread capture 中修复。只读取任意一个终点都会遗漏其它机制。</p><p>因此“fill PnL”不是一个天然字段。研究必须先说明分母是一笔 fill、一个 attributed lot、一次 campaign，还是一个随机化 intervention；再说明终点是固定 horizon、lot close、campaign flat 或 replay terminal MTM。</p><h2 id="2-Micro-markout：它回答的是早期-adverse-selection"><a href="#2-Micro-markout：它回答的是早期-adverse-selection" class="headerlink" title="2. Micro markout：它回答的是早期 adverse selection"></a>2. Micro markout：它回答的是早期 adverse selection</h2><p>令 maker side sign 为</p><script type="math/tex; mode=display">s=\begin{cases}+1,&\text{BUY maker},\\-1,&\text{SELL maker}.\end{cases}</script><p>以 fill price 为起点的 $h$ 秒 maker-signed markout 可以写为</p><script type="math/tex; mode=display">M_h=s\frac{P_{mid}(t_f+h)-P_f}{P_f}\times10^4\quad\text{bps}.</script><p>$M_h&gt;0$ 表示价格随后向 maker 有利方向移动，$M_h&lt;0$ 表示早期 adverse selection。这个标签适合回答“刚成交的流是否有毒”，但它没有包含订单在 fill 前的 queue cost、后续 inventory holding risk、reducing execution、commission 或 campaign tail。</p><p>实际观测还需要区分 target time 与 observation time。若目标是 $t_f+30s$，却只在更晚一次 quote decision 才读取 markout，那么名义 30 秒可能变成 10–20 秒额外延迟。后续 time/unit repair 因此要求用频繁 wall-clock tick 解析 pending markout，并记录 target、actual observation、source age 与 censoring。</p><h2 id="3-Inventory-lot：交易所不会告诉你-FIFO-还是-LIFO"><a href="#3-Inventory-lot：交易所不会告诉你-FIFO-还是-LIFO" class="headerlink" title="3. Inventory lot：交易所不会告诉你 FIFO 还是 LIFO"></a>3. Inventory lot：交易所不会告诉你 FIFO 还是 LIFO</h2><p>opening/add fill 会增加绝对库存，reducing fill 会降低绝对库存，但 inventory 是 fungible 的。若策略先后买入两笔，再卖出一笔，交易所只知道净数量变化，不知道该 SELL 关闭第一笔 BUY 还是第二笔 BUY。</p><p>FIFO 把最早 opening quantity 先关闭，LIFO 把最近 opening quantity 先关闭。对一个 attributed lot $\ell$，可定义</p><script type="math/tex; mode=display">T_{lot,\ell}=t_{close,\ell}-t_{open,\ell}.</script><p>若 opening 与 reducing 都是 passive fills，closed-lot realized value 可以按配对 quantity、成交价和费用计算。但 FIFO/LIFO 的差异是 model uncertainty，不是 exchange-observed truth。报告一条 lot-duration 曲线时，至少应同时给出两种归因、closed rate、median、tail quantiles 与 censoring rate。</p><p>对 replay 结束仍未关闭的 lot，$T_{lot}$ 是右删失。不能把 replay boundary 当作一笔虚构 taker close，也不能无依据扣除假设性 taker fee。若研究需要价值，应独立报告 terminal MTM：</p><script type="math/tex; mode=display">V_{terminal}=cash_T+inventory_T\cdot P_{mark,T}-fees_T.</script><p>它是窗口终点上的策略权益，不是 realized lot PnL。</p><h2 id="4-Campaign：真正的库存终局通常比-30-秒晚得多"><a href="#4-Campaign：真正的库存终局通常比-30-秒晚得多" class="headerlink" title="4. Campaign：真正的库存终局通常比 30 秒晚得多"></a>4. Campaign：真正的库存终局通常比 30 秒晚得多</h2><p>inventory campaign 从净库存离开零开始，到再次回到零结束。一次 campaign 可以包含 opener、多个 exposure-increasing adds、部分 reducing fills、quote pauses、cancel/re-entry 与其它反馈。一个 early fill 的价值会通过整条路径传递。</p><p>对第 $c$ 个 campaign，终局变化可写为</p><script type="math/tex; mode=display">Y_c=E_c(T_{flat})-E_c(T_{birth}),</script><p>并与 maximum adverse excursion、absolute inventory time、repair latency、duration 和 tail indicator 一起报告。若 campaign 到 replay boundary 仍未 flat，同样必须 censor 或使用冻结 terminal-MTM 规则。</p><p>动作研究尤其不能把同一个 $Y_c$ 复制给 campaign 内每个 decision。那会把一次终局损失重复计入多行，产生伪精度。正确做法是每个 intervention identity 只拥有一次 campaign-level attribution，或使用明确的 incremental contribution contract。</p><h2 id="5-生存视角：平均-duration-会被长尾支配"><a href="#5-生存视角：平均-duration-会被长尾支配" class="headerlink" title="5. 生存视角：平均 duration 会被长尾支配"></a>5. 生存视角：平均 duration 会被长尾支配</h2><p>令 $T$ 是 lot close 或 campaign flat time，$C$ 是 replay censor time，观察到的是</p><script type="math/tex; mode=display">\widetilde T=\min(T,C),\qquad\delta=\mathbf 1[T\le C].</script><p>生存函数</p><script type="math/tex; mode=display">S(u)=\Pr(T>u)</script><p>回答在 $u$ 时刻仍未修复的比例。仅报告 closed rows 的平均 duration 会丢掉所有长寿 censor，并倾向于把修复速度说得过快。仅报告均值又会被极少数长 campaign 拉高，所以 median、P75、P90、Kaplan–Meier median 与固定 horizon survival 应共同出现。</p><p>若 fill、cancel ACK、campaign flat 等结局竞争，还需要 competing-risk 方法，而不是把每个 horizon 当作彼此独立的 binary label。Lifecycle research 的贡献就在于先定义风险集和终局，再谈预测。</p><h2 id="6-被撤回的-Retained111-数字该怎样阅读"><a href="#6-被撤回的-Retained111-数字该怎样阅读" class="headerlink" title="6. 被撤回的 Retained111 数字该怎样阅读"></a>6. 被撤回的 Retained111 数字该怎样阅读</h2><p>旧审计的历史表如下，<strong>全部只用于说明为何 estimand 不能被压成 30 秒；不得视为当前校准值</strong>：</p><div class="table-container"><table><thead><tr><th>Historical withdrawn item</th><th style="text-align:right">FIFO</th><th style="text-align:right">LIFO</th></tr></thead><tbody><tr><td>Closed rate</td><td style="text-align:right">97.3%</td><td style="text-align:right">97.3%</td></tr><tr><td>Closed median</td><td style="text-align:right">5.8 minutes</td><td style="text-align:right">2.3 minutes</td></tr><tr><td>P90</td><td style="text-align:right">88.3 minutes</td><td style="text-align:right">52.1 minutes</td></tr><tr><td>KM median</td><td style="text-align:right">6.3 minutes</td><td style="text-align:right">2.5 minutes</td></tr><tr><td>Alive at 30s</td><td style="text-align:right">92.1%</td><td style="text-align:right">79.8%</td></tr></tbody></table></div><p>旧 denominator 还报告 closed campaign fill-to-flat median 11.2 分钟、P90 251.4 分钟。它们曾直观展示“30 秒以后仍有大量库存风险”，但后来 mixed-L2、queue identity、trade-side、merged clock 与 cross-day warmup 修复改变了订单和成交路径，因此这些 exact durations 必须重建。</p><p>这里有一个重要的证据治理原则：方法语义可以在数据身份失效后保留，数值却不能。FIFO/LIFO、censoring、lot versus campaign 与 terminal MTM 的区分不依赖某个具体 replay；43,183 fills 或 92.1% survival 则依赖完整 denominator，身份改变后必须撤回。</p><h2 id="7-数据与因果边界"><a href="#7-数据与因果边界" class="headerlink" title="7. 数据与因果边界"></a>7. 数据与因果边界</h2><p>一个可用的 lifecycle panel 至少要绑定：exact order/fill identity、maker side、fill quantity、campaign identity、execution price、commission unit、因果可见 mid、reducing fills、terminal inventory/mark、replay boundary，以及 queue、L2、trade 与 clock identities。</p><p>固定 horizon markout 只能使用目标时刻已经存在的 historical book；不能用未来第一笔 trade 代替 midpoint。若精确目标没有 book observation，应记录 actual observation 和 age，按冻结规则 censor，而不是向未来搜索一条方便的价格。</p><p>lot attribution 可以读取后续 reducing fills来构造 outcome，但这些未来字段绝不能进入 $t_f$ 前的预测 feature。campaign terminal 也只能作为标签。预测 score 与动作触发必须停在 feature-ready cutoff 左侧。</p><h2 id="8-从描述性标签到动作-estimand"><a href="#8-从描述性标签到动作-estimand" class="headerlink" title="8. 从描述性标签到动作 estimand"></a>8. 从描述性标签到动作 estimand</h2><p>观察到 $M_{30s}&lt;0$ 或 $Y_c&lt;0$，不等于已经证明取消 opening order 会改善结果。一个 action 会同时改变 fill probability、queue position、inventory birth、后续 adds、reducing path 与 campaign terminal。</p><p>动作 $a$ 的完整价值应更接近</p><script type="math/tex; mode=display">V(a)=\mathbb E[\text{fill value}-\text{incremental campaign cost}-\text{queue reset cost}\mid a],</script><p>并使用 paired full-path replay、随机化或其它可识别设计。30 秒 markout 可作为机制分量，却不能独自晋级 keep、cancel、widen、skip 或 re-center。</p><h2 id="9-最终状态与没有获得的权限"><a href="#9-最终状态与没有获得的权限" class="headerlink" title="9. 最终状态与没有获得的权限"></a>9. 最终状态与没有获得的权限</h2><p>项目最终状态是 <strong>lifecycle estimand retained；Retained111 exact numbers withdrawn</strong>。</p><p>保留的结论：</p><ul><li>30 秒 markout 是 early toxicity，不是 fill PnL；</li><li>lot close 与 campaign flat 是不同终点；</li><li>FIFO/LIFO 是归因不确定性；</li><li>open lot/campaign 必须 censor 或按冻结 terminal MTM 处理；</li><li>action reward 不能重复复制 campaign outcome。</li></ul><p>没有获得的权限：当前 survival calibration、当前 queue/lifecycle 参数、策略 promotion、Validation 或 sealed holdout 读取、任何 live action 或 baseline 变更。旧数值不能被其它文章重新包装成“长期库存风险已精确量化”。</p><h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/README.md">F10 Live/Replay Attribution README</a></li><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/fill_inventory_lifecycle_retained111_20260713.md">Fill Inventory Lifecycle Audit</a></li><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/system_engineering/docs/replay_time_unit_causality_repair_20260715.md">Replay Time, Unit, and Causality Repair</a></li><li><a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/system_engineering/docs/time_unit_contract_repair_20260726.md">Time and Unit Contract Repair</a></li></ul><p>公开仓库保留方法、撤回声明和实现入口；旧 owner-side lot tables 与当前重建 artifacts 不随仓库分发。</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>Market Making</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Market Making</tag>
+      
+      <tag>市场微观结构</tag>
       
       <tag>因果推断</tag>
       
-      <tag>风险归因</tag>
+      <tag>回测</tag>
+      
+      <tag>生存分析</tag>
       
     </tags>
     
@@ -1492,9 +1492,9 @@
       
       <tag>Market Making</tag>
       
-      <tag>回测</tag>
-      
       <tag>因果推断</tag>
+      
+      <tag>回测</tag>
       
       <tag>研究治理</tag>
       
@@ -1527,11 +1527,11 @@
       
       <tag>市场微观结构</tag>
       
+      <tag>因果推断</tag>
+      
       <tag>机器学习</tag>
       
       <tag>回测</tag>
-      
-      <tag>因果推断</tag>
       
     </tags>
     
@@ -1558,9 +1558,9 @@
       
       <tag>Market Making</tag>
       
-      <tag>回测</tag>
-      
       <tag>因果推断</tag>
+      
+      <tag>回测</tag>
       
       <tag>低延迟系统</tag>
       
