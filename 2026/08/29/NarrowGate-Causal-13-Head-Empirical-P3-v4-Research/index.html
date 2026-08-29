@@ -1,0 +1,981 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Xuan Tan">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Last materially modified: 2026-08-29 TL;DR：一次严肃的重建，也可能因为三天时钟错误失去 test authorityCausal-v4 是 NarrowGate 在修复 10 秒 feature-ready、价格方差量纲、merged event clock 和经验 P3 后，对 13-head model 做的一次完整重训与严格 replay。它不是只重">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NarrowGate Causal-v4：经验 P3、13 头重训与证据撤回">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Causal-13-Head-Empirical-P3-v4-Research/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：一次严肃的重建，也可能因为三天时钟错误失去 test authorityCausal-v4 是 NarrowGate 在修复 10 秒 feature-ready、价格方差量纲、merged event clock 和经验 P3 后，对 13-head model 做的一次完整重训与严格 replay。它不是只重">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/causal-v4-clock-lineage.svg">
+<meta property="article:published_time" content="2026-08-29T12:37:00.000Z">
+<meta property="article:modified_time" content="2026-08-29T12:37:00.000Z">
+<meta property="article:author" content="Xuan Tan">
+<meta property="article:tag" content="Market Making">
+<meta property="article:tag" content="市场微观结构">
+<meta property="article:tag" content="机器学习">
+<meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/causal-v4-clock-lineage.svg">
+  
+  
+  
+  <title>NarrowGate Causal-v4：经验 P3、13 头重训与证据撤回 - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>xiaonanbei</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="NarrowGate Causal-v4：经验 P3、13 头重训与证据撤回"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-29 20:37" pubdate>
+          2026年8月29日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          4.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          41 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">NarrowGate Causal-v4：经验 P3、13 头重训与证据撤回</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Last materially modified: 2026-08-29</p>
+<h2 id="TL-DR：一次严肃的重建，也可能因为三天时钟错误失去-test-authority"><a href="#TL-DR：一次严肃的重建，也可能因为三天时钟错误失去-test-authority" class="headerlink" title="TL;DR：一次严肃的重建，也可能因为三天时钟错误失去 test authority"></a>TL;DR：一次严肃的重建，也可能因为三天时钟错误失去 test authority</h2><p>Causal-v4 是 NarrowGate 在修复 10 秒 feature-ready、价格方差量纲、merged event clock 和经验 P3 后，对 13-head model 做的一次完整重训与严格 replay。它不是只重新跑一遍 LightGBM：研究冻结了 80 train、1 embargo、20 validation、1 embargo、20 test，绑定 122 日 order denominator、显式 P3、queue、latency 与 C++/Python parity，并只让 <code>ml_enabled</code> 区分经济 arms。</p>
+<p>后来 MarketData alignment audit 发现，2026-07-12、07-14、07-15 三个 futures-metrics archive 使用 interval-start timestamp，使本应五分钟后才可见的 observation 提前进入 feature。P3 自己的日期截至 07-11，不受影响；13-head train/validation 也不受影响。但三天落在 test，且 BUY scorer 的 blocked-day cross-fitting 会让污染跨日传播，所以 test metrics、test/all ML A/B 与 scorer buckets 全部撤回。</p>
+<p>因此这项研究的最终结论不是“v4 模型表现多少”，而是：经验 P3、bucket-end timing、merged clock 和严格 artifact validation 被保留为研究基线；v4 13-head 与 BUY scorers 不得 promotion；旧 queue/PnL 数字不能继续作为当前选择证据。后来的 normalized-100ms 与 time/calendar/unit 修复建立了新身份，不能把 v4 改名后继续用。</p>
+<p><img src="/images/narrowgate/causal-v4-clock-lineage.svg" srcset="/img/loading.gif" lazyload alt="Causal-v4 的特征可见时钟与证据撤回"></p>
+<p><em>图 1：证据谱系示意。10 秒 bucket 必须到 <code>bucket_end</code> 才可见；三天 metrics 提前五分钟会污染 test 与跨日 scorer，因而整个对应结果分支撤回，而不是只删三行。</em></p>
+<p>本文只讨论历史研究证据，不建议任何真实交易行为。公开报告中的模型和 PnL 均不代表当前部署状态。</p>
+<h2 id="1-研究问题"><a href="#1-研究问题" class="headerlink" title="1. 研究问题"></a>1. 研究问题</h2><p>13-head model 同时预测多个 horizon 的方向、收益、波动和 bid/ask toxicity。它的策略用途不是直接输出 BUY/SELL，而是改变 quote core 使用的风险、方向和 toxic-state inputs。</p>
+<p>研究问题可以分成三层：</p>
+<ol>
+<li>修复后的 causal features 是否保留可用的 held-panel ranking；</li>
+<li>ML-ON 相对 ML-OFF 是否在相同 full replay 中改善 PnL、campaign terminal 与 tail；</li>
+<li>这种改善是否在正确 test identity 上成立，并足以越过 promotion gates。</li>
+</ol>
+<p>预测层与动作层不能混用。设 13 个 heads 为 $f_h(x_t)$，每个 head 的 predictive score 只是：</p>
+<script type="math/tex; mode=display">
+S_h=\operatorname{Score}\bigl(y_{t,h},f_h(x_t)\bigr).</script><p>经济 estimand 则是完整 arm difference：</p>
+<script type="math/tex; mode=display">
+\Delta Y_d=Y_d(ML\text{-}ON)-Y_d(ML\text{-}OFF),</script><p>其中只有 <code>ml_enabled</code> 可以变化，P3、queue、latency、inventory、cooldown 和 safety configuration 必须相同。</p>
+<h2 id="2-输入、模型与动作"><a href="#2-输入、模型与动作" class="headerlink" title="2. 输入、模型与动作"></a>2. 输入、模型与动作</h2><p>输入使用 completed 10-second feature buckets。方向与回归 heads 覆盖 10s、30s、60s；toxicity heads 按 bid/ask 与 5s/10s 分离。模型输出进入 shared live/replay quote semantics，但本研究没有独立的 order-level propensity action。</p>
+<p>经济 arms 是整条 quote policy 的 ML OFF/ON。BUY fill-selection scorer 在构造 order denominator 时被禁用，以免另一个 action overlay 污染对 13-head 的归因。</p>
+<p>queue q0.70 是由外部 calibration 得到的 reference，不是从本次 PnL 表挑出的参数。q0.55/q0.85/q1.00 只做 sensitivity，不能用 replay winner 改写 queue truth。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>冻结含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Feature cadence</td>
+<td>10 秒 bucket，<code>bucket_end</code> 可见</td>
+</tr>
+<tr>
+<td>Volatility</td>
+<td><code>(USDC/BTC)^2 / second</code> 的绝对价格方差</td>
+</tr>
+<tr>
+<td>P3</td>
+<td>经验 10 秒 touch curve 与显式 artifact identity</td>
+</tr>
+<tr>
+<td>Event path</td>
+<td>merged causal event clock</td>
+</tr>
+<tr>
+<td>Replay</td>
+<td>C++，先过 Python/C++ baseline parity</td>
+</tr>
+<tr>
+<td>Action difference</td>
+<td>仅 <code>ml_enabled</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="3-因果时钟与量纲修复"><a href="#3-因果时钟与量纲修复" class="headerlink" title="3. 因果时钟与量纲修复"></a>3. 因果时钟与量纲修复</h2><p>一个 10 秒 bucket 覆盖 $[t,t+10s)$，只有在 $t+10s$ 后才完整。正确 feature-ready rule 是：</p>
+<script type="math/tex; mode=display">
+t^{feature\ ready}=t^{bucket\ start}+10s.</script><p>若把 row timestamp 当作 bucket start 又在 $t$ 使用，就让策略看见未来十秒。v4 明确采用 completed bucket，并将 quote labels、P3/effective-kappa、dynamic cap 和 absolute maker-fee floor 放在一致单位中。</p>
+<p>风险项也修复了绝对价格方差的单位。若 $\sigma^2$ 是每秒绝对价格方差，$q$ 是 BTC 数量，horizon 为 $H$，一个 USDC 风险尺度可写成：</p>
+<script type="math/tex; mode=display">
+R=\sqrt{\sigma^2H}\,|q|.</script><p>它不应再乘一次 mid，否则会重复把价格单位放大。hypothetical terminal taker liquidation 被单独报告，不偷偷从 final PnL 再扣一次。</p>
+<h2 id="4-冻结面板"><a href="#4-冻结面板" class="headerlink" title="4. 冻结面板"></a>4. 冻结面板</h2><p>feature split 为 80 train、1 embargo、20 validation、1 embargo、20 test。order denominator 覆盖 122 日、2,219,633 个 placed orders 与 70,650 fills。</p>
+<p>P3 fit/validation/test identity 截止 2026-07-11，因此后来的三天 futures-metrics timing 问题不影响 P3。13-head model 的 train/validation dates 也在污染之前；受影响的是 test interpretation、在 test/all 上运行的经济 A/B，以及使用 blocked-day cross-fitting 的 BUY scorer buckets。</p>
+<p>这一区分很重要。不能因为 model fit bytes 本身来自未污染 train，就宣称整个 research result 仍有效；promotion 依赖 held test 与完整 action evaluation，而这些证据已经失去 causal identity。</p>
+<h2 id="5-一个五分钟提前可见的具体例子"><a href="#5-一个五分钟提前可见的具体例子" class="headerlink" title="5. 一个五分钟提前可见的具体例子"></a>5. 一个五分钟提前可见的具体例子</h2><p>假设 futures metric row 标记为 12:00，但语义其实是 12:00–12:05 interval 的统计量，正确 ready time 应是 12:05。若 feature join 按标签 12:00 使用，12:01 的 quote decision 已经获得未来四分钟的信息。</p>
+<p>这不是几毫秒 latency approximation，而是目标 horizon 同量级甚至更长的直接 leakage。它可以同时改善 direction AUC、改变 model early stopping，并通过 quote path 影响 fills。</p>
+<p>只删除被污染三天的 report rows也不够。blocked-day cross-fitting 可能在一个污染日训练 scorer，再到另一个看似正常日评分；模型参数已经把错误信息带到下游。正确处置是撤回整个受影响 artifact 与 result branch，然后在新 identity 下重建。</p>
+<h2 id="6-当时看到的结果与当前可引用边界"><a href="#6-当时看到的结果与当前可引用边界" class="headerlink" title="6. 当时看到的结果与当前可引用边界"></a>6. 当时看到的结果与当前可引用边界</h2><p>v4 report 曾给出 13-head、BUY scorer、strict ML A/B 和 queue sensitivity 数字。后续公开状态明确规定：v4 13-head、scorer 与 exact replay numbers 被 normalized-100ms、trade-side、time/calendar/unit 修复所 supersede，不能用于当前 promotion 或参数选择。</p>
+<p>仍可保留的定性结果包括：same-input Python/C++ parity gate 可以成立；较大 queue-ahead sensitivity 会显著改变 fills 与参与；单看 aggregate PnL 可能把 participation reduction 当作改善；q0.70 不能由 replay PnL winner 替换。</p>
+<p>报告还指出 q1.00 相对 q0.70 少约 10.3% fills，并在当时的 test raw PnL 上更差、增加五个 tails。这个历史机制说明 queue arm 的 winner 解释脆弱，但精确表格不具有当前 causal authority。</p>
+<p>由于正式 test/economic evidence 被撤回，本项目没有一个可以诚实报告的 current confidence interval。把“没有有效 interval”写成结论，比从 invalid panel 计算一个很窄的区间更科学。</p>
+<h2 id="7-研究演进为何合并成一篇"><a href="#7-研究演进为何合并成一篇" class="headerlink" title="7. 研究演进为何合并成一篇"></a>7. 研究演进为何合并成一篇</h2><p><code>model/runtime cleanup</code>、feature timing 修复、empirical-P3 retrain、scorer rebuild、strict replay 与后续 correction 都服务同一个 v4 问题。它们改变的是同一 research identity 的实现准备与证据可用性，不应拆成“清理文章”“重训文章”“修复文章”。</p>
+<p>当 normalized L2、trade-side universe 或 time/calendar/unit contract 改变后，才出现新的 v5/v7 research identity。v4 的后继不能沿用旧 test numbers，也不能把普通 implementation repair 编成 <code>v4.1/v4.2</code> 来制造似乎更多的研究。</p>
+<h2 id="8-关闭与支持边界"><a href="#8-关闭与支持边界" class="headerlink" title="8. 关闭与支持边界"></a>8. 关闭与支持边界</h2><p>保留：empirical P3 研究方向、completed-bucket causal timing、merged clock、dimensionally closed risk/accounting，以及 artifact validation/parity discipline。</p>
+<p>撤回：v4 test prediction metrics、test/all ML A/B、BUY scorer bucket values 和任何基于它们的 promotion claim。</p>
+<p>没有获得：model replacement、BUY scorer action、queue retuning、Validation/holdout 晋级、shadow 或 live authority。历史上某些 model bytes 曾作为 owner-directed operational trial，与统计 promotion 是两件事，也不描述当前 runtime。</p>
+<h2 id="9-公共证据"><a href="#9-公共证据" class="headerlink" title="9. 公共证据"></a>9. 公共证据</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/docs/causal_v4_empirical_p3_retrain_replay_20260718.md">Causal-v4 Empirical-P3 Retrain and Strict Replay</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/README.md">F03 Causal 13-Head README</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/docs/causal_v8_lineage_invalidation_20260727.md">Causal-v8 Lineage Invalidation，展示后继如何处理来源错误</a></li>
+</ul>
+<p>公开报告披露研究合同、修正与撤回边界；模型 bundles、逐行 replay 与 private evidence 不随公共仓库分发。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Market-Making/" class="category-chain-item">Market Making</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
+      
+        <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
+      
+        <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
+      
+        <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>NarrowGate Causal-v4：经验 P3、13 头重训与证据撤回</div>
+      <div>https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Causal-13-Head-Empirical-P3-v4-Research/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Xuan Tan</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-Causal-13-Head-Normalized-100ms-Revalidation-Research/" title="NarrowGate Causal-v5：归一化 100ms 重建、完整回放与随机被动反事实">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">NarrowGate Causal-v5：归一化 100ms 重建、完整回放与随机被动反事实</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-P3-Aggressive-Reach-Time-Hazard-Research/" title="NarrowGate P3：从固定十秒概率到完整 Aggressive-Reach Time Hazard">
+                        <span class="hidden-mobile">NarrowGate P3：从固定十秒概率到完整 Aggressive-Reach Time Hazard</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

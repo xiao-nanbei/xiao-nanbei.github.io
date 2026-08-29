@@ -1,0 +1,1348 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Xuan Tan">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Last materially modified: 2026-08-29 TL;DR：撤单确实删除了大量成交，但没有优先删除有毒成交，最终动作价值为负或不确定active maker order 同时暴露在 adverse fill 风险中，也拥有已积累的 queue priority。看到危险状态后撤单，可能避开坏成交，也可能把排队期权一起丢掉。 F07 因此研究一个直接动作：  K0 KEEP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NarrowGate Active-Order Queue Value：KEEP 还是 CANCEL&#x2F;RE-ENTER">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Active-Order-Queue-Value-Keep-Cancel-Research/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：撤单确实删除了大量成交，但没有优先删除有毒成交，最终动作价值为负或不确定active maker order 同时暴露在 adverse fill 风险中，也拥有已积累的 queue priority。看到危险状态后撤单，可能避开坏成交，也可能把排队期权一起丢掉。 F07 因此研究一个直接动作：  K0 KEEP">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/active-order-keep-cancel-kline.svg">
+<meta property="article:published_time" content="2026-08-28T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-28T16:00:00.000Z">
+<meta property="article:author" content="Xuan Tan">
+<meta property="article:tag" content="Market Making">
+<meta property="article:tag" content="市场微观结构">
+<meta property="article:tag" content="机器学习">
+<meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/active-order-keep-cancel-kline.svg">
+  
+  
+  
+  <title>NarrowGate Active-Order Queue Value：KEEP 还是 CANCEL/RE-ENTER - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>xiaonanbei</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="NarrowGate Active-Order Queue Value：KEEP 还是 CANCEL/RE-ENTER"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-29 00:00" pubdate>
+          2026年8月29日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          10k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          87 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">NarrowGate Active-Order Queue Value：KEEP 还是 CANCEL/RE-ENTER</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Last materially modified: 2026-08-29</p>
+<h2 id="TL-DR：撤单确实删除了大量成交，但没有优先删除有毒成交，最终动作价值为负或不确定"><a href="#TL-DR：撤单确实删除了大量成交，但没有优先删除有毒成交，最终动作价值为负或不确定" class="headerlink" title="TL;DR：撤单确实删除了大量成交，但没有优先删除有毒成交，最终动作价值为负或不确定"></a>TL;DR：撤单确实删除了大量成交，但没有优先删除有毒成交，最终动作价值为负或不确定</h2><p>active maker order 同时暴露在 adverse fill 风险中，也拥有已积累的 queue priority。看到危险状态后撤单，可能避开坏成交，也可能把排队期权一起丢掉。</p>
+<p>F07 因此研究一个直接动作：</p>
+<ul>
+<li><strong>K0 KEEP</strong>：保留 active order 与当前 queue position；</li>
+<li><strong>K1 CANCEL/RE-ENTER</strong>：请求撤单，等待真实 cancel ACK 与冻结的状态退出条件，再把第一个 baseline-authorized re-entry order 绑定回同一次 intervention。</li>
+</ul>
+<p>整个项目经历了 top-20 queue approximation、deep-book audit、strategy-independent native scheduler、native keep/cancel、explicit net-hazard value 与 corrected dynamic fill risk set。它们都是同一个 KEEP/CANCEL 项目的证据链，不是六篇独立文章。</p>
+<p>结论很一致。旧 top-20 结果不能解释 exact active-price queue；native queue identity 修复后，严格 support 又低于冻结门，方向性 ITT 区间跨零；最后的 net-hazard action 在 17 个 Development 日上只保留 7.67% intervention fills，却以几乎相同比例删除 toxic fills，pooled reward 为 $-0.01448$ USDC/intervention，95% 日期区间 $[-0.02577,-0.00239]$。BUY 显著有害，SELL 没有正证据。</p>
+<p>后续 dynamic-fill M0 修正了风险集，adverse-fill heads 表现很好，但 favorable-fill heads 没有相对基线获得正 Brier skill。没有 favorable queue option value，就不能只拿 adverse head 注册另一个撤单动作。</p>
+<p>所以项目证明的是：<strong>state prediction quality 不等于 action uplift；广泛减少成交也不等于有选择地避开毒性。</strong> Validation、sealed holdout、live action 与 baseline 变更都没有得到授权。</p>
+<p>本文是历史 Development 研究复盘，不构成交易建议。图中 K 线、订单和 queue 均为合成机制示意。</p>
+<p><img src="/images/narrowgate/active-order-keep-cancel-kline.svg" srcset="/img/loading.gif" lazyload alt="Active-order KEEP 与 CANCEL/RE-ENTER 的 K 线生命周期双路径"></p>
+<p><em>图 1：K0 保留 queue position，K1 经 cancel request、ACK、state exit 后 fresh re-entry。两条路径面对相同市场，但订单生命周期、fill 与后续 campaign 可能分叉。</em></p>
+<h2 id="1-为什么-active-order-不是-placement-order"><a href="#1-为什么-active-order-不是-placement-order" class="headerlink" title="1. 为什么 active order 不是 placement order"></a>1. 为什么 active order 不是 placement order</h2><p>placement action 在 submit 前选择价格，activation 后从新的 queue position 开始。active-order continuation 的风险起点已经晚了一步：订单已在交易所 active，可能排在同价位队列的某个位置，也已经经历了一段市场与 refill path。</p>
+<p>因此 KEEP 的价值包含一项不能忽略的 queue option：</p>
+<script type="math/tex; mode=display">
+V_{keep}(x)
+=
+V_{\text{favorable fill}}
+-
+V_{\text{adverse fill}}
+-
+V_{\text{adverse jump}}
++
+V_{\text{existing queue priority}}.</script><p>CANCEL/RE-ENTER 的价值则包含：</p>
+<script type="math/tex; mode=display">
+V_{cancel}(x)
+=
+V_{\text{avoided adverse exposure}}
++
+V_{\text{fresh re-entry option}}
+-
+C_{\text{lost queue}}
+-
+C_{\text{cancel/ACK/GTX latency}}.</script><p>真正需要判断的是：</p>
+<script type="math/tex; mode=display">
+\Delta V(x)
+=
+V_{cancel}(x)-V_{keep}(x).</script><p>只预测“未来价格可能不利”不够。如果订单同时有很高的 favorable fill option，撤单会把两者一起删除。</p>
+<h2 id="2-冻结动作与-campaign-attribution"><a href="#2-冻结动作与-campaign-attribution" class="headerlink" title="2. 冻结动作与 campaign attribution"></a>2. 冻结动作与 campaign attribution</h2><p>每个 inventory campaign 最多干预一次。eligibility 是第一个 baseline-eligible、active、exposure-increasing order 进入冻结 adverse 或 negative-value state 的时刻。</p>
+<p>K0 不发送研究动作，继续 baseline lifecycle。K1 的完整状态机是：</p>
+<ol>
+<li>对原 active order 发送 cancel request；</li>
+<li>原订单在 ACK 前仍然可以 fill；</li>
+<li>收到真实 cancel ACK 后，继续等待冻结 state exit；</li>
+<li>baseline eligibility 恢复后，第一个 re-entry submit 继承 intervention identity；</li>
+<li>re-entry activation、GTX、queue reset、fill 与后续 terminal 都归同一动作；</li>
+<li>若 campaign 在 re-entry 前 flatten，intervention 自然结束。</li>
+</ol>
+<p>behavior probability 冻结为：</p>
+<script type="math/tex; mode=display">
+\Pr(K0)=\Pr(K1)=0.5.</script><p>reward 使用 campaign-level accounting：</p>
+<script type="math/tex; mode=display">
+R_i
+=
+\text{fill value}_i
+-
+\text{incremental campaign cost}_i
+-
+\text{queue-reset cost}_i.</script><p>terminal MTM、MAE、campaign duration、inventory time 与 tail 是并列报告项。不能把同一个 campaign terminal PnL 复制到多个 decision rows，也不能在 maker-signed fill value 已从 execution price 起算后再加一次 half-spread。</p>
+<h2 id="3-两套时钟：策略看到什么，交易所先发生什么"><a href="#3-两套时钟：策略看到什么，交易所先发生什么" class="headerlink" title="3. 两套时钟：策略看到什么，交易所先发生什么"></a>3. 两套时钟：策略看到什么，交易所先发生什么</h2><p>F07 的核心不是“用更深 L2 就好”，而是保持两条因果时钟：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>数据流</th>
+<th>时钟</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>policy-visible BBO/top-20 L2</td>
+<td>冻结的 feature-ready 延迟</td>
+<td>quote feature、state、entry/exit decision</td>
+</tr>
+<tr>
+<td>native snapshot/delta 与 individual trades</td>
+<td>exchange transaction time</td>
+<td>exact active-price queue、fill、cancel/refill mechanics</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>native state 不能因为策略恰好查询了某个价位才被构建。strategy-independent scheduler 必须解析完整 snapshot/delta stream，维护所有公开价位，然后让任意 active order 在 activation 时查询对应 price level。</p>
+<p>activation at $t$ 只能使用严格早于 $t$ 的 native state：</p>
+<script type="math/tex; mode=display">
+Q_{seed}(t)
+=
+Q_{book}(t^-).</script><p>若 trade、book update、activation 或 cancel ACK 在同一毫秒发生，但没有共享 sequence key，就不能发明有利顺序。该 order path 必须标为 ambiguous 或 censored。known-zero price level 与 outside-snapshot-range 也必须区分；两者都显示为“当前没有正 quantity”，但只有前者是精确零队列证据。</p>
+<p>exchange-time native queue 可以支持历史 mechanics，却不自动证明部署环境的 receive-time transport。由于 KEEP/CANCEL 在 Development 已经失败，研究没有用额外 live evidence 去救这个动作。</p>
+<h2 id="4-第一阶段：top-20-queue-state-能预测，但动作没有正下界"><a href="#4-第一阶段：top-20-queue-state-能预测，但动作没有正下界" class="headerlink" title="4. 第一阶段：top-20 queue state 能预测，但动作没有正下界"></a>4. 第一阶段：top-20 queue state 能预测，但动作没有正下界</h2><p>最初的 queue-value v1 用 100ms reconstructed L2、individual trades、queue/campaign state 与 empirical microprice。side-specific local hazard 与 first-hit direction models 相对 constant null 有改进。</p>
+<p>56 个 Development 日上，每个 campaign 最多一次 50/50 intervention，共 3,263 campaigns：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Side</th>
+<th style="text-align:right">K0</th>
+<th style="text-align:right">K1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BUY</td>
+<td style="text-align:right">981</td>
+<td style="text-align:right">961</td>
+</tr>
+<tr>
+<td>SELL</td>
+<td style="text-align:right">649</td>
+<td style="text-align:right">672</td>
+</tr>
+<tr>
+<td>Pooled</td>
+<td style="text-align:right">1,630</td>
+<td style="text-align:right">1,633</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>K1 明确改变机制：direct intervention-fill probability 相对 K0 pooled 下降 0.460，BUY 下降 0.475，SELL 下降 0.439。</p>
+<p>但是 direct doubly robust contrast 的区间全部跨零：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Scope</th>
+<th style="text-align:right">Reward uplift</th>
+<th style="text-align:right">95% day interval</th>
+<th style="text-align:right">正日</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pooled</td>
+<td style="text-align:right">+0.01314</td>
+<td style="text-align:right">[-0.03131, +0.06600]</td>
+<td style="text-align:right">15/25</td>
+</tr>
+<tr>
+<td>BUY</td>
+<td style="text-align:right">+0.01192</td>
+<td style="text-align:right">[-0.03662, +0.06733]</td>
+<td style="text-align:right">10/25</td>
+</tr>
+<tr>
+<td>SELL</td>
+<td style="text-align:right">+0.01814</td>
+<td style="text-align:right">[-0.05531, +0.11091]</td>
+<td style="text-align:right">13/25</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>overlap 并不是 blocker：两 arms 都有充分 ESS、unsupported mass 为零、最大 weight 为 2。失败来自负 lower bound、弱 day sign 与极端 tail 分母不足。</p>
+<p>SPIBB 对每个 state 要求 K0/K1 各至少 100 rows、K1 ESS 至少 100、direct-uplift lower bound 大于零。BUY 与 SELL 各 8 个 states，接受数都是 0，policy 全部 fallback KEEP。</p>
+<h2 id="5-Cancel-re-enter-repair：生命周期补全了，价值仍然不支持"><a href="#5-Cancel-re-enter-repair：生命周期补全了，价值仍然不支持" class="headerlink" title="5. Cancel/re-enter repair：生命周期补全了，价值仍然不支持"></a>5. Cancel/re-enter repair：生命周期补全了，价值仍然不支持</h2><p>后续 audit 发现旧 re-entry attribution 不完整：早期实现曾遗漏 re-entry fills、没有把 first re-entry order 绑定 intervention，并存在向过去日期应用未来 fit bundle 的风险。</p>
+<p>corrected action 等待真实 ACK，然后由 ordinary baseline eligibility 控制 re-entry。25 个 action Development 日形成 909 interventions：454 K0、455 K1。445 个 K1 campaign 成功 submit re-entry，另 10 个在 re-entry 前 flatten；没有 re-entry 早于原订单 cancel ACK。</p>
+<p>raw means 看起来有改善：K1 的 mean terminal MTM 从 $-0.07755$ 到 $-0.06646$，median campaign duration 从 530.2s 降至 427.8s。但 chronological DR 才是正式 contrast：</p>
+<script type="math/tex; mode=display">
+\widehat{\Delta R}=+0.00443
+\quad
+95\%\ CI=[-0.04567,+0.04516]
+\ \text{USDC}.</script><p>daily positive rate 只有 44.4%，低于冻结要求。完整 randomized strategy path 的 aggregate PnL 还比 control 低 8.62 USDC，25 日中只有 9 日改善。</p>
+<p>这些数字没有 action authority；更重要的是，下一阶段发现当时的 top-20 queue input 根本不能解释 active price 的真实 queue。</p>
+<h2 id="6-Deep-queue-audit：旧-K1-机制为什么不能被解释成-exact-queue-value"><a href="#6-Deep-queue-audit：旧-K1-机制为什么不能被解释成-exact-queue-value" class="headerlink" title="6. Deep queue audit：旧 K1 机制为什么不能被解释成 exact queue value"></a>6. Deep queue audit：旧 K1 机制为什么不能被解释成 exact queue value</h2><p>active quote 常常远离 BBO，top-20 container 不包含该价位。旧 replay 用 calibrated fallback 初始化 queue，看起来每个 order 都有一个数，却不代表那个数来自真实 active-price public depth。</p>
+<p>代表性 full-day audit 把 retained top-20 与 native deep reconstruction 对比：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th style="text-align:right">retained top-20</th>
+<th style="text-align:right">native deep</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>active-order rows</td>
+<td style="text-align:right">19,378</td>
+<td style="text-align:right">19,042</td>
+</tr>
+<tr>
+<td>fills</td>
+<td style="text-align:right">1,595</td>
+<td style="text-align:right">2,062</td>
+</tr>
+<tr>
+<td>campaigns</td>
+<td style="text-align:right">669</td>
+<td style="text-align:right">895</td>
+</tr>
+<tr>
+<td>median initialized queue</td>
+<td style="text-align:right">0.116182 BTC</td>
+<td style="text-align:right">0 BTC</td>
+</tr>
+<tr>
+<td>zero initialized queue</td>
+<td style="text-align:right">0.083%</td>
+<td style="text-align:right">54.732%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>只有两个 decision IDs 在两条策略轨迹中重合。queue seed 一变，fill、inventory、campaign 与后续 decision 全部改变；这不是“queue feature 稍有漂移”。</p>
+<p>旧 panel 的 52 个 BUY-add entries 中，48 个 active prices 落在 deep range；其中 19 个有正 public quantity，29 个是 valid known-zero，只有 4 个 outside range。把 known-zero 当作 fitted positive queue 会系统性夸大 queue ahead。</p>
+<p>watch-specific sparse tape 随策略轨迹变化，也没有达到 fixed point：改变 queue seed 会改变策略订单集合，下一代又出现新的 watched levels。项目没有一直迭代到一个“方便的稳定路径”，而是更换成 trajectory-independent native scheduler。</p>
+<p>因此旧 top-20 数值被 supersede 用于机制解释，但其保守“不晋级”决定仍有效。</p>
+<h2 id="7-Strategy-independent-native-scheduler"><a href="#7-Strategy-independent-native-scheduler" class="headerlink" title="7. Strategy-independent native scheduler"></a>7. Strategy-independent native scheduler</h2><p>新的 Historical Exchange Book Scheduler 直接消费 raw snapshot/delta tape：</p>
+<ul>
+<li>每条 source message 都做 sequence audit；</li>
+<li>完整 price-level map 独立于 strategy order；</li>
+<li>activation 查询 exact、known-zero 或 unknown；</li>
+<li>same-millisecond collision 显式 ambiguity；</li>
+<li>snapshot reset 使已 active counterfactual path invalid；</li>
+<li>native support 不参与 action eligibility 选择。</li>
+</ul>
+<p>代表性 strict full-day replay有 18,868 active-order rows：7,912 exact、10,952 known-zero、4 unknown；214 rows 有 same-ms ambiguity，2 条 path 因 snapshot reset invalid。优化前后 strategy 与 queue output 保持一致，证明 scheduler 可以在不选择订单轨迹的情况下提供 exact-level state。</p>
+<p>这只是 data/mechanics gate。它不能把旧 K1 threshold 自动升级成 native action identity，所以项目重新冻结了 native keep/cancel Development family。</p>
+<h2 id="8-Native-KEEP-CANCEL：支持不足，方向性-ITT-仍不稳定"><a href="#8-Native-KEEP-CANCEL：支持不足，方向性-ITT-仍不稳定" class="headerlink" title="8. Native KEEP/CANCEL：支持不足，方向性 ITT 仍不稳定"></a>8. Native KEEP/CANCEL：支持不足，方向性 ITT 仍不稳定</h2><p>native family 使用 12 个 state-fit 日、1 日 embargo、5 个 calibration 日、1 日 transition embargo、17 个 action Development 日；后续 Validation 与 holdout 保持锁定。</p>
+<p>17 日 randomized replay 有 1,448 campaigns：741 K0、707 K1。所有 K1 都收到 cancel ACK，328 个达到 state exit 并 submit 一个 linked re-entry，其中 18 个 fill。</p>
+<p>严格 support gate 失败：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Gate</th>
+<th style="text-align:right">观察</th>
+<th style="text-align:right">要求</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>activation support</td>
+<td style="text-align:right">1,386 / 1,448 = 95.718%</td>
+<td style="text-align:right">98%</td>
+</tr>
+<tr>
+<td>complete native outcome support</td>
+<td style="text-align:right">1,301 / 1,448 = 89.848%</td>
+<td style="text-align:right">98%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>unsupported outcomes 是 action-dependent post-treatment state，不能简单删除后做 complete-case DR。用 $[-50,50]$ USDC reward bounds 得到 pooled Manski interval 约：</p>
+<script type="math/tex; mode=display">
+[-10.0183,+10.0275]
+\ \text{USDC/intervention}.</script><p>全 rows mixed-simulator ITT 只能作为 direction diagnostic：</p>
+<script type="math/tex; mode=display">
++0.00556,
+\qquad
+95\%\ CI=[-0.00585,+0.01745].</script><p>BUY 点估计为负，SELL 为正，但两侧区间都跨零。K1 把 intervention fills 降低约 40.9 percentage points；paired daily trajectory 的 PnL 只改善 1.4769 USDC，17 日中 8 日好、9 日差。</p>
+<p>因此 exact native queue 修复没有让这个 coarse cancel-until-state-exit action 获得支持。</p>
+<h2 id="9-Net-hazard-value：从手调阈值转向显式订单价值"><a href="#9-Net-hazard-value：从手调阈值转向显式订单价值" class="headerlink" title="9. Net-hazard value：从手调阈值转向显式订单价值"></a>9. Net-hazard value：从手调阈值转向显式订单价值</h2><p>下一阶段不再调 adverse-state cutoff，而是分别拟合 active exposure-increasing order 的 cause hazards：</p>
+<ul>
+<li>favorable fill；</li>
+<li>adverse fill；</li>
+<li>cancel；</li>
+<li>adverse price jump；</li>
+<li>campaign repair；</li>
+<li>queue recovery transition。</li>
+</ul>
+<p>entry state 由显式差值决定：</p>
+<script type="math/tex; mode=display">
+D(x)
+=
+V_{keep}(x)-V_{cancel/reenter}(x).</script><p>阈值来自 calibration quantiles，目标 candidate rate 为 15%，允许预算 5%–30%。BUY 与 SELL 分开；reducing quotes、size、inventory limit 与 external state 不变。</p>
+<p>17 个 Development 日形成 1,101 interventions：563 keep、538 cancel；eligible campaign rate 17.10%，mechanics 触发充分。</p>
+<h2 id="10-Selectivity：删除-92-成交，却没有更快删除-toxic-fills"><a href="#10-Selectivity：删除-92-成交，却没有更快删除-toxic-fills" class="headerlink" title="10. Selectivity：删除 92% 成交，却没有更快删除 toxic fills"></a>10. Selectivity：删除 92% 成交，却没有更快删除 toxic fills</h2><p>防守动作可以减少成交，但必须证明损失下降快于 activity。定义：</p>
+<script type="math/tex; mode=display">
+r_F
+=
+1-\frac{F_1}{F_0},
+\qquad
+r_T
+=
+1-\frac{T_1}{T_0},</script><p>以及 reduction surplus：</p>
+<script type="math/tex; mode=display">
+S_T=r_T-r_F.</script><p>若 $S_T&gt;0$，toxic fills 被删除得更快；若接近零，动作只是广泛 shutdown。</p>
+<p>Development 结果：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th style="text-align:right">点估计</th>
+<th style="text-align:right">95% UTC-day interval</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>intervention fill retention</td>
+<td style="text-align:right">7.67%</td>
+<td style="text-align:right">[4.07%, 12.22%]</td>
+</tr>
+<tr>
+<td>toxic fill retention</td>
+<td style="text-align:right">8.29%</td>
+<td style="text-align:right">[3.89%, 13.97%]</td>
+</tr>
+<tr>
+<td>toxic reduction</td>
+<td style="text-align:right">91.71%</td>
+<td style="text-align:right">[86.03%, 96.11%]</td>
+</tr>
+<tr>
+<td>all-fill reduction</td>
+<td style="text-align:right">92.33%</td>
+<td style="text-align:right">[87.78%, 95.93%]</td>
+</tr>
+<tr>
+<td>reduction surplus $S_T$</td>
+<td style="text-align:right">-0.0061</td>
+<td style="text-align:right">[-0.0326, +0.0222]</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>toxic fills 反而比全部 fills 保留得稍多。这个 action 没有成为 selective toxicity filter，而是把有利与不利 queue option 一起删除。</p>
+<h2 id="11-Net-hazard-randomized-ITT：BUY-显著有害"><a href="#11-Net-hazard-randomized-ITT：BUY-显著有害" class="headerlink" title="11. Net-hazard randomized ITT：BUY 显著有害"></a>11. Net-hazard randomized ITT：BUY 显著有害</h2><p>primary all-row ITT 为：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Scope</th>
+<th style="text-align:right">K1 − K0 reward，USDC/intervention</th>
+<th style="text-align:right">95% UTC-day interval</th>
+<th style="text-align:right">正日</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pooled</td>
+<td style="text-align:right">-0.01448</td>
+<td style="text-align:right">[-0.02577, -0.00239]</td>
+<td style="text-align:right">4/17</td>
+</tr>
+<tr>
+<td>BUY</td>
+<td style="text-align:right">-0.02310</td>
+<td style="text-align:right">[-0.04377, -0.00449]</td>
+<td style="text-align:right">5/17</td>
+</tr>
+<tr>
+<td>SELL</td>
+<td style="text-align:right">-0.00347</td>
+<td style="text-align:right">[-0.02352, +0.01550]</td>
+<td style="text-align:right">6/16</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>BUY 的区间完全低于零；SELL 没有正支持。MAE 与 repair time 有所改善，但不能补偿负 action reward、失败的 selectivity 与缺失的严格 support。</p>
+<p>完整 randomized path 曾显示小幅 aggregate PnL 改善，但只有 7/17 日为正。whole-path aggregate 包含 campaign birth/death 与 interference；它不能覆盖 common eligible population 上的注册 action ITT。</p>
+<p>最终 scorecard 因 reward、selectivity、terminal protection 与 support failures 返回 diagnostic-only，ranking score 为空。</p>
+<h2 id="12-Dynamic-Fill-Hazard：为什么不能只保留-adverse-head"><a href="#12-Dynamic-Fill-Hazard：为什么不能只保留-adverse-head" class="headerlink" title="12. Dynamic Fill Hazard：为什么不能只保留 adverse head"></a>12. Dynamic Fill Hazard：为什么不能只保留 adverse head</h2><p>net-hazard 以后，F07 又纠正了预测 estimand：</p>
+<ul>
+<li>fill 是 dynamic discrete-time start/stop risk set；</li>
+<li>cancel request 是 policy action/censor，不是自然 terminal；</li>
+<li>native price jump 是 non-absorbing transition；</li>
+<li>campaign repair 在 inventory 非零且 reducing quote active 后 delayed entry；</li>
+<li>BUY/SELL 分开；</li>
+<li>历史不可 live-reproduce 的 child-count 特征排除。</li>
+</ul>
+<p>17 个 Development 日产生 3,057,751 fill-risk rows、291,695 orders；另有 1,469,566 repair rows 与 6,200 campaigns。四个 expanding folds 的结果：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Side / Cause</th>
+<th style="text-align:right">OOF rows</th>
+<th style="text-align:right">Events</th>
+<th style="text-align:right">AP lift</th>
+<th style="text-align:right">ROC AUC</th>
+<th style="text-align:right">Brier skill</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BUY adverse</td>
+<td style="text-align:right">746,266</td>
+<td style="text-align:right">2,647</td>
+<td style="text-align:right">12.012</td>
+<td style="text-align:right">0.889</td>
+<td style="text-align:right">+0.00285</td>
+<td>通过</td>
+</tr>
+<tr>
+<td>BUY favorable</td>
+<td style="text-align:right">746,266</td>
+<td style="text-align:right">886</td>
+<td style="text-align:right">7.226</td>
+<td style="text-align:right">0.831</td>
+<td style="text-align:right">-0.00565</td>
+<td>失败</td>
+</tr>
+<tr>
+<td>SELL adverse</td>
+<td style="text-align:right">734,319</td>
+<td style="text-align:right">2,534</td>
+<td style="text-align:right">11.307</td>
+<td style="text-align:right">0.871</td>
+<td style="text-align:right">+0.00106</td>
+<td>通过</td>
+</tr>
+<tr>
+<td>SELL favorable</td>
+<td style="text-align:right">734,319</td>
+<td style="text-align:right">968</td>
+<td style="text-align:right">9.173</td>
+<td style="text-align:right">0.828</td>
+<td style="text-align:right">-0.00131</td>
+<td>失败</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>favorable heads 有 ranking lift，却没有相对 exposure-only baseline 的正 proper-score gain。KEEP/CANCEL value 同时需要 adverse cost 与 favorable queue option；只保留成功 adverse head，会再次制造“能减少毒性，但更大比例丢掉好成交”的动作。</p>
+<p>因此预先命名的 dynamic-fill randomized action 没有创建，DR、ESS、tail 与 selectivity 指标属于 not applicable，而不是零。</p>
+<h2 id="13-项目最终边界"><a href="#13-项目最终边界" class="headerlink" title="13. 项目最终边界"></a>13. 项目最终边界</h2><p>整个 Active-order Queue Value 项目的结论是：</p>
+<ul>
+<li>state 与 hazard models 能描述部分 queue/fill 风险；</li>
+<li>exact native queue 显著改变旧 top-20 路径，证明 input identity 很重要；</li>
+<li>KEEP/CANCEL treatment strength 很强，不是 no-op；</li>
+<li>但各冻结动作没有正、稳定、side-specific 的 action uplift；</li>
+<li>最严格 net-hazard K1 是 broad participation shutdown，BUY 显著有害；</li>
+<li>dynamic-fill prediction 又因 favorable heads 失败而没有注册动作。</li>
+</ul>
+<p>没有获得的权限：</p>
+<ul>
+<li>Validation：未读；</li>
+<li>sealed holdout：未读；</li>
+<li>policy bundle：未晋级；</li>
+<li>live action、shadow、baseline update：未授权；</li>
+<li>external-market rescue：未运行。</li>
+</ul>
+<p>未来研究若要重开，必须改变 action semantics，例如更好地保留 favorable queue option 或设计不同的 re-entry，而不是在已经消费的 Development 上调 entry/exit quantile。</p>
+<h2 id="14-公共证据"><a href="#14-公共证据" class="headerlink" title="14. 公共证据"></a>14. 公共证据</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/README.md">F07 Active Order Continuation README</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/docs/queue_value_keep_cancel_v1_20260719.md">Queue-Value Keep/Cancel v1</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/docs/queue_value_cancel_reenter_v3_development_20260720.md">Queue-Value Cancel/Re-enter v3</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/docs/deep_active_order_queue_probe_20260720.md">Deep Active-Order Queue Probe</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/docs/native_exchange_book_replay_scheduler_20260720.md">Native Exchange-Book Replay Scheduler</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/docs/queue_value_net_hazard_keep_cancel_v2_20260722.md">Queue Value Net Hazard Keep/Cancel v2</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/docs/dynamic_fill_hazard_m0_v2_20260723.md">Dynamic Fill Hazard M0 v2</a></li>
+</ul>
+<p>公开仓库提供方法、聚合结论与权限边界；精确 OOF、randomized rows、latency inputs 与机器 artifacts 不随仓库分发。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Market-Making/" class="category-chain-item">Market Making</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
+      
+        <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
+      
+        <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
+      
+        <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>NarrowGate Active-Order Queue Value：KEEP 还是 CANCEL/RE-ENTER</div>
+      <div>https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Active-Order-Queue-Value-Keep-Cancel-Research/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Xuan Tan</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-Active-Order-Lifecycle-CIF-100ms-Research/" title="NarrowGate Active-Order Lifecycle CIF：100ms 竞争风险与 Python/C++ 锁步">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">NarrowGate Active-Order Lifecycle CIF：100ms 竞争风险与 Python/C++ 锁步</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-Buy-Q90-Causal-Clock-Lifecycle-Research/" title="NarrowGate BUY q90：Cancel ACK 之后为什么不能继续打分">
+                        <span class="hidden-mobile">NarrowGate BUY q90：Cancel ACK 之后为什么不能继续打分</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

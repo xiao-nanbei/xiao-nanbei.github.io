@@ -1,0 +1,1112 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Xuan Tan">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Last materially modified: 2026-08-29 TL;DR：概率曲面能排序，不代表它能选出有经济价值的报价Conditional P3 是一张条件触达概率曲面：给定决策时已经可见的状态 $x$、maker side $s$ 与报价距离 $d$，估计未来十秒内主动成交是否到达该价格。F05 的问题不是重新证明这张概率曲面有没有预测信息，而是更往前走一步：能否把 side-s">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NarrowGate Conditional P3：从触达概率到联合报价价值">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Conditional-P3-Joint-Quote-Value-Research/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：概率曲面能排序，不代表它能选出有经济价值的报价Conditional P3 是一张条件触达概率曲面：给定决策时已经可见的状态 $x$、maker side $s$ 与报价距离 $d$，估计未来十秒内主动成交是否到达该价格。F05 的问题不是重新证明这张概率曲面有没有预测信息，而是更往前走一步：能否把 side-s">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/conditional-p3-joint-quote-kline.svg">
+<meta property="article:published_time" content="2026-08-28T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-28T16:00:00.000Z">
+<meta property="article:author" content="Xuan Tan">
+<meta property="article:tag" content="Market Making">
+<meta property="article:tag" content="市场微观结构">
+<meta property="article:tag" content="机器学习">
+<meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/conditional-p3-joint-quote-kline.svg">
+  
+  
+  
+  <title>NarrowGate Conditional P3：从触达概率到联合报价价值 - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>xiaonanbei</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="NarrowGate Conditional P3：从触达概率到联合报价价值"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-29 00:00" pubdate>
+          2026年8月29日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          5.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          43 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">NarrowGate Conditional P3：从触达概率到联合报价价值</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Last materially modified: 2026-08-29</p>
+<h2 id="TL-DR：概率曲面能排序，不代表它能选出有经济价值的报价"><a href="#TL-DR：概率曲面能排序，不代表它能选出有经济价值的报价" class="headerlink" title="TL;DR：概率曲面能排序，不代表它能选出有经济价值的报价"></a>TL;DR：概率曲面能排序，不代表它能选出有经济价值的报价</h2><p>Conditional P3 是一张条件触达概率曲面：给定决策时已经可见的状态 $x$、maker side $s$ 与报价距离 $d$，估计未来十秒内主动成交是否到达该价格。F05 的问题不是重新证明这张概率曲面有没有预测信息，而是更往前走一步：<strong>能否把 side-specific P3 当成普通输入，在十三个联合报价候选中选出终局价值优于当前 baseline 的报价？</strong></p>
+<p>这项研究先走标准硬门路径。结果只有 28 个支持日、3 个 chronological OOF folds，最稀薄的 side-role-action cell 只有 1 笔 fill，低于预先冻结的 30 日、4 folds、每格 30 fills。按正常治理，它应该在读经济结果前停止。</p>
+<p>随后 owner 明确接受该支持不足，只授权一次 outcome-informed Development diagnostic，同时保留原硬门失败。这个继续分支重建了 269/282 个完整 terminal overlay bucket，在 13 个 OOF 日上评估 126 个 bucket；最后仍没有任何非 baseline action 通过过去数据内的同时经济筛选，126/126 全部回退 baseline。最强早期点估计约 $3.7\times10^{-5}$ USDC/bucket，低于冻结 $10^{-4}$ 经济阈值的一半，后续 folds 的区间跨零。</p>
+<p>因此关闭的是当前 <strong>P3-to-joint-quote value selector</strong>，不是 Conditional P3 的概率预测证据。研究也没有生成十三臂完整顺序回放、随机 action identity 或 live 权限。</p>
+<p>本文只讨论历史 Development 研究，不构成交易建议。图中的 K 线与报价是合成机制示意，不是历史或实盘记录。</p>
+<p><img src="/images/narrowgate/conditional-p3-joint-quote-kline.svg" srcset="/img/loading.gif" lazyload alt="Conditional P3 联合报价候选的 K 线机制图"></p>
+<p><em>图 1：同一个十秒 canonical decision 产生 baseline 与单侧 closer/farther 候选。P3 只描述价格被主动流触达的概率；F05 还要求对应 terminal overlay value 在未来日期上稳定为正。</em></p>
+<h2 id="1-P3-到底是什么，不是什么"><a href="#1-P3-到底是什么，不是什么" class="headerlink" title="1. P3 到底是什么，不是什么"></a>1. P3 到底是什么，不是什么</h2><p>令 $R_{s,d}$ 表示十秒内 aggressive counterparty flow 是否到达 maker side $s$ 距离 $d$ 的价格。Conditional P3 估计：</p>
+<script type="math/tex; mode=display">
+P_3(s,d\mid x_t)
+=
+\Pr(R_{s,d}=1\mid x_t).</script><p>它保留 side、inventory role、距离与决策状态，而不是把所有触达样本压成一条全局指数曲线。对同一个决策，随着报价离 BBO 更远，触达概率应保持有序。</p>
+<p>但以下等式通常不成立：</p>
+<script type="math/tex; mode=display">
+\arg\max_a P_3(a\mid x)
+\neq
+\arg\max_a V(a\mid x).</script><p>更靠近市场的报价可能更容易被触达，也可能接到更有毒的成交；更远的报价可能改善成交价格，却失去大量自然修复机会。真正的报价价值还取决于 activation、GTX、queue、fill quality、后续 inventory、cooldown、campaign terminal 与跨侧相互作用。</p>
+<p>早期曾尝试把 BUY 与 SELL 的条件概率平均成一个 scalar，再压缩成动态报价参数。这个映射把触达概率斜率误当作另一种报价模型里的 fill-hazard elasticity，并在 spread core 与 spread floor 中重复收窄。它已经关闭。后来的 F05 分支不再做这种代数替换，而是把 side-specific P3 当成普通特征，直接问候选报价有没有 USDC value。</p>
+<h2 id="2-十三个联合报价候选"><a href="#2-十三个联合报价候选" class="headerlink" title="2. 十三个联合报价候选"></a>2. 十三个联合报价候选</h2><p>每个 canonical 十秒机会有一个 baseline joint quote：</p>
+<script type="math/tex; mode=display">
+a_0
+=
+(\text{BUY current},\text{SELL current}).</script><p>其余十二个候选每次只移动一侧：</p>
+<script type="math/tex; mode=display">
+\mathcal A
+=
+\{a_0\}
+\cup
+\{
+\text{BUY closer/farther }1,2,4\text{ ticks}
+\}
+\cup
+\{
+\text{SELL closer/farther }1,2,4\text{ ticks}
+\}.</script><p>另一侧保持 current。研究不假设：</p>
+<script type="math/tex; mode=display">
+V(\Delta BUY,\Delta SELL)
+=
+V(\Delta BUY,0)+V(0,\Delta SELL).</script><p>换句话说，单侧 overlay 只能研究单侧相对 baseline 的局部差异，不能凭空识别双侧同时改变的 inventory feedback。</p>
+<p>一 tick 保留为 negative control；两 tick 与四 tick 是正式距离。Conditional P3 的十秒触达概率进入未来直接价值模型，但不能在模型外简单相乘成“概率 × 平均 markout”。</p>
+<h2 id="3-决策时钟与数据边界"><a href="#3-决策时钟与数据边界" class="headerlink" title="3. 决策时钟与数据边界"></a>3. 决策时钟与数据边界</h2><p>这个项目的时钟合同很窄：</p>
+<ul>
+<li>每个 side 在每个 canonical 10s boundary 最多形成一个权威机会；</li>
+<li>decision timestamp 来自 placement submit 的 exchange-time 身份；</li>
+<li>决策处必须有 same-timestamp BBO；</li>
+<li>所有输入必须满足 $\text{feature-ready timestamp}\le \text{decision timestamp}$；</li>
+<li>P3 预测所用状态不能读取十秒窗口内的未来价格；</li>
+<li>terminal overlay 来自冻结的 paired lifecycle 分母；</li>
+<li>Validation 与 sealed holdout 不读。</li>
+</ul>
+<p>这个十秒 cadence 是决策采样合同，不代表订单一定活十秒，也不是任意 markout horizon。订单的 activation、fill 与 cancel ACK 仍由 lifecycle 路径决定。</p>
+<p>证据来自 F06 已经冻结的 paired placement 分母。它是机制 informed Development successor，而不是独立 confirmation。公共报告同时明确：历史 owner-side 机器结果不随仓库分发，公开文档只提供研究边界与聚合数字。</p>
+<h2 id="4-第一阶段：结果未读前，支持门已经失败"><a href="#4-第一阶段：结果未读前，支持门已经失败" class="headerlink" title="4. 第一阶段：结果未读前，支持门已经失败"></a>4. 第一阶段：结果未读前，支持门已经失败</h2><p>标准 preflight 的冻结要求与观察值是：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>支持项</th>
+<th style="text-align:right">观察值</th>
+<th style="text-align:right">冻结要求</th>
+<th style="text-align:right">结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>支持日</td>
+<td style="text-align:right">28</td>
+<td style="text-align:right">30</td>
+<td style="text-align:right">失败</td>
+</tr>
+<tr>
+<td>OOF folds</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">4</td>
+<td style="text-align:right">失败</td>
+</tr>
+<tr>
+<td>最小 side × role × action fills</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">30</td>
+<td style="text-align:right">失败</td>
+</tr>
+<tr>
+<td>paired joint-quote buckets</td>
+<td style="text-align:right">282</td>
+<td style="text-align:right">diagnostic</td>
+<td style="text-align:right">不作为通过门</td>
+</tr>
+<tr>
+<td>exact BBO clock</td>
+<td style="text-align:right">是</td>
+<td style="text-align:right">是</td>
+<td style="text-align:right">通过</td>
+</tr>
+<tr>
+<td>全 candidate grid activation</td>
+<td style="text-align:right">是</td>
+<td style="text-align:right">是</td>
+<td style="text-align:right">通过</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>最薄的 cell 是 SELL add 的 farther 4 ticks，仅 1 笔 fill。其他 role-action cells 也有明显稀疏。</p>
+<p>支持门的作用不是追求一个好看的样本量，而是避免高维直接价值面用极少 lifecycle 事件估计每个报价动作。若一个 cell 只有一笔 fill，模型很容易把一次 campaign 的偶然大值当成动作规律。</p>
+<p>因此标准路径作出：</p>
+<script type="math/tex; mode=display">
+\text{support sufficient}=\text{false},</script><p>并且在该路径下：</p>
+<script type="math/tex; mode=display">
+\text{economic outcomes read}=\text{false}.</script><h2 id="5-Owner-continuation：接受风险，不改写硬门"><a href="#5-Owner-continuation：接受风险，不改写硬门" class="headerlink" title="5. Owner continuation：接受风险，不改写硬门"></a>5. Owner continuation：接受风险，不改写硬门</h2><p>owner 随后明确接受实际支持，授权一次 Development continuation。这个授权有两个限制：</p>
+<ol>
+<li>原来的 $30/4/30$ 门仍然是失败，不能回写成通过；</li>
+<li>新结果即使有正点估计，也只能是 proxy diagnostic，不能直接形成 action。</li>
+</ol>
+<p>继续分支以 baseline campaign-terminal overlay 为基础，为十三个候选构造 quantity-weighted 单侧 delta：</p>
+<script type="math/tex; mode=display">
+\Delta V_i(a)
+=
+Y_i^{overlay}(a)-Y_i^{overlay}(a_0).</script><p>它没有重放完整 action-dependent inventory、cooldown、queue、campaign birth/death 或双侧相互作用。因此它不是：</p>
+<script type="math/tex; mode=display">
+Y_i^{full\ path}(a)-Y_i^{full\ path}(a_0).</script><p>即使 proxy 结果为正，仍需要新的 full-path candidate identity 才能研究真实顺序反馈。</p>
+<h2 id="6-结果：缺的不是-value-rows，而是经济分辨率与时间稳定性"><a href="#6-结果：缺的不是-value-rows，而是经济分辨率与时间稳定性" class="headerlink" title="6. 结果：缺的不是 value rows，而是经济分辨率与时间稳定性"></a>6. 结果：缺的不是 value rows，而是经济分辨率与时间稳定性</h2><p>继续分支的覆盖与 OOF 结果如下：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th style="text-align:right">结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>完整 terminal-overlay buckets</td>
+<td style="text-align:right">269 / 282</td>
+</tr>
+<tr>
+<td>value coverage</td>
+<td style="text-align:right">95.39%</td>
+</tr>
+<tr>
+<td>OOF buckets</td>
+<td style="text-align:right">126</td>
+</tr>
+<tr>
+<td>OOF 日</td>
+<td style="text-align:right">13</td>
+</tr>
+<tr>
+<td>chronological folds</td>
+<td style="text-align:right">3</td>
+</tr>
+<tr>
+<td>通过 past-only simultaneous screen 的 action-fold cells</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td>OOF 非 baseline selections</td>
+<td style="text-align:right">0 / 126</td>
+</tr>
+<tr>
+<td>baseline fallback</td>
+<td style="text-align:right">126 / 126</td>
+</tr>
+<tr>
+<td>selected-value mean</td>
+<td style="text-align:right">0 USDC/bucket</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>269/282 的完整 coverage 说明“广泛缺失 terminal value”不是主要 blocker。真正的问题是数值太小、随日期不稳定。</p>
+<p>这里的 126 个 OOF buckets 也不能被误读为 126 次彼此独立的随机试验。它们来自 13 个未来日期、共享相同市场路径与候选集合，因此不确定性必须保留日期聚类和同日多臂相关性。若把 bucket 当独立样本做普通标准误，区间会被人为压窄，早期微小正值也会显得比实际更可靠。</p>
+<p>最强早期信号是 BUY farther 4 ticks：</p>
+<script type="math/tex; mode=display">
+\widehat{\Delta V}
+\approx
+3.7\times 10^{-5}\ \text{USDC/bucket}.</script><p>其早期 simultaneous lower bound 约为 $1.6\times10^{-5}$，看起来高于零，却仍低于冻结经济阈值：</p>
+<script type="math/tex; mode=display">
+\theta_{econ}=10^{-4}\ \text{USDC/bucket}.</script><p>后两个 folds 的 lower bounds 又跨过零。一个只在早期出现、随后失去方向，而且经济量级不到阈值一半的 proxy，不足以支付十三臂 full-path 回放的研究成本，更不足以进入 action gate。</p>
+<h2 id="7-为什么“概率模型通过”不能救这个价值-selector"><a href="#7-为什么“概率模型通过”不能救这个价值-selector" class="headerlink" title="7. 为什么“概率模型通过”不能救这个价值 selector"></a>7. 为什么“概率模型通过”不能救这个价值 selector</h2><p>F02 的后续 policy-visible audit 支持 Conditional P3 的 side-specific 概率排序与有序性。这是 P3 自己的预测证据。</p>
+<p>它不能补齐 F05 的三个缺口：</p>
+<ul>
+<li>稀薄 side-role-action lifecycle support；</li>
+<li>terminal overlay 的经济量级；</li>
+<li>chronological stability。</li>
+</ul>
+<p>概率层与价值层的关系可以写成：</p>
+<script type="math/tex; mode=display">
+V(a\mid x)
+=
+\sum_j
+\Pr(O_j\mid a,x)
+\cdot
+\mathbb E[Y_j\mid O_j,a,x]
+-
+C(a,x),</script><p>其中 $O_j$ 不只有触达，还包括 activation、exact/through fill、cancel ACK、queue reset 与 campaign continuation。P3 只覆盖其中一部分机制。它表现良好，不会自动让完整 $V(a\mid x)$ 获得正下界。</p>
+<h2 id="8-最终边界"><a href="#8-最终边界" class="headerlink" title="8. 最终边界"></a>8. 最终边界</h2><p>这项研究的精确结论是：</p>
+<ul>
+<li>Conditional P3 probability prediction：没有被本项目关闭；</li>
+<li>早期 scalar quote mapping：关闭；</li>
+<li>side-specific thirteen-arm sparse value selector：Development 关闭；</li>
+<li>标准 hard-gate route：失败；</li>
+<li>owner-risk continuation：也没有 candidate；</li>
+<li>full-path 13-arm replay：未授权、未运行；</li>
+<li>Validation 与 sealed holdout：未读；</li>
+<li>action experiment、shadow 或 live：未创建、未授权。</li>
+</ul>
+<p>研究没有证明“移动报价没有价值”，也没有证明“P3 无用”。它证明在这套冻结 overlap、candidate set、overlay estimand 与经济阈值下，没有可执行的联合报价候选。</p>
+<h2 id="9-公共证据"><a href="#9-公共证据" class="headerlink" title="9. 公共证据"></a>9. 公共证据</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/conditional_p3_joint_quote_value_preflight_v1_development_20260803.md">Conditional P3 Joint Quote Value Preflight</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/conditional_p3_joint_quote_sparse_value_diagnostic_v1_development_20260804.md">Conditional P3 Joint Quote Sparse Value Diagnostic</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/conditional_p3_quote_mapping_status_closure_v1_20260804.md">Conditional P3 Quote-Mapping Status Closure</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/README.md">F05 family README</a></li>
+</ul>
+<p>公开链接解释方法与聚合结论。精确机器证据位于未随公共仓库分发的 evidence store；公开 SHA 只标识字节，不是下载位置。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Market-Making/" class="category-chain-item">Market Making</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
+      
+        <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
+      
+        <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
+      
+        <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>NarrowGate Conditional P3：从触达概率到联合报价价值</div>
+      <div>https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Conditional-P3-Joint-Quote-Value-Research/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Xuan Tan</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-Buy-Soft-Widen-Release-Action-Value-Research/" title="NarrowGate BUY Soft-Widen：单次解除放宽的动作价值研究">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">NarrowGate BUY Soft-Widen：单次解除放宽的动作价值研究</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/" title="NarrowGate Fill Quality：决策时可见状态能否识别负价值成交">
+                        <span class="hidden-mobile">NarrowGate Fill Quality：决策时可见状态能否识别负价值成交</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -1,0 +1,1047 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Xuan Tan">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Last materially modified: 2026-08-29 TL;DR：绕过 opener&#x2F;reducing 后 fills 增加 13.85%，terminal value 反而少 11.67 USDC当前 BER guard 使用同一个 signal、threshold 1.2 与 spread multiplier 2.0，全局双边影响报价。本研究只改角色映射：candidat">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NarrowGate BER Role-Safe Add-Only：库存代理改善为何仍然关闭">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-BER-Role-Safe-Add-Only-Research/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：绕过 opener&#x2F;reducing 后 fills 增加 13.85%，terminal value 反而少 11.67 USDC当前 BER guard 使用同一个 signal、threshold 1.2 与 spread multiplier 2.0，全局双边影响报价。本研究只改角色映射：candidat">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/ber-role-safe-add-only.svg">
+<meta property="article:published_time" content="2026-08-29T12:22:00.000Z">
+<meta property="article:modified_time" content="2026-08-29T12:22:00.000Z">
+<meta property="article:author" content="Xuan Tan">
+<meta property="article:tag" content="Market Making">
+<meta property="article:tag" content="BER Guard">
+<meta property="article:tag" content="角色安全">
+<meta property="article:tag" content="Owner Screen">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/ber-role-safe-add-only.svg">
+  
+  
+  
+  <title>NarrowGate BER Role-Safe Add-Only：库存代理改善为何仍然关闭 - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>xiaonanbei</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="NarrowGate BER Role-Safe Add-Only：库存代理改善为何仍然关闭"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-29 20:22" pubdate>
+          2026年8月29日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          5.6k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          48 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">NarrowGate BER Role-Safe Add-Only：库存代理改善为何仍然关闭</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Last materially modified: 2026-08-29</p>
+<h2 id="TL-DR：绕过-opener-reducing-后-fills-增加-13-85-，terminal-value-反而少-11-67-USDC"><a href="#TL-DR：绕过-opener-reducing-后-fills-增加-13-85-，terminal-value-反而少-11-67-USDC" class="headerlink" title="TL;DR：绕过 opener/reducing 后 fills 增加 13.85%，terminal value 反而少 11.67 USDC"></a>TL;DR：绕过 opener/reducing 后 fills 增加 13.85%，terminal value 反而少 11.67 USDC</h2><p>当前 BER guard 使用同一个 signal、threshold 1.2 与 spread multiplier 2.0，全局双边影响报价。本研究只改角色映射：candidate 让 BER 继续保护 exposure-increasing add，但 flat opener 与 reducing quote 使用 exact BER-bypass price；mixed-cross-zero quantity 保持 control。它不是重新搜索 BER 常数。</p>
+<p>40 日 daily fresh-start Development 中，candidate 产生 172,328 个 effective side-price changes，change rate 14.96%，BUY/SELL 82,682/89,646，40 日均有支持；Python/C++ fill path、BER state、source 与 cap mismatches 都为零。机械实现明确。</p>
+<p>经济上，control/candidate terminal MTM 为 -144.2517/-155.9180 USDC，差 -11.6663；closed-campaign value 差 -9.3845；fills 从 17,118 增至 19,488，即 +13.85%。paired daily delta -0.2917 USDC/day，95% interval $[-1.1439,+0.6813]$，只有 13/40 日改善。candidate 的 q10、CVaR、MAE、max inventory 与 inventory time 等 proxy 反而变好，再一次说明更低库存/更快 repair 不能替代 terminal value。</p>
+<p>这还是一个 outcome-informed owner Development screen，不是独立 confirmation；即使未来有正结果，也不能重标为 research-supported。当前 global BER 保持不变，candidate foundation 关闭，也没有 continuous confirmation、action 或 live authority。</p>
+<p><img src="/images/narrowgate/ber-role-safe-add-only.svg" srcset="/img/loading.gif" lazyload alt="BER role-safe add-only 的角色 DAG 与时钟"></p>
+<p><em>图 1：机制示意。相同 completed-10s BER state 在每个 completed-1s callback 被采样；candidate 只把 add side 接到 BER quote，opener/reducing 接 bypass quote，cross-zero 保持 control。</em></p>
+<h2 id="1-研究问题：BER-应保护所有报价角色，还是只保护加风险？"><a href="#1-研究问题：BER-应保护所有报价角色，还是只保护加风险？" class="headerlink" title="1. 研究问题：BER 应保护所有报价角色，还是只保护加风险？"></a>1. 研究问题：BER 应保护所有报价角色，还是只保护加风险？</h2><p>BER widening 的直觉是当 book-event ratio 异常时减少被动暴露。但 reducing quote 的目标是修复库存，flat opener 又决定参与入口；全局 widening 可能无差别阻碍它们。role-safe candidate 问：保留同一个 BER signal，只在 exposure-increasing add 上应用，能否提高完整路径价值？</p>
+<p>目标比较为：</p>
+<script type="math/tex; mode=display">
+\tau=E[Y(\text{BER add-only})-Y(\text{global bilateral BER})].</script><p>这不是 fresh independent trial。候选建立在已经完成的 BER retirement outcomes 与 current-stack owner knowledge 上，因此被预先标为 owner screen。它可否定一个工程方向，却不能凭同一证据谱系获得“研究支持”标签。</p>
+<h2 id="2-BER-时钟与输入一致性"><a href="#2-BER-时钟与输入一致性" class="headerlink" title="2. BER 时钟与输入一致性"></a>2. BER 时钟与输入一致性</h2><p>权威时钟是：最新完成的 10-second feature value 被 held，并在每个 completed 1-second bar callback 采样。不是每个 100ms loop 更新，也不能使用尚未完成的 10s bucket。</p>
+<p>设 $x_k$ 是第 $k$ 个 completed 10s feature，$t_j$ 是 completed 1s callback，则：</p>
+<script type="math/tex; mode=display">
+BER(t_j)=g(x_{k^*}),\qquad k^*=\max\{k:t^{ready}_{10s,k}\le t_j\}.</script><p>threshold 为 1.2、multiplier 2.0，slow-EMA ready threshold $10^{-6}$。live/Python/C++ 在 quote composition 前必须输出同样的 raw BER input、EMA values、ratio、readiness 与 active state。当前 control 使用 corrected held-feature clock，不与旧 BER-retirement control 的 prior update semantics 数值互换。</p>
+<h2 id="3-Role-composition"><a href="#3-Role-composition" class="headerlink" title="3. Role composition"></a>3. Role composition</h2><p>同一个 immutable decision snapshot 同时算 global BER quote 与 <code>ber_active=false</code> 的 bypass quote。role 由 decision-pre inventory 和 target quantity 确定：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Inventory / target</th>
+<th>Candidate quote source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>$q&gt;0$ 的非 crossing BUY</td>
+<td>exposure add → global BER</td>
+</tr>
+<tr>
+<td>$q&gt;0$ 的 SELL</td>
+<td>reducing → bypass</td>
+</tr>
+<tr>
+<td>$q&lt;0$ 的非 crossing SELL</td>
+<td>exposure add → global BER</td>
+</tr>
+<tr>
+<td>$q&lt;0$ 的 BUY</td>
+<td>reducing → bypass</td>
+</tr>
+<tr>
+<td>$</td>
+<td>q</td>
+<td>\le10^{-10}$</td>
+<td>两侧 flat opener → bypass</td>
+</tr>
+<tr>
+<td>quantity crosses flat</td>
+<td><code>mixed_cross_zero</code> → control</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>若 BER inactive，两臂完全相同。若 mixed pair 触及 spread cap，只能移动 add side；若无法保持 opener/reducing 的 exact bypass price，则此 decision 退化为 no-op，不能偷偷移动修复侧。</p>
+<p>cancel/replace/queue/fill 是 price change 的自然 treatment consequence。candidate 不直接改 cancel policy、requote clock、cooldown、quantity、P3、ML、q90 或 lifecycle。</p>
+<h2 id="4-因果-denominator：不能由-treatment-path-重建"><a href="#4-因果-denominator：不能由-treatment-path-重建" class="headerlink" title="4. 因果 denominator：不能由 treatment path 重建"></a>4. 因果 denominator：不能由 treatment path 重建</h2><p>动作改变 fills 与 inventory，随后可用 decisions 也会改变。若按每臂各自出现的 requotes 计算 change rate，denominator 本身已被 treatment 污染。冻结方案使用两臂共同存在的 canonical requote timestamps，每 timestamp 两个 side rows：</p>
+<script type="math/tex; mode=display">
+\mathcal D=\{(t,s):t\in T_{control}\cap T_{candidate},\ s\in\{BUY,SELL\}\}.</script><p>任何 <code>n_requotes</code> mismatch 都 fail closed，不从 fills 或 inventory path 补建 denominator。append-only scorecard repair 曾修正 misplaced support metadata，恢复 canonical support 5,067 rows、40 days、zero support failures；economic hard-gate decision 没变。元数据修复不是新 outcome run。</p>
+<h2 id="5-Mechanics-结果"><a href="#5-Mechanics-结果" class="headerlink" title="5. Mechanics 结果"></a>5. Mechanics 结果</h2><p>one-day native preflight 先要求 role semantics 与 Python/C++ full-path parity；之后才允许读剩余 40 日 Development。正式结果：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Mechanics</th>
+<th style="text-align:right">Frozen result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>effective side-price changes</td>
+<td style="text-align:right">172,328</td>
+</tr>
+<tr>
+<td>effective change rate</td>
+<td style="text-align:right">14.96%</td>
+</tr>
+<tr>
+<td>BUY / SELL changes</td>
+<td style="text-align:right">82,682 / 89,646</td>
+</tr>
+<tr>
+<td>support days</td>
+<td style="text-align:right">40 / 40 each side</td>
+</tr>
+<tr>
+<td>Python/C++ fill-path mismatch</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td>BER-state/source mismatch</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td>infeasible cap count</td>
+<td style="text-align:right">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>动作强度足够，且 role composition 没有由 cap 或 parity defect 吃掉。因此 economic failure 不能归因于“实现未生效”。</p>
+<h2 id="6-Economic-结果：fills-增加，价值下降"><a href="#6-Economic-结果：fills-增加，价值下降" class="headerlink" title="6. Economic 结果：fills 增加，价值下降"></a>6. Economic 结果：fills 增加，价值下降</h2><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th style="text-align:right">Control</th>
+<th style="text-align:right">Candidate</th>
+<th style="text-align:right">Candidate-control</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>terminal MTM PnL</td>
+<td style="text-align:right">-144.2517</td>
+<td style="text-align:right">-155.9180</td>
+<td style="text-align:right">-11.6663 USDC</td>
+</tr>
+<tr>
+<td>closed-campaign value</td>
+<td style="text-align:right">-147.4663</td>
+<td style="text-align:right">-156.8508</td>
+<td style="text-align:right">-9.3845 USDC</td>
+</tr>
+<tr>
+<td>fills</td>
+<td style="text-align:right">17,118</td>
+<td style="text-align:right">19,488</td>
+<td style="text-align:right">+2,370，+13.85%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>按 40 个 UTC 日配对，terminal delta 为 -0.2917 USDC/day，95% interval $[-1.1439,+0.6813]$，仅 13/40 日改善。negative-terminal protection 也恶化 -0.4621 USDC/day。</p>
+<p>候选改善 campaign q10、CVaR10、MAE、maximum inventory、inventory time 与 multi-level LONG/SHORT point estimates。看似矛盾，其实说明 opener/reducing bypass 增加参与和修复，但新增 fills 的 execution/selection value 足以让 terminal 变差。proxy 可以描述机制，不能覆盖经济 hard gate。</p>
+<h2 id="7-一个报价路径例子"><a href="#7-一个报价路径例子" class="headerlink" title="7. 一个报价路径例子"></a>7. 一个报价路径例子</h2><p>假设 inventory $q=-0.002$，BER active。global control 会同时 widen SELL add 与 BUY reducing；candidate 只 widen SELL，BUY 使用 bypass、更接近市场。candidate 更容易获得 reducing BUY fill，inventory time 下降。但若 BUY 在继续下跌的市场中更早成交，或者绕过 widening 损失了选择性，terminal value 可能变差。</p>
+<p>当 inventory 回到 near-flat，后续 opener 也 bypass BER，因此 candidate 可能比 control 更快重新参与，解释 fills +13.85%。这些都是 action path 的组成，不是 bug，也不能只选择“成功 repair 的 campaign”评价。</p>
+<h2 id="8-研究演进与证据地位"><a href="#8-研究演进与证据地位" class="headerlink" title="8. 研究演进与证据地位"></a>8. 研究演进与证据地位</h2><p>初版 mechanics implementation failure、execution amendments、estimand errata、offline projection 与最终 40 日 Development 都围绕同一 role-safe action。它们不因文件多就成为多个研究项目。第一次 scorecard support metadata 错位由 append-only repair 修正，结论不变。</p>
+<p>因为候选是 completed BER retirement 之后的 outcome-informed successor，它永久保留 owner-risk-accepted 标签。formal Development pass 本来也只可能开启 restart-aware continuous owner confirmation；daily fresh-start evidence 不能直接授权 live。现在 Development 经济已失败，连该 confirmation 路线也没有晋级基础。</p>
+<h2 id="9-关闭边界"><a href="#9-关闭边界" class="headerlink" title="9. 关闭边界"></a>9. 关闭边界</h2><p>关闭的是“相同 signal/1.2 threshold/2.0 multiplier，仅 add 使用 BER、opener/reducing bypass”的 B1 foundation。它不证明 global BER optimal，也不证明所有 role mapping 无效；只是 directional empirical BER v2 不能建立在这个已失败 foundation 上。</p>
+<p>不能在 40 日已读面板上调 threshold/multiplier、只保留某侧、改变 cross-zero rule，或把 proxy score 换成 primary。current global BER 继续 enabled，不因 candidate 失败而自动退休。</p>
+<h2 id="10-没有获得的权限"><a href="#10-没有获得的权限" class="headerlink" title="10. 没有获得的权限"></a>10. 没有获得的权限</h2><ul>
+<li>没有 continuous restart-aware confirmation；</li>
+<li>没有 action、shadow、live 或配置变更权限；</li>
+<li>没有把 owner screen 重标为 independent research-supported；</li>
+<li>没有从 proxy 改善推出 terminal value；</li>
+<li>没有调整 threshold 1.2、multiplier 2.0、side/role 或 cross-zero semantics 的权限。</li>
+</ul>
+<h2 id="11-公共证据"><a href="#11-公共证据" class="headerlink" title="11. 公共证据"></a>11. 公共证据</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/ber_guard_role_safe_add_only_current_stack_owner_v1_development_20260809.md"><code>ber_guard_role_safe_add_only_current_stack_owner_v1_development_20260809.md</code></a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/ber_guard_role_safe_add_only_current_stack_owner_v1_spec_20260808.md"><code>ber_guard_role_safe_add_only_current_stack_owner_v1_spec_20260808.md</code></a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/README.md"><code>F09 README</code></a></li>
+</ul>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>role-safe composition 确实做到了想做的事：加风险继续受 BER 保护，opener/reducing 获得更积极价格，fills 与库存路径显著改变。但终局少了 11.67 USDC。这个结果再次把“修复更快、库存更小”放回它应有的位置——机制指标，而不是价值函数。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Market-Making/" class="category-chain-item">Market Making</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
+      
+        <a href="/tags/BER-Guard/" class="print-no-link">#BER Guard</a>
+      
+        <a href="/tags/%E8%A7%92%E8%89%B2%E5%AE%89%E5%85%A8/" class="print-no-link">#角色安全</a>
+      
+        <a href="/tags/Owner-Screen/" class="print-no-link">#Owner Screen</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>NarrowGate BER Role-Safe Add-Only：库存代理改善为何仍然关闭</div>
+      <div>https://xiao-nanbei.github.io/2026/08/29/NarrowGate-BER-Role-Safe-Add-Only-Research/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Xuan Tan</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-Fixed-Parameter-Racing-Research/" title="NarrowGate 固定参数竞速：为什么全局 Winner 不是可迁移的做市 Alpha">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">NarrowGate 固定参数竞速：为什么全局 Winner 不是可迁移的做市 Alpha</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-Ranked-Toxicity-Exposure-Guard-Research/" title="NarrowGate Ranked Toxicity Exposure Guard：从 P90 触发到 Carryover-Safe 订单所有权">
+                        <span class="hidden-mobile">NarrowGate Ranked Toxicity Exposure Guard：从 P90 触发到 Carryover-Safe 订单所有权</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

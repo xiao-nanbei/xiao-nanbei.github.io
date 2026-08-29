@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Placement distance 七价位配对回放的合成 K 线机制图</title>
+  <desc id="desc">同一决策点从 closer 4 ticks 到 farther 4 ticks 展开七个被动报价，所有报价共享 activation 时钟、未来合成行情、撤单计划与延迟。图区分原始 fill resolution 和 campaign-terminal value。</desc>
+  <defs>
+    <linearGradient id="b4" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07131f"/>
+      <stop offset="1" stop-color="#1d2d44"/>
+    </linearGradient>
+    <marker id="ar4" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#8bd5ff"/>
+    </marker>
+  </defs>
+  <rect width="1280" height="720" rx="24" fill="url(#b4)"/>
+  <text x="50" y="54" fill="#f7f9ff" font-size="28" font-family="sans-serif" font-weight="700">Placement Distance：同一行情路径上的七价位 cohort</text>
+  <text x="50" y="86" fill="#98adc5" font-size="16" font-family="sans-serif">合成机制示意 · 非实盘行情 · fill difference 与 terminal value 分开检验</text>
+  <rect x="50" y="110" width="815" height="470" rx="16" fill="#0b1c2a" stroke="#2c485f"/>
+  <line x1="80" y1="510" x2="835" y2="510" stroke="#314b63" stroke-width="2"/>
+  <g stroke-width="4">
+    <line x1="100" y1="330" x2="100" y2="430" stroke="#7ee2a8"/><rect x="88" y="357" width="24" height="45" fill="#7ee2a8"/>
+    <line x1="155" y1="300" x2="155" y2="405" stroke="#7ee2a8"/><rect x="143" y="327" width="24" height="48" fill="#7ee2a8"/>
+    <line x1="210" y1="320" x2="210" y2="420" stroke="#ff8f91"/><rect x="198" y="345" width="24" height="48" fill="#ff8f91"/>
+    <line x1="265" y1="285" x2="265" y2="390" stroke="#7ee2a8"/><rect x="253" y="314" width="24" height="47" fill="#7ee2a8"/>
+    <line x1="320" y1="270" x2="320" y2="375" stroke="#7ee2a8"/><rect x="308" y="298" width="24" height="48" fill="#7ee2a8"/>
+    <line x1="375" y1="292" x2="375" y2="400" stroke="#ff8f91"/><rect x="363" y="318" width="24" height="54" fill="#ff8f91"/>
+    <line x1="430" y1="260" x2="430" y2="370" stroke="#7ee2a8"/><rect x="418" y="289" width="24" height="50" fill="#7ee2a8"/>
+    <line x1="485" y1="225" x2="485" y2="340" stroke="#7ee2a8"/><rect x="473" y="256" width="24" height="52" fill="#7ee2a8"/>
+    <line x1="540" y1="245" x2="540" y2="360" stroke="#ff8f91"/><rect x="528" y="273" width="24" height="55" fill="#ff8f91"/>
+    <line x1="595" y1="285" x2="595" y2="402" stroke="#ff8f91"/><rect x="583" y="312" width="24" height="58" fill="#ff8f91"/>
+    <line x1="650" y1="310" x2="650" y2="425" stroke="#ff8f91"/><rect x="638" y="338" width="24" height="55" fill="#ff8f91"/>
+    <line x1="705" y1="290" x2="705" y2="405" stroke="#7ee2a8"/><rect x="693" y="320" width="24" height="53" fill="#7ee2a8"/>
+    <line x1="760" y1="325" x2="760" y2="440" stroke="#ff8f91"/><rect x="748" y="352" width="24" height="58" fill="#ff8f91"/>
+    <line x1="815" y1="305" x2="815" y2="420" stroke="#7ee2a8"/><rect x="803" y="335" width="24" height="53" fill="#7ee2a8"/>
+  </g>
+  <line x1="345" y1="125" x2="345" y2="560" stroke="#ffd166" stroke-width="4" stroke-dasharray="10 8"/>
+  <text x="290" y="605" fill="#ffd166" font-size="17" font-family="sans-serif" font-weight="700">submit / activation origin</text>
+  <g font-family="sans-serif" font-size="14">
+    <line x1="80" y1="215" x2="835" y2="215" stroke="#ff7f82" stroke-width="2"/><text x="88" y="207" fill="#ff9fa1">closer 4</text>
+    <line x1="80" y1="240" x2="835" y2="240" stroke="#ee9698" stroke-width="2"/><text x="160" y="234" fill="#f2b4b5">closer 2</text>
+    <line x1="80" y1="265" x2="835" y2="265" stroke="#d9a8aa" stroke-width="2"/><text x="235" y="258" fill="#e5c3c4">closer 1</text>
+    <line x1="80" y1="405" x2="835" y2="405" stroke="#ffd166" stroke-width="3"/><text x="88" y="397" fill="#fff0b5">current</text>
+    <line x1="80" y1="430" x2="835" y2="430" stroke="#9fdcb8" stroke-width="2"/><text x="175" y="452" fill="#b9e9cb">farther 1</text>
+    <line x1="80" y1="455" x2="835" y2="455" stroke="#82cfa3" stroke-width="2"/><text x="270" y="478" fill="#a9dfbe">farther 2</text>
+    <line x1="80" y1="480" x2="835" y2="480" stroke="#66bd8d" stroke-width="2"/><text x="365" y="503" fill="#8ed3aa">farther 4</text>
+  </g>
+  <circle cx="485" cy="240" r="9" fill="#ffd166"/>
+  <text x="505" y="206" fill="#fff0b5" font-size="15" font-family="sans-serif">同一路径触达较浅报价</text>
+  <line x1="345" y1="550" x2="650" y2="550" stroke="#8bd5ff" stroke-width="4" marker-end="url(#ar4)"/>
+  <text x="425" y="540" fill="#bde9ff" font-size="15" font-family="sans-serif">共同 5,000ms mechanics clock</text>
+  <rect x="900" y="120" width="330" height="165" rx="14" fill="#143149" stroke="#4b98ca"/>
+  <text x="923" y="153" fill="#dff5ff" font-size="19" font-family="sans-serif" font-weight="700">Stage 1：Fill resolution</text>
+  <text x="923" y="185" fill="#bdd2e4" font-size="15" font-family="sans-serif">1 tick：同时区间跨零</text>
+  <text x="923" y="214" fill="#bdd2e4" font-size="15" font-family="sans-serif">2 / 4 ticks：raw fill difference 可识别</text>
+  <text x="923" y="246" fill="#7ee2a8" font-size="15" font-family="sans-serif">pathwise monotonicity：0 violations</text>
+  <rect x="900" y="315" width="330" height="188" rx="14" fill="#34233c" stroke="#c67fe5"/>
+  <text x="923" y="348" fill="#f5e6ff" font-size="19" font-family="sans-serif" font-weight="700">Stage 2：Marginal value</text>
+  <text x="923" y="380" fill="#dec7e9" font-size="15" font-family="sans-serif">shared-fill execution improvement</text>
+  <text x="923" y="408" fill="#dec7e9" font-size="15" font-family="sans-serif">− shallower-only fill terminal value</text>
+  <text x="923" y="436" fill="#dec7e9" font-size="15" font-family="sans-serif">− pending / campaign differential</text>
+  <text x="923" y="472" fill="#ff9fa1" font-size="17" font-family="sans-serif" font-weight="700">正式 value cells：0 / 24 通过</text>
+  <rect x="80" y="635" width="1150" height="48" rx="10" fill="#172738"/>
+  <text x="105" y="665" fill="#a9bfd4" font-size="15" font-family="sans-serif">同一决策上“更容易成交”是 mechanics 事实；只有完整 terminal contrast 才能回答“这个 placement action 是否值得”。</text>
+</svg>

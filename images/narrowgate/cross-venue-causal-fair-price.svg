@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">跨交易所因果公允价格坐标机制</title>
+  <desc id="desc">三家交易所的现货和永续 K 线路径经过过去时点 basis 校正、交易所内融合、二取三加权中位数和在线增益收缩，形成相对本地基线的候选报价中心。</desc>
+  <rect width="1200" height="620" fill="#08111f"/>
+  <text x="54" y="48" fill="#f4f7fb" font-size="25" font-family="system-ui,sans-serif" font-weight="700">Cross-Venue Causal Fair Price</text>
+  <text x="54" y="76" fill="#9fb3c8" font-size="14" font-family="system-ui,sans-serif">机制示意 · basis → venue fair → 2-of-3 median → shrinkage center</text>
+  <g transform="translate(54 112)">
+    <rect width="330" height="330" rx="16" fill="#0d1b2d" stroke="#27415f"/>
+    <text x="22" y="32" fill="#dce7f4" font-size="16" font-family="system-ui,sans-serif" font-weight="650">spot / perp price paths</text>
+    <line x1="34" y1="280" x2="306" y2="280" stroke="#36516f"/><line x1="34" y1="60" x2="34" y2="280" stroke="#36516f"/>
+    <polyline points="42,244 80,230 118,238 156,186 194,196 232,142 270,158 304,116" fill="none" stroke="#58d6c7" stroke-width="3"/>
+    <polyline points="42,255 80,244 118,249 156,207 194,216 232,164 270,176 304,138" fill="none" stroke="#7aa2f7" stroke-width="3"/>
+    <polyline points="42,237 80,226 118,243 156,195 194,204 232,154 270,166 304,129" fill="none" stroke="#f5a65b" stroke-width="3"/>
+    <g stroke="#dce7f4" stroke-width="2"><line x1="118" y1="222" x2="118" y2="257"/><rect x="111" y="231" width="14" height="18" fill="#58d6c7"/><line x1="194" y1="181" x2="194" y2="224"/><rect x="187" y="193" width="14" height="20" fill="#7aa2f7"/><line x1="270" y1="144" x2="270" y2="184"/><rect x="263" y="155" width="14" height="19" fill="#f5a65b"/></g>
+    <text x="42" y="306" fill="#9fb3c8" font-size="12" font-family="system-ui,sans-serif">Bitget · Bybit · OKX</text>
+  </g>
+  <path d="M394 278 H446" stroke="#7695b3" stroke-width="2" marker-end="url(#arrow)"/>
+  <g transform="translate(446 112)">
+    <rect width="304" height="330" rx="16" fill="#0d1b2d" stroke="#27415f"/>
+    <text x="22" y="32" fill="#dce7f4" font-size="16" font-family="system-ui,sans-serif" font-weight="650">causal robust estimator</text>
+    <rect x="22" y="56" width="260" height="48" rx="9" fill="#122941" stroke="#3a5a7c"/><text x="45" y="85" fill="#c8d8e8" font-size="14" font-family="system-ui,sans-serif">past-only log basis</text>
+    <rect x="22" y="119" width="260" height="48" rx="9" fill="#122941" stroke="#3a5a7c"/><text x="43" y="148" fill="#c8d8e8" font-size="14" font-family="system-ui,sans-serif">freshness / tracking weights</text>
+    <rect x="22" y="182" width="260" height="48" rx="9" fill="#12312f" stroke="#36766e"/><text x="54" y="211" fill="#bce9df" font-size="14" font-family="system-ui,sans-serif">2-of-3 weighted median</text>
+    <rect x="22" y="245" width="260" height="48" rx="9" fill="#30251a" stroke="#755530"/><text x="50" y="274" fill="#f2d2a8" font-size="14" font-family="system-ui,sans-serif">online gain · outcome-blind</text>
+  </g>
+  <path d="M760 278 H812" stroke="#7695b3" stroke-width="2" marker-end="url(#arrow)"/>
+  <g transform="translate(812 112)">
+    <rect width="334" height="330" rx="16" fill="#0d1b2d" stroke="#27415f"/>
+    <text x="22" y="32" fill="#dce7f4" font-size="16" font-family="system-ui,sans-serif" font-weight="650">quote-center coordinate</text>
+    <line x1="42" y1="160" x2="292" y2="160" stroke="#6985a3" stroke-width="2"/>
+    <circle cx="116" cy="160" r="10" fill="#7aa2f7"/><text x="71" y="138" fill="#aac5ed" font-size="13" font-family="system-ui,sans-serif">local mid</text>
+    <circle cx="254" cy="160" r="10" fill="#58d6c7"/><text x="210" y="138" fill="#9ce8de" font-size="13" font-family="system-ui,sans-serif">external fair</text>
+    <circle cx="182" cy="160" r="11" fill="#f5a65b" stroke="#ffe2ba" stroke-width="2"/><text x="128" y="197" fill="#f6cca0" font-size="13" font-family="system-ui,sans-serif">shrunk candidate center</text>
+    <path d="M126 160 H169" stroke="#f5a65b" stroke-width="4" marker-end="url(#arrowGold)"/>
+    <text x="22" y="242" fill="#9fb3c8" font-size="13" font-family="system-ui,sans-serif">40 Development days</text>
+    <text x="22" y="267" fill="#9fb3c8" font-size="13" font-family="system-ui,sans-serif">common support: 89.65%</text>
+    <rect x="22" y="286" width="290" height="30" rx="8" fill="#3a1e26"/><text x="72" y="306" fill="#ffd0d6" font-size="13" font-family="system-ui,sans-serif" font-weight="650">coordinate ≠ prediction ≠ action</text>
+  </g>
+  <rect x="54" y="472" width="1092" height="92" rx="14" fill="#0b1727" stroke="#27415f"/>
+  <text x="76" y="504" fill="#dce7f4" font-size="14" font-family="system-ui,sans-serif">Fail closed：少于两家有效、dispersion 过大、anchor/source 陈旧、basis/gain warmup 不足 → local baseline</text>
+  <text x="76" y="534" fill="#8ce5da" font-size="14" font-family="system-ui,sans-serif">all + leave-Bitget / Bybit / OKX-out 共用同一交集 mask</text>
+  <text x="1000" y="602" fill="#617993" font-size="12" font-family="system-ui,sans-serif">机制示意 / 冻结聚合</text>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#7695b3"/></marker><marker id="arrowGold" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#f5a65b"/></marker></defs>
+</svg>

@@ -1,0 +1,1139 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Xuan Tan">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Last materially modified: 2026-08-29 TL;DR：报价真的向内移动了，但有利的终局路径太稀少，模型反而选中了负价值动作BUY soft-widen 是一条历史 fill-quality 机制：当某些 BUY 状态看起来更危险时，策略把 BUY 报价向外放宽。早期 filled-only classifier 只能回答“在 baseline 下已经成交的样本后来好">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NarrowGate BUY Soft-Widen：单次解除放宽的动作价值研究">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Buy-Soft-Widen-Release-Action-Value-Research/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：报价真的向内移动了，但有利的终局路径太稀少，模型反而选中了负价值动作BUY soft-widen 是一条历史 fill-quality 机制：当某些 BUY 状态看起来更危险时，策略把 BUY 报价向外放宽。早期 filled-only classifier 只能回答“在 baseline 下已经成交的样本后来好">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/buy-soft-widen-release-kline.svg">
+<meta property="article:published_time" content="2026-08-28T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-28T16:00:00.000Z">
+<meta property="article:author" content="Xuan Tan">
+<meta property="article:tag" content="Market Making">
+<meta property="article:tag" content="市场微观结构">
+<meta property="article:tag" content="机器学习">
+<meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/buy-soft-widen-release-kline.svg">
+  
+  
+  
+  <title>NarrowGate BUY Soft-Widen：单次解除放宽的动作价值研究 - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>xiaonanbei</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="NarrowGate BUY Soft-Widen：单次解除放宽的动作价值研究"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-29 00:00" pubdate>
+          2026年8月29日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          5.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          48 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">NarrowGate BUY Soft-Widen：单次解除放宽的动作价值研究</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Last materially modified: 2026-08-29</p>
+<h2 id="TL-DR：报价真的向内移动了，但有利的终局路径太稀少，模型反而选中了负价值动作"><a href="#TL-DR：报价真的向内移动了，但有利的终局路径太稀少，模型反而选中了负价值动作" class="headerlink" title="TL;DR：报价真的向内移动了，但有利的终局路径太稀少，模型反而选中了负价值动作"></a>TL;DR：报价真的向内移动了，但有利的终局路径太稀少，模型反而选中了负价值动作</h2><p>BUY soft-widen 是一条历史 fill-quality 机制：当某些 BUY 状态看起来更危险时，策略把 BUY 报价向外放宽。早期 filled-only classifier 只能回答“在 baseline 下已经成交的样本后来好不好”，它不能回答解除放宽是否真的改善动作价值。</p>
+<p>F05 因此冻结了一个直接反事实：在一个预先抽中的 canonical 10 秒 BUY quote decision 上，如果该侧已有 soft-widen，只把这一次决策的 spread multiplier 上限设为 $1.0$，随后立刻回到原 baseline，会不会改善从决策到自然日终 MTM 的完整路径价值？</p>
+<p>动作在机械上很真实：960 个 forks 全部到达精确目标，opener 与 add 的 BUY 报价中位数都向内移动 13 ticks。可是动作通常没有改变成交路径。480 个 opener forks 中只有 20 个出现非零 terminal delta，480 个 add 中只有 15 个。chronological OOF 模型选中的 opener 与 add 动作平均值都为负；add 的 95% 日期聚类区间完全低于零。</p>
+<p>所以研究关闭的是“一次性解除现有 BUY soft-widen”这个精确动作。它没有证明所有 tightening 都有害，也没有证明 soft-widen 本身是最优；它只说明旧 filled-only score、旧阈值与这个 one-decision lever 没有形成可晋级的直接 action value。</p>
+<p>本文是历史 Development 研究复盘，不是交易建议。图中的 K 线和报价为合成机制图，不对应实盘。</p>
+<p><img src="/images/narrowgate/buy-soft-widen-release-kline.svg" srcset="/img/loading.gif" lazyload alt="BUY soft-widen 单次解除的 K 线与报价双路径"></p>
+<p><em>图 1：candidate 只在冻结决策点把 BUY quote 从 widened level 拉回 multiplier 1.0；下一个普通 quote decision 立刻回归相同 baseline。未来完整路径可能相同，也可能因为一次 fill 差异发生分叉。</em></p>
+<h2 id="1-为什么旧的-filled-only-模型不能决定动作"><a href="#1-为什么旧的-filled-only-模型不能决定动作" class="headerlink" title="1. 为什么旧的 filled-only 模型不能决定动作"></a>1. 为什么旧的 filled-only 模型不能决定动作</h2><p>设 $F=1$ 表示 baseline BUY order 最终成交。旧问题近似为：</p>
+<script type="math/tex; mode=display">
+\mathbb E[Y\mid F=1,x,\pi_0].</script><p>这可以训练一个 fill-quality ranking，但它把分母限制在 baseline 已经成交的样本中。若 candidate 把报价向内移动，它不仅可能改变成交后的 value，还会改变：</p>
+<ul>
+<li>是否 activation；</li>
+<li>何时进入 queue；</li>
+<li>是否 fill、partial fill 或 cancel；</li>
+<li>后续 inventory 与 cooldown；</li>
+<li>campaign 是否提前出现或延后结束；</li>
+<li>当日终点的 remaining inventory 与 MTM。</li>
+</ul>
+<p>因此动作所需的目标是：</p>
+<script type="math/tex; mode=display">
+\Delta Q^{\pi_0}(x_t)
+=
+Y_{t\rightarrow T}
+\bigl(\text{release one soft-widen}\bigr)
+-
+Y_{t\rightarrow T}
+\bigl(\text{current baseline}\bigr),</script><p>其中 $T$ 是冻结的自然日终 MTM 记账点。两个 forks 在 $t$ 前路径完全相同，只有该次 BUY quote decision 不同；动作以后都回到 $\pi_0$。</p>
+<p>这个差分自动消去 pre-assignment PnL：</p>
+<script type="math/tex; mode=display">
+E_t^{candidate}-E_t^{baseline}=0.</script><p>剩余 delta 来自该次 quote 改动引起的 activation、queue、fill、inventory 和后续顺序路径差异，而不是重复计算历史收益。</p>
+<h2 id="2-动作合同：只改一次，只改-BUY，只改-exposure-increasing-quote"><a href="#2-动作合同：只改一次，只改-BUY，只改-exposure-increasing-quote" class="headerlink" title="2. 动作合同：只改一次，只改 BUY，只改 exposure-increasing quote"></a>2. 动作合同：只改一次，只改 BUY，只改 exposure-increasing quote</h2><p>冻结 candidate 可以写成：</p>
+<script type="math/tex; mode=display">
+m_{BUY}^{candidate}(t)
+=
+\min\left(m_{BUY}^{baseline}(t),1.0\right).</script><p>只有在 baseline 已存在 $m_{BUY}&gt;1.0$ 的 soft-widen 时，动作才有资格进入 opportunity census。</p>
+<p>动作边界如下：</p>
+<ul>
+<li>side 固定为 BUY；</li>
+<li>SELL quote 不直接改变；</li>
+<li>reducing quote 不改变；</li>
+<li>opener 与 add 分开拟合、分开过门；</li>
+<li>assignment unit 是一个预冻结 canonical 10s quote decision；</li>
+<li>action duration 只有一个 quote decision；</li>
+<li>下一次决策起恢复当前 baseline；</li>
+<li>order size、inventory limit 与其它安全边界不改变；</li>
+<li>queue、fill、inventory、cooldown、campaign 和日终路径都在两个 forks 中重新生成。</li>
+</ul>
+<p>“单次”很关键。若 candidate 在后续每个决策持续解除 soft-widen，它会成为 repeated policy，改变 action rate、campaign birth/death 与库存分布，不能继承 one-shot 结果。</p>
+<h2 id="3-数据、抽样与-chronological-OOF"><a href="#3-数据、抽样与-chronological-OOF" class="headerlink" title="3. 数据、抽样与 chronological OOF"></a>3. 数据、抽样与 chronological OOF</h2><p>Development panel 含 40 个冻结历史日。outcome-blind census 找到 142,891 个 baseline-eligible、exposure-increasing BUY decisions，且这些决策已有 multiplier $&gt;1.0$。</p>
+<p>为了在全路径 forks 的计算预算内保持日期与 role 覆盖，研究在结果未读前按稳定 hash 每日每 role 抽 12 个机会：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th style="text-align:right">每日样本</th>
+<th style="text-align:right">总 forks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>opener</td>
+<td style="text-align:right">12</td>
+<td style="text-align:right">480</td>
+</tr>
+<tr>
+<td>add</td>
+<td style="text-align:right">12</td>
+<td style="text-align:right">480</td>
+</tr>
+<tr>
+<td>合计</td>
+<td style="text-align:right">24</td>
+<td style="text-align:right">960</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>稳定 hash 只使用日期、decision timestamp、side 与 role，不能看未来 value。</p>
+<p>直接价值模型是固定 Ridge，$\alpha=10$，不做 hyperparameter search。它读取冻结的 causal features，包括 toxicity、direction/return/volatility heads、inventory units、baseline quote distance、已有 spread multiplier、BBO spread、microprice、L2 imbalance/refresh/cancel、短期价格变化、taker imbalance 与 VPIN。</p>
+<p>chronological OOF 使用 16 个初始 train 日，随后四个各 6 日的未来 test block。每一折只用过去拟合 scaler 与 Ridge。候选阈值冻结为：</p>
+<script type="math/tex; mode=display">
+\widehat{\Delta Q}(x)\ge 0.0001\ \text{USDC/action}.</script><p>不允许看见 test delta 后再调整阈值、role pool 或 feature set。</p>
+<h2 id="4-时钟与因果边界"><a href="#4-时钟与因果边界" class="headerlink" title="4. 时钟与因果边界"></a>4. 时钟与因果边界</h2><p>研究把四种时间分开：</p>
+<ol>
+<li><strong>Decision clock</strong>：canonical 10s opportunity 的 quote decision timestamp。</li>
+<li><strong>Feature-ready clock</strong>：所有模型输入完成可见的时间，必须不晚于 decision。</li>
+<li><strong>Exchange lifecycle clock</strong>：activation、GTX、fill、cancel request 与 ACK 的发生顺序。</li>
+<li><strong>Economic ownership clock</strong>：从 target decision 开始，到自然日终 MTM 结束。</li>
+</ol>
+<p>十秒不是预测未来十秒的固定 horizon，也不是 candidate 强制存活十秒。它只是选择一个可重复的 quote-decision cadence。订单生命周期可以短于或长于十秒，终局 delta 仍由完整当日路径决定。</p>
+<p>两 arms 必须使用相同市场路径、初始状态与随机机制；candidate 只能改变目标 quote。若 replay 因 action 分叉产生不同后续 fills 与 inventory，这是 estimand 的一部分，不是需要“修正掉”的噪声。</p>
+<h2 id="5-机械验证：不是-no-op"><a href="#5-机械验证：不是-no-op" class="headerlink" title="5. 机械验证：不是 no-op"></a>5. 机械验证：不是 no-op</h2><p>960 个 forks 全部：</p>
+<ul>
+<li>到达精确 target decision；</li>
+<li>保留冻结 role 与 policy permission；</li>
+<li>产生与 baseline 不同的可执行 BUY price；</li>
+<li>完成 mechanics accounting。</li>
+</ul>
+<p>报价向内移动幅度为：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th style="text-align:right">Forks</th>
+<th style="text-align:right">平均 inward ticks</th>
+<th style="text-align:right">中位数</th>
+<th style="text-align:right">范围</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>opener</td>
+<td style="text-align:right">480</td>
+<td style="text-align:right">15.35</td>
+<td style="text-align:right">13</td>
+<td style="text-align:right">7–98</td>
+</tr>
+<tr>
+<td>add</td>
+<td style="text-align:right">480</td>
+<td style="text-align:right">14.86</td>
+<td style="text-align:right">13</td>
+<td style="text-align:right">7–81</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>抽样 Python/C++ mechanics parity 对一个 opener 和一个 add 完全一致，包括 target、role、permission、multiplier 与 effective price。相关合同测试通过。</p>
+<p>这证明 candidate 真正改变了报价几何，不是“模型输出了 action，但执行价格没有动”的伪实验。</p>
+<h2 id="6-为什么价格移动很大，终局路径却很少改变"><a href="#6-为什么价格移动很大，终局路径却很少改变" class="headerlink" title="6. 为什么价格移动很大，终局路径却很少改变"></a>6. 为什么价格移动很大，终局路径却很少改变</h2><p>动作的 terminal nonzero support 很稀疏：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th style="text-align:right">非零 terminal paths</th>
+<th style="text-align:right">比例</th>
+<th style="text-align:right">正 delta</th>
+<th style="text-align:right">负 delta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>opener</td>
+<td style="text-align:right">20 / 480</td>
+<td style="text-align:right">4.17%</td>
+<td style="text-align:right">5</td>
+<td style="text-align:right">15</td>
+</tr>
+<tr>
+<td>add</td>
+<td style="text-align:right">15 / 480</td>
+<td style="text-align:right">3.13%</td>
+<td style="text-align:right">4</td>
+<td style="text-align:right">11</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>所有 960 个 forks 的总 fill count 都与 baseline 相同。这并不意味着 action 没有效果：同样的 fill count 可能对应不同成交时点、价格、订单身份与后续 campaign path。但它说明绝大多数 one-decision quote change 没有改变最终可见的顺序路径。</p>
+<p>如果记 $D_i=1$ 表示 candidate 与 baseline 的 terminal path 不同，则估计对象可以分解为：</p>
+<script type="math/tex; mode=display">
+\mathbb E[\Delta Q]
+=
+\Pr(D=1)\,
+\mathbb E[\Delta Q\mid D=1].</script><p>这里 $\Pr(D=1)$ 只有约 3%–4%。少数分叉的绝对 delta 可能很大，因此 unconditional mean 很容易被几条路径支配；这也是为什么研究需要按 UTC 日 bootstrap、winsorized sensitivity 与正日比例，而不能只看总和。</p>
+<h2 id="7-Direct-value-OOF-结果"><a href="#7-Direct-value-OOF-结果" class="headerlink" title="7. Direct-value OOF 结果"></a>7. Direct-value OOF 结果</h2><p>冻结 selector 在未来 OOF 的表现是：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th style="text-align:right">OOF selected</th>
+<th style="text-align:right">平均 USDC/action</th>
+<th style="text-align:right">95% UTC-day CI</th>
+<th style="text-align:right">USDC/OOF day</th>
+<th style="text-align:right">95% UTC-day CI</th>
+<th style="text-align:right">正日</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>opener</td>
+<td style="text-align:right">92 / 288</td>
+<td style="text-align:right">-0.00003478</td>
+<td style="text-align:right">[-0.00009626, +0.00000217]</td>
+<td style="text-align:right">-0.0001333</td>
+<td style="text-align:right">[-0.0003500, +0.0000083]</td>
+<td style="text-align:right">1 / 24</td>
+</tr>
+<tr>
+<td>add</td>
+<td style="text-align:right">187 / 288</td>
+<td style="text-align:right">-0.00003636</td>
+<td style="text-align:right">[-0.00007202, -0.00000656]</td>
+<td style="text-align:right">-0.0002833</td>
+<td style="text-align:right">[-0.0005708, -0.0000500]</td>
+<td style="text-align:right">0 / 24</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>两个 role 都有足够 mechanics 与 selected-row support，却都失败经济门：</p>
+<ul>
+<li>opener 的区间跨零，且只有 1/24 OOF 日为正；</li>
+<li>add 的平均值和日总值区间都完全低于零；</li>
+<li>预测与实际 value 的相关系数为 opener $-0.0562$、add $-0.0272$，方向几乎没有可用关系。</li>
+</ul>
+<p>全 480 actions/role 的 unconditional point estimate 被少数大 forks 拉成正值，但日期聚类区间仍跨零。99% winsorized mean 则为：</p>
+<script type="math/tex; mode=display">
+\text{opener}=-0.00003375,
+\qquad
+\text{add}=-0.00002606
+\quad \text{USDC/action}.</script><p>这些 sensitivity 解释结果，却不能替换预注册 OOF gate。</p>
+<h2 id="8-为什么不能“再调一下旧阈值”"><a href="#8-为什么不能“再调一下旧阈值”" class="headerlink" title="8. 为什么不能“再调一下旧阈值”"></a>8. 为什么不能“再调一下旧阈值”</h2><p>研究失败不是因为动作没有触发，也不是因为报价只移动了半个 tick。动作平均移动约 15 ticks，mechanics 很明确。</p>
+<p>真正失败的是：</p>
+<ol>
+<li>path-changing events 稀少；</li>
+<li>局部 causal features 没有识别出其中有利的 continuation；</li>
+<li>OOF selector 选中的动作平均为负；</li>
+<li>role-specific 日期方向没有稳定性。</li>
+</ol>
+<p>旧 filled-only classifier 的 score threshold 研究的是另一个分母。把它重新调到一个让 backtest 好看的值，不能补齐 direct action contrast。把 one-shot action 改成多次持续 release 也会创建新的 intervention duration 与 sequential feedback，不能继承本结果。</p>
+<h2 id="9-最终结论与权限"><a href="#9-最终结论与权限" class="headerlink" title="9. 最终结论与权限"></a>9. 最终结论与权限</h2><p>冻结结论是：</p>
+<script type="math/tex; mode=display">
+\text{close buy soft-widen release single-decision action value on Development}.</script><p>具体边界：</p>
+<ul>
+<li>关闭：在一个 canonical BUY decision 上解除既有 soft-widen，随后回 baseline；</li>
+<li>不关闭：所有未来 BUY tightening、其它 duration 或其它 state representation；</li>
+<li>旧 filled-only model 与旧阈值：只保留历史研究意义；</li>
+<li>multi-decision policy：未创建；</li>
+<li>Validation 与 sealed holdout：未读；</li>
+<li>action、shadow、baseline 或 live 权限：没有获得。</li>
+</ul>
+<p>阴性 action study 仍然有价值。它把“模型看起来能预测坏 fill”推进到真正的报价反事实，并发现这个 lever 的 treatment strength 虽然在价格上很大，在终局路径上却非常稀疏。</p>
+<h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/buy_soft_widen_release_single_decision_action_value_v1_development_20260804.md">BUY Soft-Widen Release Single-Decision Action Value v1</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/README.md">F05 Fill Quality, Toxicity, And Quote EV README</a></li>
+</ul>
+<p>公开报告包含聚合数字、方法与权限边界。精确 fork rows、OOF decisions 与机器 manifest 属于未随公共仓库分发的 evidence store。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Market-Making/" class="category-chain-item">Market Making</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
+      
+        <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
+      
+        <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
+      
+        <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>NarrowGate BUY Soft-Widen：单次解除放宽的动作价值研究</div>
+      <div>https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Buy-Soft-Widen-Release-Action-Value-Research/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Xuan Tan</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-Buy-Q90-Portfolio-Attribution-Research/" title="NarrowGate BUY q90 Portfolio Attribution：过滤 BUY 是否把库存推向 SHORT">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">NarrowGate BUY q90 Portfolio Attribution：过滤 BUY 是否把库存推向 SHORT</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-Conditional-P3-Joint-Quote-Value-Research/" title="NarrowGate Conditional P3：从触达概率到联合报价价值">
+                        <span class="hidden-mobile">NarrowGate Conditional P3：从触达概率到联合报价价值</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -1,0 +1,945 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Xuan Tan">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Last materially modified: 2026-08-29 TL;DR：不再只问“十秒会不会碰到”，而是估计何时、碰到多远固定 10 秒 P3 把一条完整 first-passage path 压成单个 Bernoulli label。两个状态即使十秒 touch probability 相同，也可能一个在 300ms 内就穿越近价，另一个直到第九秒才慢慢到达；对 quote cad">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NarrowGate P3：从固定十秒概率到完整 Aggressive-Reach Time Hazard">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-P3-Aggressive-Reach-Time-Hazard-Research/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：不再只问“十秒会不会碰到”，而是估计何时、碰到多远固定 10 秒 P3 把一条完整 first-passage path 压成单个 Bernoulli label。两个状态即使十秒 touch probability 相同，也可能一个在 300ms 内就穿越近价，另一个直到第九秒才慢慢到达；对 quote cad">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/p3-aggressive-reach-time-hazard.svg">
+<meta property="article:published_time" content="2026-08-29T12:36:00.000Z">
+<meta property="article:modified_time" content="2026-08-29T12:36:00.000Z">
+<meta property="article:author" content="Xuan Tan">
+<meta property="article:tag" content="Market Making">
+<meta property="article:tag" content="市场微观结构">
+<meta property="article:tag" content="生存分析">
+<meta property="article:tag" content="机器学习">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/p3-aggressive-reach-time-hazard.svg">
+  
+  
+  
+  <title>NarrowGate P3：从固定十秒概率到完整 Aggressive-Reach Time Hazard - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>xiaonanbei</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="NarrowGate P3：从固定十秒概率到完整 Aggressive-Reach Time Hazard"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-29 20:36" pubdate>
+          2026年8月29日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          1.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          15 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">NarrowGate P3：从固定十秒概率到完整 Aggressive-Reach Time Hazard</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Last materially modified: 2026-08-29</p>
+<h2 id="TL-DR：不再只问“十秒会不会碰到”，而是估计何时、碰到多远"><a href="#TL-DR：不再只问“十秒会不会碰到”，而是估计何时、碰到多远" class="headerlink" title="TL;DR：不再只问“十秒会不会碰到”，而是估计何时、碰到多远"></a>TL;DR：不再只问“十秒会不会碰到”，而是估计何时、碰到多远</h2><p>固定 10 秒 P3 把一条完整 first-passage path 压成单个 Bernoulli label。两个状态即使十秒 touch probability 相同，也可能一个在 300ms 内就穿越近价，另一个直到第九秒才慢慢到达；对 quote cadence、queue 与 cancel 来说，它们不是同一机制。</p>
+<p><code>p3_aggressive_reach_time_conditioned_hazard_v1</code> 因此建立 100ms discrete-time risk set，按 BUY/SELL 分开估计从当前同侧 best quote 出发、在距离 $d$ 上第一次被 side-correct aggressive flow 触达的 hazard，并把它积分成完整 reach-time CDF。30 秒是 administrative censoring boundary，不是假设订单一定活 30 秒。</p>
+<p>冻结的 normal research path 使用 200 个唯一 UTC source-days、四个 expanding chronological OOF folds 和 48 个 provider/native overlap diagnostics。BUY 与 SELL 的 integrated-Brier improvement 分别为 <code>+0.004463</code> 与 <code>+0.004428</code>，day-clustered 95% intervals 都完全大于零；overall context coverage <code>99.835%</code>，distance/time monotonicity violations 全为零。</p>
+<p>结论仍然只属于 prediction：模型不估 activation、queue conversion、fill-before-cancel、terminal value 或 PnL。近距离 5–100 tick cells 仍有系统性 underprediction，任何报价使用都必须另行冻结 action 与 full-path A/B。</p>
+<p><img src="/images/narrowgate/p3-aggressive-reach-time-hazard.svg" srcset="/img/loading.gif" lazyload alt="Aggressive reach 的距离与时间 first-passage 面"></p>
+<p><em>图 1：机制示意。价格路径依次穿越不同距离阈值，每一行 risk set 只在首次触达前存活；hazard 沿时间积分成 distance-specific CDF。图不是历史私有市场路径。</em></p>
+<p>本文只讨论公开 Development prediction evidence，不建议任何真实交易行为。</p>
+<h2 id="1-研究问题：为什么固定-horizon-不够"><a href="#1-研究问题：为什么固定-horizon-不够" class="headerlink" title="1. 研究问题：为什么固定 horizon 不够"></a>1. 研究问题：为什么固定 horizon 不够</h2><p>固定 P3 标签写成：</p>
+<script type="math/tex; mode=display">
+Z_{d,H}=\mathbf 1\{T_d\le H\},</script><p>其中 $T_d$ 是 aggressive reach 首次到达距离 $d$ 的时间。若只固定 $H=10s$，模型只能学习 $P(T_d\le10s)$，看不见 $T_d$ 的完整分布。</p>
+<p>full reach-time surface 则估计：</p>
+<script type="math/tex; mode=display">
+F_s(t,d\mid x)=P(T_{s,d}\le t\mid x),
+\qquad 0<t\le30s.</script><p>它同时回答三个问题：随着 $t$ 增加，触达概率怎样累积；随着 $d$ 增加，触达概率怎样下降；同一 $t,d$ 下，side 与 causal state 怎样改变分布。</p>
+<h2 id="2-100ms-discrete-hazard"><a href="#2-100ms-discrete-hazard" class="headerlink" title="2. 100ms discrete hazard"></a>2. 100ms discrete hazard</h2><p>把时间离散成 100ms bins，定义在尚未触达时的 conditional hazard：</p>
+<script type="math/tex; mode=display">
+h_{s,k,d}(x)=P(T_{s,d}\in(t_{k-1},t_k]\mid T_{s,d}>t_{k-1},x).</script><p>对应 survival 与 CDF 为：</p>
+<script type="math/tex; mode=display">
+S_s(t_k,d\mid x)=\prod_{j=1}^{k}\bigl(1-h_{s,j,d}(x)\bigr),</script><script type="math/tex; mode=display">
+F_s(t_k,d\mid x)=1-S_s(t_k,d\mid x).</script><p>如果 30 秒内没有触达，行在 administrative boundary 被 right-censor；它不会被当成“永远不触达”。这种表示允许一个共享模型学习近距离早期 hazard 与远距离慢速 tail，而不为每个 horizon 建一套互相矛盾的独立 classifier。</p>
+<h2 id="3-输入、约束与-estimand"><a href="#3-输入、约束与-estimand" class="headerlink" title="3. 输入、约束与 estimand"></a>3. 输入、约束与 estimand</h2><p>输入包含 raw distance、fast/slow volatility-normalized distance、side、spread、causal volatility/regime 与 source-ready context。source identity 与 year 只用于 diagnostics，不作为 tradable feature。</p>
+<p>模型对 raw distance 和两个 normalized distances 施加 nonincreasing constraints。最终输出还必须满足：</p>
+<script type="math/tex; mode=display">
+d_1<d_2\Rightarrow F(t,d_1\mid x)\ge F(t,d_2\mid x),</script><script type="math/tex; mode=display">
+t_1<t_2\Rightarrow F(t_1,d\mid x)\le F(t_2,d\mid x).</script><p>primary estimand 是相对冻结 baseline 的 day-level integrated-Brier improvement。设 $IBS_0$ 为 baseline、$IBS_1$ 为 conditioned hazard，则报告：</p>
+<script type="math/tex; mode=display">
+I_d=IBS_{0,d}-IBS_{1,d}.</script><p>正值表示新模型在该日改善。BUY 与 SELL 分开做 day-cluster uncertainty，不用 pooled rows 虚增样本量。</p>
+<h2 id="4-数据与因果时钟"><a href="#4-数据与因果时钟" class="headerlink" title="4. 数据与因果时钟"></a>4. 数据与因果时钟</h2><p>weighted source panel 有 200 个唯一 UTC days：93 个 2025 provider fit days、63 个 2026 native fit days，以及 44 个已读 2026 diagnostic days。48 个 provider/native overlap days 只做 transport comparison，不双重加权。</p>
+<p>四个 expanding chronological OOF folds 在训练前冻结。最终报告的 OOF denominator 含 BUY/SELL 各 84 个 OOF days；每个 outer test 日只能使用严格过去拟合的 hazard。</p>
+<p>reach truth 使用 exchange-time aggressive events；feature 只能在窗口起点的 causal ready clock 可见。这个身份不是 receive-time queue truth，也不宣称同毫秒跨流 event 的精确订单先后。</p>
+<p>30 秒 censor boundary 只是报告与支持上限。它不是当前订单的真实 lifetime，也不能直接成为 cancel timer。</p>
+<h2 id="5-研究演进：design、spec-与-execution-都属于一个项目"><a href="#5-研究演进：design、spec-与-execution-都属于一个项目" class="headerlink" title="5. 研究演进：design、spec 与 execution 都属于一个项目"></a>5. 研究演进：design、spec 与 execution 都属于一个项目</h2><p>设计阶段先定义 cumulative maximum reached distance cache。一个 source-day 只存每个时间点已达到的最大 tick 距离，多个 $(t,d)$ labels 从同一缓存派生，避免为每个 horizon 复制市场状态。</p>
+<p>冻结 Spec 随后确定 source panels、four-fold chronology、constraints、proper score、coverage、transport 与权限。模型训练和 report 只是执行这份研究合同，不产生新的项目。</p>
+<p>固定 10 秒 v2、volatility-conditioned v4 与 reach-time hazard 是不同 estimands，所以它们各自成文；而 <code>surface design</code>、JSON Spec、cache manifest 与训练 report 是本项目的不同章节，不应拆成“设计文章”“实现文章”“结果文章”。</p>
+<h2 id="6-结果"><a href="#6-结果" class="headerlink" title="6. 结果"></a>6. 结果</h2><p>BUY integrated-Brier improvement 为 <code>+0.004463</code>，95% day-clustered interval <code>[+0.002155,+0.007202]</code>，positive-day rate <code>60.71%</code>。</p>
+<p>SELL improvement 为 <code>+0.004428</code>，interval <code>[+0.002829,+0.006285]</code>，positive-day rate <code>75.00%</code>。四个 expanding folds 在两侧都独立通过。</p>
+<p>overall context coverage 为 <code>99.835%</code>，高于冻结的 98% gate。distance-CDF、distance-hazard 与 time-CDF monotonicity violations 均为零，最大 probability-mass error 只有 <code>2.554e-15</code>。</p>
+<p>48 个 provider/native overlap 日的 aggregate prediction MAE 为 BUY <code>0.006089</code>、SELL <code>0.005553</code>，低于 <code>0.01</code> gate。最大单日 MAE 分别达到 <code>0.015121</code> 与 <code>0.012421</code>，所以研究只支持 aggregate source transport，不声称 daily-uniform transport。</p>
+<p>44 个已读 native diagnostic days 的 score direction 仍为正，但不参与任何 gate，也不是 independent confirmation。</p>
+<h2 id="7-残余风险：near-distance-calibration"><a href="#7-残余风险：near-distance-calibration" class="headerlink" title="7. 残余风险：near-distance calibration"></a>7. 残余风险：near-distance calibration</h2><p>在 5–20 tick 与 21–100 tick 的若干 cells，尤其 5–30 秒 report horizons，模型低估 observed reach。integrated Brier 可以通过，同时局部区域仍有 bias；这正是 proper score 与 cell diagnostics 都需要保留的原因。</p>
+<p>对 maker 来说，near-distance region 往往最接近实际 quote support。若直接把一个整体通过的 CDF 用作 quote action，局部 underprediction 可能导致过于积极的 placement。下一项经济研究必须先冻结如何从 CDF、queue conversion 和 fill value 得到 action，而不能只以 overall IBS pass 为依据。</p>
+<h2 id="8-支持边界与没有获得的权限"><a href="#8-支持边界与没有获得的权限" class="headerlink" title="8. 支持边界与没有获得的权限"></a>8. 支持边界与没有获得的权限</h2><p>支持：side-specific conditioned first-passage hazard 在历史 Development 上相对 baseline 有稳定 proper-score improvement，结构与 aggregate source transport gates 通过。</p>
+<p>不支持：activation probability、queue fill、cancel/reentry value、campaign terminal PnL、当前 runtime artifact replacement 或 sub-100ms transport。</p>
+<p>本项目没有 quote mapping、action registration、Validation、sealed holdout、shadow 或 live authority。operational fixed-10s P3 v2 保持不变。</p>
+<h2 id="9-公共证据"><a href="#9-公共证据" class="headerlink" title="9. 公共证据"></a>9. 公共证据</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/docs/p3_aggressive_reach_time_conditioned_hazard_v1_development_20260804.md">Aggressive Reach-Time Development 报告</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/docs/p3_aggressive_reach_time_conditioned_hazard_v1_spec_20260804.md">冻结人类可读 Spec</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/docs/p3_aggressive_reach_time_surface_v1_design_20260804.md">Reach-Time Surface Design</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/docs/p3_reach_time_source_day_manifest_v1_20260804.json">Source-Day Manifest</a></li>
+</ul>
+<p>模型文件、cache 与逐行 OOF reports 不随公共仓库分发；公开文档提供可复核的身份、聚合结果和权限。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Market-Making/" class="category-chain-item">Market Making</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
+      
+        <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
+      
+        <a href="/tags/%E7%94%9F%E5%AD%98%E5%88%86%E6%9E%90/" class="print-no-link">#生存分析</a>
+      
+        <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>NarrowGate P3：从固定十秒概率到完整 Aggressive-Reach Time Hazard</div>
+      <div>https://xiao-nanbei.github.io/2026/08/29/NarrowGate-P3-Aggressive-Reach-Time-Hazard-Research/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Xuan Tan</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-Causal-13-Head-Empirical-P3-v4-Research/" title="NarrowGate Causal-v4：经验 P3、13 头重训与证据撤回">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">NarrowGate Causal-v4：经验 P3、13 头重训与证据撤回</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-P3-Policy-Visible-Decision-Cadence-Transport-Research/" title="NarrowGate P3：穿过策略可见时钟的条件触达概率">
+                        <span class="hidden-mobile">NarrowGate P3：穿过策略可见时钟的条件触达概率</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

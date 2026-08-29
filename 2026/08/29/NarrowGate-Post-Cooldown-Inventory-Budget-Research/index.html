@@ -1,0 +1,1071 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Xuan Tan">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Last materially modified: 2026-08-29 TL;DR：候选网格退化为单点，未读任何 PnL 就关闭多层 SHORT campaign 曾承担较多 terminal loss，但“多层库存危险”不自动推出“post-cooldown 限制额外 fill units 有用”。本项目在第一次正常同侧 cooldown release 后，为每条非 flat lineage">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NarrowGate Post-Cooldown Inventory Budget：动作很广，Fill 杠杆却只有约 1%">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Post-Cooldown-Inventory-Budget-Research/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：候选网格退化为单点，未读任何 PnL 就关闭多层 SHORT campaign 曾承担较多 terminal loss，但“多层库存危险”不自动推出“post-cooldown 限制额外 fill units 有用”。本项目在第一次正常同侧 cooldown release 后，为每条非 flat lineage">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/post-cooldown-inventory-budget.svg">
+<meta property="article:published_time" content="2026-08-29T12:17:00.000Z">
+<meta property="article:modified_time" content="2026-08-29T12:17:00.000Z">
+<meta property="article:author" content="Xuan Tan">
+<meta property="article:tag" content="Market Making">
+<meta property="article:tag" content="库存预算">
+<meta property="article:tag" content="机制可行性">
+<meta property="article:tag" content="完整路径回放">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/post-cooldown-inventory-budget.svg">
+  
+  
+  
+  <title>NarrowGate Post-Cooldown Inventory Budget：动作很广，Fill 杠杆却只有约 1% - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>xiaonanbei</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="NarrowGate Post-Cooldown Inventory Budget：动作很广，Fill 杠杆却只有约 1%"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-29 20:17" pubdate>
+          2026年8月29日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          5.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          44 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">NarrowGate Post-Cooldown Inventory Budget：动作很广，Fill 杠杆却只有约 1%</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Last materially modified: 2026-08-29</p>
+<h2 id="TL-DR：候选网格退化为单点，未读任何-PnL-就关闭"><a href="#TL-DR：候选网格退化为单点，未读任何-PnL-就关闭" class="headerlink" title="TL;DR：候选网格退化为单点，未读任何 PnL 就关闭"></a>TL;DR：候选网格退化为单点，未读任何 PnL 就关闭</h2><p>多层 SHORT campaign 曾承担较多 terminal loss，但“多层库存危险”不自动推出“post-cooldown 限制额外 fill units 有用”。本项目在第一次正常同侧 cooldown release 后，为每条非 flat lineage 设置额外 exposure fill-unit budget $B$；reducing quote 和 hard safety gate 全部保留。SELL 是 primary，BUY 是独立 negative control。</p>
+<p>40 日 Development 的 Grade-A unlimited control 显示，SELL 1,753 条支持 lineages 中超过 1 个额外 unit 的仅 3.31%，超过 2 个仅 0.34%；BUY 为 4.64%/0.22%。whole-unit rounding 与 zero-budget exclusion 后，两侧 candidate grid 都只剩 ${1}$，未达到预注册的至少两个非零候选。因此根本不存在可以比较的 1/2/3-unit frontier。</p>
+<p>完整 $B=1$ 路径又揭示第二个问题：Grade-A SELL 1,659 episodes 中 final quote action change 86.14%，但 fill retention 98.89%、activity retention 98.05%。它广泛改变报单，却只删掉约 1.1% fills，同时超过冻结的 50% action-change 上限。结论是 mechanics lever 不合格，不是 PnL 阴性。项目没有读取 reward、PnL、markout、Validation 或 holdout，也没有创建 randomized action identity。</p>
+<p><img src="/images/narrowgate/post-cooldown-inventory-budget.svg" srcset="/img/loading.gif" lazyload alt="Post-cooldown inventory budget 的订单与成交漏斗"></p>
+<p><em>图 1：机制示意。$B=1$ 会阻断许多后续提交/替换，但绝大多数被阻断尝试本来不会成为第二个 fill unit，因而 order-layer 变化没有传到 inventory-layer。</em></p>
+<h2 id="1-研究问题：限制“还能加多少”而不是“还要等多久”"><a href="#1-研究问题：限制“还能加多少”而不是“还要等多久”" class="headerlink" title="1. 研究问题：限制“还能加多少”而不是“还要等多久”"></a>1. 研究问题：限制“还能加多少”而不是“还要等多久”</h2><p>cooldown rearm 研究改变释放时间；这里改变的是释放后的累计 inventory budget。第一次正常 release 后，control 的额外 exposure-increasing fills 不设上限，candidate 最多再允许 $B$ 个 whole fill units。若 budget 用尽，后续同侧 exposure adds 被阻断，直到 lineage 由 opposite-side fill、flat/reset 或 day censor 结束。</p>
+<p>可行性问题不是 $E[Y(B)-Y(\infty)]$，因为本阶段不读 $Y$。它先问两个 outcome-blind 条件：</p>
+<script type="math/tex; mode=display">
+|\mathcal B_s|\ge2,\qquad
+\mathcal B_s=\{B\in\mathbb N^+:B\text{ 在 control distribution 中有支持}\},</script><p>以及候选是否具有适度而非极端的 action leverage。只有存在多个有支持预算，才有资格冻结 randomized economic experiment。</p>
+<h2 id="2-动作、输入与机制-estimands"><a href="#2-动作、输入与机制-estimands" class="headerlink" title="2. 动作、输入与机制 estimands"></a>2. 动作、输入与机制 estimands</h2><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>冻结定义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Entry</td>
+<td>non-flat campaign 第一次正常 same-side cooldown release</td>
+</tr>
+<tr>
+<td>Control</td>
+<td>unlimited additional exposure fill units</td>
+</tr>
+<tr>
+<td>Candidate</td>
+<td>whole-unit budget $B$，用尽后阻断 exposure adds</td>
+</tr>
+<tr>
+<td>Primary side</td>
+<td>SELL；BUY 为 negative control</td>
+</tr>
+<tr>
+<td>保持不变</td>
+<td>reducing、size、hard limits、queue、P3、latency</td>
+</tr>
+<tr>
+<td>q90</td>
+<td>control/candidate 均 disabled，故只代表 q90-OFF reference</td>
+</tr>
+<tr>
+<td>本阶段可读</td>
+<td>support、quote action change、fill/activity retention、contract parity</td>
+</tr>
+<tr>
+<td>禁止读取</td>
+<td>reward、PnL、markout 与锁定 panels</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>对 episode $e$ 定义额外 fill units：</p>
+<script type="math/tex; mode=display">
+U_e=\sum_{j\in e,\ post-release}\text{fill\_units}_j.</script><p>候选只允许前 $B$ 个 exposure units。机制杠杆分别从 order 与 fill 层测量：</p>
+<script type="math/tex; mode=display">
+L_{order}=P(A^{B}_t\ne A^{\infty}_t),\qquad
+\rho_{fill}=\frac{N_{fill}^{B}}{N_{fill}^{\infty}}.</script><p>高 $L<em>{order}$、$\rho</em>{fill}\approx1$ 表示大量报单路径变化没有变成实际库存差异。</p>
+<h2 id="3-因果时钟与一个具体例子"><a href="#3-因果时钟与一个具体例子" class="headerlink" title="3. 因果时钟与一个具体例子"></a>3. 因果时钟与一个具体例子</h2><p>budget 只在 baseline cooldown 已真实释放后开始。fill event 必须先经过 exchange sequence、order activation 与 queue depletion 才消耗 unit；submitted quote 本身不消耗预算。opposite-side reducing fill 仍按 frozen lineage semantics 处理，不能把一次 cancel 或 quote replacement 当作 fill unit。</p>
+<p>例子：SHORT campaign 在 release 后 budget $B=1$。第一笔 SELL add 成交，budget 归零。之后 baseline 在五个 cycle 继续提交或替换 SELL quotes，candidate 全部阻断；但若这五笔 baseline orders 都没有触价，最终两臂 fill count 完全相同。此时 action change 可接近 100%，inventory path 却相同。若 baseline 只有第六笔成交，$B=1$ 才少一个 fill unit。</p>
+<p>这解释了为什么 order-layer parity 通过仍不代表有足够 economic lever，也解释了为什么不能用“阻断了 86% decisions”夸大动作强度。</p>
+<h2 id="4-冻结面板与数据身份"><a href="#4-冻结面板与数据身份" class="headerlink" title="4. 冻结面板与数据身份"></a>4. 冻结面板与数据身份</h2><p>Development 是 exact 40 UTC days，primary 为 24 个 Grade-A days，16 个 Grade-B days 仅做 sensitivity，不进入 primary gate。queue/path 使用 native snapshot/delta full-path Python replay；37 个 contract tests 通过，budget conservation failure 与 one-order overshoot 都为零。</p>
+<p>q90 evaluations/actions 在所有路径均为零；infinity-budget 与 disabled-budget equivalence 在冻结 Grade-A check days 及 Grade-B sensitivity day 通过。因此本文只拥有 q90-OFF mechanics authority，不能说等价于当前含 q90 生命周期的 baseline。</p>
+<p>原始来源区分 exact native-sequence 与 provider-normalized 数据。后者可以做 causal features、training 或 sensitivity，却没有 Binance native sequence identity，不能静默混入 exact-queue action gate。40 日是本 F09 identity 的冻结 denominator，不宣称是项目所有可用日期的最大集合。</p>
+<h2 id="5-Unlimited-control-的填充单位分布"><a href="#5-Unlimited-control-的填充单位分布" class="headerlink" title="5. Unlimited control 的填充单位分布"></a>5. Unlimited control 的填充单位分布</h2><p>Grade-A outcome-blind distribution：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Side</th>
+<th style="text-align:right">supported lineages</th>
+<th style="text-align:right">p25</th>
+<th style="text-align:right">p50</th>
+<th style="text-align:right">p75</th>
+<th style="text-align:right">p90</th>
+<th style="text-align:right">$U&gt;1$</th>
+<th style="text-align:right">$U&gt;2$</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BUY</td>
+<td style="text-align:right">1,811</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">4.64%</td>
+<td style="text-align:right">0.22%</td>
+</tr>
+<tr>
+<td>SELL</td>
+<td style="text-align:right">1,753</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">3.31%</td>
+<td style="text-align:right">0.34%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>至少一半 lineages 在 release 后没有任何额外 fill，p90 也只有 1。按冻结 whole-unit rounding 与排除 $B=0$ 后：</p>
+<script type="math/tex; mode=display">
+\mathcal B_{BUY}=\mathcal B_{SELL}=\{1\}.</script><p>预注册要求至少两个 distinct nonzero candidates，因此 grid-resolution gate 立即失败。不能看到退化后临时加入 fractional unit、notional budget 或 $B=0$；那些会改变动作经济含义。</p>
+<h2 id="6-B-1-完整路径：第二个独立关闭理由"><a href="#6-B-1-完整路径：第二个独立关闭理由" class="headerlink" title="6. $B=1$ 完整路径：第二个独立关闭理由"></a>6. $B=1$ 完整路径：第二个独立关闭理由</h2><p>尽管 grid 已失败，冻结合同允许把唯一 $B=1$ 路径跑完，检查它到底在 order 和 fill 层有多大作用：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Panel</th>
+<th>Side</th>
+<th style="text-align:right">Episodes</th>
+<th style="text-align:right">final quote action change</th>
+<th style="text-align:right">fill retention</th>
+<th style="text-align:right">activity retention</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Grade A</td>
+<td>BUY</td>
+<td style="text-align:right">1,745</td>
+<td style="text-align:right">86.36%</td>
+<td style="text-align:right">98.98%</td>
+<td style="text-align:right">97.07%</td>
+</tr>
+<tr>
+<td>Grade A</td>
+<td>SELL</td>
+<td style="text-align:right">1,659</td>
+<td style="text-align:right">86.14%</td>
+<td style="text-align:right">98.89%</td>
+<td style="text-align:right">98.05%</td>
+</tr>
+<tr>
+<td>Grade B</td>
+<td>BUY</td>
+<td style="text-align:right">1,238</td>
+<td style="text-align:right">86.51%</td>
+<td style="text-align:right">98.19%</td>
+<td style="text-align:right">97.10%</td>
+</tr>
+<tr>
+<td>Grade B</td>
+<td>SELL</td>
+<td style="text-align:right">973</td>
+<td style="text-align:right">87.46%</td>
+<td style="text-align:right">98.73%</td>
+<td style="text-align:right">97.67%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>unsupported mass 为零，但 mechanics pass 为 false：action-change 超过冻结 50% 最大值，同时 SELL fill 仅下降约 1.1%。它不是 order no-op，而是 fill-path poor lever。反复 future add attempts 很多，真正成为 additional fills 的很少。</p>
+<h2 id="7-结果与不确定性：为什么此处没有-PnL-表"><a href="#7-结果与不确定性：为什么此处没有-PnL-表" class="headerlink" title="7. 结果与不确定性：为什么此处没有 PnL 表"></a>7. 结果与不确定性：为什么此处没有 PnL 表</h2><p>这是一项 feasibility study，estimand 是支持分辨率与机制传导，不是 value。没有 PnL 数字正是正确结果：当 candidate grid 退化且动作传导失衡时，打开经济 outcomes 只会消费证据、诱导 post-hoc budget 设计。</p>
+<p>3.31% 是 frozen Grade-A distribution 的描述，不是“多层 SHORT 无风险”。此前 attribution 说明 multi-level campaigns 与 loss 相关；本实验只说明 post-cooldown release surface 上的 whole-unit budget 无法形成可辨识 1/2/3 frontier。风险关联与动作可行性是两件事。</p>
+<p>Grade-B sensitivity 方向一致，提高了 mechanics 结论的稳健性，却不能替代 primary 或授权 pooling。provider-normalized 日也不能补 exact-queue resolution，因为它们缺少相同 sequence contract。</p>
+<h2 id="8-研究演进与关闭边界"><a href="#8-研究演进与关闭边界" class="headerlink" title="8. 研究演进与关闭边界"></a>8. 研究演进与关闭边界</h2><p>v1 设计、v1.1 spec、execution errata 与 v1.2 Development 都属于一个 research identity。errata 修复执行合同，没有改变 sample、action、estimand 或统计 gate，因此不拆成文章。</p>
+<p>关闭的是 q90-OFF、post-cooldown、whole incremental fill-unit budget。它不关闭 cumulative notional limit、campaign-level permission、price penalty 或 current-live q90-aware action。任何 successor 都必须先定义新经济杠杆和独立 denominator，不能在未读 outcomes 的名义下对已见 distribution 继续搜索 $B$。</p>
+<h2 id="9-没有获得的权限"><a href="#9-没有获得的权限" class="headerlink" title="9. 没有获得的权限"></a>9. 没有获得的权限</h2><ul>
+<li>没有读取 reward、PnL、markout、Validation 或 sealed holdout；</li>
+<li>没有创建 randomized action identity；</li>
+<li>没有 shadow、action、live 或 baseline 变更权限；</li>
+<li>没有 q90-ON 等价性；</li>
+<li>没有把 provider-normalized days 当 exact native queue evidence；</li>
+<li>没有从 historical loss attribution 推出因果动作价值。</li>
+</ul>
+<h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/post_cooldown_incremental_inventory_budget_feasibility_v1_2_development_20260801.md"><code>post_cooldown_incremental_inventory_budget_feasibility_v1_2_development_20260801.md</code></a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/post_cooldown_incremental_inventory_budget_feasibility_v1_design.md"><code>post_cooldown_incremental_inventory_budget_feasibility_v1_design.md</code></a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/README.md"><code>F09 README</code></a></li>
+</ul>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>这项研究在最应该停止的地方停止：预算网格没有分辨率，$B=1$ 又只在 order layer 广泛变化。没有打开 PnL，不是缺少结果；它正是 outcome discipline 的结果——先证明动作能以合适强度传到 fill，再谈价值。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Market-Making/" class="category-chain-item">Market Making</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
+      
+        <a href="/tags/%E5%BA%93%E5%AD%98%E9%A2%84%E7%AE%97/" class="print-no-link">#库存预算</a>
+      
+        <a href="/tags/%E6%9C%BA%E5%88%B6%E5%8F%AF%E8%A1%8C%E6%80%A7/" class="print-no-link">#机制可行性</a>
+      
+        <a href="/tags/%E5%AE%8C%E6%95%B4%E8%B7%AF%E5%BE%84%E5%9B%9E%E6%94%BE/" class="print-no-link">#完整路径回放</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>NarrowGate Post-Cooldown Inventory Budget：动作很广，Fill 杠杆却只有约 1%</div>
+      <div>https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Post-Cooldown-Inventory-Budget-Research/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Xuan Tan</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-Sell-Add-Inventory-Price-Penalty-Research/" title="NarrowGate SELL Add 库存价格惩罚：0.5/1.0/1.5 bps 的风险控制实验">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">NarrowGate SELL Add 库存价格惩罚：0.5/1.0/1.5 bps 的风险控制实验</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-Volatility-Time-Add-Rearm-Research/" title="NarrowGate Variance-Time Add Rearm：用波动预算替代 85 秒时钟">
+                        <span class="hidden-mobile">NarrowGate Variance-Time Add Rearm：用波动预算替代 85 秒时钟</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

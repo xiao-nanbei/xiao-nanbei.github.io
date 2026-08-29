@@ -1,0 +1,981 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Xuan Tan">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Last materially modified: 2026-08-29 TL;DR：模型质量全过，原研究仍然失败；事后改门槛必须留下痕迹静态 P3 把所有波动环境压成一条 P(touch|distance) 曲线。volatility-conditioned v4 改问：同样的 14 USDC&#x2F;BTC 距离，在平静与剧烈市场里显然不是同一个问题，能否让 probability 同时依赖 raw">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NarrowGate P3：波动率条件触达面、覆盖门槛与治理覆写">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-P3-Volatility-Conditioned-Touch-Surface-Research/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：模型质量全过，原研究仍然失败；事后改门槛必须留下痕迹静态 P3 把所有波动环境压成一条 P(touch|distance) 曲线。volatility-conditioned v4 改问：同样的 14 USDC&#x2F;BTC 距离，在平静与剧烈市场里显然不是同一个问题，能否让 probability 同时依赖 raw">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/p3-volatility-conditioned-kline-surface.svg">
+<meta property="article:published_time" content="2026-08-29T12:33:00.000Z">
+<meta property="article:modified_time" content="2026-08-29T12:33:00.000Z">
+<meta property="article:author" content="Xuan Tan">
+<meta property="article:tag" content="Market Making">
+<meta property="article:tag" content="市场微观结构">
+<meta property="article:tag" content="因果推断">
+<meta property="article:tag" content="概率校准">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/p3-volatility-conditioned-kline-surface.svg">
+  
+  
+  
+  <title>NarrowGate P3：波动率条件触达面、覆盖门槛与治理覆写 - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>xiaonanbei</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="NarrowGate P3：波动率条件触达面、覆盖门槛与治理覆写"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-29 20:33" pubdate>
+          2026年8月29日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          1.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          11 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">NarrowGate P3：波动率条件触达面、覆盖门槛与治理覆写</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Last materially modified: 2026-08-29</p>
+<h2 id="TL-DR：模型质量全过，原研究仍然失败；事后改门槛必须留下痕迹"><a href="#TL-DR：模型质量全过，原研究仍然失败；事后改门槛必须留下痕迹" class="headerlink" title="TL;DR：模型质量全过，原研究仍然失败；事后改门槛必须留下痕迹"></a>TL;DR：模型质量全过，原研究仍然失败；事后改门槛必须留下痕迹</h2><p>静态 P3 把所有波动环境压成一条 <code>P(touch|distance)</code> 曲线。volatility-conditioned v4 改问：同样的 14 USDC/BTC 距离，在平静与剧烈市场里显然不是同一个问题，能否让 probability 同时依赖 raw distance、volatility-normalized distance、side、spread 和 regime？</p>
+<p>答案在预测层很强。历史 native OOF 的四个 proper-score cells 全部改善，48 个 calibration cells 全部通过，197,231,404 次距离单调性比较没有一个 violation，provider/native prediction transport 也通过。可原 v4 仍然失败，因为冻结合同要求每个 source-day 至少 98% context coverage，而三天只有 <code>96.85%–97.74%</code>。</p>
+<p>项目 owner 在读到结果后把 coverage gate 改成 95%，形成 v4.1。没有重训、删日或重算 prediction；同一证据因此通过新门槛。正确写法不是“v4 后来修好了”，而是：<strong>v4 按原合同失败；v4.1 是明确 outcome-informed 的统计合同覆写，只支持已读历史 Development prediction，不是独立确认。</strong></p>
+<p><img src="/images/narrowgate/p3-volatility-conditioned-kline-surface.svg" srcset="/img/loading.gif" lazyload alt="平静与高波动状态下的条件 P3 触达面"></p>
+<p><em>图 1：机制示意。同一报价距离在低/高波动 K 线下对应不同标准化距离与 touch probability；缺失的连续盘口窗口被 censor，不会前向填充。</em></p>
+<p>本文只讨论历史预测证据，不建议任何真实交易行为。</p>
+<h2 id="1-研究问题"><a href="#1-研究问题" class="headerlink" title="1. 研究问题"></a>1. 研究问题</h2><p>source-aware v3 已经说明，把更多年份池化进同一静态曲线不能解决 transport。v4 因而冻结了条件 estimand：</p>
+<script type="math/tex; mode=display">
+P_{touch}\left(
+d,
+\frac{d}{\sigma_{price}\sqrt{10s}},
+side,
+spread,
+regime
+\right).</script><p>它仍然估计 10 秒 aggressive reach，不是 placement fill、queue conversion、order arrival intensity 或 action value。研究问题是 conditional prediction structure 是否优于 current static v2，并满足因果输入、覆盖、校准、单调性和跨 source transport 的完整合同。</p>
+<h2 id="2-输入、输出与模型约束"><a href="#2-输入、输出与模型约束" class="headerlink" title="2. 输入、输出与模型约束"></a>2. 输入、输出与模型约束</h2><p>模型输入包括 raw distance、volatility-normalized distance、BUY/SELL、current spread、fast/slow causal volatility 与 causal volatility regime。raw 与 normalized distance 都施加 probability 随距离不增加的约束：</p>
+<script type="math/tex; mode=display">
+d_1<d_2\Rightarrow \hat P_{touch}(d_1\mid x)\ge \hat P_{touch}(d_2\mid x).</script><p>source identity 与 calendar year 只参与 translation/transport diagnostics，不进入 tradable feature vector，避免模型把“这是 2025 provider”本身当作交易信号。</p>
+<p>候选与 baseline 的 proper-score 差为：</p>
+<script type="math/tex; mode=display">
+\Delta IBS=IBS_{conditional\ v4}-IBS_{static\ v2}.</script><p>负值表示 conditional surface 更好。它是 prediction estimand；本项目没有报价动作。</p>
+<h2 id="3-面板与因果时钟"><a href="#3-面板与因果时钟" class="headerlink" title="3. 面板与因果时钟"></a>3. 面板与因果时钟</h2><p>训练结合 93 个 provider-normalized 2025 日与严格先于测试日的 native 2026 data。48 个已经读取过的 native historical days 被分为四个 chronological 12-day OOF folds；每折 calibration 只使用最后八个严格先前 native days，并共享一个正斜率 Platt transform。</p>
+<p>每个 reach window 的 BBO、volatility、spread 与 regime 必须在窗口起点因果可见。真实连续 BBO interruption 会产生 context missing；研究既不 forward-fill，也不插值，更不会在看到 score 后丢掉失败日期。</p>
+<p>provider/native overlap 只检验 source prediction transport，不重复加权同一天 outcome。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>冻结时钟</th>
+<th>证据用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BBO 与 spread</td>
+<td>reach window 起点前已可见</td>
+<td>distance 与当前市场坐标</td>
+</tr>
+<tr>
+<td>fast/slow volatility</td>
+<td>仅使用起点前历史</td>
+<td>normalized distance 与 regime</td>
+</tr>
+<tr>
+<td>aggressive reach</td>
+<td>起点之后 10 秒</td>
+<td>prediction label，不能回流 feature</td>
+</tr>
+<tr>
+<td>provider/native overlap</td>
+<td>各 source 自己的 causal clock</td>
+<td>translation/transport diagnostic</td>
+</tr>
+<tr>
+<td>historical OOF day</td>
+<td>只用严格过去 folds 训练/校准</td>
+<td>Development prediction evidence</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>这个表尤其重要：volatility 是条件变量，不是用未来十秒 realized volatility 回填的标签。若在窗口结束后才知道的波动被放入 $x$，模型会获得直接的 future-path clue，Brier 再好也没有策略可见性。</p>
+<h2 id="4-v4-结果：预测结构通过，完整-identity-失败"><a href="#4-v4-结果：预测结构通过，完整-identity-失败" class="headerlink" title="4. v4 结果：预测结构通过，完整 identity 失败"></a>4. v4 结果：预测结构通过，完整 identity 失败</h2><p>historical validation 上，full-distance mean Brier delta/day 为 <code>-0.00590204</code>，95% day-clustered interval <code>[-0.00833032,-0.00412380]</code>；current-policy support 为 <code>-0.01393824</code>，区间 <code>[-0.02041990,-0.00936985]</code>。</p>
+<p>late diagnostic 对应值为 <code>-0.00461838</code> 与 <code>-0.01105226</code>，区间同样完全小于零。BUY 与 SELL 在每个 panel/metric cell 上都改善，没有用 pooled score 掩盖弱 side。</p>
+<p>48 个支持充分的 calibration cells 全部通过；最大 candidate-minus-current integrated calibration-error delta 为 <code>-0.00538532</code>。六个 source-overlap diagnostics 的最大 mean absolute prediction difference 约 <code>0.001610</code>，低于冻结的 <code>0.01</code> gate。</p>
+<p>结构检查共执行 <code>197,231,404</code> 次 adjacent-distance comparisons，violations 为零。代表性状态在 <code>d=14 USDC/BTC</code> 时给出约 <code>0.0189–0.2439</code> 的 touch probability，证明它不是伪装成条件模型的近常数曲线。</p>
+<p>然而三天 context coverage 分别只有 <code>97.5330%</code>、<code>96.8497%</code> 与 <code>97.7415%</code>，低于预注册的 98%。缺口是约 11 分钟的真实连续 BBO interruption，不是 cache bug。原 v4 的 canonical decision 因而是 <code>conditional_v4_prediction_gate_failed_development</code>。</p>
+<h2 id="5-v4-1：为什么它是同一篇文章里的新合同，而不是“修复版”"><a href="#5-v4-1：为什么它是同一篇文章里的新合同，而不是“修复版”" class="headerlink" title="5. v4.1：为什么它是同一篇文章里的新合同，而不是“修复版”"></a>5. v4.1：为什么它是同一篇文章里的新合同，而不是“修复版”</h2><p>owner 在读取 v4 结果后，把唯一一个字段 <code>minimum_fraction</code> 从 0.98 改为 0.95。v4.1 没有重训模型、删除日期、重算 probability 或修改其他 gate；minimum observed coverage <code>96.849664%</code> 因而通过。</p>
+<p>v4.1 的正确权限是 <code>historical_development_prediction_supported_owner_coverage_override</code>。它证明同一 conditional surface 在一个明确披露、较宽松的 coverage contract 下通过；它不洗掉 v4 的原始失败，也不是 prospective 或 independent confirmation。</p>
+<p>把 v4 与 v4.1 拆成两篇“成功/失败新闻”会掩盖最关键的治理事实。它们应当作为同一研究演进中的两个统计身份：原门槛结果与事后覆写结果并列展示。</p>
+<p>可以用一个简单的门函数说明：</p>
+<script type="math/tex; mode=display">
+G_c=\mathbf 1\left\{\min_d coverage_d\ge c\right\}.</script><p>同一组 predictions 在 $c=0.98$ 时 $G_c=0$，在 $c=0.95$ 时 $G_c=1$。变的是统计合同，不是市场事实。因为 $c$ 在看到 minimum coverage 后才改变，v4.1 的 pass 必须带着 <code>owner coverage override</code> 标签，不能被宣传成预注册成功。</p>
+<p>同时，missing windows 仍然被 censor。v4.1 不是把缺失补齐，也不是把三天排除；它只是接受每日至少 95% 的可用上下文作为 sufficient support。这种治理选择可以合理，但必须与独立确认严格区分。</p>
+<h2 id="6-为什么预测面不能直接成为报价"><a href="#6-为什么预测面不能直接成为报价" class="headerlink" title="6. 为什么预测面不能直接成为报价"></a>6. 为什么预测面不能直接成为报价</h2><p>条件 surface 的输出是 $P_{touch}(d\mid x)$，而 maker 需要比较不同 quote coordinates 的净价值。至少还缺三个环节：touch 后是否轮到本单、fill 的 maker-signed value、以及 fill 对 inventory/campaign 后续路径的影响。</p>
+<p>若只因为某个高波动状态的 near-distance touch probability 很高就收窄报价，策略可能恰好在最容易被 adverse flow 穿越的状态增加 fills。相反，简单 widen 又可能删除有价值 repair fills。prediction ranking 不能决定动作方向。</p>
+<p>后来的 scalar-adapter full-path test 正好验证了这一点：把 v4.1 压成动态 <code>delta_star/kappa_eff</code> 后，报价大幅收窄、fills 大增、terminal value 明显恶化。那个结果关闭特定 adapter，不改变本项目的 prediction evidence，却证明权限分层不是形式主义。</p>
+<h2 id="7-支持边界与没有获得的权限"><a href="#7-支持边界与没有获得的权限" class="headerlink" title="7. 支持边界与没有获得的权限"></a>7. 支持边界与没有获得的权限</h2><p>支持：conditional P3 structure 在已读历史 panels 上显著优于 static v2；distance monotonicity、calibration 和 aggregate source transport 均强。</p>
+<p>不支持：exact receive-time transport、fill probability、maker value 或 quote action。v4.1 的通过不能自动替换 current v2 artifact，也不能把 conditional curve 压成一个 scalar kappa 后直接输入 AS/GLFT。</p>
+<p>本项目没有 artifact replacement、quote mapping、action experiment、Validation、sealed holdout、shadow 或 live authority。经济使用必须另行冻结 curve-to-quote mapping，并用完整 maker path 检验 fills、campaign value 与 tail。</p>
+<h2 id="8-公共证据"><a href="#8-公共证据" class="headerlink" title="8. 公共证据"></a>8. 公共证据</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/docs/p3_touch_volatility_conditioned_v4_development_20260803.md">v4 Development 报告</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/docs/p3_touch_volatility_conditioned_v4_1_development_20260803.md">v4.1 coverage-override 报告</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/docs/p3_touch_volatility_conditioned_v4_spec_20260803.json">v4 冻结 Spec</a></li>
+</ul>
+<p>公共文档提供聚合 score、覆盖失败与权限；模型与逐窗口 artifacts 不随公共仓库分发。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Market-Making/" class="category-chain-item">Market Making</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
+      
+        <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
+      
+        <a href="/tags/%E6%A6%82%E7%8E%87%E6%A0%A1%E5%87%86/" class="print-no-link">#概率校准</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>NarrowGate P3：波动率条件触达面、覆盖门槛与治理覆写</div>
+      <div>https://xiao-nanbei.github.io/2026/08/29/NarrowGate-P3-Volatility-Conditioned-Touch-Surface-Research/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Xuan Tan</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-P3-Conditional-Curve-Scalar-Quote-Adapter-Research/" title="NarrowGate P3：预测更准，标量报价适配器为什么更亏">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">NarrowGate P3：预测更准，标量报价适配器为什么更亏</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-P3-Source-Aware-Static-Touch-Curve-Research/" title="NarrowGate P3：扩样本为什么让静态触达曲线变差">
+                        <span class="hidden-mobile">NarrowGate P3：扩样本为什么让静态触达曲线变差</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">External Adverse Quote Edge Guard 机制与支持度</title>
+  <desc id="desc">外部公允价格 K 线先于本地报价下移，保守的全来源和逐家删除一致不利边际仅把增加敞口的一侧报价向外移动，并经过延迟存活、价差上限和 exact lifecycle 检查。</desc>
+  <rect width="1200" height="620" fill="#08111f"/>
+  <text x="54" y="48" fill="#f4f7fb" font-size="25" font-family="system-ui,sans-serif" font-weight="700">External Adverse Edge Guard · Mechanics → Exact Opener</text>
+  <text x="54" y="76" fill="#9fb3c8" font-size="14" font-family="system-ui,sans-serif">机制示意 + 冻结聚合结果 · outcome-blind</text>
+  <g transform="translate(54 108)">
+    <rect width="530" height="340" rx="16" fill="#0d1b2d" stroke="#27415f"/>
+    <text x="22" y="32" fill="#dce7f4" font-size="16" font-family="system-ui,sans-serif" font-weight="650">外部 fair 下移：BUY quote 只向外</text>
+    <line x1="34" y1="282" x2="500" y2="282" stroke="#36516f"/>
+    <polyline points="42,104 94,116 146,107 198,142 250,154 302,196 354,187 406,232 458,219 498,245" fill="none" stroke="#58d6c7" stroke-width="4"/>
+    <polyline points="42,132 94,137 146,131 198,151 250,164 302,181 354,185 406,204 458,209 498,222" fill="none" stroke="#7aa2f7" stroke-width="3"/>
+    <line x1="340" y1="190" x2="340" y2="286" stroke="#f5a65b" stroke-dasharray="6 5"/>
+    <text x="286" y="89" fill="#9ce8de" font-size="13" font-family="system-ui,sans-serif">external fair</text>
+    <text x="392" y="178" fill="#aac5ed" font-size="13" font-family="system-ui,sans-serif">local mid</text>
+    <line x1="345" y1="239" x2="430" y2="239" stroke="#f08a8a" stroke-width="4"/>
+    <circle cx="430" cy="239" r="8" fill="#f08a8a"/><text x="383" y="225" fill="#f6b1b8" font-size="12" font-family="system-ui,sans-serif">baseline bid</text>
+    <line x1="430" y1="239" x2="364" y2="268" stroke="#f5a65b" stroke-width="3" marker-end="url(#arrowGold)"/>
+    <circle cx="354" cy="273" r="8" fill="#f5a65b"/><text x="260" y="304" fill="#f6cca0" font-size="12" font-family="system-ui,sans-serif">outward candidate</text>
+    <text x="42" y="325" fill="#8fa8bf" font-size="12" font-family="system-ui,sans-serif">reducing side unchanged · no inward tightening</text>
+  </g>
+  <g transform="translate(610 108)">
+    <rect width="536" height="340" rx="16" fill="#0d1b2d" stroke="#27415f"/>
+    <text x="22" y="32" fill="#dce7f4" font-size="16" font-family="system-ui,sans-serif" font-weight="650">v1 冻结 mechanics</text>
+    <rect x="22" y="54" width="492" height="60" rx="10" fill="#122941" stroke="#3a5a7c"/>
+    <text x="40" y="80" fill="#c8d8e8" font-size="14" font-family="system-ui,sans-serif">7,786 eligible opener/add → 26 changes</text>
+    <text x="40" y="101" fill="#f5c286" font-size="13" font-family="system-ui,sans-serif">0.334% candidate rate · floor 5%</text>
+    <text x="22" y="145" fill="#dce7f4" font-size="14" font-family="system-ui,sans-serif" font-weight="650">trigger survival</text>
+    <line x1="48" y1="246" x2="480" y2="246" stroke="#36516f"/><line x1="48" y1="160" x2="48" y2="246" stroke="#36516f"/>
+    <polyline points="104,174 260,198 432,220" fill="none" stroke="#58d6c7" stroke-width="4"/>
+    <polyline points="104,176 260,197 432,197" fill="none" stroke="#f5a65b" stroke-width="4"/>
+    <g fill="#8fa8bf" font-size="12" font-family="system-ui,sans-serif"><text x="91" y="266">10ms</text><text x="243" y="266">100ms</text><text x="414" y="266">500ms</text></g>
+    <circle cx="104" cy="174" r="5" fill="#58d6c7"/><circle cx="260" cy="198" r="5" fill="#58d6c7"/><circle cx="432" cy="220" r="5" fill="#58d6c7"/>
+    <circle cx="104" cy="176" r="5" fill="#f5a65b"/><circle cx="260" cy="197" r="5" fill="#f5a65b"/><circle cx="432" cy="197" r="5" fill="#f5a65b"/>
+    <text x="56" y="294" fill="#9ce8de" font-size="12" font-family="system-ui,sans-serif">BUY n=18 · 500ms 61.1%</text>
+    <text x="286" y="294" fill="#f6cca0" font-size="12" font-family="system-ui,sans-serif">SELL n=8 · 500ms 75.0%</text>
+    <rect x="22" y="309" width="492" height="22" rx="7" fill="#3a1e26"/>
+    <text x="112" y="325" fill="#ffd0d6" font-size="12" font-family="system-ui,sans-serif">约 13 randomized paths：不足以注册 action</text>
+  </g>
+  <rect x="54" y="474" width="1092" height="100" rx="14" fill="#0b1727" stroke="#27415f"/>
+  <text x="76" y="505" fill="#dce7f4" font-size="14" font-family="system-ui,sans-serif">v2 exact opener：stable decision ID · signed role · feature-ready clock · submit / ACK / cancel / fill / queue lineage</text>
+  <text x="76" y="533" fill="#f5c286" font-size="14" font-family="system-ui,sans-serif">v2.1 / v2.2：schema、writer health、quarantine、cancel-reject、crash recovery、atomic admission</text>
+  <text x="76" y="557" fill="#f08a8a" font-size="13" font-family="system-ui,sans-serif">Prospective tape disabled / not collected · no economic outcome read</text>
+  <text x="1001" y="603" fill="#617993" font-size="12" font-family="system-ui,sans-serif">机制示意 / 冻结聚合</text>
+  <defs><marker id="arrowGold" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#f5a65b"/></marker></defs>
+</svg>

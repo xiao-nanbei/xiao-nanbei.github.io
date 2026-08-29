@@ -1,0 +1,952 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Xuan Tan">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Last materially modified: 2026-08-29 TL;DR：固定值可以做基线，不能因为赢过一次 grid 就被叫作 alphaNarrowGate 的 F01 固定参数竞速研究问过一个很诱人的问题：如果把 gamma、kappa、cooldown、maximum inventory、spread cap、guard threshold 和固定一档报价动作放进一个足够大的搜">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NarrowGate 固定参数竞速：为什么全局 Winner 不是可迁移的做市 Alpha">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Fixed-Parameter-Racing-Research/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：固定值可以做基线，不能因为赢过一次 grid 就被叫作 alphaNarrowGate 的 F01 固定参数竞速研究问过一个很诱人的问题：如果把 gamma、kappa、cooldown、maximum inventory、spread cap、guard threshold 和固定一档报价动作放进一个足够大的搜">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/fixed-parameter-racing-regime-kline.svg">
+<meta property="article:published_time" content="2026-08-29T12:30:00.000Z">
+<meta property="article:modified_time" content="2026-08-29T12:30:00.000Z">
+<meta property="article:author" content="Xuan Tan">
+<meta property="article:tag" content="Market Making">
+<meta property="article:tag" content="市场微观结构">
+<meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/fixed-parameter-racing-regime-kline.svg">
+  
+  
+  
+  <title>NarrowGate 固定参数竞速：为什么全局 Winner 不是可迁移的做市 Alpha - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>xiaonanbei</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="NarrowGate 固定参数竞速：为什么全局 Winner 不是可迁移的做市 Alpha"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-29 20:30" pubdate>
+          2026年8月29日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          42 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">NarrowGate 固定参数竞速：为什么全局 Winner 不是可迁移的做市 Alpha</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Last materially modified: 2026-08-29</p>
+<h2 id="TL-DR：固定值可以做基线，不能因为赢过一次-grid-就被叫作-alpha"><a href="#TL-DR：固定值可以做基线，不能因为赢过一次-grid-就被叫作-alpha" class="headerlink" title="TL;DR：固定值可以做基线，不能因为赢过一次 grid 就被叫作 alpha"></a>TL;DR：固定值可以做基线，不能因为赢过一次 grid 就被叫作 alpha</h2><p>NarrowGate 的 F01 固定参数竞速研究问过一个很诱人的问题：如果把 <code>gamma</code>、<code>kappa</code>、cooldown、maximum inventory、spread cap、guard threshold 和固定一档报价动作放进一个足够大的搜索空间，历史回放里最好的那组参数，能不能成为跨市场状态都有效的策略？</p>
+<p>最终答案是否定的，但这个“否定”需要说准确。项目没有证明固定常数在数学上不可能成为某个冻结模型和样本里的最优解；它证明的是，历史 pooled winner 没有在修复后的因果时钟、side/role 分层、chronological transfer、campaign tail 和 action-uplift 口径下形成稳定、可识别、可迁移的增量价值。</p>
+<p>更重要的是，早期 48、512、1024-arm generations，以及 retained39、blocked71、late4 等面板的精确 PnL、排名和 winner 身份已经撤回。它们依赖后来被修复的 left-labelled features、trade clock、P3、queue、mixed L2 或历史 incident 语义。本文不会把这些旧数字重新排成一张“冠军榜”，因为那会把无效证据包装成精确结论。</p>
+<p>保留下来的研究结论是：<strong>固定参数 alpha 家族关闭；固定值仍可作为安全约束、经验校准、风险预算和 rolling baseline 身份；新的经济机制必须注册成新的 state-conditioned action family。</strong></p>
+<p><img src="/images/narrowgate/fixed-parameter-racing-regime-kline.svg" srcset="/img/loading.gif" lazyload alt="固定参数在不同市场状态下产生不同路径"></p>
+<p><em>图 1：机制示意。相同的固定 spread/cooldown 在低波动、单边冲击和修复阶段会删除不同类型的成交；“参与更少”不能自动解释为“选择更好”。图中不是历史私有交易或实盘 K 线。</em></p>
+<p>本文只讨论历史研究方法和公开结论，不建议任何真实交易行为。文中的 PnL、fill、inventory 与 campaign 指标都是特定 replay identity 下的研究量，不是收益承诺。</p>
+<h2 id="1-研究问题：我们到底在搜索什么"><a href="#1-研究问题：我们到底在搜索什么" class="headerlink" title="1. 研究问题：我们到底在搜索什么"></a>1. 研究问题：我们到底在搜索什么</h2><p>固定参数竞速最朴素的形式，是在一个参数集合 $\Theta$ 上运行完整策略回放，并选择 pooled score 最大的 arm：</p>
+<script type="math/tex; mode=display">
+\hat\theta=\arg\max_{\theta\in\Theta}\widehat J(\theta).</script><p>这里的 $\theta$ 可能同时包含风险厌恶、订单到达曲线、加仓冷却、库存上限、报价上限和保护阈值；$\widehat J$ 可能是 raw PnL、terminal MTM、Sharpe、inventory-adjusted PnL，或它们的加权组合。</p>
+<p>问题在于，maker 策略不是把一个静态预测直接换成一次收益。参数会改变 bid/ask 坐标、place/replace/cancel、queue position、fill、库存、后续 eligibility、cooldown lineage 和 campaign 终局。两个 arm 的差异应当在同一天、同一数据身份、同一随机种子与相同非候选机制下成对估计：</p>
+<script type="math/tex; mode=display">
+\Delta_d(\theta)=Y_d(\theta)-Y_d(B_0),
+\qquad
+\widehat\Delta(\theta)=\frac1D\sum_{d=1}^{D}\Delta_d(\theta),</script><p>其中 $B_0$ 是冻结的 rolling baseline，$Y_d$ 至少要同时报告 terminal value、campaign tail、fills/activity 与 inventory exposure。仅凭 pooled $\widehat J$ 选 winner，会把日期 regime、参与度下降和尾部风险重新分配混成一个数字。</p>
+<p>真正的问题因此不是“哪个参数在全样本 PnL 最高”，而是：</p>
+<blockquote>
+<p>在 side、order role、queue state、volatility、flow 与 campaign state 都不同的情况下，同一个固定动作是否仍具有正的条件净价值，并且能从 Development 转移到后续面板？</p>
+</blockquote>
+<h2 id="2-输入、动作与-estimand"><a href="#2-输入、动作与-estimand" class="headerlink" title="2. 输入、动作与 estimand"></a>2. 输入、动作与 estimand</h2><p>F01 的输入是完整 maker replay 所需的本地市场状态、策略状态、订单生命周期和账户状态。历史 arms 覆盖过 <code>gamma / kappa ratio / depth-kappa / cap / guard / cooldown / max inventory</code> 的联合 sweep，也覆盖过 <code>prevent_over_widen</code>、<code>widen_1tick</code>、<code>recenter_1tick</code>、固定跳过一个 add cycle 等离散报价动作。</p>
+<p>连续参数 arm 的“动作”是整套策略坐标发生变化；离散 local action 的动作则是某个 eligible decision 上保持 baseline 或执行冻结的 widen/re-center/skip。两者不能混成一个 estimand：前者比较完整策略路径，后者需要已知 propensity、overlap 和 decision/campaign attribution。</p>
+<p>F01 最终采用的研究判断至少要求同时看：</p>
+<script type="math/tex; mode=display">
+\text{value uplift},\quad
+\text{fill retention},\quad
+\text{inventory time},\quad
+\text{campaign q10/CVaR},\quad
+\text{side/role transfer}.</script><p>如果候选只是按比例删除 fills 和 toxic fills，那么它不是负向选择器，只是 participation shutdown。若 $F$ 表示成交量、$L$ 表示基线损失，可用选择效率直观表达：</p>
+<script type="math/tex; mode=display">
+d_F=1-\frac{F_1}{F_0},\qquad
+d_L=1-\frac{L_1}{L_0},\qquad
+S_L=d_L-d_F.</script><p>$S_L\le 0$ 意味着损失下降没有快于活动下降，不能用“亏得少了”掩盖“几乎不做了”。</p>
+<h2 id="3-数据与因果时钟：为什么旧冠军榜必须撤回"><a href="#3-数据与因果时钟：为什么旧冠军榜必须撤回" class="headerlink" title="3. 数据与因果时钟：为什么旧冠军榜必须撤回"></a>3. 数据与因果时钟：为什么旧冠军榜必须撤回</h2><p>历史参数竞速跨过多代 replay identity。后来审计发现，其中一部分使用了左标签特征、错误的 trade 可见时钟、旧 P3 override、近似 queue、mixed-cadence L2 或历史 live incident 语义。它们不是可以通过改一列标签就修好的小误差，因为 arm 之间的订单、fill、库存和 campaign 路径已经发生分叉。</p>
+<p>一旦输入时钟或执行机制改变，旧日级差值不再估计同一个 $Y_d(\theta)$。因此旧的 48/512/1024-arm 精确 PnL、retained39/blocked71/late4 排名与 winner 身份被正式撤回；“当时没有晋级”的治理决定可以保留，但不能把旧数值重新称为当前因果证据。</p>
+<p>这也是为什么数据修复不能自动复活一个已经读取过 outcome 的 family。若再次搜索相同 grid，研究者已经知道哪些区域曾经看起来好；如果不建立新的 action semantics、数据身份、chronological split 和统计合同，所谓重跑只是对已消费面板的再优化。</p>
+<h2 id="4-研究演进：版本是章节，不是十几篇新研究"><a href="#4-研究演进：版本是章节，不是十几篇新研究" class="headerlink" title="4. 研究演进：版本是章节，不是十几篇新研究"></a>4. 研究演进：版本是章节，不是十几篇新研究</h2><p>第一阶段是大规模 global parameter racing。它证明 runner 能覆盖大量 arm，也暴露了 pooled rank 对 replay identity 和面板的高度敏感。</p>
+<p>第二阶段把动作缩窄到 side-specific 固定报价变化，例如 baseline、prevent-over-widen、widen one tick 与 recenter one tick。Development 领先动作没有稳定转移到 Validation，并出现 winner rotation；极端 campaign tail 又缺乏足够支持。</p>
+<p>第三阶段测试 BUY add 的固定 widen、SELL add 的固定 skip，以及 85 秒之后的固定/状态条件 rearm。结论不是“shock、refill、recovery 没有信息”，而是被冻结的动作映射没有产生可靠 uplift：描述路径较差，不等于继续停止加仓更好，因为等待也可能切断 repair fill。</p>
+<p>第四阶段用 native queue 与 competing-risk/value 机制检查 keep/cancel。简单阈值动作把 intervention fills 大幅削掉，却没有更快削掉 toxic fills，进一步说明固定防守规则容易退化为停止参与。</p>
+<p>这些阶段属于同一个“固定参数能否成为普适 alpha”的研究演进。实现修复、scorecard 版本和执行批次只说明证据怎样被生产，不是新的经济问题，所以都应写在这一篇主文章里。</p>
+<h2 id="5-结果：关闭的是固定-alpha-范式，不是所有常数"><a href="#5-结果：关闭的是固定-alpha-范式，不是所有常数" class="headerlink" title="5. 结果：关闭的是固定 alpha 范式，不是所有常数"></a>5. 结果：关闭的是固定 alpha 范式，不是所有常数</h2><p>公开关闭报告保留了五类结论。</p>
+<p>第一，没有一组历史 fixed arm 在 corrected causal replay、side/role transfer、campaign tail 和 action-uplift 口径下保持稳定为正。</p>
+<p>第二，某些参数看似改善 PnL，实质上是在降低 fills、延长库存持有或改变尾部构成。没有选择效率与条件净价值，就不能把 participation reduction 写成 alpha。</p>
+<p>第三，BUY 与 SELL、opener/add/reducing 对同一动作的反应不同。一个 pooled winner 会掩盖失败的 side 或 role。</p>
+<p>第四，参数写成函数也不自动变成 state-conditioned alpha。只有函数实际改变订单路径，并在冻结反事实下提高终局价值，才具有策略意义。</p>
+<p>第五，固定值仍然不可或缺。tick/lot、fee、GTX 语义、hard inventory limit、circuit breaker、pair-spread cap、随机种子、latency profile 和 rolling baseline 都需要冻结。区别在于它们的权限：它们是交易所规则、安全约束、经验校准或实验控制，而不是从一次 PnL sweep 推导出的市场常数。</p>
+<h2 id="6-关闭边界与没有获得的权限"><a href="#6-关闭边界与没有获得的权限" class="headerlink" title="6. 关闭边界与没有获得的权限"></a>6. 关闭边界与没有获得的权限</h2><p>本研究关闭以下路径：扩大旧 grid、在已读面板上换 score、重新排名旧 winner、把固定 elapsed-time rearm 或一档 widen/re-center 当作普适动作、通过减少 activity 宣称 alpha。</p>
+<p>它没有关闭 AS/GLFT 作为库存感知坐标系，没有关闭 P3、queue、latency、volatility 的直接经验校准，也没有关闭 side-specific、role-aware、state-conditioned action-value 研究。</p>
+<p>该家族没有获得 Validation/holdout 重读权限，没有 action promotion，没有 shadow 权限，也没有 live authority。保留的 <code>paired_screen_v2</code> 只有筛选与排名权限；panel transition 必须由独立 promotion controller 决定。</p>
+<h2 id="7-后继研究应怎样提出问题"><a href="#7-后继研究应怎样提出问题" class="headerlink" title="7. 后继研究应怎样提出问题"></a>7. 后继研究应怎样提出问题</h2><p>新的研究应把问题从“再找一组常数”改写为：在一个明确 decision surface 上，KEEP、CANCEL、REENTER、ADD、NO-ADD、WIDEN 或 RECENTER 哪个动作相对 baseline 有更高的条件净价值？</p>
+<p>这要求冻结 side/role eligibility、known propensity、完整 campaign reward、overlap/ESS、day-cluster uncertainty、tail 与 participation gates。unsupported state 回退 baseline，而不是依靠回归外推。</p>
+<p>固定参数竞速最有价值的产物并不是一个 winner，而是一条研究纪律：<strong>参数可以被冻结，证据不能被混用；screening 可以排序，排序不能越级变成策略权限。</strong></p>
+<h2 id="8-公共证据"><a href="#8-公共证据" class="headerlink" title="8. 公共证据"></a>8. 公共证据</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/README.md">F01 Fixed Parameter Racing README</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/docs/fixed_parameter_strategy_family_closed.md">固定参数策略研究族关闭报告</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/docs/paired_screen_v2_architecture_20260727.md">Paired Screen v2 Architecture</a></li>
+</ul>
+<p>公开报告提供问题、结论与证据边界；大型 replay artifacts 和逐行结果不随公共仓库分发。SHA256 是字节身份，不是读者可访问的下载地址。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Market-Making/" class="category-chain-item">Market Making</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
+      
+        <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
+      
+        <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>NarrowGate 固定参数竞速：为什么全局 Winner 不是可迁移的做市 Alpha</div>
+      <div>https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Fixed-Parameter-Racing-Research/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Xuan Tan</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-P3-Normalized-100ms-Recalibration-Research/" title="NarrowGate P3：归一化 100ms 盘口下的触达曲线复现">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">NarrowGate P3：归一化 100ms 盘口下的触达曲线复现</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-BER-Role-Safe-Add-Only-Research/" title="NarrowGate BER Role-Safe Add-Only：库存代理改善为何仍然关闭">
+                        <span class="hidden-mobile">NarrowGate BER Role-Safe Add-Only：库存代理改善为何仍然关闭</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

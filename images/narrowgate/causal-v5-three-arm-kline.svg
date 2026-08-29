@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">Causal-v5三种策略路径比较</title>
+  <desc id="desc">机制示意与冻结聚合结果。同一合成K线上展示ML OFF、ML ON和random passive三种报价路径，下方给出Validation9随机策略相对baseline的raw、terminal和inventory-adjusted差值。</desc>
+  <defs><linearGradient id="bg"><stop stop-color="#071426"/><stop offset="1" stop-color="#19334f"/></linearGradient><style>.t{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;fill:#edf6ff}.m{fill:#a9bad0}.grid{stroke:#294a66}.off{stroke:#5ab0ff}.on{stroke:#55d6be}.rnd{stroke:#ffb84d}.big{font-size:27px;font-weight:700}.label{font-size:17px}.small{font-size:14px}</style></defs>
+  <rect width="1200" height="620" rx="24" fill="url(#bg)"/><text x="52" y="53" class="t big">同一市场路径，三种完整生命周期反事实</text><text x="52" y="82" class="m small">机制示意 · random passive 仍保留 queue、latency、cooldown、inventory 与 accounting</text>
+  <g transform="translate(55 115)">
+    <rect width="790" height="350" rx="14" fill="#0a1d33" stroke="#365873"/><path d="M0 88H790M0 175H790M0 262H790" class="grid"/>
+    <polyline points="20,220 80,205 140,228 200,190 260,205 320,160 380,178 440,145 500,169 560,120 620,145 680,105 750,130" fill="none" stroke="#e7eef7" stroke-width="3"/>
+    <polyline points="20,150 80,135 140,158 200,120 260,135 320,90 380,108 440,75 500,99 560,50 620,75 680,35 750,60" fill="none" class="off" stroke-width="3"/>
+    <polyline points="20,290 80,275 140,298 200,260 260,275 320,230 380,248 440,215 500,239 560,190 620,215 680,175 750,200" fill="none" class="off" stroke-width="3"/>
+    <polyline points="20,165 80,150 140,173 200,136 260,151 320,109 380,126 440,92 500,118 560,70 620,96 680,56 750,80" fill="none" class="on" stroke-width="3" stroke-dasharray="8 6"/>
+    <polyline points="20,276 80,261 140,284 200,246 260,261 320,216 380,234 440,201 500,225 560,176 620,201 680,161 750,186" fill="none" class="on" stroke-width="3" stroke-dasharray="8 6"/>
+    <polyline points="20,142 80,166 140,149 200,130 260,160 320,98 380,140 440,83 500,130 560,63 620,112 680,48 750,93" fill="none" class="rnd" stroke-width="2"/>
+    <polyline points="20,298 80,322 140,305 200,286 260,316 320,254 380,296 440,239 500,286 560,219 620,268 680,204 750,249" fill="none" class="rnd" stroke-width="2"/>
+    <text x="24" y="34" class="t small">蓝：ML OFF baseline · 绿虚线：ML ON · 橙：random passive seed</text>
+  </g>
+  <g transform="translate(875 115)">
+    <rect width="270" height="350" rx="14" fill="#0a1d33" stroke="#365873"/><text x="18" y="38" class="t label">Validation9：random - baseline</text>
+    <text x="18" y="86" class="m small">Raw PnL</text><text x="18" y="113" fill="#ff8f8f" class="label">-8.8534 USDC</text><text x="18" y="139" class="m small">95% CI [-16.2260,-0.6039]</text>
+    <text x="18" y="190" class="m small">Terminal</text><text x="18" y="217" fill="#ff8f8f" class="label">-8.4395 USDC</text><text x="18" y="243" class="m small">95% CI [-15.5517,-0.5297]</text>
+    <text x="18" y="294" class="m small">InvAdj</text><text x="18" y="321" fill="#ff8f8f" class="label">-0.5759 USDC</text><text x="18" y="345" class="m small">无 seed 在任一 panel 胜 baseline</text>
+  </g>
+  <rect x="55" y="510" width="1090" height="72" rx="14" fill="#102a43"/><text x="78" y="540" class="t label">Baseline 优于这组 executable random null，不等于 baseline 绝对盈利</text><text x="78" y="566" class="m small">ML-ON 的 paired daily raw / terminal intervals 跨零，direct promotion 仍关闭。</text>
+</svg>

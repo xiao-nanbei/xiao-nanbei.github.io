@@ -1,0 +1,1027 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Xuan Tan">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Last materially modified: 2026-08-29 TL;DR：风险尾部改善了，但代价是移除近九成 SELL add fills单周期 skip 太弱，于是本项目研究更强的 permission action：SHORT campaign 的首个 eligible SELL add decision 到来时，以 50% 概率保持 baseline，以 50% 概率禁止此后所有">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NarrowGate SELL Campaign Add Permission：从单周期 No-op 到全程过度抑制">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Sell-Stop-Add-Until-Flat-Research/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：风险尾部改善了，但代价是移除近九成 SELL add fills单周期 skip 太弱，于是本项目研究更强的 permission action：SHORT campaign 的首个 eligible SELL add decision 到来时，以 50% 概率保持 baseline，以 50% 概率禁止此后所有">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/sell-stop-until-flat-kline.svg">
+<meta property="article:published_time" content="2026-08-29T12:13:00.000Z">
+<meta property="article:modified_time" content="2026-08-29T12:13:00.000Z">
+<meta property="article:author" content="Xuan Tan">
+<meta property="article:tag" content="Market Making">
+<meta property="article:tag" content="随机化回放">
+<meta property="article:tag" content="活动约束">
+<meta property="article:tag" content="库存风险">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/sell-stop-until-flat-kline.svg">
+  
+  
+  
+  <title>NarrowGate SELL Campaign Add Permission：从单周期 No-op 到全程过度抑制 - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>xiaonanbei</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="NarrowGate SELL Campaign Add Permission：从单周期 No-op 到全程过度抑制"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-29 20:13" pubdate>
+          2026年8月29日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          42 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">NarrowGate SELL Campaign Add Permission：从单周期 No-op 到全程过度抑制</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Last materially modified: 2026-08-29</p>
+<h2 id="TL-DR：风险尾部改善了，但代价是移除近九成-SELL-add-fills"><a href="#TL-DR：风险尾部改善了，但代价是移除近九成-SELL-add-fills" class="headerlink" title="TL;DR：风险尾部改善了，但代价是移除近九成 SELL add fills"></a>TL;DR：风险尾部改善了，但代价是移除近九成 SELL add fills</h2><p>单周期 skip 太弱，于是本项目研究更强的 permission action：SHORT campaign 的首个 eligible SELL add decision 到来时，以 50% 概率保持 baseline，以 50% 概率禁止此后所有 exposure-increasing SELL quotes，直到 inventory 回到 flat。BUY、reducing、size、max inventory 与 taker 不动。</p>
+<p>56 个 Development 日产生 1,734 个独立 campaigns，baseline/candidate 883/851；OOF 有 764 个 campaigns、25 个未来日，ESS 383。candidate 确实显著降低 negative terminal、q10 shortfall 与 MAE，但 learned policy 在 85.7% rows 上启用它，预计 SELL add-fill retention 只剩 10.8%，远低于冻结的 85% 门槛。decision-to-terminal reward 的历史点估计为 +0.00815 USDC，UTC-day 95% interval $[-0.02160,+0.03711]$，并无稳定正下界。</p>
+<p>所以这个动作被判为 <strong>overbroad risk control</strong>，而不是 selection alpha。它让风险变小的方法近似“停止做这部分业务”，不能以更漂亮的尾部统计绕过活动性要求。Validation 与 sealed holdout 未读，baseline 未改。</p>
+<p><img src="/images/narrowgate/sell-stop-until-flat-kline.svg" srcset="/img/loading.gif" lazyload alt="SELL stop-until-flat 权限状态机与 K 线"></p>
+<p><em>图 1：机制示意。candidate 从首个 add decision 起锁住所有后续 SELL adds，只有 flat 才释放；reducing BUY 仍运行。尾部收缩必须与消失的参与度一起解释。</em></p>
+<h2 id="1-从太弱到太强：研究问题的由来"><a href="#1-从太弱到太强：研究问题的由来" class="headerlink" title="1. 从太弱到太强：研究问题的由来"></a>1. 从太弱到太强：研究问题的由来</h2><p>前一个 one-cycle action 只影响一个报单，selected-cycle fill 率约 3.52%，经济杠杆接近 no-op。自然的反方向实验是把阻断延长到 campaign 结束：如果危险 SHORT campaign 的问题来自反复加仓，停止所有后续 SELL adds 是否能保护 terminal value？</p>
+<p>冻结问题为：</p>
+<script type="math/tex; mode=display">
+\tau=E[Y(K_1)-Y(K_0)],</script><p>其中 $K_0$ 是 baseline add permission，$K_1$ 是从第一次 eligible add 起 block later SELL adds until flat，$Y$ 是 decision-to-terminal reward。核心不是只问 $\tau$，而是联合约束活动：</p>
+<script type="math/tex; mode=display">
+\rho_{fill}=\frac{E[N^{SELL\ add}_{fill}(K_1)]}{E[N^{SELL\ add}_{fill}(K_0)]}\ge 0.85.</script><p>若收益只能在 $\rho_{fill}\approx0$ 时出现，动作没有证明能挑出坏 fills；它只是停止产生 fills。</p>
+<h2 id="2-输入、动作与-estimand"><a href="#2-输入、动作与-estimand" class="headerlink" title="2. 输入、动作与 estimand"></a>2. 输入、动作与 estimand</h2><p>随机化单位是 campaign，而非每个 quote。第一次 baseline-eligible SELL add 到来时生成一次 assignment，并保持到 flat。这避免同一 campaign 的连续随机数互相污染，也使 potential outcomes 清楚。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>合同</th>
+<th>冻结内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Population</td>
+<td>已 SHORT 且出现第一笔 eligible SELL add 的 campaign</td>
+</tr>
+<tr>
+<td>Control $K_0$</td>
+<td>允许本次及后续 SELL adds</td>
+</tr>
+<tr>
+<td>Candidate $K_1$</td>
+<td>阻断本次及所有后续 SELL adds，直到 flat</td>
+</tr>
+<tr>
+<td>Propensity</td>
+<td>campaign-level 0.5/0.5</td>
+</tr>
+<tr>
+<td>主要 estimand</td>
+<td>decision-to-terminal DR uplift</td>
+</tr>
+<tr>
+<td>Co-primary</td>
+<td>campaign cost、negative terminal、q10、MAE、repair、activity</td>
+</tr>
+<tr>
+<td>冻结机制</td>
+<td>BUY、reducing、order size、limits、P3、queue、latency</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>外部参考被禁用，所有 state 是 local M0、campaign history、queue 与 shock/refill/recovery 的 decision-ready 表示。action-specific Ridge nuisance models 与 depth-2 honest tree 只能使用 past-only folds；unsupported leaf 自动回 baseline。</p>
+<h2 id="3-因果时钟：permission-是持久状态，不是一行-mask"><a href="#3-因果时钟：permission-是持久状态，不是一行-mask" class="headerlink" title="3. 因果时钟：permission 是持久状态，不是一行 mask"></a>3. 因果时钟：permission 是持久状态，不是一行 mask</h2><p>动作顺序是：首个 eligible add 到达 ready clock，assignment 生成，若为 $K_1$ 则 permission state 转为 blocked；此后每个 exposure-increasing SELL decision 都被抑制，但 reducing BUY、cancel/ACK 与 terminal accounting 继续演化；flat 后 campaign 结束并登记一次 outcome。</p>
+<p>例如 inventory 为 $-0.001$ BTC 时出现 add。baseline 随后可能在 100,001、100,002 再成交两次，达到 $-0.003$；candidate 保持 $-0.001$，并靠 BUY quote 修复。若市场一路上涨，candidate 的 terminal loss 较小；若市场回落，baseline 的额外 SELL fills 可能贡献 spread 与 repair PnL。动作必须承担这两类 counterfactual，而不能只统计减少的最大库存。</p>
+<h2 id="4-数据与支持"><a href="#4-数据与支持" class="headerlink" title="4. 数据与支持"></a>4. 数据与支持</h2><p>Development 固定 56 日。behavior panel 有 1,734 个独立 campaigns，baseline/candidate 883/851，propensity 恰为 0.5；baseline later SELL add fills 为 986，candidate 为 0，duplicate decisions 为 0，每 campaign 只有一次 intervention。</p>
+<p>外层 chronological schedule 是 30 train + 1 embargo + 7 test；OOF 汇总 764 campaigns、25 个未来 UTC 日。policy ESS 为 383。因此失败不是 arms 没重叠，而是候选的经济形状与门槛冲突。</p>
+<p>活动效应非常直观：candidate arm 按定义没有 subsequent SELL add fill。learned policy 又在 85.7% OOF rows 上选它，于是估计 fill retention 只有 10.8%。这不是微小的 safety adjustment，而是对主要 participation surface 的广泛关闭。</p>
+<h2 id="5-Development-结果：tail-与-participation-必须联读"><a href="#5-Development-结果：tail-与-participation-必须联读" class="headerlink" title="5. Development 结果：tail 与 participation 必须联读"></a>5. Development 结果：tail 与 participation 必须联读</h2><p>历史冻结面板给出：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>越高越好的 outcome</th>
+<th style="text-align:right">DR uplift</th>
+<th style="text-align:right">UTC-day 95% interval</th>
+<th style="text-align:right">正日</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>terminal reward</td>
+<td style="text-align:right">+0.00815</td>
+<td style="text-align:right">[-0.02160, +0.03711]</td>
+<td style="text-align:right">14/25</td>
+</tr>
+<tr>
+<td>campaign-cost avoidance</td>
+<td style="text-align:right">-0.00025</td>
+<td style="text-align:right">[-0.02848, +0.02859]</td>
+<td style="text-align:right">12/25</td>
+</tr>
+<tr>
+<td>negative-terminal protection</td>
+<td style="text-align:right">+0.03133</td>
+<td style="text-align:right">[+0.00584, +0.06077]</td>
+<td style="text-align:right">18/25</td>
+</tr>
+<tr>
+<td>Development-q10 protection</td>
+<td style="text-align:right">+0.02959</td>
+<td style="text-align:right">[+0.00896, +0.05594]</td>
+<td style="text-align:right">21/25</td>
+</tr>
+<tr>
+<td>campaign-MAE avoidance</td>
+<td style="text-align:right">+0.08434</td>
+<td style="text-align:right">[+0.04916, +0.12728]</td>
+<td style="text-align:right">23/25</td>
+</tr>
+<tr>
+<td>subsequent SELL add fills</td>
+<td style="text-align:right">-1.09156</td>
+<td style="text-align:right">[-1.37413, -0.82771]</td>
+<td style="text-align:right">1/25</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>尾部、q10 与 MAE 的方向并非假象：阻止加空确实让 campaign 的库存暴露更小。但 reward lower bound 跨零，campaign-cost、repair 与 censoring 也不过关；更致命的是 10.8% fill retention。scorecard 因此把它标为 <code>overbroad_risk_control</code>，而非可部署 policy。</p>
+<p>没有 Development campaign 达到 terminal $\le-5$ USDC 的极端事件。零事件只说明面板不支持该 estimand，不能声称 candidate 消除了极端尾部。</p>
+<h2 id="6-为什么-downside-改善不等于-action-uplift"><a href="#6-为什么-downside-改善不等于-action-uplift" class="headerlink" title="6. 为什么 downside 改善不等于 action uplift"></a>6. 为什么 downside 改善不等于 action uplift</h2><p>假设一个策略把所有 exposure adds 都关闭，MAE、inventory time 和负 terminal 大概率会下降；但 maker 的 spread capture、repair opportunity 与市场参与也会消失。风险管理与价值选择的区别可写成：</p>
+<script type="math/tex; mode=display">
+\text{Net action value}=\text{avoided toxic loss}-\text{lost good fills}-\text{path opportunity cost}.</script><p>本实验明确识别了第一项，却没有证明其大于后两项。活动门不是额外装饰，而是防止“通过不交易获得安全”的可证伪约束。</p>
+<p>同时，BUY 与 reducing 没有被干预，所以结果不能推到 bilateral pause。candidate 的正 tail effect 只适用于 SHORT campaign 后续 SELL add permission。</p>
+<h2 id="7-研究演进：版本为何只是一篇文章中的章节"><a href="#7-研究演进：版本为何只是一篇文章中的章节" class="headerlink" title="7. 研究演进：版本为何只是一篇文章中的章节"></a>7. 研究演进：版本为何只是一篇文章中的章节</h2><p>这一身份承接 one-cycle near-noop，探索动作强度的另一端。后来 <code>action_defense_v1</code> scorecard 回看同一冻结输出，得到 total score -0.2681、mechanism score -1.0 和 <code>overbroad_risk_control</code> 分类；scorecard 当时尚未预注册，所以仅作诊断，不创造新研究版本。</p>
+<p>后续 denominator 与 replay 修复撤回了旧精确 PnL、fill、campaign 与 tail 的当前校准权限，但并不撤回“不晋级”。修复不能让已经看过 Development 的相同 stop-until-flat action 获得一次免费重跑，也不能把版本、执行修正或 scorecard 分拆成新文章。</p>
+<p>动作强度的已知边界因此是：one-cycle 太弱，until-flat 太强。这个边界启发 recovery-event rearm 等新经济动作，但那些项目必须用新 identity 独立评价。</p>
+<h2 id="8-关闭边界与不确定性"><a href="#8-关闭边界与不确定性" class="headerlink" title="8. 关闭边界与不确定性"></a>8. 关闭边界与不确定性</h2><p>关闭的是 $K_1$ 这个持久 permission action，不是所有库存控制。UTC-day cluster interval 跨零意味着 25 日 regime variation 足以覆盖 reward 点估计；56% positive days 也只有轻微多数，不能取代 LCB。</p>
+<p>不能通过把最低 fill retention 从 85% 改到 10%、调低 candidate rate、把 MAE 设为唯一 outcome，或打开 Validation 来救援。合理后续必须让 permission 由可观察 recovery event 有选择地恢复，并重新冻结新的行为概率与证据面板。</p>
+<h2 id="9-没有获得的权限"><a href="#9-没有获得的权限" class="headerlink" title="9. 没有获得的权限"></a>9. 没有获得的权限</h2><ul>
+<li>Validation 与 family-specific sealed holdout 未读；</li>
+<li>没有 live、shadow、action、C++ 或配置变更权限；</li>
+<li>没有把正 downside 指标称为 fill-selection alpha 的权限；</li>
+<li>没有降低 activity gate 或用同一面板重调树的权限；</li>
+<li>没有将历史 exact values 当作当前基线校准。</li>
+</ul>
+<h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/sell_campaign_add_permission_v1_20260722.md"><code>sell_campaign_add_permission_v1_20260722.md</code></a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/sell_add_repair_trend_skip_causal_v4_v1_20260718.md"><code>sell_add_repair_trend_skip_causal_v4_v1_20260718.md</code></a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/README.md"><code>F09 README</code></a></li>
+</ul>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>这项阴性研究给出了很有用的动作强度上界：阻断直到 flat 的确能减轻风险，却几乎抹去 SELL add participation。把 tail 与 activity 放在同一张 scorecard 上，才能避免把“少做所以少亏”误写成“会选择所以赚钱”。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Market-Making/" class="category-chain-item">Market Making</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
+      
+        <a href="/tags/%E9%9A%8F%E6%9C%BA%E5%8C%96%E5%9B%9E%E6%94%BE/" class="print-no-link">#随机化回放</a>
+      
+        <a href="/tags/%E6%B4%BB%E5%8A%A8%E7%BA%A6%E6%9D%9F/" class="print-no-link">#活动约束</a>
+      
+        <a href="/tags/%E5%BA%93%E5%AD%98%E9%A3%8E%E9%99%A9/" class="print-no-link">#库存风险</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>NarrowGate SELL Campaign Add Permission：从单周期 No-op 到全程过度抑制</div>
+      <div>https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Sell-Stop-Add-Until-Flat-Research/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Xuan Tan</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-State-Conditioned-Rearm-Research/" title="NarrowGate 85 秒后的状态条件 Rearm：BUY 与 SELL 的稀疏支持实验">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">NarrowGate 85 秒后的状态条件 Rearm：BUY 与 SELL 的稀疏支持实验</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-Sell-One-Cycle-Skip-Research/" title="NarrowGate SELL Add 单周期跳过：Repair 与 Trend-Through 的竞争风险">
+                        <span class="hidden-mobile">NarrowGate SELL Add 单周期跳过：Repair 与 Trend-Through 的竞争风险</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

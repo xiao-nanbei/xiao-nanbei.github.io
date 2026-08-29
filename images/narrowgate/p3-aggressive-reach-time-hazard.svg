@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">Aggressive reach time hazard与first passage</title>
+  <desc id="desc">机制示意与冻结聚合结果。左侧价格路径穿越多个距离线，右侧展示随时间累积的距离条件CDF，底部标注BUY和SELL integrated Brier improvement。</desc>
+  <defs><linearGradient id="bg"><stop stop-color="#071426"/><stop offset="1" stop-color="#123752"/></linearGradient><style>.t{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;fill:#eef7ff}.m{fill:#aac0d2}.grid{stroke:#2d506b}.d1{stroke:#55d6be}.d2{stroke:#5ab0ff}.d3{stroke:#ffb84d}.price{stroke:#f1f5f9}.big{font-size:27px;font-weight:700}.label{font-size:17px}.small{font-size:14px}</style></defs>
+  <rect width="1200" height="620" rx="24" fill="url(#bg)"/><text x="52" y="53" class="t big">从“十秒是否触达”到完整 first-passage surface</text><text x="52" y="82" class="m small">机制示意与 Development 冻结聚合结果</text>
+  <g transform="translate(55 115)">
+    <rect width="520" height="340" rx="14" fill="#0a1d33" stroke="#365873"/><text x="20" y="32" class="t label">价格路径与首次触达</text>
+    <line x1="50" y1="275" x2="490" y2="275" class="d1" stroke-width="2" stroke-dasharray="7 6"/><line x1="50" y1="205" x2="490" y2="205" class="d2" stroke-width="2" stroke-dasharray="7 6"/><line x1="50" y1="135" x2="490" y2="135" class="d3" stroke-width="2" stroke-dasharray="7 6"/>
+    <text x="12" y="280" class="m small">d1</text><text x="12" y="210" class="m small">d2</text><text x="12" y="140" class="m small">d3</text>
+    <polyline points="50,304 90,290 130,297 170,260 210,272 250,222 290,235 330,178 370,190 410,120 450,148 490,88" fill="none" class="price" stroke-width="4"/>
+    <circle cx="170" cy="260" r="7" fill="#55d6be"/><circle cx="270" cy="205" r="7" fill="#5ab0ff"/><circle cx="400" cy="135" r="7" fill="#ffb84d"/>
+    <text x="140" y="327" class="m small">T(d1)</text><text x="252" y="327" class="m small">T(d2)</text><text x="380" y="327" class="m small">T(d3)</text>
+  </g>
+  <g transform="translate(620 115)">
+    <rect width="525" height="340" rx="14" fill="#0a1d33" stroke="#365873"/><text x="20" y="32" class="t label">F(t,d | x)：时间越长，距离越近，CDF 越高</text>
+    <path d="M55 55V295H490M55 235H490M55 175H490M55 115H490" class="grid" fill="none"/>
+    <path d="M55 286 C130 240 175 190 235 148 C310 98 390 70 490 55" fill="none" class="d1" stroke-width="4"/>
+    <path d="M55 292 C150 278 220 235 285 190 C360 135 420 110 490 92" fill="none" class="d2" stroke-width="4"/>
+    <path d="M55 296 C175 292 260 275 335 235 C410 195 455 170 490 155" fill="none" class="d3" stroke-width="4"/>
+    <text x="85" y="325" class="m small">0s</text><text x="450" y="325" class="m small">30s censor</text><text x="385" y="65" fill="#55d6be" class="small">near d1</text><text x="414" y="108" fill="#5ab0ff" class="small">d2</text><text x="420" y="168" fill="#ffb84d" class="small">far d3</text>
+  </g>
+  <g transform="translate(55 495)">
+    <rect width="1090" height="88" rx="14" fill="#102a43"/><text x="22" y="31" class="t label">BUY IBS improvement +0.004463 · 95% CI [+0.002155,+0.007202]</text><text x="22" y="59" class="t label">SELL IBS improvement +0.004428 · 95% CI [+0.002829,+0.006285]</text><text x="746" y="59" class="m small">Prediction only · no queue/fill/PnL authority</text>
+  </g>
+</svg>

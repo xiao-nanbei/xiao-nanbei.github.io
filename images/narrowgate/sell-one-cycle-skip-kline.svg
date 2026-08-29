@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid meet">
+  <title>SELL add 单周期跳过与 repair、trend-through 竞争风险</title>
+  <desc>机制示意图：K线旁显示一次随机化 SELL add，baseline 提交、candidate 跳过，随后共同恢复基线并进入 repair 或 trend-through 终点。</desc>
+  <rect width="1200" height="720" fill="#07111f"/>
+  <text x="55" y="58" fill="#f4f7fb" font-size="28" font-family="sans-serif" font-weight="700">SELL add：一次动作，完整 campaign 终点</text>
+  <text x="55" y="88" fill="#9fb3c8" font-size="16" font-family="sans-serif">机制示意 · 不是冻结聚合收益曲线</text>
+  <g stroke="#24374b" stroke-width="1"><path d="M70 150H710M70 250H710M70 350H710M70 450H710M70 550H710"/><path d="M150 125V575M270 125V575M390 125V575M510 125V575M630 125V575"/></g>
+  <g stroke-width="4"><path d="M130 290V415" stroke="#41d69a"/><rect x="115" y="325" width="30" height="55" fill="#41d69a"/><path d="M230 245V380" stroke="#ff6f7d"/><rect x="215" y="275" width="30" height="70" fill="#ff6f7d"/><path d="M330 270V440" stroke="#ff6f7d"/><rect x="315" y="310" width="30" height="85" fill="#ff6f7d"/><path d="M430 210V390" stroke="#ff6f7d"/><rect x="415" y="250" width="30" height="95" fill="#ff6f7d"/><path d="M530 170V345" stroke="#ff6f7d"/><rect x="515" y="215" width="30" height="85" fill="#ff6f7d"/><path d="M630 205V395" stroke="#41d69a"/><rect x="615" y="255" width="30" height="90" fill="#41d69a"/></g>
+  <path d="M75 365 C180 330 245 360 330 325 S470 245 705 265" fill="none" stroke="#f8c15c" stroke-width="4"/>
+  <circle cx="430" cy="250" r="12" fill="#f8c15c"/><text x="365" y="190" fill="#f8c15c" font-size="17" font-family="sans-serif">eligible SELL add</text>
+  <path d="M430 204V135" stroke="#f8c15c" stroke-width="2"/><path d="M430 135H770" stroke="#f8c15c" stroke-width="2"/>
+  <rect x="770" y="116" width="370" height="100" rx="16" fill="#102238" stroke="#42a5f5" stroke-width="2"/>
+  <text x="795" y="148" fill="#eaf2fb" font-size="18" font-family="sans-serif" font-weight="700">campaign-keyed 50 / 50</text>
+  <text x="795" y="178" fill="#9fd8ff" font-size="16" font-family="sans-serif">baseline：提交此 SELL quote</text><text x="795" y="202" fill="#ffd39b" font-size="16" font-family="sans-serif">candidate：只跳过这一 cycle</text>
+  <path d="M955 216V270" stroke="#9fb3c8" stroke-width="2"/>
+  <rect x="770" y="270" width="370" height="88" rx="16" fill="#102238" stroke="#657b91" stroke-width="2"/>
+  <text x="795" y="303" fill="#eaf2fb" font-size="18" font-family="sans-serif" font-weight="700">下一周期共同恢复 baseline</text>
+  <text x="795" y="332" fill="#9fb3c8" font-size="15" font-family="sans-serif">BUY / reducing / size / limits 不变</text>
+  <path d="M875 358V425M1035 358V425" stroke="#9fb3c8" stroke-width="2"/>
+  <rect x="748" y="425" width="250" height="106" rx="16" fill="#0d2c28" stroke="#41d69a" stroke-width="2"/><text x="777" y="462" fill="#41d69a" font-size="21" font-family="sans-serif" font-weight="700">Repair first</text><text x="777" y="493" fill="#d5eee6" font-size="15" font-family="sans-serif">先回到 flat</text><text x="777" y="517" fill="#d5eee6" font-size="15" font-family="sans-serif">登记一次 terminal Y</text>
+  <rect x="1015" y="425" width="170" height="106" rx="16" fill="#361b26" stroke="#ff6f7d" stroke-width="2"/><text x="1034" y="462" fill="#ff8f99" font-size="19" font-family="sans-serif" font-weight="700">Trend-through</text><text x="1034" y="493" fill="#f7d6da" font-size="14" font-family="sans-serif">先上穿一 tick</text><text x="1034" y="517" fill="#f7d6da" font-size="14" font-family="sans-serif">与 repair 竞争</text>
+  <rect x="70" y="610" width="1115" height="64" rx="14" fill="#0e1c2d"/><text x="95" y="638" fill="#eaf2fb" font-size="16" font-family="sans-serif">关键漏斗：最终动作机会 → 实际 selected-cycle fill</text><text x="95" y="660" fill="#9fb3c8" font-size="15" font-family="sans-serif">当前栈：BUY 172 / 2,403 = 7.16%；SELL 147 / 2,348 = 6.26%；两侧 Wilson 上界均 &lt; 10%</text>
+</svg>
+

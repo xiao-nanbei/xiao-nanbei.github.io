@@ -1,0 +1,997 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Xuan Tan">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Last materially modified: 2026-08-29 TL;DR：30 日数量门已完成，但 exact lifecycle 与共同分母仍未闭合，因此没有模型结果First-Add M0&#x2F;M1 研究的目标不是预测下一秒涨跌，而是识别 maker campaign 中第一次 exposure-increasing add 是否会带来负的 campaign-terminal valu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NarrowGate First-Add M0&#x2F;M1：外部状态能否识别负价值加仓">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-First-Add-External-Incremental-Value-Research/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：30 日数量门已完成，但 exact lifecycle 与共同分母仍未闭合，因此没有模型结果First-Add M0&#x2F;M1 研究的目标不是预测下一秒涨跌，而是识别 maker campaign 中第一次 exposure-increasing add 是否会带来负的 campaign-terminal valu">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/first-add-external-m0-m1.svg">
+<meta property="article:published_time" content="2026-08-29T13:04:00.000Z">
+<meta property="article:modified_time" content="2026-08-29T13:04:00.000Z">
+<meta property="article:author" content="Xuan Tan">
+<meta property="article:tag" content="Market Making">
+<meta property="article:tag" content="市场微观结构">
+<meta property="article:tag" content="机器学习">
+<meta property="article:tag" content="跨市场">
+<meta property="article:tag" content="Campaign">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/first-add-external-m0-m1.svg">
+  
+  
+  
+  <title>NarrowGate First-Add M0/M1：外部状态能否识别负价值加仓 - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>xiaonanbei</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="NarrowGate First-Add M0/M1：外部状态能否识别负价值加仓"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-29 21:04" pubdate>
+          2026年8月29日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          6.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          56 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">NarrowGate First-Add M0/M1：外部状态能否识别负价值加仓</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Last materially modified: 2026-08-29</p>
+<h2 id="TL-DR：30-日数量门已完成，但-exact-lifecycle-与共同分母仍未闭合，因此没有模型结果"><a href="#TL-DR：30-日数量门已完成，但-exact-lifecycle-与共同分母仍未闭合，因此没有模型结果" class="headerlink" title="TL;DR：30 日数量门已完成，但 exact lifecycle 与共同分母仍未闭合，因此没有模型结果"></a>TL;DR：30 日数量门已完成，但 exact lifecycle 与共同分母仍未闭合，因此没有模型结果</h2><p>First-Add M0/M1 研究的目标不是预测下一秒涨跌，而是识别 maker campaign 中第一次 exposure-increasing add 是否会带来负的 campaign-terminal value。M0 只使用 campaign state 与本地因果微观结构；M1 在完全相同的 first-add rows 上加入 Bitget、Bybit、OKX 的真实接收时钟外部状态，包含 10/25/50/100/250/500ms 多尺度窗口。</p>
+<p>冻结 target 是直接经济结果：</p>
+<script type="math/tex; mode=display">
+Y=V(T_{campaign})-V(t_{first\ add}),</script><p>单位为每个 first-add decision 的 USDC。未来方向、独立 markout、fill-conditioned toxicity 都不能替代它，因为那些 target 不包含后续加仓、修复、库存持有与 campaign 终结。</p>
+<p>早期公开 preregistration 写着“等待 30 个不同 UTC 日”，当时快照只有 16 个完整 windows、15 个不同日。后来的公开 BABEL evidence map 更新了状态：历史采集已关闭，共 <code>31</code> 个 valid full windows、覆盖 <code>30</code> 个 distinct UTC days；同一天的重复 window 只计一次。因此 count gate 已通过，不再是当前 blocker。</p>
+<p>但是研究没有开始拟合，也没有经济结论。它仍被 corrected exact-lifecycle successor 以及逐行共同分母、source transport、因果时钟、true leave-one-venue-out、BUY/SELL 分侧、Grade A/B、chronological split 与 late-panel admission gates 阻塞。数量够了，不等于样本身份正确；在 exact first-add decision、campaign lineage 与 external feature-ready time 对齐前，任何 M0/M1 AUC 或 score 都会回答错误问题。</p>
+<p>最终状态是“preregistered、count-complete、evidence-blocked”。没有 Validation 或 sealed holdout 读取，没有模型、阈值或 action 结果，也没有获得 shadow collection、quote action 或 live authority。若未来两侧都不能通过冻结 prediction gates，该 first-add classifier route 将关闭并转向经济结构重设计；即使某一侧通过，也只得到 prediction evidence，仍需独立 action experiment。</p>
+<p><img src="/images/narrowgate/first-add-external-m0-m1.svg" srcset="/img/loading.gif" lazyload alt="first-add决策、外部多尺度状态与campaign终值的因果链"></p>
+<p><em>图 1：机制示意。在一段 maker campaign 中，第一次 exposure-increasing add 是唯一 assignment row；M0 与 M1 读取决策前可见状态，target 到 campaign terminal 才确定。K 线与订单位置不是实盘记录。</em></p>
+<p>本文只说明预注册和公开状态，不建议任何真实交易行为。</p>
+<h2 id="1-研究问题：为什么只研究“第一次加仓”"><a href="#1-研究问题：为什么只研究“第一次加仓”" class="headerlink" title="1. 研究问题：为什么只研究“第一次加仓”"></a>1. 研究问题：为什么只研究“第一次加仓”</h2><p>maker campaign 往往从 flat/opening 开始，随后可能加仓、减仓、修复并最终回到 flat。把所有 fills 混在一起，会把动作角色混淆：一个 reducing fill 降低风险，一个 exposure-increasing fill 增加风险；同一次 campaign 的多个 adds 还共享后续 terminal value，不能当作独立样本。</p>
+<p>First-add identity 把 decision unit 冻结为：已有非零或刚建立方向性 exposure 后，第一次会增加绝对库存的 maker add 决策。BUY/SELL 分开建模，因为买侧 adverse state 和卖侧 adverse state 不必对称。</p>
+<p>设 decision 前 signed position 为 $q_{t^-}$，候选 side 的单位变化为 $\delta q_s$。exposure-increasing 条件是：</p>
+<script type="math/tex; mode=display">
+|q_{t^-}+\delta q_s|>|q_{t^-}|.</script><p>“first” 要由完整 campaign lifecycle 确定，而不是从某条 quote log 推测。若一笔订单先 partial fill、cancel-reject 后继续成交，或同一 decision 产生 replace，新旧 order identity 必须沿 lineage 归属于同一次决策；否则 first-add denominator 会重复或错位。</p>
+<h2 id="2-直接-target-为什么不可替代"><a href="#2-直接-target-为什么不可替代" class="headerlink" title="2. 直接 target 为什么不可替代"></a>2. 直接 target 为什么不可替代</h2><p>$V(t)$ 是冻结 accounting contract 下，campaign 在时刻 $t$ 的已实现加未实现价值。直接 target：</p>
+<script type="math/tex; mode=display">
+Y_i=V_i(T_i)-V_i(t_i)</script><p>从 first-add decision $t_i$ 一直计算到同一 campaign 的 terminal $T_i$。若 $Y_i&lt;0$，表示从该决策到 campaign 结束净价值为负；它自然包含后续成交、价格变化、fees、inventory repair 与 terminal realization。</p>
+<p>相比之下，5 秒 markout 只看固定 horizon 价格，未来 direction 只看符号，fill toxicity 又通常以“已经成交”为条件。它们可以是 feature diagnostics，却不能回答“若在这个 first-add decision 上识别高风险，是否找到负价值子集”。F10 的先行 evidence 说明 first-add 平均价值两侧为负，F05 的本地 campaign/microstructure 模型没有找到稳定负值子集；本研究问外部 receive-time state 是否提供增量。</p>
+<h2 id="3-M0、M1-与-estimand"><a href="#3-M0、M1-与-estimand" class="headerlink" title="3. M0、M1 与 estimand"></a>3. M0、M1 与 estimand</h2><p>M0 的输入是 decision 前 campaign state 与本地 causal microstructure。可包括当前 signed inventory/role、campaign age、已有 fills、local book/flow、queue/lifecycle 可见状态，但每一列必须在 $t_i$ 前 ready。</p>
+<p>M1 为：</p>
+<script type="math/tex; mode=display">
+X_i^{M1}=\left[X_i^{M0},X_i^{ext}(10,25,50,100,250,500\text{ms})\right].</script><p>外部特征来自 Bitget、Bybit、OKX，并在 full-all 与逐家 true LOO 下从原始 venue tapes 重建。LOO 不是训练一次后把某几列置零；必须重新聚合 source state，使共识、age、dispersion 和可见性都反映“这家从未存在”。</p>
+<p>BUY 和 SELL 分开使用 standardized Ridge，$\alpha=1$，不做 hyperparameter search。主要 incremental estimand 可以写为 proper-score 改善：</p>
+<script type="math/tex; mode=display">
+\Delta^{score}_{d,s}=Score_{d,s}(M0)-Score_{d,s}(M1),</script><p>正值表示 M1 误差更小。高风险子集则要求 M1 标记的 rows 真正有负 terminal value，并对多种 profile 做 simultaneous uncertainty。模型复杂度固定，是为了把差异尽量归因于外部输入，而不是 M1 获得更多调参自由。</p>
+<h2 id="4-数据与因果时钟"><a href="#4-数据与因果时钟" class="headerlink" title="4. 数据与因果时钟"></a>4. 数据与因果时钟</h2><p>每个 row 至少有三只时钟：first-add decision time、外部 event/receive time 和 feature-ready time。合法输入必须满足：</p>
+<script type="math/tex; mode=display">
+T^{feature\ ready}_{i,k}\le T^{first\ add\ decision}_i.</script><p>外部 event time 早于 decision 仍不够；如果网络接收或计算在 decision 后完成，特征不可用。10–500ms windows 是既有 receive-time ABI 的工程支持，不是从 first-add outcome 上挑出的“最佳 horizon”。</p>
+<p>target 则严格位于未来，直到 campaign terminal 才完成。训练/评分生成 labels 可以读取 $T_i$，但 feature builder、row admission 和模型输入都不能。embargo 还需阻止相邻 campaign 或跨日未闭合路径把未来信息带回训练。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>冻结要求</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Decision unit</td>
+<td>exact first exposure-increasing add</td>
+</tr>
+<tr>
+<td>Target</td>
+<td>decision-to-campaign-terminal USDC</td>
+</tr>
+<tr>
+<td>Sides</td>
+<td>BUY、SELL 独立</td>
+</tr>
+<tr>
+<td>Quality</td>
+<td>Grade A primary；Grade B sensitivity</td>
+</tr>
+<tr>
+<td>M0</td>
+<td>campaign + local causal microstructure</td>
+</tr>
+<tr>
+<td>M1</td>
+<td>M0 + 三 venue receive-time multiscale state</td>
+</tr>
+<tr>
+<td>Source robustness</td>
+<td>full + 三个 true LOO，同 rows</td>
+</tr>
+<tr>
+<td>最小时序</td>
+<td>20 train + 1 embargo + 5 test + 4 late days</td>
+</tr>
+<tr>
+<td>模型</td>
+<td>standardized Ridge，$\alpha=1$，不调参</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="5-数量门：为什么-31-个-windows-只等于-30-日"><a href="#5-数量门：为什么-31-个-windows-只等于-30-日" class="headerlink" title="5. 数量门：为什么 31 个 windows 只等于 30 日"></a>5. 数量门：为什么 31 个 windows 只等于 30 日</h2><p>预注册要求至少 30 个不同 UTC 日，每个 admitted valid window 至少 3,500 秒。多个 windows 落在同一 UTC 日，只增加数据覆盖，不增加 chronological day denominator。这样可以避免通过重复采集某一天来伪造跨日稳定性。</p>
+<p>早期 preregistration 的状态快照为 16 full windows / 15 distinct days，因此当时正确地标为 blocked。当前公开 BABEL map 是后来的权威状态：closed ledger 有 31 valid full windows / 30 distinct days，一个重复日只计一次。采集任务已经结束，数量 gate 完成。</p>
+<p>文章同时保留两个数字，是为了区分“文件写作时的历史状态”和“当前研究状态”，而不是制造矛盾。预注册合同仍有效，但 status line 已被后来的 evidence map supersede。</p>
+<h2 id="6-为什么-count-complete-仍不能拟合"><a href="#6-为什么-count-complete-仍不能拟合" class="headerlink" title="6. 为什么 count-complete 仍不能拟合"></a>6. 为什么 count-complete 仍不能拟合</h2><p>30 日门只回答 chronology 是否有最低支持，不回答 rows 是否正确。正式拟合前必须闭合：exact first-add lifecycle；每个 decision 的稳定 ID；signed inventory 与 role；campaign terminal lineage；无重复或缺失 terminal；外部 source/feature-ready clocks；M0/M1 与所有 LOO 的 common-row intersection；Grade A/B quality；两侧最低样本；train/test/late 隔离。</p>
+<p>举例说，若旧 quote row 只有写日志的毫秒时间而没有 decision-start 时间，外部状态可能在实际 decision 后、日志前变为可见。把它 join 进来会产生几十毫秒级 look-ahead。又如，若 order replace 后失去 origin decision ID，同一 first-add 可能被算成两次。样本量越大，只会让这种系统误差的置信区间越窄。</p>
+<p>所以当前没有 AUC、proper score、high-risk subset mean 或 economic table。对一个 preregistered-but-blocked 项目，“无结果”是诚实的最终状态，而不是文章不完整。</p>
+<h2 id="7-通过门槛与不确定性"><a href="#7-通过门槛与不确定性" class="headerlink" title="7. 通过门槛与不确定性"></a>7. 通过门槛与不确定性</h2><p>对任一 side，至少需要 day-clustered proper-score improvement lower bound 为正；M1 high-risk subset 的 simultaneous upper bound 小于零；删除任一 venue 后方向不反转；Grade B 不反转 Grade A；frozen late panel 不反转 Development/test 结论。</p>
+<p>这些 gates 不是把所有指标都当同等主终点。proper score 回答整体增量，高风险 subset 回答是否真的定位负值，LOO/Grade B/late 是 robustness。若某侧样本不足，结果是 defer，不是降低阈值；若两侧均完成且失败，关闭当前 classifier route。</p>
+<p>即便一侧通过，也只支持“外部 state 对这个 exact target 有 incremental prediction”。下一步若要 test ADD/NO-ADD、widen 或 cancel，需要在 F09 类 action identity 下冻结 intervention、propensity、共同支持、campaign reward 与 tail gates。prediction model 的 high-risk label 不能自动成为政策。</p>
+<h2 id="8-与-Adverse-Edge-Guard-为什么不是一个项目"><a href="#8-与-Adverse-Edge-Guard-为什么不是一个项目" class="headerlink" title="8. 与 Adverse-Edge Guard 为什么不是一个项目"></a>8. 与 Adverse-Edge Guard 为什么不是一个项目</h2><p>两者都使用外部三 venue receive-time state，但 denominator 和 estimand 不同。First-Add P1 只看 exact first exposure-increasing add，目标是 campaign-terminal value；Adverse-Edge mechanics P2 看所有 paired quote-opportunity 中的 opener/add，且 outcome-blind，只问信号是否及时可见并能把 quote 向外移动。</p>
+<p>P2 的 26 个 changes 中只有 6 个是 adds，20 个是 openers，所以不能拿它的 trigger rate 代替 P1 的 prediction support。P1 的 30 日 collection 也不能自动成为 P2 exact-opener tape。BABEL map 把它们画成并行路线，只有未来在同一个 exact surface 上重新注册，才可能会合。</p>
+<h2 id="9-研究演进与版本合并"><a href="#9-研究演进与版本合并" class="headerlink" title="9. 研究演进与版本合并"></a>9. 研究演进与版本合并</h2><p>项目包含 preregistration、capture-count updates、transport amendments、ledger admission 和 BABEL routing。它们都服务同一个问题：M1 是否相对 M0 改善 first-add terminal-value prediction。采集 attempt、重复日说明或 exact-lifecycle 修复不是新 estimand，因此不单独生成文章。</p>
+<p>当前应以公开 BABEL map 的 count-complete/blocker 状态覆盖旧 preregistration 顶部的 count-blocked 文案，同时保留原始 frozen comparison、target 与 gates。这样既不改写历史，也不误报已经拟合。</p>
+<h2 id="10-关闭、支持与权限边界"><a href="#10-关闭、支持与权限边界" class="headerlink" title="10. 关闭、支持与权限边界"></a>10. 关闭、支持与权限边界</h2><p>已支持：count gate 达到 30 distinct UTC days；first-add direct target、M0/M1、LOO 与 split 合同已预注册。</p>
+<p>仍阻塞：corrected exact lifecycle、row-level/common-mask、source transport、causal clock、side/quality 与 late-panel admission。当前没有 prediction 或 economics result。</p>
+<p>没有获得：Validation 或 sealed holdout 读取、模型拟合后的 promotion、阈值选择、ADD/NO-ADD、cancel、widen、re-center、shadow collection、外部 feed action 或 live authority。</p>
+<h2 id="11-公共证据"><a href="#11-公共证据" class="headerlink" title="11. 公共证据"></a>11. 公共证据</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f04_external_market_alpha/docs/first_add_external_incremental_value_m0_m1_v1_preregistration_20260730.md">First-Add External Incremental Value M0/M1 v1 Preregistration</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f04_external_market_alpha/docs/babel_external_market_research_map.md">BABEL External-Market Research Map</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f04_external_market_alpha/README.md">F04 External Market Alpha README</a></li>
+</ul>
+<p>公开材料只发布 estimand、admission gates、count 状态和 authority；原始 receive-time tapes、逐 row lifecycle 和未发布机器工件不随文章分发。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Market-Making/" class="category-chain-item">Market Making</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
+      
+        <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
+      
+        <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
+      
+        <a href="/tags/%E8%B7%A8%E5%B8%82%E5%9C%BA/" class="print-no-link">#跨市场</a>
+      
+        <a href="/tags/Campaign/" class="print-no-link">#Campaign</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>NarrowGate First-Add M0/M1：外部状态能否识别负价值加仓</div>
+      <div>https://xiao-nanbei.github.io/2026/08/29/NarrowGate-First-Add-External-Incremental-Value-Research/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Xuan Tan</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-External-Adverse-Quote-Edge-Guard-Research/" title="NarrowGate External Adverse Edge Guard：从历史 Mechanics 到 Exact-Opener">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">NarrowGate External Adverse Edge Guard：从历史 Mechanics 到 Exact-Opener</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-Cross-Venue-Causal-Fair-Price-Research/" title="NarrowGate 跨市场 Causal Fair Price：2-of-3、Basis 与 LOO">
+                        <span class="hidden-mobile">NarrowGate 跨市场 Causal Fair Price：2-of-3、Basis 与 LOO</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" viewBox="0 0 1280 760" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">Replay time、unit 与 causal merged clock 修复机制图</title>
+  <desc id="desc">左侧展示 absolute-price variance 到 USDC risk 的正确单位换算，中间展示 bucket-end feature-ready cutoff，右侧把 trades、book changes 与 100ms timers合并为 causal event stream并推进订单生命周期。底部列出冻结 parity 与 old-new diagnostic。</desc>
+  <defs>
+    <linearGradient id="bg7" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#07131f"/><stop offset="1" stop-color="#1a2c47"/></linearGradient>
+    <marker id="ar7" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 Z" fill="#8bd5ff"/></marker>
+  </defs>
+  <rect width="1280" height="760" rx="24" fill="url(#bg7)"/>
+  <text x="48" y="52" fill="#f7f9ff" font-size="28" font-family="sans-serif" font-weight="700">Time · Unit · Causality Repair：修的是整条 replay 轨迹</text>
+  <text x="48" y="83" fill="#9eb3c8" font-size="16" font-family="sans-serif">系统 mechanics 示意 · 合成 K 线 · 非实盘收益 · parity 不是 alpha</text>
+
+  <rect x="42" y="112" width="360" height="448" rx="17" fill="#102237" stroke="#31516a"/>
+  <text x="68" y="149" fill="#dff5ff" font-size="20" font-family="sans-serif" font-weight="700">A. Unit contract</text>
+  <rect x="70" y="178" width="304" height="72" rx="12" fill="#3e2934" stroke="#cf758c"/>
+  <text x="222" y="204" text-anchor="middle" fill="#fae1e7" font-size="15" font-family="sans-serif" font-weight="700">OLD · wrong dimension</text>
+  <text x="222" y="230" text-anchor="middle" fill="#d7b8c0" font-size="14" font-family="sans-serif">sqrt(σ²) × qty × mid</text>
+  <line x1="222" y1="250" x2="222" y2="288" stroke="#8bd5ff" stroke-width="4" marker-end="url(#ar7)"/>
+  <rect x="70" y="298" width="304" height="100" rx="12" fill="#173a38" stroke="#7ee2a8"/>
+  <text x="222" y="325" text-anchor="middle" fill="#d9ffea" font-size="15" font-family="sans-serif" font-weight="700">CORRECT · USDC risk</text>
+  <text x="222" y="352" text-anchor="middle" fill="#bcebd0" font-size="15" font-family="sans-serif">σ_PnL = sqrt(σ²_price/s × H) × |q|</text>
+  <text x="222" y="379" text-anchor="middle" fill="#a6d2b7" font-size="13" font-family="sans-serif">no extra mid multiplier</text>
+  <rect x="70" y="430" width="304" height="96" rx="12" fill="#14293c" stroke="#4b657c"/>
+  <text x="92" y="457" fill="#d5e2ec" font-size="14" font-family="sans-serif" font-weight="700">Also frozen</text>
+  <text x="92" y="482" fill="#acbecd" font-size="13" font-family="sans-serif">quantity-weighted markout · commission asset</text>
+  <text x="92" y="505" fill="#acbecd" font-size="13" font-family="sans-serif">tick/lot · daily PnL · terminal MTM</text>
+
+  <rect x="422" y="112" width="388" height="448" rx="17" fill="#0c2031" stroke="#31516a"/>
+  <text x="448" y="149" fill="#dff5ff" font-size="20" font-family="sans-serif" font-weight="700">B. Feature-ready cutoff</text>
+  <line x1="462" y1="272" x2="770" y2="272" stroke="#557089" stroke-width="3" marker-end="url(#ar7)"/>
+  <rect x="474" y="214" width="134" height="44" rx="9" fill="#482731" stroke="#ff8f91"/>
+  <text x="541" y="241" text-anchor="middle" fill="#ffe0e1" font-size="13" font-family="sans-serif">bucket [t,t+10s)</text>
+  <line x1="474" y1="204" x2="474" y2="305" stroke="#ff8f91" stroke-width="3"/>
+  <text x="455" y="326" fill="#e7b5b7" font-size="12" font-family="sans-serif">index t</text>
+  <line x1="608" y1="204" x2="608" y2="305" stroke="#ffd166" stroke-width="4" stroke-dasharray="8 6"/>
+  <text x="575" y="326" fill="#ffe49a" font-size="12" font-family="sans-serif">ready t+10s</text>
+  <circle cx="668" cy="272" r="10" fill="#8bd5ff"/>
+  <text x="642" y="247" fill="#bce8ff" font-size="13" font-family="sans-serif">decision</text>
+  <path d="M486 364 C540 332 566 333 596 360" fill="none" stroke="#ff8f91" stroke-width="3"/>
+  <text x="494" y="392" fill="#ffb4b6" font-size="13" font-family="sans-serif">OLD：t 立即可见 → lookahead</text>
+  <path d="M610 422 C648 395 684 396 730 423" fill="none" stroke="#7ee2a8" stroke-width="3"/>
+  <text x="555" y="452" fill="#bcebd0" font-size="13" font-family="sans-serif">CORRECT：ready ≤ decision 才可读</text>
+  <rect x="452" y="474" width="328" height="55" rx="10" fill="#14293c"/>
+  <text x="616" y="497" text-anchor="middle" fill="#c7d6e2" font-size="13" font-family="sans-serif">cross-day contiguous warmup</text>
+  <text x="616" y="518" text-anchor="middle" fill="#9fb4c5" font-size="12" font-family="sans-serif">preserve ms / us / ns physical dtype</text>
+
+  <rect x="830" y="112" width="408" height="448" rx="17" fill="#102237" stroke="#31516a"/>
+  <text x="856" y="149" fill="#dff5ff" font-size="20" font-family="sans-serif" font-weight="700">C. Causal merged event stream</text>
+  <rect x="858" y="182" width="132" height="48" rx="10" fill="#482731"/><text x="924" y="211" text-anchor="middle" fill="#ffe0e1" font-size="14" font-family="sans-serif">trades</text>
+  <rect x="858" y="252" width="132" height="48" rx="10" fill="#173a38"/><text x="924" y="281" text-anchor="middle" fill="#d9ffea" font-size="14" font-family="sans-serif">book changes</text>
+  <rect x="858" y="322" width="132" height="48" rx="10" fill="#44371d"/><text x="924" y="351" text-anchor="middle" fill="#fff0b5" font-size="14" font-family="sans-serif">100ms timers</text>
+  <line x1="990" y1="206" x2="1040" y2="276" stroke="#8bd5ff" stroke-width="3" marker-end="url(#ar7)"/>
+  <line x1="990" y1="276" x2="1040" y2="276" stroke="#8bd5ff" stroke-width="3" marker-end="url(#ar7)"/>
+  <line x1="990" y1="346" x2="1040" y2="276" stroke="#8bd5ff" stroke-width="3" marker-end="url(#ar7)"/>
+  <rect x="1050" y="226" width="158" height="100" rx="12" fill="#19374e" stroke="#6fbbe7"/>
+  <text x="1129" y="254" text-anchor="middle" fill="#dff5ff" font-size="15" font-family="sans-serif" font-weight="700">stable merge</text>
+  <text x="1129" y="279" text-anchor="middle" fill="#bce8ff" font-size="13" font-family="sans-serif">causal timestamp</text>
+  <text x="1129" y="303" text-anchor="middle" fill="#bce8ff" font-size="13" font-family="sans-serif">real tie order kept</text>
+  <line x1="1129" y1="326" x2="1129" y2="390" stroke="#8bd5ff" stroke-width="4" marker-end="url(#ar7)"/>
+  <rect x="892" y="400" width="316" height="104" rx="12" fill="#2a2d42" stroke="#6c7592"/>
+  <text x="1050" y="428" text-anchor="middle" fill="#e1e5f1" font-size="15" font-family="sans-serif" font-weight="700">advance lifecycle</text>
+  <text x="1050" y="454" text-anchor="middle" fill="#bbc2d6" font-size="13" font-family="sans-serif">TTL · cooldown · requote · ACK</text>
+  <text x="1050" y="478" text-anchor="middle" fill="#bbc2d6" font-size="13" font-family="sans-serif">markout · stale book · inventory time</text>
+  <text x="1050" y="498" text-anchor="middle" fill="#ffb4b6" font-size="12" font-family="sans-serif">timer rows cannot consume queue or fill</text>
+
+  <rect x="42" y="590" width="1196" height="124" rx="15" fill="#14283b" stroke="#344f66"/>
+  <text x="70" y="621" fill="#dbe6ee" font-size="17" font-family="sans-serif" font-weight="700">Frozen checks</text>
+  <text x="70" y="651" fill="#b8c9d7" font-size="14" font-family="sans-serif">10-minute parity：2 fills · 9,461 clock events · 101 requotes · PnL diff 2.2e−15 USDC</text>
+  <text x="70" y="679" fill="#ffd166" font-size="14" font-family="sans-serif">Full-day diagnostic：trade clock 178 fills / −0.97 → merged clock 184 fills / +1.18（不是 alpha）</text>
+  <text x="70" y="703" fill="#ffb4b6" font-size="14" font-family="sans-serif">causal-v7：old exact evidence superseded；13-head strict ML A/B failed；inference remains disabled</text>
+  <rect x="70" y="729" width="1140" height="18" rx="7" fill="#162b40"/>
+</svg>

@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">Fill 到 inventory lot 与 campaign terminal 的合成生命周期图</title>
+  <desc id="desc">合成 K 线中一次 opening fill 启动 30 秒 markout、inventory lot 和 campaign 三条时间尺度。图强调 30 秒标签先结束而库存仍存活，replay boundary 的未关闭库存必须 censor。非实盘数据。</desc>
+  <defs>
+    <linearGradient id="bg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#07131f"/><stop offset="1" stop-color="#1a2d46"/></linearGradient>
+    <linearGradient id="inv1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3cbf8f" stop-opacity="0.72"/><stop offset="1" stop-color="#3cbf8f" stop-opacity="0.08"/></linearGradient>
+    <marker id="arr1" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 Z" fill="#8bd5ff"/></marker>
+  </defs>
+  <rect width="1280" height="720" rx="24" fill="url(#bg1)"/>
+  <text x="48" y="52" fill="#f7f9ff" font-size="28" font-family="sans-serif" font-weight="700">Fill-to-Inventory Lifecycle：30 秒标签先结束，库存风险仍继续</text>
+  <text x="48" y="83" fill="#9eb3c8" font-size="16" font-family="sans-serif">合成机制示意 · 非实盘行情 · withdrawn 历史数字不代表当前 calibration</text>
+  <rect x="48" y="112" width="1184" height="286" rx="17" fill="#0b1d2c" stroke="#31516a"/>
+  <line x1="78" y1="354" x2="1200" y2="354" stroke="#476179" stroke-width="2"/>
+  <g stroke-width="4">
+    <line x1="112" y1="246" x2="112" y2="332" stroke="#7ee2a8"/><rect x="100" y="272" width="24" height="38" fill="#7ee2a8"/>
+    <line x1="170" y1="222" x2="170" y2="306" stroke="#7ee2a8"/><rect x="158" y="246" width="24" height="37" fill="#7ee2a8"/>
+    <line x1="228" y1="236" x2="228" y2="323" stroke="#ff8f91"/><rect x="216" y="260" width="24" height="40" fill="#ff8f91"/>
+    <line x1="286" y1="205" x2="286" y2="294" stroke="#7ee2a8"/><rect x="274" y="230" width="24" height="40" fill="#7ee2a8"/>
+    <line x1="344" y1="226" x2="344" y2="315" stroke="#ff8f91"/><rect x="332" y="251" width="24" height="40" fill="#ff8f91"/>
+    <line x1="402" y1="246" x2="402" y2="335" stroke="#ff8f91"/><rect x="390" y="270" width="24" height="41" fill="#ff8f91"/>
+    <line x1="460" y1="230" x2="460" y2="319" stroke="#7ee2a8"/><rect x="448" y="255" width="24" height="40" fill="#7ee2a8"/>
+    <line x1="518" y1="212" x2="518" y2="303" stroke="#7ee2a8"/><rect x="506" y="238" width="24" height="40" fill="#7ee2a8"/>
+    <line x1="576" y1="240" x2="576" y2="331" stroke="#ff8f91"/><rect x="564" y="266" width="24" height="41" fill="#ff8f91"/>
+    <line x1="634" y1="258" x2="634" y2="347" stroke="#ff8f91"/><rect x="622" y="282" width="24" height="41" fill="#ff8f91"/>
+    <line x1="692" y1="235" x2="692" y2="324" stroke="#7ee2a8"/><rect x="680" y="260" width="24" height="40" fill="#7ee2a8"/>
+    <line x1="750" y1="220" x2="750" y2="310" stroke="#7ee2a8"/><rect x="738" y="245" width="24" height="41" fill="#7ee2a8"/>
+    <line x1="808" y1="243" x2="808" y2="333" stroke="#ff8f91"/><rect x="796" y="268" width="24" height="41" fill="#ff8f91"/>
+    <line x1="866" y1="260" x2="866" y2="349" stroke="#ff8f91"/><rect x="854" y="284" width="24" height="41" fill="#ff8f91"/>
+    <line x1="924" y1="232" x2="924" y2="322" stroke="#7ee2a8"/><rect x="912" y="257" width="24" height="41" fill="#7ee2a8"/>
+    <line x1="982" y1="210" x2="982" y2="300" stroke="#7ee2a8"/><rect x="970" y="235" width="24" height="41" fill="#7ee2a8"/>
+    <line x1="1040" y1="225" x2="1040" y2="316" stroke="#ff8f91"/><rect x="1028" y="250" width="24" height="42" fill="#ff8f91"/>
+    <line x1="1098" y1="250" x2="1098" y2="340" stroke="#ff8f91"/><rect x="1086" y="275" width="24" height="41" fill="#ff8f91"/>
+    <line x1="1156" y1="232" x2="1156" y2="323" stroke="#7ee2a8"/><rect x="1144" y="258" width="24" height="40" fill="#7ee2a8"/>
+  </g>
+  <line x1="344" y1="128" x2="344" y2="385" stroke="#ffd166" stroke-width="4" stroke-dasharray="9 7"/>
+  <circle cx="344" cy="251" r="12" fill="#ffd166"/>
+  <text x="273" y="146" fill="#ffe49a" font-size="15" font-family="sans-serif" font-weight="700">opening / add fill</text>
+  <line x1="344" y1="174" x2="540" y2="174" stroke="#8bd5ff" stroke-width="4" marker-end="url(#arr1)"/>
+  <text x="398" y="163" fill="#bce8ff" font-size="14" font-family="sans-serif">固定 30s markout</text>
+  <line x1="540" y1="144" x2="540" y2="385" stroke="#8bd5ff" stroke-width="3" stroke-dasharray="7 6"/>
+  <text x="557" y="193" fill="#bce8ff" font-size="14" font-family="sans-serif">early toxicity label</text>
+  <text x="557" y="214" fill="#91a9bd" font-size="13" font-family="sans-serif">不是 lot close，也不是 campaign PnL</text>
+
+  <rect x="48" y="426" width="1184" height="224" rx="17" fill="#102237" stroke="#31516a"/>
+  <text x="76" y="460" fill="#dff5ff" font-size="19" font-family="sans-serif" font-weight="700">库存与 campaign 时间轴</text>
+  <line x1="112" y1="592" x2="1174" y2="592" stroke="#627b91" stroke-width="2" marker-end="url(#arr1)"/>
+  <path d="M344 592 L344 500 L640 500 L640 540 L822 540 L822 566 L1028 566 L1028 592 Z" fill="url(#inv1)" stroke="#7ee2a8" stroke-width="3"/>
+  <text x="390" y="492" fill="#bcebd0" font-size="15" font-family="sans-serif" font-weight="700">remaining inventory lot</text>
+  <text x="665" y="530" fill="#bcebd0" font-size="13" font-family="sans-serif">partial reducing fills</text>
+  <circle cx="1028" cy="592" r="10" fill="#7ee2a8"/>
+  <text x="955" y="620" fill="#bcebd0" font-size="14" font-family="sans-serif" font-weight="700">campaign flat</text>
+  <line x1="900" y1="444" x2="900" y2="630" stroke="#b58cff" stroke-width="3" stroke-dasharray="8 6"/>
+  <text x="835" y="478" fill="#d7c3ff" font-size="14" font-family="sans-serif">replay boundary</text>
+  <path d="M822 540 L900 540" stroke="#b58cff" stroke-width="5"/>
+  <circle cx="900" cy="540" r="9" fill="#b58cff"/>
+  <text x="913" y="548" fill="#d7c3ff" font-size="14" font-family="sans-serif">若仍有库存：censor / terminal MTM</text>
+  <rect x="78" y="666" width="1120" height="34" rx="9" fill="#162b40"/>
+  <text x="638" y="689" text-anchor="middle" fill="#a8bed1" font-size="14" font-family="sans-serif">FIFO 与 LIFO 是归因约定；旧 43,183 fills / 21,884 lots 数字已撤回，不是当前证据。</text>
+</svg>

@@ -1,0 +1,1060 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Xuan Tan">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Last materially modified: 2026-08-29 TL;DR：单位、feature-ready clock 或 timer event 错一个，改变的不只是指标，而是整条订单生命周期maker replay 常被误认为“把历史 trades 依次送进策略”。NarrowGate 的系统审计发现，真实 replay 还需要正确处理 variance unit、quote ho">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NarrowGate Time、Unit 与 Causality Repair：一次修复如何让旧回测整体失效">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Time-Unit-Causality-Repair-Research/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：单位、feature-ready clock 或 timer event 错一个，改变的不只是指标，而是整条订单生命周期maker replay 常被误认为“把历史 trades 依次送进策略”。NarrowGate 的系统审计发现，真实 replay 还需要正确处理 variance unit、quote ho">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/time-unit-causality-repair.svg">
+<meta property="article:published_time" content="2026-08-28T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-28T16:00:00.000Z">
+<meta property="article:author" content="Xuan Tan">
+<meta property="article:tag" content="Market Making">
+<meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
+<meta property="article:tag" content="低延迟系统">
+<meta property="article:tag" content="可复现性">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/time-unit-causality-repair.svg">
+  
+  
+  
+  <title>NarrowGate Time、Unit 与 Causality Repair：一次修复如何让旧回测整体失效 - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>xiaonanbei</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="NarrowGate Time、Unit 与 Causality Repair：一次修复如何让旧回测整体失效"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-29 00:00" pubdate>
+          2026年8月29日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          8.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          73 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">NarrowGate Time、Unit 与 Causality Repair：一次修复如何让旧回测整体失效</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Last materially modified: 2026-08-29</p>
+<h2 id="TL-DR：单位、feature-ready-clock-或-timer-event-错一个，改变的不只是指标，而是整条订单生命周期"><a href="#TL-DR：单位、feature-ready-clock-或-timer-event-错一个，改变的不只是指标，而是整条订单生命周期" class="headerlink" title="TL;DR：单位、feature-ready clock 或 timer event 错一个，改变的不只是指标，而是整条订单生命周期"></a>TL;DR：单位、feature-ready clock 或 timer event 错一个，改变的不只是指标，而是整条订单生命周期</h2><p>maker replay 常被误认为“把历史 trades 依次送进策略”。NarrowGate 的系统审计发现，真实 replay 还需要正确处理 variance unit、quote horizon、feature bucket visibility、cross-day warmup、markout observation、partial-fill quantity、book/timer events、wall-clock duration、calendar physical unit、commission asset、tick/lot 与 terminal equity。</p>
+<p>早期系统把一秒 absolute-price variance 的平方根同时乘 inventory 和 mid，单位错误；使用 per-second variance却没有明确 integration horizon；把左标 10 秒 feature bucket在 bucket开始暴露，形成 lookahead；主要靠 trades推进 quote timers，导致 sparse periods中的 TTL、cooldown、requote、stale-book、markout 与 inventory-time停滞；又用“有 trade 的 unique seconds”和 event count估计 day exposure与 capacity，混淆事件与时间。</p>
+<p>修复后的 replay使用 causal merged stream：individual execution trades、historical BBO/L2 state changes 与固定 100ms timer deadlines。合成 book/timer rows可以推进状态，却不能消费 queue或制造 fill。一个 real-data 10分钟 parity window中，Python/C++ 都产生 2 fills、9,461 clock events、101 requotes，PnL差仅 $2.2\times10^{-15}$ USDC。</p>
+<p>修复的非线性影响也很直观：同一 full-day public-template diagnostic 从 legacy trade clock的178 fills / $-0.97$ USDC变为 merged clock的184 fills / $+1.18$ USDC。这不是 alpha result，而是证明旧 evidence不能继续引用。</p>
+<p>后续 time/unit contract又修复 calendar microsecond→1970 bug、commission asset、daily PnL rollover、post-fill volatility、tick/lot、bar ns/ms和标签语义，形成 causal-v7。42 日 formal replay完成 776,048 order rows；相对旧 v6，raw PnL改变 $-3.7363$ USDC、fills $+88$、absolute inventory time $+205.02$ BTC-hours。13-head bundle虽完整，strict ML A/B的 raw/terminal evidence仍未通过，inference保持 disabled。</p>
+<p>因此 SYS 项目的最终结论是：<strong>defects repaired；old replay evidence superseded；successor model/action still no promotion</strong>。正确性修复是研究的必要条件，不是策略收益。</p>
+<p>本文只讨论公开 system-engineering evidence，不构成交易建议。图中的 K 线、event stream 与订单状态为合成机制图，不是实盘。</p>
+<p><img src="/images/narrowgate/time-unit-causality-repair.svg" srcset="/img/loading.gif" lazyload alt="NarrowGate replay 的单位、feature clock 与 merged causal event stream"></p>
+<p><em>图 1：价格 variance 先按 horizon积分并乘 BTC quantity；feature 只能在 bucket end ready；trades、book changes 与 100ms timers共同推进生命周期。任何一层错误都会改变 fills、inventory与 terminal value。</em></p>
+<h2 id="1-为什么这些修复是一项研究，而不是九个小-bug"><a href="#1-为什么这些修复是一项研究，而不是九个小-bug" class="headerlink" title="1. 为什么这些修复是一项研究，而不是九个小 bug"></a>1. 为什么这些修复是一项研究，而不是九个小 bug</h2><p>这些缺陷看似分散：一个公式多乘 mid、一个 timestamp单位错、一个 timer没有 tick、一个 commission asset丢失。但它们都回答同一个系统研究问题：<strong>历史 replay 是否在正确单位、正确可见时间和完整 wall clock 上重现策略可执行的状态转移？</strong></p>
+<p>研究 identity 的终点也一致：建立一个 frozen formal replay contract，让 Python/C++ 对相同 causal inputs锁步，再看修复后的模型或动作是否通过 promotion gate。每个实现修正只是这条链的 component，不应拆成独立 alpha article。</p>
+<h2 id="2-Variance-unit：不要把价格波动再乘一次-mid"><a href="#2-Variance-unit：不要把价格波动再乘一次-mid" class="headerlink" title="2. Variance unit：不要把价格波动再乘一次 mid"></a>2. Variance unit：不要把价格波动再乘一次 mid</h2><p>若 $\sigma_p^2$ 是一秒 absolute-price variance，单位为</p>
+<script type="math/tex; mode=display">
+[\sigma_p^2]
+=
+(\mathrm{USDC/BTC})^2/\mathrm{s},</script><p>则 horizon $H$、inventory quantity $q$ 的 PnL volatility为</p>
+<script type="math/tex; mode=display">
+\sigma_{PnL,USDC}
+=
+\sqrt{\sigma_p^2 H}\,|q|.</script><p>单位检查：</p>
+<script type="math/tex; mode=display">
+\frac{USDC}{BTC\sqrt{s}}
+\times\sqrt{s}
+\times BTC
+=
+USDC.</script><p>旧实现又乘 mid-price，会多出 USDC/BTC，结果不再是 USDC。这个错误会扭曲 circuit breaker、exit urgency 与 quote risk，而不是只让 report label难看。</p>
+<p>quote_horizon_s 与 pnl_volatility_horizon_s 也必须分开。per-second variance没有天然的“10 秒风险”；当前 public quote horizon明确为 1 秒，PnL risk horizon是另一项冻结参数，不能从 quote horizon推断。</p>
+<p>ML-OFF 时 neutral prediction令 vol_10s=0，不能拿 dimensionless realized-return volatility替换 absolute-price variance。Post-fill接口则明确接收 volatility_bps，live/replay按同一公式转换。</p>
+<h2 id="3-Feature-visibility：index-time-不是-ready-time"><a href="#3-Feature-visibility：index-time-不是-ready-time" class="headerlink" title="3. Feature visibility：index time 不是 ready time"></a>3. Feature visibility：index time 不是 ready time</h2><p>左标 10 秒 row at $t$ 覆盖区间 $[t,t+10s)$。策略直到 bucket结束才可能知道完整统计，因此</p>
+<script type="math/tex; mode=display">
+t_{feature\ ready}=t_{index}+10s.</script><p>replay lookup必须用 $t_{ready}$，不是 raw index。旧 cache在 timestamp semantics变化后整体失效，不能只改 metadata让历史 predictions看起来 causal。</p>
+<p>同样规则适用于 five-minute metrics、external joins 与 parent aggregate trades。一个 child trade在 exchange time已发生，不代表 policy-visible flow在 parent message ready前可用。</p>
+<p>forward labels也必须冻结半开区间 $[t,t+h)$，排除恰在 $t+h$开始的 bar。历史兼容名 label_ret_10s/label_dir_10s 实际可能表示 decision到 fill最多 $h$，fill后再 markout $h$，总 span在 $h$到$2h$之间；metadata必须说出真实语义。</p>
+<h2 id="4-Cross-day-warmup-与-calendar-physical-unit"><a href="#4-Cross-day-warmup-与-calendar-physical-unit" class="headerlink" title="4. Cross-day warmup 与 calendar physical unit"></a>4. Cross-day warmup 与 calendar physical unit</h2><p>rolling 6h/24h/7d state不能在 UTC midnight清零。修复后的 daily feature generation最多读取七个 immediately contiguous prior days作 causal warmup，遇到第一个缺日即停止；external joins与 labels在 warmup后 slice回 target day，未来日不能进入目标。</p>
+<p>Parquet datetime index可能保存为 ms、us或ns。旧 converter先把 datetime cast成数字，再用 magnitude阈值猜单位；microseconds被当作 nanoseconds，十九个 training days的 calendar/session features落到1970年。</p>
+<p>修复先保留 physical dtype，再按 seconds/milliseconds/microseconds/nanoseconds显式转换；calendar tables超出 declared local-year support时 fail fast。即使 validation/test没有这个特定 bug，training distribution已改变，旧 model也不能继续 authoritative。</p>
+<h2 id="5-Merged-causal-event-clock：没有-trade-时，时间仍在走"><a href="#5-Merged-causal-event-clock：没有-trade-时，时间仍在走" class="headerlink" title="5. Merged causal event clock：没有 trade 时，时间仍在走"></a>5. Merged causal event clock：没有 trade 时，时间仍在走</h2><p>旧 Python/C++ tick loops主要在 execution trade到来时推进 quote timer。若市场数秒没有 trade，现实中的 TTL、cooldown、cancel ACK deadline、requote、stale-book guard与 pending markout仍会到期，旧 replay却像时间停止。</p>
+<p>formal replay的新 stream为</p>
+<script type="math/tex; mode=display">
+\mathcal S
+=
+\mathcal T_{trades}
+\cup
+\mathcal B_{book\ changes}
+\cup
+\mathcal D_{100ms\ deadlines},</script><p>按 causal timestamp稳定合并。synthetic book/timer row携带最新可见 execution price、quantity zero，可以推进 state machine和 inventory-time integral；它不能 consume queue、create fill或制造 inferred touch。real trades同毫秒保留 stable input order。</p>
+<p>formal mode拒绝 trade-only clock，并要求 positive timer interval。exploratory mode可以显式重现 legacy diagnostic，但没有 promotion eligibility。</p>
+<h2 id="6-Wall-time、exposure-与-capacity"><a href="#6-Wall-time、exposure-与-capacity" class="headerlink" title="6. Wall time、exposure 与 capacity"></a>6. Wall time、exposure 与 capacity</h2><p>旧 day exposure使用</p>
+<script type="math/tex; mode=display">
+\frac{\#\{seconds\ containing\ trades\}}{86400},</script><p>这衡量 activity coverage，不是 replay elapsed time。一个完整但稀疏的 UTC day可能被报成“半天”，fills/day随之虚高。</p>
+<p>旧 PnL-curve capacity又用 event_count / interval_ms，把无量纲 count除以 milliseconds当成时间。修复后 duration、campaign age、inventory time与 capacity全部从 merged stream的 elapsed milliseconds推导。</p>
+<p>inventory exposure按 wall clock积分：</p>
+<script type="math/tex; mode=display">
+I_{abs}
+=
+\int |q(t)|\,dt
+\quad[BTC\cdot s].</script><p>它不能由“有 trade的秒数”近似。</p>
+<h2 id="7-Markout、partial-fills-与-terminal-equity"><a href="#7-Markout、partial-fills-与-terminal-equity" class="headerlink" title="7. Markout、partial fills 与 terminal equity"></a>7. Markout、partial fills 与 terminal equity</h2><p>canonical order-level markout按 fill quantity加权：</p>
+<script type="math/tex; mode=display">
+\overline M_{bps}
+=
+\frac{\sum_i M_{i,bps}q_i}{\sum_i q_i}.</script><p>若预测的是 per-BTC EV，total USDC为</p>
+<script type="math/tex; mode=display">
+EV_{USDC}
+=
+\sum_i EV_{i,USDC/BTC}q_i.</script><p>不能 event-weight partial fills，也不能把 USDC/BTC price difference直接相加成 USDC。</p>
+<p>maker-signed markout在 BUY/SELL都以 favorable为正；旧 audit scorer对 SELL double sign flip的结果撤回。fixed-horizon midpoint必须来自目标时刻可见 BBO/L2，并记录 actual observation与 age，不能取未来第一笔 trade冒充 mid。</p>
+<p>terminal equity为</p>
+<script type="math/tex; mode=display">
+E_T=cash_T+inventory_T\cdot mark_T,</script><p>不在窗口末尾虚构 taker close。commission asset必须保留：quote/settlement commission直接计入，base-asset commission按 fill price转换；未知 nonzero asset让策略停止继续 quote，而不是静默当零。</p>
+<h2 id="8-Formal-replay-与-live-alignment必须分离"><a href="#8-Formal-replay-与-live-alignment必须分离" class="headerlink" title="8. Formal replay 与 live alignment必须分离"></a>8. Formal replay 与 live alignment必须分离</h2><p>formal replay用于 baseline/candidate strategy evidence，要求 strict calibration、frozen identity与 promotion-eligible inputs。live_alignment只诊断单位、event clock、state transition与 gate order，不要求与某一 warm-start historical process逐 campaign或PnL相同。</p>
+<p>formal默认 fresh_start：inventory=0、entry price=0、无 inherited orders/cooldown/markout/campaign state。若使用 frozen_standard，只允许一个已绑定的标准 inventory/entry artifact；完整 live active-order state只属于 alignment。</p>
+<p>每个 arm共享 config、models、P3、queue、trade source、merged clock、initial state、latency samples与 seeds。action override可以不同。deterministic keyed latency保证一个 arm多 cancel不会移动另一个 arm所有后续随机 draws。</p>
+<p>这种 separation防止“为了匹配一段历史 live”把 warm start、receive trace或 process stall变成隐含 strategy parameter。</p>
+<h2 id="9-验证数字：parity-通过，不等于旧-economics保留"><a href="#9-验证数字：parity-通过，不等于旧-economics保留" class="headerlink" title="9. 验证数字：parity 通过，不等于旧 economics保留"></a>9. 验证数字：parity 通过，不等于旧 economics保留</h2><p>10分钟 real-data parity window的冻结结果：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th style="text-align:right">Python</th>
+<th style="text-align:right">C++</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fills</td>
+<td style="text-align:right">2</td>
+<td style="text-align:right">2</td>
+</tr>
+<tr>
+<td>Merged clock events</td>
+<td style="text-align:right">9,461</td>
+<td style="text-align:right">9,461</td>
+</tr>
+<tr>
+<td>Requotes</td>
+<td style="text-align:right">101</td>
+<td style="text-align:right">101</td>
+</tr>
+<tr>
+<td>PnL absolute difference</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">$2.2\times10^{-15}$ USDC</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>这个结果支持 implementations对同一 causal inputs一致。它没有证明 queue model等于 exchange priority，也没有证明策略 profitable。</p>
+<p>full-day public-template diagnostic更能说明修复影响：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Clock</th>
+<th style="text-align:right">Fills</th>
+<th style="text-align:right">PnL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Legacy trade clock</td>
+<td style="text-align:right">178</td>
+<td style="text-align:right">-0.97 USDC</td>
+</tr>
+<tr>
+<td>Causal merged clock</td>
+<td style="text-align:right">184</td>
+<td style="text-align:right">+1.18 USDC</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>这是 migration diagnostic，不是 live baseline或 alpha。它证明 timer/order lifecycle改变后，旧 exact values和A/B deltas都不应继续使用。</p>
+<h2 id="10-causal-v7：修复后的-successor-仍未晋级"><a href="#10-causal-v7：修复后的-successor-仍未晋级" class="headerlink" title="10. causal-v7：修复后的 successor 仍未晋级"></a>10. causal-v7：修复后的 successor 仍未晋级</h2><p>后续 contract把 calendar、commission、daily PnL、tick/lot、post-fill volatility与bar clock纳入 authoritative replacement causal-v7。bundle含742,998 train、172,798 validation、172,799 historical test rows；13 heads每个195个 strict metadata features。</p>
+<p>selected test diagnostics包括 dir_10s AUC 0.5363、ret_10s IC 0.0396、vol_10s IC 0.5779、toxicity heads AUC约0.5413–0.5726。它们是 prediction diagnostics，不是 action/PnL evidence。</p>
+<p>42日 corrected formal replay完成776,048 order rows。相对 v6同日 denominator：</p>
+<script type="math/tex; mode=display">
+\Delta PnL=-3.7363\ \text{USDC},
+\quad
+\Delta fills=+88,
+\quad
+\Delta I_{abs}=+205.02\ \text{BTC-hours}.</script><p>不能把差异单独归因于 calendar bug，因为多个 semantics共同变化；它只证明 v6 nonlinear results没有跨 identity存活。</p>
+<h2 id="11-Strict-ML-A-B-与-BUY-fill-selection-都失败-joint-gate"><a href="#11-Strict-ML-A-B-与-BUY-fill-selection-都失败-joint-gate" class="headerlink" title="11. Strict ML A/B 与 BUY fill-selection 都失败 joint gate"></a>11. Strict ML A/B 与 BUY fill-selection 都失败 joint gate</h2><p>strict ML A/B只改变 ML OFF vs causal-v7 13 heads，BUY actions disabled。Validation20 raw PnL delta总计 $+1.038$，daily interval跨零；terminal delta $-2.6465$，区间也跨零；fills减少772，absolute inventory time增加276.65 BTC-hours。Historical Test17 raw与terminal deltas均为负、interval跨零。</p>
+<p>inventory-adjusted diagnostic有局部正值，不能补偿 raw/terminal、activity与inventory-time gates。13-head inference因此不 promoted，保持 disabled。</p>
+<p>BUY fill-selection的四个 targets也没有同时改善 markout、terminal campaign value、bad rate与tail。例如 non_toxic hit组20s/30s markout更好，却terminal PnL/campaign差 $-0.1053$、bad rate高 $+0.2001$、tail高 $+0.0368$。prediction slice好看没有形成 joint action value。</p>
+<p>queue q0.55–q1.00 sensitivity显著改变 fills、campaigns、tail与inventory time，PnL却不单调。q0.70保留外部 calibration baseline，不能用 replay PnL反选 queue quantile。</p>
+<h2 id="12-最终状态与权限"><a href="#12-最终状态与权限" class="headerlink" title="12. 最终状态与权限"></a>12. 最终状态与权限</h2><p>项目最终状态是：</p>
+<script type="math/tex; mode=display">
+\text{defects repaired}
+\land
+\text{old evidence superseded}
+\land
+\text{successor no promotion}.</script><p>支持：单位与时钟 contracts、merged replay、causal feature visibility、quantity/commission/terminal accounting、same-input parity、formal/live-alignment identity separation。</p>
+<p>不支持：任何 pre-repair exact PnL、causal-v5/v6 model authority、causal-v7 live promotion、BUY fill-selection action、queue quantile selection。</p>
+<p>13-head inference保持 disabled；没有 live config、queue baseline或strategy action改变。sealed holdout未用来救结果，也没有新的 deployment或 action authority。</p>
+<h2 id="13-公共证据"><a href="#13-公共证据" class="headerlink" title="13. 公共证据"></a>13. 公共证据</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/system_engineering/docs/replay_time_unit_causality_repair_20260715.md">Replay Time, Unit, and Causality Repair</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/system_engineering/docs/time_unit_contract_repair_20260726.md">Time and Unit Contract Repair</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/system_engineering/docs/formal_replay_contract_20260722.md">Formal Replay Contract v1</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/system_engineering/README.md">SYS Low-Latency And Replay Parity README</a></li>
+</ul>
+<p>公开仓库提供 formulas、contracts、aggregate diagnostics与权限边界；owner-side model/replay artifacts不随仓库分发。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Market-Making/" class="category-chain-item">Market Making</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
+      
+        <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
+      
+        <a href="/tags/%E4%BD%8E%E5%BB%B6%E8%BF%9F%E7%B3%BB%E7%BB%9F/" class="print-no-link">#低延迟系统</a>
+      
+        <a href="/tags/%E5%8F%AF%E5%A4%8D%E7%8E%B0%E6%80%A7/" class="print-no-link">#可复现性</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>NarrowGate Time、Unit 与 Causality Repair：一次修复如何让旧回测整体失效</div>
+      <div>https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Time-Unit-Causality-Repair-Research/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Xuan Tan</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-Placement-Distance-Fill-CIF-Marginal-Value-Research/" title="NarrowGate Placement Distance：从 Fill CIF 到边际成交价值的完整研究">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">NarrowGate Placement Distance：从 Fill CIF 到边际成交价值的完整研究</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/" title="NarrowGate：回测吞吐与 Live 尾延迟工程">
+                        <span class="hidden-mobile">NarrowGate：回测吞吐与 Live 尾延迟工程</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

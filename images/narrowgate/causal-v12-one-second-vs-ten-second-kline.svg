@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">一秒与十秒13-head策略路径比较</title>
+  <desc id="desc">机制示意与四十日冻结聚合结果。同一合成K线上一秒策略更频繁调整报价，结果成交保留百分之八十七、terminal MTM更差、库存时间增加八百八十八BTC秒并恶化tail。</desc>
+  <defs><linearGradient id="bg"><stop stop-color="#071426"/><stop offset="1" stop-color="#23304a"/></linearGradient><style>.t{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;fill:#edf6ff}.m{fill:#a9bad0}.grid{stroke:#2b4b67}.ten{stroke:#5ab0ff}.one{stroke:#ffb84d}.big{font-size:27px;font-weight:700}.label{font-size:17px}.small{font-size:14px}</style></defs>
+  <rect width="1200" height="620" rx="24" fill="url(#bg)"/><text x="52" y="53" class="t big">更快更新 ≠ 更低库存风险</text><text x="52" y="82" class="m small">机制示意与 40-day native Development 冻结聚合结果</text>
+  <g transform="translate(55 115)">
+    <rect width="760" height="350" rx="14" fill="#0a1d33" stroke="#365873"/><path d="M0 88H760M0 175H760M0 262H760" class="grid"/>
+    <polyline points="20,223 70,205 120,232 170,190 220,215 270,165 320,182 370,132 420,166 470,118 520,151 570,100 620,130 670,88 735,120" fill="none" stroke="#e8eef6" stroke-width="3"/>
+    <polyline points="20,145 170,112 320,104 470,63 620,53 735,42" fill="none" class="ten" stroke-width="4"/>
+    <polyline points="20,301 170,268 320,260 470,219 620,209 735,198" fill="none" class="ten" stroke-width="4"/>
+    <polyline points="20,160 70,132 120,172 170,125 220,158 270,110 320,146 370,90 420,137 470,83 520,120 570,68 620,108 670,61 735,90" fill="none" class="one" stroke-width="2" stroke-dasharray="7 5"/>
+    <polyline points="20,286 70,258 120,298 170,251 220,284 270,236 320,272 370,216 420,263 470,209 520,246 570,194 620,234 670,187 735,216" fill="none" class="one" stroke-width="2" stroke-dasharray="7 5"/>
+    <text x="24" y="35" class="t small">蓝：10s control 稳定更新 · 橙虚线：1s candidate 高频调整</text>
+    <g fill="#ff6b6b"><circle cx="126" cy="272" r="6"/><circle cx="326" cy="248" r="6"/><circle cx="426" cy="238" r="6"/><circle cx="626" cy="218" r="6"/></g>
+    <text x="480" y="327" class="m small">红点：库存增加路径的机制示意</text>
+  </g>
+  <g transform="translate(845 115)">
+    <rect width="300" height="350" rx="14" fill="#0a1d33" stroke="#365873"/><text x="20" y="38" class="t label">40 日结果：1s - 10s</text>
+    <text x="20" y="82" class="m small">Terminal MTM</text><text x="20" y="109" fill="#ff8f8f" class="label">-2.116974 USDC</text>
+    <text x="20" y="151" class="m small">Fill retention</text><text x="20" y="178" fill="#ff8f8f" class="label">87.0216%</text>
+    <text x="20" y="220" class="m small">Inventory time</text><text x="20" y="247" fill="#ff8f8f" class="label">+888.737 BTC*s</text>
+    <text x="20" y="289" class="m small">CVaR10 protection</text><text x="20" y="316" fill="#ff8f8f" class="label">-0.176559 / day</text><text x="20" y="340" class="m small">95% CI fully harmful</text>
+  </g>
+  <rect x="55" y="510" width="1090" height="72" rx="14" fill="#102a43"/><text x="78" y="540" class="t label">关闭这套 1s model/policy successor；未打开 Validation 或 71-day confirmation</text><text x="78" y="566" class="m small">不外推为“所有 sub-10s 模型都有害”。</text>
+</svg>

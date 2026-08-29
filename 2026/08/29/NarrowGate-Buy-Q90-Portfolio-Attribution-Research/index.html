@@ -1,0 +1,1034 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Xuan Tan">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Last materially modified: 2026-08-29 TL;DR：q90 ON 确实扩大了 SELL-minus-BUY fill imbalance，但“更多 SHORT、更多多层 SHORT、终局更差”都没有成立BUY q90 的组合机制假说很直观：若系统优先取消高风险 BUY active orders，就会减少增加 LONG 或修复 SHORT 的 BUY fills；">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NarrowGate BUY q90 Portfolio Attribution：过滤 BUY 是否把库存推向 SHORT">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Buy-Q90-Portfolio-Attribution-Research/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：q90 ON 确实扩大了 SELL-minus-BUY fill imbalance，但“更多 SHORT、更多多层 SHORT、终局更差”都没有成立BUY q90 的组合机制假说很直观：若系统优先取消高风险 BUY active orders，就会减少增加 LONG 或修复 SHORT 的 BUY fills；">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/buy-q90-portfolio-attribution.svg">
+<meta property="article:published_time" content="2026-08-28T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-28T16:00:00.000Z">
+<meta property="article:author" content="Xuan Tan">
+<meta property="article:tag" content="Market Making">
+<meta property="article:tag" content="市场微观结构">
+<meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
+<meta property="article:tag" content="组合归因">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/buy-q90-portfolio-attribution.svg">
+  
+  
+  
+  <title>NarrowGate BUY q90 Portfolio Attribution：过滤 BUY 是否把库存推向 SHORT - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>xiaonanbei</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="NarrowGate BUY q90 Portfolio Attribution：过滤 BUY 是否把库存推向 SHORT"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-29 00:00" pubdate>
+          2026年8月29日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          17 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">NarrowGate BUY q90 Portfolio Attribution：过滤 BUY 是否把库存推向 SHORT</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Last materially modified: 2026-08-29</p>
+<h2 id="TL-DR：q90-ON-确实扩大了-SELL-minus-BUY-fill-imbalance，但“更多-SHORT、更多多层-SHORT、终局更差”都没有成立"><a href="#TL-DR：q90-ON-确实扩大了-SELL-minus-BUY-fill-imbalance，但“更多-SHORT、更多多层-SHORT、终局更差”都没有成立" class="headerlink" title="TL;DR：q90 ON 确实扩大了 SELL-minus-BUY fill imbalance，但“更多 SHORT、更多多层 SHORT、终局更差”都没有成立"></a>TL;DR：q90 ON 确实扩大了 SELL-minus-BUY fill imbalance，但“更多 SHORT、更多多层 SHORT、终局更差”都没有成立</h2><p>BUY q90 的组合机制假说很直观：若系统优先取消高风险 BUY active orders，就会减少增加 LONG 或修复 SHORT 的 BUY fills；SELL exposure fills相对更多，库存因此更容易进入 SHORT；SHORT campaigns 进一步变成 multi-level；最终 terminal MTM 变差。</p>
+<p>F10 用冻结 40 日 paired full-path replay 比较 q90 ON 与 q90 OFF。24 个 Grade-A primary 日里，q90 ON 的 SELL-minus-BUY exposure-fill imbalance 增加 $+0.43057$ fills/hour，95% 日期聚类区间 $[+0.00869,+0.85418]$，是整条链唯一通过的 link。</p>
+<p>其它 link 均不成立。BUY exposure suppression 为 $-0.22744$ fills/hour，区间上端 $+0.00173$，仅差一点却仍失败；SHORT campaign share 增加 $+0.00851$，区间跨零；multi-level SHORT share 反而点估计下降 $-0.00124$；terminal MTM 为 $+0.09470$ USDC/day，区间 $[-0.23214,+0.45084]$，没有 terminal harm evidence。</p>
+<p>全 40 日描述性 aggregate 甚至显示 q90 ON 的 terminal MTM 比 OFF 少亏 $+0.33804$ USDC/day，但这不是独立 OOS policy validation。更关键的 transport mismatch 是：replay 959.963 小时只有 105 个 cancel requests，约 0.109/hour；另一个冻结历史 operational diagnostic 为约 20.84/hour，强度相差约 190 倍。历史 replay 没有回答异常高频 policy 是否造成 observed SHORT concentration。</p>
+<p>因此项目结论是 <strong>complete portfolio-bias mechanism not supported on Development</strong>。它既不能证明 q90 有害，也不能证明应该保留或移除；只说明在冻结历史路径和 action intensity 下，四段机制链没有闭合。</p>
+<p>本文只讨论公开 Development aggregation，不构成交易建议。图中的 K 线、订单与库存分叉是合成机制示意。</p>
+<p><img src="/images/narrowgate/buy-q90-portfolio-attribution.svg" srcset="/img/loading.gif" lazyload alt="BUY q90 ON/OFF 到 exposure imbalance、SHORT campaign 与 terminal MTM 的机制链"></p>
+<p><em>图 1：q90 ON 与 OFF 共享市场路径，在 BUY cancel 处开始分叉。只有 SELL-minus-BUY exposure imbalance 获得正下界；后续 SHORT share、multi-level share 与 terminal harm 均未通过。</em></p>
+<h2 id="1-为什么这是-portfolio-path，不是单笔-cancel-study"><a href="#1-为什么这是-portfolio-path，不是单笔-cancel-study" class="headerlink" title="1. 为什么这是 portfolio path，不是单笔 cancel study"></a>1. 为什么这是 portfolio path，不是单笔 cancel study</h2><p>一笔 BUY cancel 的局部结果可能只是少一次 fill，但 inventory system 具有反馈。少一个 BUY exposure fill 可能减少 LONG，也可能减少对已有 SHORT 的 repair；随后 quote role、cooldown、inventory guard 与 campaign identity都会改变。不能只看被取消订单的 10 秒 markout，就推断组合终局。</p>
+<p>因此 q90 portfolio attribution 把 action 视为一条 full-path policy toggle：同一历史 market path、latency path、P3、queue calibration、cooldown、loss guard、size 与 inventory limit 下，只改变 q90 ON/OFF。arms 一旦 inventory path 分叉，campaigns 独立重建，不再强行匹配同名 campaign。</p>
+<p>主 contrast 为 paired daily effect：</p>
+<script type="math/tex; mode=display">
+\Delta_m
+=
+\frac{1}{D}
+\sum_{d=1}^{D}
+\left(m_{d,ON}-m_{d,OFF}\right).</script><p>不确定性按 UTC day cluster 重采样，保留同日共同市场 shock 与多个 campaign 的依赖。</p>
+<h2 id="2-预注册的四段机制链"><a href="#2-预注册的四段机制链" class="headerlink" title="2. 预注册的四段机制链"></a>2. 预注册的四段机制链</h2><p>完整 hypothesis 不是“BUY cancels 增多”，而是：</p>
+<script type="math/tex; mode=display">
+q90\ ON
+\rightarrow
+\Delta BUY\ exposure<0
+\rightarrow
+\Delta(SELL-BUY)>0
+\rightarrow
+\Delta SHORT\ share>0
+\rightarrow
+\Delta multiSHORT>0
+\rightarrow
+\Delta terminal\ MTM<0.</script><p>冻结 contract 要求所有核心 links 同时通过。中间一段显著不能补偿后一段失败；terminal harm 又需要 upper bound 低于零，而不是点估计为负。</p>
+<p>这种 joint gate 防止研究者只挑一个符合故事的 mediator。一个 policy 可以改变 side activity，却被后续 reducing fills、campaign repair 或其它 feedback 抵消。</p>
+<h2 id="3-数据、arms-与-causal-boundary"><a href="#3-数据、arms-与-causal-boundary" class="headerlink" title="3. 数据、arms 与 causal boundary"></a>3. 数据、arms 与 causal boundary</h2><p>primary panel 是 24 个 Grade-A Development 日，16 个 Grade-B 日只作 sensitivity。两个 arms 使用同一 native snapshot/delta book、strict exact-price queue、individual execution trades 与 deterministic latency path。initial state、model、P3、queue calibration、cooldowns、size 和 risk limits 绑定不变。</p>
+<p>q90 scorer 的 Python/C++ kernel 在使用点 fail-fast lockstep，但完整 tick replay以 Python 为 authority。这个边界不能写成“全 C++ replay parity”。</p>
+<p>action 后 campaign path 可以不同，因此 outcome 在每个 arm 内独立 accounting。最大 absolute campaign accounting error 为 $3.69\times10^{-13}$ USDC，native event denominator在所有日、两 arms间一致。</p>
+<p>Validation 与 sealed holdout 没有读取。fixed q90 model 与 Development存在训练/选择 overlap，所以这项研究是机制 attribution，不是 independent policy validation。</p>
+<h2 id="4-Grade-A-primary：只有-side-imbalance-通过"><a href="#4-Grade-A-primary：只有-side-imbalance-通过" class="headerlink" title="4. Grade-A primary：只有 side imbalance 通过"></a>4. Grade-A primary：只有 side imbalance 通过</h2><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Metric，ON − OFF</th>
+<th style="text-align:right">Estimate</th>
+<th style="text-align:right">95% day-cluster interval</th>
+<th>Gate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Terminal MTM, USDC/day</td>
+<td style="text-align:right">+0.09470</td>
+<td style="text-align:right">[-0.23214, +0.45084]</td>
+<td>no harm evidence</td>
+</tr>
+<tr>
+<td>Closed campaign value, USDC/day</td>
+<td style="text-align:right">+0.09061</td>
+<td style="text-align:right">[-0.23923, +0.44908]</td>
+<td>diagnostic</td>
+</tr>
+<tr>
+<td>BUY exposure fills/hour</td>
+<td style="text-align:right">-0.22744</td>
+<td style="text-align:right">[-0.45487, +0.00173]</td>
+<td>fail</td>
+</tr>
+<tr>
+<td>SELL exposure fills/hour</td>
+<td style="text-align:right">+0.20313</td>
+<td style="text-align:right">[-0.00521, +0.41494]</td>
+<td>diagnostic</td>
+</tr>
+<tr>
+<td>SELL-minus-BUY fills/hour</td>
+<td style="text-align:right">+0.43057</td>
+<td style="text-align:right">[+0.00869, +0.85418]</td>
+<td>pass</td>
+</tr>
+<tr>
+<td>SHORT campaign share</td>
+<td style="text-align:right">+0.00851</td>
+<td style="text-align:right">[-0.00247, +0.01922]</td>
+<td>fail</td>
+</tr>
+<tr>
+<td>Multi-level SHORT share</td>
+<td style="text-align:right">-0.00124</td>
+<td style="text-align:right">[-0.00633, +0.00386]</td>
+<td>fail</td>
+</tr>
+<tr>
+<td>Multi-level rate among SHORT</td>
+<td style="text-align:right">-0.00630</td>
+<td style="text-align:right">[-0.01597, +0.00324]</td>
+<td>diagnostic</td>
+</tr>
+<tr>
+<td>Multi-level SHORT value, USDC/day</td>
+<td style="text-align:right">-0.12788</td>
+<td style="text-align:right">[-0.33732, +0.05815]</td>
+<td>diagnostic</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>BUY suppression 的 upper endpoint 仅为 $+0.00173$，但冻结 gate 是单侧不跨零；“差一点”仍是失败。即使把这一 link宽松视为方向性成立，SHORT share 与 multi-level share 也没有正下界，terminal harm 更没有出现。</p>
+<p>这说明 exposure-flow imbalance 与 campaign-stock distribution 不是同一 estimand。fills/hour 的 side difference 可以改变，但 campaign birth、repair 与 flatting 的 nonlinear path可能吸收它。</p>
+<h2 id="5-Grade-B-与-all-40-为什么不能救-primary"><a href="#5-Grade-B-与-all-40-为什么不能救-primary" class="headerlink" title="5. Grade B 与 all-40 为什么不能救 primary"></a>5. Grade B 与 all-40 为什么不能救 primary</h2><p>Grade B 的 terminal-MTM effect 是 $+0.70306$ USDC/day，区间 $[+0.22705,+1.22846]$。multi-level SHORT share 增加，但 overall SHORT-share 与 exposure-imbalance intervals 都跨零。它的机制方向与 Grade A并不完整一致。</p>
+<p>全 40 日 descriptive effect 为 $+0.33804$ USDC/day，区间 $[+0.04751,+0.65533]$。aggregate terminal MTM 从 OFF 的 $-192.16901$ 变为 ON 的 $-178.64726$ USDC。</p>
+<p>这些正值不授权 q90。Grade B 预注册为 sensitivity，不能覆盖 Grade-A joint mechanism failure；all-40 pooled result又混合 evidence roles。固定模型与 panel 重叠，且 action intensity 未 transport。把描述性少亏写成“q90 profitable”会越过三道边界。</p>
+<h2 id="6-Treatment-strength：历史-replay-与-operational-diagnostic-相差约-190-倍"><a href="#6-Treatment-strength：历史-replay-与-operational-diagnostic-相差约-190-倍" class="headerlink" title="6. Treatment strength：历史 replay 与 operational diagnostic 相差约 190 倍"></a>6. Treatment strength：历史 replay 与 operational diagnostic 相差约 190 倍</h2><p>q90 ON replay 产生：</p>
+<ul>
+<li>25,555,868 score evaluations；</li>
+<li>105 cancel requests 与 105 cancel ACKs；</li>
+<li>104 re-entries；</li>
+<li>34/40 日有 cancel activity；</li>
+<li>Grade A 57 requests，Grade B 48；</li>
+<li>0 pending-cancel fills。</li>
+</ul>
+<p>959.963 小时对应约 0.109 requests/hour。独立冻结的 120 小时 operational diagnostic 有 2,501 requests，约 20.84/hour。若 counters 语义可比，差异约 190 倍。</p>
+<p>这意味着 portfolio result 的外推对象非常有限。历史 replay回答“低频 fixed q90 在这 40 日是否形成完整 bias chain”；它没有回答高强度 operational behavior 的 causal effect。差异可能来自 market regime、receive/feature clock、runtime state 或 denominator semantics，不能只归因给模型阈值。</p>
+<p>后续 causal-clock audit确实发现 mixed-clock defect，但不能倒写本篇 economics：clock repair 改变 treatment denominator，需要新的完整 action identity，而不是重加权旧 105 cancels。</p>
+<h2 id="7-为什么-terminal-MTM-是必要但仍不充分的终点"><a href="#7-为什么-terminal-MTM-是必要但仍不充分的终点" class="headerlink" title="7. 为什么 terminal MTM 是必要但仍不充分的终点"></a>7. 为什么 terminal MTM 是必要但仍不充分的终点</h2><p>terminal MTM 保留 cash、remaining inventory 与 terminal mark：</p>
+<script type="math/tex; mode=display">
+E_T=cash_T+inventory_T\cdot mark_T-fees_T.</script><p>它避免把未关闭库存当作 realized zero，也避免只用 30 秒 markout判断长期 harm。但一个 daily terminal delta仍可被少数日和 window endpoint影响，因此研究同时报告 closed campaign value、multi-level SHORT value、share 与 day-cluster interval。</p>
+<p>Grade A terminal point estimate为正、区间跨零，所以既没有 harm evidence，也没有稳定 benefit evidence。正确读法是 uncertain，不是“q90 改善 PnL”。</p>
+<h2 id="8-研究支持了什么、没有支持什么"><a href="#8-研究支持了什么、没有支持什么" class="headerlink" title="8. 研究支持了什么、没有支持什么"></a>8. 研究支持了什么、没有支持什么</h2><p>支持：q90 ON 在冻结 Grade-A replay上增加 SELL-minus-BUY exposure-fill imbalance；full-path mechanics 具有 nonzero treatment；paired day accounting 与 native event denominator闭合。</p>
+<p>不支持：BUY exposure suppression 的冻结单侧门、更多 SHORT campaigns、更多 multi-level SHORT campaigns、terminal harm、当前 operational policy effect。</p>
+<p>不能从本结果推导的决策包括：keep q90、remove q90、rollback、调 threshold、把 BUY filtering 改成 SELL filtering，或将 all-40 descriptive少亏当成 promotion evidence。</p>
+<h2 id="9-最终状态与权限"><a href="#9-最终状态与权限" class="headerlink" title="9. 最终状态与权限"></a>9. 最终状态与权限</h2><p>最终结论为</p>
+<script type="math/tex; mode=display">
+\text{q90 portfolio bias mechanism not supported on Development}.</script><p>Validation 与 sealed holdout 未读；action、live、automatic rollback 与 baseline update 均未授权。项目也没有解释另一个历史 240 小时窗口中的 SHORT concentration，因为 frozen replay action rate未 transport。</p>
+<p>若未来重开，必须先完成 causal clock/lifecycle mechanics 和 exact action-rate transport，再冻结新的 ON/OFF economics；不能用修复后的 clock 去修改已完成的旧 report。</p>
+<h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/buy_q90_portfolio_path_attribution_v1_development_20260731.md">BUY q90 Portfolio Path Attribution v1</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/README.md">F10 Live/Replay Attribution README</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/buy_q90_causal_visibility_clock_parity_v1_1_development_20260731.md">BUY q90 Causal Visibility Clock Parity v1.1</a></li>
+</ul>
+<p>公开仓库提供 aggregate daily effects、mechanism gates 与 transport boundary；per-day arm rows 和 owner-side reports 不随仓库分发。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Market-Making/" class="category-chain-item">Market Making</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
+      
+        <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
+      
+        <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
+      
+        <a href="/tags/%E7%BB%84%E5%90%88%E5%BD%92%E5%9B%A0/" class="print-no-link">#组合归因</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>NarrowGate BUY q90 Portfolio Attribution：过滤 BUY 是否把库存推向 SHORT</div>
+      <div>https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Buy-Q90-Portfolio-Attribution-Research/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Xuan Tan</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-Buy-Q90-Causal-Clock-Lifecycle-Research/" title="NarrowGate BUY q90：Cancel ACK 之后为什么不能继续打分">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">NarrowGate BUY q90：Cancel ACK 之后为什么不能继续打分</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-Buy-Soft-Widen-Release-Action-Value-Research/" title="NarrowGate BUY Soft-Widen：单次解除放宽的动作价值研究">
+                        <span class="hidden-mobile">NarrowGate BUY Soft-Widen：单次解除放宽的动作价值研究</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

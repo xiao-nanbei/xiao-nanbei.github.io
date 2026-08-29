@@ -1,0 +1,1048 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Xuan Tan">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Last materially modified: 2026-08-29 TL;DR：一日生命周期 plumbing 通过，40 日 mechanics 与任何经济结论都还没有这项研究尝试把 causal-v12 的 side-specific toxicity rank 变成一个真正的 active-order action：在 exposure-increasing BUY 或 SELL qu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NarrowGate Ranked Toxicity Exposure Guard：从 P90 触发到 Carryover-Safe 订单所有权">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Ranked-Toxicity-Exposure-Guard-Research/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：一日生命周期 plumbing 通过，40 日 mechanics 与任何经济结论都还没有这项研究尝试把 causal-v12 的 side-specific toxicity rank 变成一个真正的 active-order action：在 exposure-increasing BUY 或 SELL qu">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/ranked-toxicity-exposure-guard.svg">
+<meta property="article:published_time" content="2026-08-29T12:21:00.000Z">
+<meta property="article:modified_time" content="2026-08-29T12:21:00.000Z">
+<meta property="article:author" content="Xuan Tan">
+<meta property="article:tag" content="Market Making">
+<meta property="article:tag" content="毒性排序">
+<meta property="article:tag" content="订单生命周期">
+<meta property="article:tag" content="因果状态机">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/ranked-toxicity-exposure-guard.svg">
+  
+  
+  
+  <title>NarrowGate Ranked Toxicity Exposure Guard：从 P90 触发到 Carryover-Safe 订单所有权 - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>xiaonanbei</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="NarrowGate Ranked Toxicity Exposure Guard：从 P90 触发到 Carryover-Safe 订单所有权"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-29 20:21" pubdate>
+          2026年8月29日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          1.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          15 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">NarrowGate Ranked Toxicity Exposure Guard：从 P90 触发到 Carryover-Safe 订单所有权</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Last materially modified: 2026-08-29</p>
+<h2 id="TL-DR：一日生命周期-plumbing-通过，40-日-mechanics-与任何经济结论都还没有"><a href="#TL-DR：一日生命周期-plumbing-通过，40-日-mechanics-与任何经济结论都还没有" class="headerlink" title="TL;DR：一日生命周期 plumbing 通过，40 日 mechanics 与任何经济结论都还没有"></a>TL;DR：一日生命周期 plumbing 通过，40 日 mechanics 与任何经济结论都还没有</h2><p>这项研究尝试把 causal-v12 的 side-specific toxicity rank 变成一个真正的 active-order action：在 exposure-increasing BUY 或 SELL quote 的 score 穿越 past-only p90 时，candidate 只取消当前风险订单一次，等待 cancel ACK，把旧订单移出 fill-risk set，随后持续抑制 exposure quote；直到下一个 completed 10-second score 低于当日冻结 p90，才以新 queue、age 与 order identity re-enter。reducing quote 永远 bypass。</p>
+<p>最初的 campaign-side assignment 不能安全处理跨边界仍存活的 active order。carryover-safe v2 因此把 ownership 与 exchange-live order 绑定，并允许一个真实角色转移：订单提交时是 reducing，inventory 变化后在仍 active 且 fill-risk-active 的情况下变为 exposure；它保留 queue 和 assignment owner，而不是强制 washout。</p>
+<p>冻结一日 smoke 的 untreated baseline 有 29,072 decisions，candidate 全部消费。BUY/SELL 各 337 episodes、336 complete、1 censor；carryovers 58/50，SELL 有 1 次合法 active-order role transition；cross-arm ownership、forced washout cancel、owner mismatch 与 terminal risk-set reuse 都为零。v2.2 plumbing 因而通过，但正式 40 日 mechanics 未运行，PnL、reward、markout、Validation 与 sealed holdout 全部未读。本文的结论是<strong>因果动作与所有权合同可实现</strong>，不是支持、价值或部署结论。</p>
+<p><img src="/images/narrowgate/ranked-toxicity-exposure-guard.svg" srcset="/img/loading.gif" lazyload alt="Ranked toxicity guard 的 ACK 与 carryover 状态机"></p>
+<p><em>图 1：机制示意。p90 crossing 只发一次 cancel；ACK 才把旧 order 移出风险集。campaign 边界不能冲掉仍 live 的 owner，role 也可随 inventory 合法转移。</em></p>
+<h2 id="1-研究问题：预测毒性之后，究竟对哪一张订单做什么？"><a href="#1-研究问题：预测毒性之后，究竟对哪一张订单做什么？" class="headerlink" title="1. 研究问题：预测毒性之后，究竟对哪一张订单做什么？"></a>1. 研究问题：预测毒性之后，究竟对哪一张订单做什么？</h2><p>toxicity score 可以排序未来 adverse flow，但 maker action 不是把 score 写进日志。订单可能已经 active、有 queue position、正在 cancel pending，甚至在 inventory 变化后从 reducing 变成 exposure。研究问题是：一个 past-only ranked score 能否定义一条无 ownership 泄漏、无 terminal reuse、可随机化的 persistent permission path？</p>
+<p>BUY 与 SELL 是独立注册 identity，因为 <code>tox_bid</code> 与 <code>tox_ask</code> 的风险面不同；它们共享同一主文章，因为 rank denominator、state machine、所有权修复与证据边界一致。未来经济 estimand 才会分别是：</p>
+<script type="math/tex; mode=display">
+\tau_s=E[Y_s(\text{ranked guard})-Y_s(\text{baseline})],\qquad s\in\{BUY,SELL\}.</script><p>当前阶段没有读取 $Y_s$，所以不能报告 $\tau_s$ 的符号、大小或 interval。</p>
+<h2 id="2-Past-only-rank-denominator"><a href="#2-Past-only-rank-denominator" class="headerlink" title="2. Past-only rank denominator"></a>2. Past-only rank denominator</h2><p>当日 p90 只使用严格更早 UTC days，并且每个 completed 10-second prediction bucket 只取第一条 causally visible eligible row。row 必须满足 matching side、baseline quote permission、exposure-increasing role（opener 或 add）与：</p>
+<script type="math/tex; mode=display">
+t^{feature}_{ready}\le t^{decision}.</script><p>经验阈值为：</p>
+<script type="math/tex; mode=display">
+c_{s,d}=Q_{0.90}\left(\{z_{s,b}:day(b)<d,\ b\text{ eligible completed bucket}\}\right).</script><p>重复的 100ms main-loop evaluations 不进入 CDF，否则高频重复会给慢变 score 过高权重。阈值在整个 UTC day 冻结；更早数据少于 5 日或 500 buckets 时没有 fallback。缺阈值就没有 candidate action，不能用当天数据补齐。</p>
+<p>baseline 是 exact operational v5：causal-v12 enabled、q90 shadow enabled/action disabled、BUY fill-selection 在两臂相同、raw toxicity threshold disabled。关闭 BUY fill-selection 会构成不同 baseline，不能为本项目提供 promotion evidence。</p>
+<h2 id="3-动作、输入与未来-estimand"><a href="#3-动作、输入与未来-estimand" class="headerlink" title="3. 动作、输入与未来 estimand"></a>3. 动作、输入与未来 estimand</h2><p>状态机冻结为：</p>
+<div class="code-wrapper"><pre><code class="hljs text">BASELINE --p90 crossing--&gt; GUARD_ACTIVE
+GUARD_ACTIVE --cancel once--&gt; CANCEL_PENDING
+CANCEL_PENDING --cancel ACK--&gt; SUPPRESSING
+SUPPRESSING --next completed score &lt; p90--&gt; RELEASED</code></pre></div>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>冻结语义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Assignment</td>
+<td>prospective campaign-side lineage，0.5/0.5，仅一次</td>
+</tr>
+<tr>
+<td>Trigger</td>
+<td>completed 10s side score 穿越 past-only p90</td>
+</tr>
+<tr>
+<td>Immediate action</td>
+<td>对 active exposure order 发一次 cancel</td>
+</tr>
+<tr>
+<td>ACK boundary</td>
+<td>ACK 后旧 order 才退出 fill-risk set</td>
+</tr>
+<tr>
+<td>Suppression</td>
+<td>后续 exposure opener/add 不报价</td>
+</tr>
+<tr>
+<td>Release</td>
+<td>下一 completed score 低于 frozen p90</td>
+</tr>
+<tr>
+<td>Bypass</td>
+<td>reducing quotes 永远不受 guard</td>
+</tr>
+<tr>
+<td>Re-entry</td>
+<td>新 order id、age=0、新 queue lifecycle</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>未来两阶段读取中，stage one 只能读 opportunity、assignment、cancel/ACK、state transitions、support、propensity、ESS 与 final-action mechanics；只有全部 gates 通过，新的 hash-bound execution spec 才可能打开 Development economics。BUY/SELL 必须分别通过，禁止 pooled promotion。</p>
+<h2 id="4-ACK-是风险集边界，不是日志装饰"><a href="#4-ACK-是风险集边界，不是日志装饰" class="headerlink" title="4. ACK 是风险集边界，不是日志装饰"></a>4. ACK 是风险集边界，不是日志装饰</h2><p>假设 active SELL exposure order 在 p90 crossing 时收到 cancel request。request 到 ACK 之间仍可能被 fill，所以它仍属于风险集：</p>
+<script type="math/tex; mode=display">
+R_i(t)=\mathbf1\{t_{activate,i}\le t<t_{ack,i}\ \land\ order_i\text{ exchange-live}\}.</script><p>只有 $t\ge t_{ack}$ 才能把旧 queue、age、hazard 与 depth cursor 清除。若 score 先恢复，也不能把 cancel-pending order 当作从未存在；re-entry 必须等生命周期合同完成。</p>
+<p>这条边界避免一个常见乐观偏差：candidate 发出 cancel 就立即删除未来 fill，而 control 继续承担 ACK latency risk。严格 replay 必须允许 cancel-request/ACK race 的真实结果。</p>
+<h2 id="5-为什么-v1-的-campaign-边界不够安全"><a href="#5-为什么-v1-的-campaign-边界不够安全" class="headerlink" title="5. 为什么 v1 的 campaign 边界不够安全"></a>5. 为什么 v1 的 campaign 边界不够安全</h2><p>订单生命周期可能跨 campaign-side assignment boundary。若新 assignment 到来时旧 active order 仍可成交，强制把它洗掉会改变 market path；把它交给新 arm 又会产生 cross-arm contamination。carryover-safe identity 因而将 assignment owner 延续到 active risk set 终止。</p>
+<p>更隐蔽的情况是 role transition。某订单提交时是 reducing SELL，之后其他 fill 改变 inventory，使同一 exchange-live order 变为 exposure-increasing。旧 adapter 把 submit-time role 当永恒常量，于是错误 fail。修复只允许在 order 仍 active、exchange-nonterminal、<code>fill_risk_active=true</code> 且 owner 相同的情况下发生：</p>
+<script type="math/tex; mode=display">
+role_i(t^-)=reducing,\quad role_i(t)=exposure,</script><p>并写入显式 journal event；queue 与 owner 不重置。unknown、terminal 或已离开风险集的 order 仍立即 fail-fast。</p>
+<h2 id="6-研究演进：失败记录为什么不能拆成新项目"><a href="#6-研究演进：失败记录为什么不能拆成新项目" class="headerlink" title="6. 研究演进：失败记录为什么不能拆成新项目"></a>6. 研究演进：失败记录为什么不能拆成新项目</h2><p>v1.1–v1.5 的 full-path adapter 尝试逐步发现 ownership、terminal risk set 与 role contract；它们是同一 frozen action 的实现审计。carryover-safe v2 一日 smoke 修复 role transition 后通过。v2.1 尝试复用旧 baseline tape，却在 prediction warmup 前发现 current loader 下 candidate 与 untreated baseline identity 不再相等，输出 0B，fail-safe 关闭。</p>
+<p>v2.2 不偷继承旧 tape，而是在相同 current loader、read-only replay-cache DAG 与 code identity 下重新生成 untreated baseline shadow 和 candidate path。冻结 0.8 threshold 仅为 plumbing，不具预测或动作含义。spec/attempt/version 的变化解决的是执行可比性，没有改变科学 action，因此全部合并在本文。</p>
+<h2 id="7-一日冻结-mechanics-结果"><a href="#7-一日冻结-mechanics-结果" class="headerlink" title="7. 一日冻结 mechanics 结果"></a>7. 一日冻结 mechanics 结果</h2><p>2026-04-17 baseline 29,072 decisions，candidate 29,072，unconsumed 0。结果：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Contract counter</th>
+<th style="text-align:right">BUY</th>
+<th style="text-align:right">SELL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Episodes</td>
+<td style="text-align:right">337</td>
+<td style="text-align:right">337</td>
+</tr>
+<tr>
+<td>Completed</td>
+<td style="text-align:right">336</td>
+<td style="text-align:right">336</td>
+</tr>
+<tr>
+<td>Censored</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">1</td>
+</tr>
+<tr>
+<td>Carryover transitions</td>
+<td style="text-align:right">58</td>
+<td style="text-align:right">50</td>
+</tr>
+<tr>
+<td>Active-order role transitions</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">1</td>
+</tr>
+<tr>
+<td>Baseline-shadow mismatch</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td>Cross-arm ownership</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td>Forced washout cancel</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td>Order-owner mismatch</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>role lifecycle 与 carryover lifecycle 都 valid，cache writers 全关闭、write attempts 为零。21 个 v2.2/v2.1/carryover assignment tests 通过；较早 targeted regression 49 tests 也通过。</p>
+<p>这些数字只证明 one-day plumbing。337 episodes 不是正式 support denominator，0 ownership violation 也不能估计 40 日 action rate、ESS 或 value。尤其不能拿 plumbing threshold 0.8 替代 past-only p90。</p>
+<h2 id="8-不确定性与关闭-支持边界"><a href="#8-不确定性与关闭-支持边界" class="headerlink" title="8. 不确定性与关闭/支持边界"></a>8. 不确定性与关闭/支持边界</h2><p>当前状态不是“经济失败”，而是“formal mechanics not run”。已支持的是：rank denominator 可定义、ACK/riskset 与 carryover owner 可执行、一日 baseline/candidate consumption 对齐。未支持的是：40 日机会率、action selectivity、quantity-based fill retention、Development reward/tail、live transport。</p>
+<p>future selectivity 必须以 common assigned-quantity denominator 计算。missing 10-second BBO labels 保留在 denominator 并使用对 candidate 不利的 censoring bound，不能删除 missing rows 获得漂亮 retention。</p>
+<p>旧 operational v5 baseline 本身后来有 lifecycle repair，但 local repair 不构成 deployed runtime parity。prospective placement recovery、full transport 与 live parity 仍 unsupported，ranked guard 不能借 q90 repair 获得 action authority。</p>
+<h2 id="9-没有获得的权限"><a href="#9-没有获得的权限" class="headerlink" title="9. 没有获得的权限"></a>9. 没有获得的权限</h2><ul>
+<li>正式 40 日 mechanics 尚未运行；</li>
+<li>PnL、reward、markout、toxic fills 与 campaign tails 未读；</li>
+<li>Validation 与 sealed holdout 未读；</li>
+<li>没有 shadow、action、live 或 q90 authority；</li>
+<li>没有把一日 0.8 plumbing threshold 当作预测阈值；</li>
+<li>没有从零 ownership violation 推出正经济价值。</li>
+</ul>
+<h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/causal_v12_ranked_toxicity_exposure_guard_v1_registration_20260802.md"><code>causal_v12_ranked_toxicity_exposure_guard_v1_registration_20260802.md</code></a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/causal_v12_ranked_toxicity_exposure_guard_carryover_safe_v2_implementation_20260803.md"><code>causal_v12_ranked_toxicity_exposure_guard_carryover_safe_v2_implementation_20260803.md</code></a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/causal_v12_ranked_toxicity_exposure_guard_carryover_safe_v2_2_execution_result_20260803.md"><code>causal_v12_ranked_toxicity_exposure_guard_carryover_safe_v2_2_execution_result_20260803.md</code></a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/README.md"><code>F09 README</code></a></li>
+</ul>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>这项研究最重要的进展不是 score，而是把订单所有权当作因果合同：cancel request 不是终点，campaign boundary 不是 washout，submit-time role 也未必永恒。一日 plumbing 已把这些边界跑通；在 40 日 mechanics 与 economics 之前，除此之外没有更强的结论。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Market-Making/" class="category-chain-item">Market Making</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
+      
+        <a href="/tags/%E6%AF%92%E6%80%A7%E6%8E%92%E5%BA%8F/" class="print-no-link">#毒性排序</a>
+      
+        <a href="/tags/%E8%AE%A2%E5%8D%95%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" class="print-no-link">#订单生命周期</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E7%8A%B6%E6%80%81%E6%9C%BA/" class="print-no-link">#因果状态机</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>NarrowGate Ranked Toxicity Exposure Guard：从 P90 触发到 Carryover-Safe 订单所有权</div>
+      <div>https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Ranked-Toxicity-Exposure-Guard-Research/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Xuan Tan</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-BER-Role-Safe-Add-Only-Research/" title="NarrowGate BER Role-Safe Add-Only：库存代理改善为何仍然关闭">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">NarrowGate BER Role-Safe Add-Only：库存代理改善为何仍然关闭</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-Cross-Venue-Fair-Center-Research/" title="NarrowGate Cross-Venue Fair Center：全对报价平移为何没有跨过 Alpha 门">
+                        <span class="hidden-mobile">NarrowGate Cross-Venue Fair Center：全对报价平移为何没有跨过 Alpha 门</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

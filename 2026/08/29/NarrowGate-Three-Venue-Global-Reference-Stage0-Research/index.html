@@ -1,0 +1,1041 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  <link rel="icon" href="https://tva1.sinaimg.cn/large/008qL1EEly1gymvh3hte4j30680680t3.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Xuan Tan">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Last materially modified: 2026-08-29 TL;DR：三家交易所提高了可证伪性，却没有把秒级残差变成稳定 maker alpha这项研究把 Bitget、Bybit 与 OKX 的现货和永续逐笔成交转换成因果可见的一秒状态，再用 Binance BTCUSDT 永续和 USDCUSDT 现货把外部价格翻译到 BTCUSDC 坐标。三家来源不是为了投票得出一个“必涨”">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NarrowGate 三交易所 Global Reference Stage 0：为什么外部状态不能直接变成动作">
+<meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Three-Venue-Global-Reference-Stage0-Research/index.html">
+<meta property="og:site_name" content="databrains">
+<meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：三家交易所提高了可证伪性，却没有把秒级残差变成稳定 maker alpha这项研究把 Bitget、Bybit 与 OKX 的现货和永续逐笔成交转换成因果可见的一秒状态，再用 Binance BTCUSDT 永续和 USDCUSDT 现货把外部价格翻译到 BTCUSDC 坐标。三家来源不是为了投票得出一个“必涨”">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/three-venue-global-reference-stage0.svg">
+<meta property="article:published_time" content="2026-08-29T13:01:00.000Z">
+<meta property="article:modified_time" content="2026-08-29T13:01:00.000Z">
+<meta property="article:author" content="Xuan Tan">
+<meta property="article:tag" content="Market Making">
+<meta property="article:tag" content="市场微观结构">
+<meta property="article:tag" content="回测">
+<meta property="article:tag" content="因果推断">
+<meta property="article:tag" content="跨市场">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xiao-nanbei.github.io/images/narrowgate/three-venue-global-reference-stage0.svg">
+  
+  
+  
+  <title>NarrowGate 三交易所 Global Reference Stage 0：为什么外部状态不能直接变成动作 - databrains</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="https://at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"xiao-nanbei.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>xiaonanbei</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://tva1.sinaimg.cn/large/008qL1EEly1gymvk0ibtcj31hc0u04qp.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="NarrowGate 三交易所 Global Reference Stage 0：为什么外部状态不能直接变成动作"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-29 21:01" pubdate>
+          2026年8月29日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          5.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          44 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">NarrowGate 三交易所 Global Reference Stage 0：为什么外部状态不能直接变成动作</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Last materially modified: 2026-08-29</p>
+<h2 id="TL-DR：三家交易所提高了可证伪性，却没有把秒级残差变成稳定-maker-alpha"><a href="#TL-DR：三家交易所提高了可证伪性，却没有把秒级残差变成稳定-maker-alpha" class="headerlink" title="TL;DR：三家交易所提高了可证伪性，却没有把秒级残差变成稳定 maker alpha"></a>TL;DR：三家交易所提高了可证伪性，却没有把秒级残差变成稳定 maker alpha</h2><p>这项研究把 Bitget、Bybit 与 OKX 的现货和永续逐笔成交转换成因果可见的一秒状态，再用 Binance BTCUSDT 永续和 USDCUSDT 现货把外部价格翻译到 BTCUSDC 坐标。三家来源不是为了投票得出一个“必涨”信号，而是为了建立 2-of-3 共识、加权中位数、异常源剔除和逐家 leave-one-venue-out（LOO）反证。</p>
+<p>冻结面板覆盖 111 个保留 UTC 日。OKX 永续含 <code>399,947,490</code> 笔标准化成交和 <code>8,742,874</code> 个一秒状态，OKX 现货含 <code>69,915,914</code> 笔成交和 <code>5,846,509</code> 个状态，USDCUSDT 锚含 <code>46,776,513</code> 笔聚合成交和 <code>8,792,656</code> 个一秒 bars。三交易所现货与永续联接后有 <code>7,547,083</code> 个状态；层级 reference 最终有 <code>6,247,083</code> 个状态，其中 <code>4,659,028</code> 个同时通过新鲜度、2-of-3、方向一致、离散度与因果 basis gates。</p>
+<p>最值得保留的线索是 <code>SELL submit 1s</code>：它是唯一在全来源和三个 LOO 版本中，30 秒与 campaign delta 均保持正向的 global-residual row。但量级只有约 <code>+0.05</code> 到 <code>+0.10 bps</code>，5 秒效果为负，逐日方向接近一半；<code>SELL fill + divergent</code> 虽有更大的 30 秒线索，却不能在短时、campaign repair 与 LOO 中稳定复现。因此 Stage 0 没有授权 re-center、cancel、tighten、size 或 lifecycle 动作。</p>
+<p>更重要的勘误是：旧报告里 maker markout、fill、campaign 与 PnL 的精确表使用了后来被替换的本地 mixed-L2/queue denominator，现已撤回。仍成立的是外部逐笔成交的一秒因果状态构造和 LOO 方法，以及“本次 Stage 0 不足以授权动作”。它不等于“外部信息没有价值”，也不能否定 receive-time BBO/trades 对亚秒 fill toxicity 的价值。</p>
+<p><img src="/images/narrowgate/three-venue-global-reference-stage0.svg" srcset="/img/loading.gif" lazyload alt="三交易所外部状态到BTCUSDC参考坐标的因果链"></p>
+<p><em>图 1：机制示意。三家现货/永续价格先做因果 basis 与共识，再经 BTCUSDT/USDCUSDT bridge 进入 BTCUSDC 坐标；一秒状态只能在右边界可见。图中 K 线与数值位置为机制说明，不是实盘行情。</em></p>
+<p>本文只复述冻结的公开 Development 证据，不建议任何真实交易行为。</p>
+<h2 id="1-研究问题：外部市场“先动”能否排序本地-maker-结果"><a href="#1-研究问题：外部市场“先动”能否排序本地-maker-结果" class="headerlink" title="1. 研究问题：外部市场“先动”能否排序本地 maker 结果"></a>1. 研究问题：外部市场“先动”能否排序本地 maker 结果</h2><p>BTCUSDC 的本地订单簿并不孤立。BTCUSDT 流动性更深，多个交易所的现货和永续也可能先出现共同方向、spot/perp 分歧或某家异常。直觉上，外部市场先跌时，继续在本地卖出似乎更安全，继续买入似乎更危险；但这个直觉混合了价格翻译、时间可见性、来源故障与交易动作四件不同的事。</p>
+<p>Stage 0 把问题收窄为：在不改变报价、尺寸、库存限制、撤单或成交的前提下，一个由三交易所逐笔成交构造的秒级 external state，能否稳定排序之后 5 秒、30 秒与 campaign 层结果？</p>
+<p>这首先是 diagnostics，而不是策略。若状态连结果排序都不稳定，就没有理由进一步做 action；若排序稳定，也仍需要另一个冻结动作实验来回答“移动报价是否改善价值”。</p>
+<h2 id="2-输入、状态、动作与-estimand"><a href="#2-输入、状态、动作与-estimand" class="headerlink" title="2. 输入、状态、动作与 estimand"></a>2. 输入、状态、动作与 estimand</h2><p>外部输入分成三层：Bitget、Bybit、OKX 现货形成 robust spot innovation；同三家的永续形成 derivatives innovation；Binance BTCUSDT 永续提供本地 level bridge，USDCUSDT 现货提供稳定币换算。Binance BTCUSDC 现货只作 cross-check 与 freshness fallback，不作为第四张独立选票。</p>
+<p>设交易所 $v$、市场层 $m$ 的一秒对数收益为 $r_{v,m,t}$，通过新鲜度和因果 basis 后保留有效来源集合 $V_t$。方向共识可抽象为：</p>
+<script type="math/tex; mode=display">
+c_{m,t}=\operatorname{median}_{v\in V_t} r_{v,m,t},\qquad |V_t|\ge 2.</script><p>再把外部共识相对本地 bridge 的残差写成：</p>
+<script type="math/tex; mode=display">
+e_t=10^4\left[\log P^{ext}_t-\log\left(\frac{P^{BTCUSDT}_t}{P^{USDCUSDT}_t}\right)\right].</script><p>这里 $e_t$ 只是 bps 坐标中的 state，不是订单。研究中的“动作”仍是历史 maker event 的 submit 或 fill 类型，用来切片结果；实验没有真的改变任何订单。主要 estimand 是条件状态下未来本地结果相对基线的差异，例如：</p>
+<script type="math/tex; mode=display">
+\Delta_h(s)=E[M_{t,h}\mid S_t=s]-E[M_{t,h}\mid S_t\in baseline],</script><p>其中 $h\in{5s,30s}$，另有 campaign terminal/repair diagnostics。由于本地 outcome denominator 后来被撤回，今天不能再把旧精确数字当成可用经济估计；只保留其方向稳定性不足所支持的 no-action decision。</p>
+<h2 id="3-数据面板与两只时钟"><a href="#3-数据面板与两只时钟" class="headerlink" title="3. 数据面板与两只时钟"></a>3. 数据面板与两只时钟</h2><p>每个历史外部 row 使用右边界可见性：在区间 $[t,t+1s)$ 内发生的逐笔成交，最早只能在 $t+1s$ 被特征使用。正确的因果写法是：</p>
+<script type="math/tex; mode=display">
+T^{visible}_{t}=\max_i T^{event}_i\text{ in }[t,t+1s)+1\text{ bucket edge},</script><p>而不是把左标签 $t$ 当作当时已知。这个一秒延迟既避免未来泄漏，也决定了研究能力上限：数据不能辨认 50ms 与 100ms 的信息衰减，更不能证明一个亚秒撤单策略可执行。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>证据层</th>
+<th>冻结定义</th>
+<th>能回答什么</th>
+<th>不能回答什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>外部成交</td>
+<td>111 个 retained UTC 日</td>
+<td>来源覆盖与一秒共识</td>
+<td>receive-time 亚秒输运</td>
+</tr>
+<tr>
+<td>状态时钟</td>
+<td>$[t,t+1s)$ 在 $t+1s$ 可见</td>
+<td>秒级因果排序</td>
+<td>bucket 内最佳时点</td>
+</tr>
+<tr>
+<td>来源反证</td>
+<td>all + 三个单源 LOO</td>
+<td>是否依赖某一家</td>
+<td>所有来源同时故障</td>
+</tr>
+<tr>
+<td>本地结果</td>
+<td>历史 maker outcome slices</td>
+<td>仅保留诊断性方向</td>
+<td>已撤回 denominator 的精确 economics</td>
+</tr>
+<tr>
+<td>动作层</td>
+<td>没有 intervention</td>
+<td>无</td>
+<td>报价变化的因果收益</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>面板规模本身不是有效性的替代品。数百万一秒 rows 高度相关，真正的稳定性应按 UTC 日与来源删除来检验；如果只把每秒 row 当独立样本，置信度会被夸大。</p>
+<h2 id="4-层级-reference-如何避免“某一家带偏”"><a href="#4-层级-reference-如何避免“某一家带偏”" class="headerlink" title="4. 层级 reference 如何避免“某一家带偏”"></a>4. 层级 reference 如何避免“某一家带偏”</h2><p>三交易所设计最重要的价值是 falsification。两家来源方向一致、第三家偏离时，可以用 2-of-3 和中位数降低单源异常的影响；若删去任意一家后结果方向改变，则原信号更可能是 venue-specific artifact，而不是跨市场共同状态。</p>
+<p>每个状态还必须通过五类 gates：数据足够新鲜；至少两家有效；spot 或 perp 的方向规则成立；跨来源离散度不过大；稳定币与 venue basis 只用过去观测更新。basis 的更新顺序必须是“先读过去状态、再输出当前、最后提交当前观测”，否则当前价格会反向污染用于校正自己的参数。</p>
+<p>举例说，若 Bitget 永续突然下跌，而 Bybit、OKX 以及现货层都没有同方向变化，简单平均会产生假的 external-down residual。2-of-3 会拒绝它；LOO 还会显示结果只在包含 Bitget 时存在。这种“让信号更少”的机制看似保守，却比追求更高触发率更适合 Stage 0。</p>
+<h2 id="5-冻结数据结果"><a href="#5-冻结数据结果" class="headerlink" title="5. 冻结数据结果"></a>5. 冻结数据结果</h2><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>数据构件</th>
+<th style="text-align:right">规模</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OKX 永续 normalized trades</td>
+<td style="text-align:right">399,947,490</td>
+</tr>
+<tr>
+<td>OKX 永续 causal 1s states</td>
+<td style="text-align:right">8,742,874</td>
+</tr>
+<tr>
+<td>OKX 现货 normalized trades</td>
+<td style="text-align:right">69,915,914</td>
+</tr>
+<tr>
+<td>OKX 现货 causal 1s states</td>
+<td style="text-align:right">5,846,509</td>
+</tr>
+<tr>
+<td>USDCUSDT aggTrades</td>
+<td style="text-align:right">46,776,513</td>
+</tr>
+<tr>
+<td>USDCUSDT 1s bars</td>
+<td style="text-align:right">8,792,656</td>
+</tr>
+<tr>
+<td>三交易所 spot states</td>
+<td style="text-align:right">7,747,571</td>
+</tr>
+<tr>
+<td>三交易所 perp states</td>
+<td style="text-align:right">9,225,272</td>
+</tr>
+<tr>
+<td>spot/perp joined states</td>
+<td style="text-align:right">7,547,083</td>
+</tr>
+<tr>
+<td>hierarchical reference states</td>
+<td style="text-align:right">6,247,083</td>
+</tr>
+<tr>
+<td>strict gates passed</td>
+<td style="text-align:right">4,659,028</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>大覆盖证明 reference 可以构造，不证明 maker action 有价值。冻结审计里，只有 <code>SELL submit 1s</code> 在全来源和三种 LOO 中同时保留正的 30 秒与 campaign delta；但它的 30 秒量级约 <code>+0.05</code> 至 <code>+0.10 bps</code>，5 秒为负，逐日正负接近各半。</p>
+<p><code>SELL fill + divergent</code> 的较长 horizon clue 更大，却在 5 秒接近零或翻转，删除某家后 campaign 与 repair 也不稳定。<code>BUY submit + perp_only_up</code>、<code>SELL fill + perp_only_up</code> 只是局部长时线索；<code>spot_leading</code> 小桶则样本不足。这样的结果适合生成下一步问题，不适合把 threshold 写进报价器。</p>
+<h2 id="6-为什么旧-maker-数字必须撤回"><a href="#6-为什么旧-maker-数字必须撤回" class="headerlink" title="6. 为什么旧 maker 数字必须撤回"></a>6. 为什么旧 maker 数字必须撤回</h2><p>后续数据治理发现，原报告所联接的本地 BTCUSDC outcomes 使用了已经被 normalized/native replay 取代的 mixed L2/queue identity。它会影响 fill、queue 与 campaign denominator，所以即使外部 state 本身无误，也不能继续引用旧 markout、fill、campaign 或 PnL 精确表。</p>
+<p>撤回不是把整个研究删除。可复用部分包括：来源翻译、一秒右边界、2-of-3、LOO、因果 basis、严格 gates 和对短长 horizon 不一致的观察。不可复用部分是基于旧本地 denominator 的经济量级。把这两部分分开，比用“结果大概没变”强行保留数字更诚实。</p>
+<h2 id="7-研究演进为何合并为一篇"><a href="#7-研究演进为何合并为一篇" class="headerlink" title="7. 研究演进为何合并为一篇"></a>7. 研究演进为何合并为一篇</h2><p>这个项目曾出现 Stage-0 report、中文 review memo、cross-venue reference-to-alpha roadmap 和早期七日 OKX provenance。它们不是四个独立研究项目：七日版本被 111 日审计取代；review memo解释相同 LOO 与 false-negative 风险；roadmap只是说明从 data/reference 到 prediction/action 的权限阶梯。</p>
+<p>真正的 research identity 始终是“逐笔成交的一秒三来源 reference 能否稳定排序 maker outcomes”。版本和勘误应作为本文章节保存，因为它们改变证据可信度，却没有提出新的 estimand。</p>
+<h2 id="8-不确定性、关闭边界与下一步"><a href="#8-不确定性、关闭边界与下一步" class="headerlink" title="8. 不确定性、关闭边界与下一步"></a>8. 不确定性、关闭边界与下一步</h2><p>Stage 0 冻结并关闭继续在同一个一秒聚合状态上搜索更多 threshold。反复试 residual cutoff、divergence bucket 或 horizon 会把同一面板变成训练集，LOO 也无法修复多重搜索。</p>
+<p>它关闭的链条是：</p>
+<script type="math/tex; mode=display">
+\text{archived trades}\rightarrow\text{causal 1s state}\rightarrow\text{maker action}.</script><p>它没有关闭：</p>
+<script type="math/tex; mode=display">
+\text{receive-time BBO/trades}\rightarrow\text{flow/depletion}\rightarrow\text{fill toxicity}.</script><p>第二条链需要真实接收与 feature-ready clock、10/25/50/100/250/500ms windows、当前 native local outcomes，以及独立 prediction/action 注册。不能把本研究的负结果拿去阻止那个问题，也不能把本研究的零星线索直接当作动作先验。</p>
+<h2 id="9-没有获得的权限"><a href="#9-没有获得的权限" class="headerlink" title="9. 没有获得的权限"></a>9. 没有获得的权限</h2><p>本项目没有读取 Validation 或 sealed holdout，没有获得 prediction promotion、quote action、re-center、cancel、widen/tighten、size、shadow deployment 或 live authority。保留全部六个外部 spot/perp 来源作为未来研究输入，只表示数据层有价值，不表示任一策略已获准运行。</p>
+<h2 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f04_external_market_alpha/docs/global_reference_stage0_retained111_20260711.md">Three-Venue Global Reference Stage 0</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f04_external_market_alpha/docs/global_market_reference_review_memo_20260711.md">Global Market Reference Review Memo</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f04_external_market_alpha/README.md">F04 External Market Alpha README</a></li>
+</ul>
+<p>公共材料只发布冻结方法、聚合规模、状态与权限边界；原始逐笔数据、逐日路径和未发布机器工件不随文章分发。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Market-Making/" class="category-chain-item">Market Making</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Market-Making/" class="print-no-link">#Market Making</a>
+      
+        <a href="/tags/%E5%B8%82%E5%9C%BA%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84/" class="print-no-link">#市场微观结构</a>
+      
+        <a href="/tags/%E5%9B%9E%E6%B5%8B/" class="print-no-link">#回测</a>
+      
+        <a href="/tags/%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/" class="print-no-link">#因果推断</a>
+      
+        <a href="/tags/%E8%B7%A8%E5%B8%82%E5%9C%BA/" class="print-no-link">#跨市场</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>NarrowGate 三交易所 Global Reference Stage 0：为什么外部状态不能直接变成动作</div>
+      <div>https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Three-Venue-Global-Reference-Stage0-Research/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Xuan Tan</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-External-Information-Decay-Research/" title="NarrowGate 外部信息衰减：从 1/3/5 秒筛选到 1–18 秒曲线">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">NarrowGate 外部信息衰减：从 1/3/5 秒筛选到 1–18 秒曲线</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/08/29/NarrowGate-Causal-13-Head-One-Second-Cadence-Research/" title="NarrowGate Causal-v12：更快不等于更好，1 秒策略对 10 秒基线">
+                        <span class="hidden-mobile">NarrowGate Causal-v12：更快不等于更好，1 秒策略对 10 秒基线</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
