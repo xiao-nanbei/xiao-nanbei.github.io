@@ -34,6 +34,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f08-trade-parent-child-dual-clock.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/event-identity-riskset.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f08-trade-parent-child-dual-clock.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/side-taker-research-synthesis.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T18:07:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -1051,6 +1052,8 @@ E[Y_T(keep)-Y_T(cancel)\mid H_t],</script><p>其中$H_t$必须只包含$t$前可
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f08_side_taker_lifecycle/README.md"><code>F08 README</code></a></li>
 </ul>
 <h3 id="结语-3"><a href="#结语-3" class="headerlink" title="结语"></a>结语</h3><p>风险集不是“从决策到第一个事件”的便捷切片，而是订单实际暴露、策略动作与 campaign 状态共同决定的对象。先把事件身份做对，预测才有资格开始。</p>
+<p><img src="/images/narrowgate/side-taker-research-synthesis.svg" srcset="/img/loading.gif" lazyload alt="Side-Taker 从描述性微观流到双时钟动态风险集的结果收敛"></p>
+<p><em>图：旧静态 hazard 已关闭；parent-child 可见时钟和 start-stop risk set 是动态 successor 的前置合同，而不是现成 action。</em></p>
 <h2 id="7-合并后的结论：静态-side-signal-关闭，动态生命周期问题仍然开放"><a href="#7-合并后的结论：静态-side-signal-关闭，动态生命周期问题仍然开放" class="headerlink" title="7. 合并后的结论：静态 side signal 关闭，动态生命周期问题仍然开放"></a>7. 合并后的结论：静态 side signal 关闭，动态生命周期问题仍然开放</h2><p>早期 side-taker M0 没有在更严格 denominator 上复现，且把 non-absorbing jump、策略 cancel 与 campaign repair 混进了错误的事件结构。双时钟与 risk-set 审计解释了为什么：输入可见性和订单生存状态不是一个静态 row 可以表达的。这个诊断关闭旧 M0，却没有否定所有 side-specific taker information。</p>
 <p>合法 successor 必须先通过 historical/live aggTrade feature-time parity，再用统一 normalizer、side intercept 与动态 start-stop panel 估计 cause-specific hazards。即便 prediction 通过，也只能注册新的 randomized action；不能直接生成 live guard。</p>
 
@@ -1151,9 +1154,9 @@ E[Y_T(keep)-Y_T(cancel)\mid H_t],</script><p>其中$H_t$必须只包含$t$前可
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Time-Unit-Causality-Repair-Research/" title="NarrowGate Replay Evidence Revalidation：时间、量纲与因果时钟修复后，旧结论还剩什么">
+                      <a href="/2026/08/29/NarrowGate-P3-Aggressive-Reach-Time-Hazard-Research/" title="NarrowGate Empirical P3：从十秒触达曲线到 Reach-Time Hazard 与报价价值">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">NarrowGate Replay Evidence Revalidation：时间、量纲与因果时钟修复后，旧结论还剩什么</span>
+                        <span class="hidden-mobile">NarrowGate Empirical P3：从十秒触达曲线到 Reach-Time Hazard 与报价价值</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -1161,8 +1164,8 @@ E[Y_T(keep)-Y_T(cancel)\mid H_t],</script><p>其中$H_t$必须只包含$t$前可
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Three-Venue-Global-Reference-Stage0-Research/" title="NarrowGate External Market Alpha：三交易所参考、信息衰减、First-Add 与 Fair-Center 动作">
-                        <span class="hidden-mobile">NarrowGate External Market Alpha：三交易所参考、信息衰减、First-Add 与 Fair-Center 动作</span>
+                      <a href="/2026/08/29/NarrowGate-Time-Unit-Causality-Repair-Research/" title="NarrowGate Replay Evidence Revalidation：时间、量纲与因果时钟修复后，旧结论还剩什么">
+                        <span class="hidden-mobile">NarrowGate Replay Evidence Revalidation：时间、量纲与因果时钟修复后，旧结论还剩什么</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

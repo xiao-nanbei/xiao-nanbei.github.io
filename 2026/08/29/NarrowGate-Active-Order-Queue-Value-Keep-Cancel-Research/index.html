@@ -30,8 +30,10 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f06-placement-counterfactual-bridge.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/active-order-keep-cancel-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f07-active-order-competing-risks-path.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/queue-value-selectivity-result.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/active-order-lifecycle-cif-state-machine.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f07-active-order-competing-risks-path.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/order-level-research-synthesis.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T18:06:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -1187,6 +1189,8 @@ S_T=r_T-r_F.</script><p>若 $S_T&gt;0$，toxic fills 被删除得更快；若接
 <p>BUY 的区间完全低于零；SELL 没有正支持。MAE 与 repair time 有所改善，但不能补偿负 action reward、失败的 selectivity 与缺失的严格 support。</p>
 <p>完整 randomized path 曾显示小幅 aggregate PnL 改善，但只有 7/17 日为正。whole-path aggregate 包含 campaign birth/death 与 interference；它不能覆盖 common eligible population 上的注册 action ITT。</p>
 <p>最终 scorecard 因 reward、selectivity、terminal protection 与 support failures 返回 diagnostic-only，ranking score 为空。</p>
+<p><img src="/images/narrowgate/queue-value-selectivity-result.svg" srcset="/img/loading.gif" lazyload alt="KEEP CANCEL net-hazard 的成交选择效率与 reward 区间"></p>
+<p><em>图：candidate 只保留约 7.67% intervention fills，同时仍保留约 8.29% toxic fills；BUY 与 pooled reward 区间完全位于零以下。动作删掉的是 participation，而不是优先删掉毒性。</em></p>
 <h3 id="12-Dynamic-Fill-Hazard：为什么不能只保留-adverse-head"><a href="#12-Dynamic-Fill-Hazard：为什么不能只保留-adverse-head" class="headerlink" title="12. Dynamic Fill Hazard：为什么不能只保留 adverse head"></a>12. Dynamic Fill Hazard：为什么不能只保留 adverse head</h3><p>net-hazard 以后，F07 又纠正了预测 estimand：</p>
 <ul>
 <li>fill 是 dynamic discrete-time start/stop risk set；</li>
@@ -1473,6 +1477,8 @@ F_k(u\mid x_{0:u})
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/docs/active_order_lifecycle_cif_100ms_v1_6_40day_completion_20260808.md">Lifecycle CIF 100ms v1.6 40-Day Completion</a></li>
 </ul>
 <p>公共仓库提供合同、实现入口、聚合数字与权限边界；原始 lifecycle rows、机器 artifacts、prospective telemetry 与 owner-side evidence 不随仓库分发。</p>
+<p><img src="/images/narrowgate/order-level-research-synthesis.svg" srcset="/img/loading.gif" lazyload alt="Order-Level Quote Value 从 placement 到 KEEP CANCEL 与动态 CIF 的结果收敛"></p>
+<p><em>图：placement probability、KEEP/CANCEL action value 与 lifecycle CIF 是三层证据；更准确的动态风险集没有把已失败的 continuation 动作改写成通过。</em></p>
 <h2 id="6-合并后的结论：更准确的生命周期模型不会自动复活失败动作"><a href="#6-合并后的结论：更准确的生命周期模型不会自动复活失败动作" class="headerlink" title="6. 合并后的结论：更准确的生命周期模型不会自动复活失败动作"></a>6. 合并后的结论：更准确的生命周期模型不会自动复活失败动作</h2><p>Placement 研究证明二、四 tick 的 raw fill difference 可以被识别，但 marginal fills 太稀、campaign attribution 不完整、terminal interval 全部跨零；KEEP/CANCEL 的随机化证据又显示，候选大量删除 intervention fills，却几乎按同比例保留 toxic fills，选择效率接近零，pooled ITT 为负。后续 100ms CIF 把 activation、fill、cancel、jump、repair 与持续生存放回合法风险集，并完成 Python/C++ lockstep；这提升了机制建模质量，却没有把旧动作结果倒写成通过。</p>
 <p>下一次 order-level action 必须基于新的、预注册的 decision surface，并直接评价 placement 与 continuation 的完整路径。CIF calibration、距离单调性、推断 parity 或较低 adverse-fill probability 都只构成前置证据。</p>
 

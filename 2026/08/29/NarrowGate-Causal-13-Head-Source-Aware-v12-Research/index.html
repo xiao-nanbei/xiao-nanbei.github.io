@@ -36,6 +36,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f03-thirteen-head-evidence-pipeline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/causal-v12-one-second-vs-ten-second-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f03-thirteen-head-evidence-pipeline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/causal-13-head-research-synthesis.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T18:03:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -1278,6 +1279,8 @@ A_k=\pi(X_{t_k},S_k;\Delta t),</script><p>其中$\Delta t$显式进入policy ide
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/docs/causal_v12_1s_cadence_full_path_economic_precommit_v1_20260805.md">1s Cadence Economic Precommit</a></li>
 </ul>
 <p>完整 report、model bundles 与逐日 paths 不随公共仓库分发；公开文档提供冻结 comparison、aggregates 与 Development closure。</p>
+<p><img src="/images/narrowgate/causal-13-head-research-synthesis.svg" srcset="/img/loading.gif" lazyload alt="Causal 13-Head 从 v4 到一秒 cadence 的阶段结果收敛"></p>
+<p><em>图：五个阶段分别暴露 timing、transport、support 与 economics 问题；没有一阶段同时通过预测、实现、动作路径和终局经济门。</em></p>
 <h2 id="8-合并后的结论：模型复杂度增加了，证据门没有因此降低"><a href="#8-合并后的结论：模型复杂度增加了，证据门没有因此降低" class="headerlink" title="8. 合并后的结论：模型复杂度增加了，证据门没有因此降低"></a>8. 合并后的结论：模型复杂度增加了，证据门没有因此降低</h2><p>13‑Head 的价值不在于产生过某个正 PnL 点估计，而在于把失败定位到不同层：有时是 feature/label 时间污染，有时是 source transport，有时是 denominator 太小，有时是 prediction gate 只通过少数 heads，最后一次则是 cadence 真正改变了路径却朝坏方向变化。把这些阶段拆开容易让读者只看到某个版本的局部亮点；合并后可以明确看到没有一个阶段同时满足 prediction、implementation、action-path 与 terminal economics。</p>
 <p>因此该主线关闭的是这些冻结模型/频率/映射 identity，而不是“机器学习永远不能做市”。未来 successor 必须先声明新的输入状态、模型类、输出动作与 reward，再用 nested chronological OOF 和 paired full-path replay 检验；不能用更高 AUC、更低某个 head loss 或 Python/C++ parity 替代动作价值。</p>
 
@@ -1388,8 +1391,8 @@ A_k=\pi(X_{t_k},S_k;\Delta t),</script><p>其中$\Delta t$显式进入policy ide
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Fixed-Parameter-Racing-Research/" title="NarrowGate 报价动作研究：从固定参数竞速到随机化 Widen、Recenter 与条件策略">
-                        <span class="hidden-mobile">NarrowGate 报价动作研究：从固定参数竞速到随机化 Widen、Recenter 与条件策略</span>
+                      <a href="/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/" title="NarrowGate Fill Quality 与 First-Add Quote EV：从 Markout、Campaign Loss 到 Soft-Widen 动作">
+                        <span class="hidden-mobile">NarrowGate Fill Quality 与 First-Add Quote EV：从 Markout、Campaign Loss 到 Soft-Widen 动作</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

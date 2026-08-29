@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="720" viewBox="0 0 1100 720" role="img" aria-labelledby="title desc">
+  <title id="title">Queue-value net-hazard KEEP/CANCEL 的选择效率与 reward 结果</title>
+  <desc id="desc">左图显示候选只保留 7.67% intervention fills，同时仍保留 8.29% toxic fills，删除毒性成交的速度没有快过删除全部成交。右图显示 BUY、SELL 和 pooled reward uplift 及日期聚类区间；BUY 与 pooled 显著为负，SELL 跨零。该动作关闭。</desc>
+  <defs>
+    <style>
+      .bg{fill:#fbfcfe}.frame{fill:#fff;stroke:#d0d5dd;stroke-width:1.2}.grid{stroke:#eaecf0;stroke-width:1}.axis{stroke:#667085;stroke-width:1.2}.zero{stroke:#b42318;stroke-width:1.8;stroke-dasharray:6 5}.fillbar{fill:#84caff}.toxicbar{fill:#fda29b}.ci-red{stroke:#d92d20;stroke-width:4}.ci-amber{stroke:#f79009;stroke-width:4}.dot-red{fill:#d92d20}.dot-amber{fill:#f79009}.note{fill:#fff7ed;stroke:#f79009;stroke-width:1.2}.fail{fill:#fef3f2;stroke:#f04438;stroke-width:1.2}
+      .title{font:600 24px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.text{font:600 16px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.small{font:500 13px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#344054}.tiny{font:400 11px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#667085}.mono{font:500 12px ui-monospace,SFMono-Regular,Menlo,"PingFang SC",monospace;fill:#344054}.red{fill:#b42318}.blue{fill:#175cd3}.amber{fill:#b54708}
+    </style>
+  </defs>
+  <rect class="bg" width="1100" height="720"/>
+  <text class="title" x="40" y="44">KEEP/CANCEL：删掉大量成交，却没有更快删掉 toxic fills</text>
+  <text class="tiny" x="40" y="70">queue_value_net_hazard_keep_cancel_v2 · 17 个 Development 日 · randomized ITT</text>
+
+  <rect class="frame" x="42" y="98" width="498" height="388" rx="10"/>
+  <text class="text" x="66" y="130">A. Selectivity：保留比例几乎相同</text>
+  <text class="tiny" x="66" y="153">横条越长，candidate 保留下来的对应成交越多。</text>
+  <line class="grid" x1="170" y1="184" x2="170" y2="362"/>
+  <line class="grid" x1="270" y1="184" x2="270" y2="362"/>
+  <line class="grid" x1="370" y1="184" x2="370" y2="362"/>
+  <line class="grid" x1="470" y1="184" x2="470" y2="362"/>
+  <text class="small" text-anchor="end" x="154" y="233">全部 intervention fills</text>
+  <rect class="fillbar" x="170" y="207" width="153.4" height="36" rx="4"/>
+  <text class="mono blue" x="333" y="231">7.67%</text>
+  <text class="small" text-anchor="end" x="154" y="303">toxic fills</text>
+  <rect class="toxicbar" x="170" y="277" width="165.8" height="36" rx="4"/>
+  <text class="mono red" x="345" y="301">8.29%</text>
+  <line class="axis" x1="170" y1="362" x2="470" y2="362"/>
+  <text class="tiny" text-anchor="middle" x="170" y="382">0%</text>
+  <text class="tiny" text-anchor="middle" x="270" y="382">5%</text>
+  <text class="tiny" text-anchor="middle" x="370" y="382">10%</text>
+  <text class="tiny" text-anchor="middle" x="470" y="382">15%</text>
+  <rect class="note" x="66" y="406" width="450" height="56" rx="7"/>
+  <text class="small" x="84" y="430">toxic reduction leverage = 0.9933</text>
+  <text class="tiny" x="84" y="450">有毒成交并没有比全部成交消失得更快；这是 participation cut，不是 toxicity selection。</text>
+
+  <rect class="frame" x="564" y="98" width="494" height="388" rx="10"/>
+  <text class="text" x="588" y="130">B. Reward uplift：BUY 与 pooled 小于 0</text>
+  <text class="tiny" x="588" y="153">点 = USDC/intervention；横线 = UTC-day clustered 95% interval。</text>
+  <line class="grid" x1="620" y1="181" x2="620" y2="380"/>
+  <line class="grid" x1="745" y1="181" x2="745" y2="380"/>
+  <line class="zero" x1="870" y1="181" x2="870" y2="380"/>
+  <line class="grid" x1="995" y1="181" x2="995" y2="380"/>
+  <text class="small" x="588" y="211">BUY</text>
+  <line class="ci-red" x1="651" y1="236" x2="848" y2="236"/><circle class="dot-red" cx="755" cy="236" r="7"/>
+  <text class="mono red" x="770" y="223">−0.02310</text>
+  <text class="small" x="588" y="281">SELL</text>
+  <line class="ci-amber" x1="752" y1="306" x2="948" y2="306"/><circle class="dot-amber" cx="853" cy="306" r="7"/>
+  <text class="mono amber" x="865" y="293">−0.00347</text>
+  <text class="small" x="588" y="351">Pooled</text>
+  <line class="ci-red" x1="741" y1="376" x2="858" y2="376"/><circle class="dot-red" cx="798" cy="376" r="7"/>
+  <text class="mono red" x="728" y="404">−0.01448  [−0.02577, −0.00239]</text>
+  <line class="axis" x1="620" y1="426" x2="1020" y2="426"/>
+  <text class="tiny" text-anchor="middle" x="620" y="446">−0.05</text>
+  <text class="tiny" text-anchor="middle" x="745" y="446">−0.025</text>
+  <text class="tiny red" text-anchor="middle" x="870" y="446">0</text>
+  <text class="tiny" text-anchor="middle" x="995" y="446">+0.025</text>
+
+  <rect class="fail" x="42" y="522" width="1016" height="126" rx="10"/>
+  <text class="text red" x="68" y="554">为什么动作关闭</text>
+  <text class="small" x="68" y="584">1. Intervention fills 下降约 92%，toxic fills 也只按几乎相同比例下降，选择效率接近零。</text>
+  <text class="small" x="68" y="610">2. BUY 显著有害，SELL 没有正证据；pooled reward 的整个区间位于零以下。</text>
+  <text class="small" x="68" y="636">3. 更精确的 hazard / CIF 可以作为机制基础，但不能把这个已冻结 KEEP/CANCEL action 改写成通过。</text>
+  <text class="tiny" text-anchor="middle" x="550" y="690">Development result · Validation / sealed holdout 未读 · action=false · live=false</text>
+</svg>

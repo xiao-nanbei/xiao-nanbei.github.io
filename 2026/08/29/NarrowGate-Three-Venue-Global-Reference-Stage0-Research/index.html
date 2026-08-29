@@ -38,6 +38,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f04-external-signal-to-action-clock.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/cross-venue-fair-center-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f09-campaign-action-causal-path.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/external-market-research-synthesis.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T18:04:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -1446,6 +1447,8 @@ t_{ready}=\max_v(t_{bar,end}^{v}+L_{receive}^{v}+L_{feature}^{v}).</script><p>�
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/README.md"><code>F09 README</code></a></li>
 </ul>
 <h3 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h3><p>这是比“预测分数好看”严格得多的检验：动作每次发生，fill 与 activity 保留充分，完整路径点估计也偏正；但时间日不确定性、SELL 方向与 Bybit 依赖共同阻止晋级。一个可信的 cross-venue alpha 必须同时跨过价值与运输门，而不只是保留一个漂亮均值。</p>
+<p><img src="/images/narrowgate/external-market-research-synthesis.svg" srcset="/img/loading.gif" lazyload alt="三交易所外部市场研究从信息坐标到 maker action 的结果收敛"></p>
+<p><em>图：短时外部信息和稳健 fair coordinate 可以保留；first-add、adverse-edge 与 fair-center 仍未取得稳定的完整路径动作价值。</em></p>
 <h2 id="9-合并后的结论：外部市场是信息源，不是免费动作"><a href="#9-合并后的结论：外部市场是信息源，不是免费动作" class="headerlink" title="9. 合并后的结论：外部市场是信息源，不是免费动作"></a>9. 合并后的结论：外部市场是信息源，不是免费动作</h2><p>三市场研究最稳定的发现是短时信息确实存在，而且可以用 past-only basis、two-of-three aggregation 与 leave-one-venue-out 构造可审计的 fair coordinate。最不稳定的部分恰恰是从坐标到动作：first-add 路径缺 exact common lifecycle，adverse-edge candidate rate 太低，symmetric fair-center 的主区间跨零并依赖具体 venue。</p>
 <p>所以当前结论不是“跨市场无效”，也不是“外部 fair price 已能交易”，而是 prediction/mechanics 与 action value 仍分层。后继动作必须在同一 receive-time denominator 上同时冻结 feature-ready clock、venue availability、LOO、signed inventory role、quote coordinates、native lifecycle 与 terminal reward；不能把历史 provider-time prediction 拼接到另一批本地订单结果上。</p>
 
@@ -1546,9 +1549,9 @@ t_{ready}=\max_v(t_{bar,end}^{v}+L_{receive}^{v}+L_{feature}^{v}).</script><p>�
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Side-Taker-Flow-Research/" title="NarrowGate Side-Taker Lifecycle：微观流、双时钟 Trade Identity 与动态 Risk Set">
+                      <a href="/2026/08/29/NarrowGate-Time-Unit-Causality-Repair-Research/" title="NarrowGate Replay Evidence Revalidation：时间、量纲与因果时钟修复后，旧结论还剩什么">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">NarrowGate Side-Taker Lifecycle：微观流、双时钟 Trade Identity 与动态 Risk Set</span>
+                        <span class="hidden-mobile">NarrowGate Replay Evidence Revalidation：时间、量纲与因果时钟修复后，旧结论还剩什么</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     

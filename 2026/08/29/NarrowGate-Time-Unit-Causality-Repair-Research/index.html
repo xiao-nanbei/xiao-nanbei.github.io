@@ -30,6 +30,8 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/sys-replay-causality-repair-stack.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/historical-backtest-evidence-revalidation.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/sys-replay-causality-repair-stack.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/replay-no-trade-clock-timeline.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/replay-revalidation-research-synthesis.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
 <meta property="article:modified_time" content="2026-08-29T18:11:00.000Z">
 <meta property="article:author" content="Xuan Tan">
@@ -348,7 +350,7 @@
         
         
           <!-- compatible with older versions-->
-          226 分钟
+          228 分钟
         
       </span>
     
@@ -784,6 +786,8 @@ q\gamma\sigma^2H=q'\gamma'\sigma^2H,</script><p>因此在其它 convention 不�
 \mathcal E_{timer}\cup
 \mathcal E_{ack}\cup
 \mathcal E_{feature-ready}.</script><p>Merged scheduler 每次取下一个合法事件并更新状态，不能拿 <code>trade_ts</code> 代替全局时钟。若 timer 位于两笔 trade 之间，candidate 可能在该时刻 cancel，而 baseline keep；忽略 timer 后，后续 trade 的 fill attribution 已经不同。</p>
+<p><img src="/images/narrowgate/replay-no-trade-clock-timeline.svg" srcset="/img/loading.gif" lazyload alt="没有成交的十秒里 legacy trade clock 与 merged causal stream 的差异"></p>
+<p><em>图：旧 replay 在两笔 trade 之间冻结订单生命周期；merged stream 让 book、100ms timer、feature-ready 与 cancel ACK 各自在合法时钟推进，同时禁止 synthetic timer 消费 queue 或制造 fill。</em></p>
 <h3 id="7-1-同毫秒事件不是天然有序"><a href="#7-1-同毫秒事件不是天然有序" class="headerlink" title="7.1 同毫秒事件不是天然有序"></a>7.1 同毫秒事件不是天然有序</h3><p>Trade 与 L2 update 即使共享毫秒，也未必有跨流 sequence number。把文件读取顺序当作 exchange order，会制造 queue 优势或 adverse jump 的伪先后。合法处理只有三类：来源提供共同序列时按序列排序；来源只提供 receive order 时把主张限制为该 host 的 receive-time；无法识别时 censor 或报告两种边界敏感性。</p>
 <p>同样，cancel request 在本地策略钟发生，cancel ACK 才终止 exchange fill risk。Pending-cancel 区间仍可能成交；把 request 当 terminal 会低估 fills，把 ACK 后旧订单继续留在风险集又会高估 hazard exposure。二者方向相反，却都可能经库存反馈形成复杂 PnL 偏差。</p>
 <h3 id="7-2-Partial-fill-是状态转移，不是重复完整订单"><a href="#7-2-Partial-fill-是状态转移，不是重复完整订单" class="headerlink" title="7.2 Partial fill 是状态转移，不是重复完整订单"></a>7.2 Partial fill 是状态转移，不是重复完整订单</h3><p>一张数量 $Q$ 的订单发生部分成交 $q_1$ 后，剩余风险变成</p>
@@ -857,6 +861,8 @@ Q_{k+1}=Q_k-q_k.</script><p>Queue position、inventory 与 fee accounting 已变
 <p>报告还应把两类差异分开：baseline-vs-candidate 回答动作价值，old-vs-new migration diagnostic 回答修复有多 material。把两者混在一张 PnL 表里，会让读者无法区分策略变化与测量系统变化。</p>
 <h3 id="8-4-四种“通过”必须使用四种语言"><a href="#8-4-四种“通过”必须使用四种语言" class="headerlink" title="8.4 四种“通过”必须使用四种语言"></a>8.4 四种“通过”必须使用四种语言</h3><p>数据完整性通过，只能写 source admitted；Python/C++ 逐事件一致，只能写 implementation parity；模型 proper score 通过，只能写 prediction supported；paired terminal reward 与 tail gate 通过，才可能写 action supported。Live authority 还需要单独的 owner admission、部署身份、rollback 与运行健康证明。把这些层统一叫“验证通过”，会让一个底层工程事实沿文档引用链不断升格，最后看起来像经济结论。</p>
 <p>同理，“blocked”“closed”“superseded”和“withdrawn”不是同义词。Blocked 表示必要证据尚不可得；closed 表示冻结 identity 已在允许 panel 上得出停止决定；superseded 表示后来有新语义身份，但不自动反转旧结论；withdrawn 表示旧数值失去引用权限。清楚地区分这些词，正是 replay repair 能长期改善研究质量的地方。</p>
+<p><img src="/images/narrowgate/replay-revalidation-research-synthesis.svg" srcset="/img/loading.gif" lazyload alt="Replay 从量纲和可见时钟修复到历史证据重验的结果收敛"></p>
+<p><em>图：单位、feature-ready clock 与 merged event stream 一起改变 replay identity；旧 no-promotion 决策可保守保留，但旧绝对 PnL、winner 和排名必须撤回或重跑。</em></p>
 <h2 id="9-合并后的结论：保守决策可以保留，精确经济数字不能跨-identity-搬运"><a href="#9-合并后的结论：保守决策可以保留，精确经济数字不能跨-identity-搬运" class="headerlink" title="9. 合并后的结论：保守决策可以保留，精确经济数字不能跨 identity 搬运"></a>9. 合并后的结论：保守决策可以保留，精确经济数字不能跨 identity 搬运</h2><p>修复后的正确结论不是“所有历史研究都毫无价值”。旧研究得出的不晋级决定仍然保守安全，因为没有新证据把它们变成通过；但旧 absolute PnL、winner、参数排名与 side attribution 依赖已经失效的 replay identity，不能继续引用。相同代码 commit、相同 config 名或共同 bug 都不足以证明 paired difference 可迁移。</p>
 <p>未来比较必须在同一修复后 identity 内重新冻结 baseline/candidate、source manifest、initial state、timer/feature clocks、queue、fees 与 terminal accounting。Old-vs-new 只能作为 migration diagnostic，不能冒充 action A/B。真正值得继承的是已经闭合的时间、单位、事件与权限合同；它们让后续研究更难得到一个漂亮 winner，却让每个剩下的结论更接近可执行事实。</p>
 
@@ -957,9 +963,9 @@ Q_{k+1}=Q_k-q_k.</script><p>Queue position、inventory 与 fee accounting 已变
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-P3-Aggressive-Reach-Time-Hazard-Research/" title="NarrowGate Empirical P3：从十秒触达曲线到 Reach-Time Hazard 与报价价值">
+                      <a href="/2026/08/29/NarrowGate-Side-Taker-Flow-Research/" title="NarrowGate Side-Taker Lifecycle：微观流、双时钟 Trade Identity 与动态 Risk Set">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">NarrowGate Empirical P3：从十秒触达曲线到 Reach-Time Hazard 与报价价值</span>
+                        <span class="hidden-mobile">NarrowGate Side-Taker Lifecycle：微观流、双时钟 Trade Identity 与动态 Risk Set</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -967,8 +973,8 @@ Q_{k+1}=Q_k-q_k.</script><p>Queue position、inventory 与 fee accounting 已变
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Side-Taker-Flow-Research/" title="NarrowGate Side-Taker Lifecycle：微观流、双时钟 Trade Identity 与动态 Risk Set">
-                        <span class="hidden-mobile">NarrowGate Side-Taker Lifecycle：微观流、双时钟 Trade Identity 与动态 Risk Set</span>
+                      <a href="/2026/08/29/NarrowGate-Three-Venue-Global-Reference-Stage0-Research/" title="NarrowGate External Market Alpha：三交易所参考、信息衰减、First-Add 与 Fair-Center 动作">
+                        <span class="hidden-mobile">NarrowGate External Market Alpha：三交易所参考、信息衰减、First-Add 与 Fair-Center 动作</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
