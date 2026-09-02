@@ -19,17 +19,17 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Last materially modified: 2026-08-29 TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 r">
+    <meta name="description" content="Last materially modified: 2026-09-02 TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 r">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate：回测吞吐与 Live 尾延迟工程">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 r">
+<meta property="og:description" content="Last materially modified: 2026-09-02 TL;DR：读者收益摘要这篇文章是 NarrowGate 的工程篇，接在算法篇 《NarrowGate：Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift》 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 r">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/python-cpp-parity-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/dual-clock-order-lifecycle-kline.svg">
 <meta property="article:published_time" content="2026-07-01T00:03:00.000Z">
-<meta property="article:modified_time" content="2026-08-29T11:45:00.000Z">
+<meta property="article:modified_time" content="2026-09-02T10:30:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="C++">
@@ -334,7 +334,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          109k 字
+          111k 字
         
       </span>
     
@@ -346,7 +346,7 @@
         
         
           <!-- compatible with older versions-->
-          910 分钟
+          924 分钟
         
       </span>
     
@@ -390,10 +390,10 @@
             
               <div class="markdown-body">
                 
-                <p>Last materially modified: 2026-08-29</p>
+                <p>Last materially modified: 2026-09-02</p>
 <h2 id="TL-DR：读者收益摘要"><a href="#TL-DR：读者收益摘要" class="headerlink" title="TL;DR：读者收益摘要"></a>TL;DR：读者收益摘要</h2><p>这篇文章是 NarrowGate 的工程篇，接在算法篇 <a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/">《NarrowGate：Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift》</a> 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。</p>
 <blockquote>
-<p><strong>版本边界（2026-08-29）</strong>：本文保留可复现的工程结构、parity 方法与系统 benchmark，但所有数值必须按小节日期和冻结执行身份阅读。公开仓库可以审计历史 mechanics、receipt 和 F05 研究结论；它不包含私有当前 release manifest、精确 live config、进程或 EC2 主机状态，因此本文不再声明“此刻某开关 ON/OFF”或实盘依赖链。公开 F05 Full-Multiscale 的结论是 <code>supported_sides=[]</code>，Validation/holdout 未读，没有 research-supported action/live authority。历史 owner override、no-shadow 快照、q90/selector、外部行情与旧主机结果只代表各自冻结时刻，不证明 latest-liveness、动作发生或经济效果。</p>
+<p><strong>版本边界（2026-09-02）</strong>：本文保留可复现的工程结构、parity 方法与系统 benchmark，但所有数值必须按小节日期和冻结执行身份阅读。公开仓库可以审计历史 mechanics、receipt 和 F05 研究结论；它不包含私有当前 release manifest、精确 live config、进程或 EC2 主机状态，因此本文不再声明“此刻某开关 ON/OFF”或实盘依赖链。公开 F05 Full-Multiscale 的结论是 <code>supported_sides=[]</code>，Validation/holdout 未读，没有 research-supported action/live authority。历史 owner override、no-shadow 快照、q90/selector、外部行情与旧主机结果只代表各自冻结时刻，不证明 latest-liveness、动作发生或经济效果。本文新增的 terminal-continuation 数字是匿名化聚合的相邻 live 窗口观测，不是长期 SLA 或 PnL 证据。</p>
 </blockquote>
 <p>公开工程快照可以先压缩成十条：</p>
 <ol>
@@ -2264,9 +2264,53 @@ okx:spot:BTCUSDT</code></pre></div>
 <p>这条边界很关键：C++ 现在适合两件事。第一，active baseline 以及已 parity 参数面的宽 arm / retained fast screening；第二，quote context、order-level denominator、shock/label 前处理这类批处理 tight loop。它不适合替还没过 evidence gate 的新机制背书。换句话说，C++ 可以让反例更便宜，但不能把一个未验证机制变成 alpha。</p>
 <p>这说明一件事：<strong>架构边界不是文档措辞，而是真的会改变工程结论。</strong> 在本机 ARM 上，早期 <code>SIGNAL_FEATURES=1</code> 曾经是负优化；经过 fixed-array/ring-state 改造后，在 x86 上它反而变成最明显的 live CPU 收益。相反，历史 <code>SIGNAL_STATE=1</code> 在这台 x86 上没有额外收益，其实现与开关已于 2026-07-17 删除。pin 到单个 vCPU 对均值帮助也不大，甚至可能放大 VM 上的尾部抖动。</p>
 <p><code>perf stat</code> 也给了一个现实提醒：这台 KVM 实例不暴露 <code>cycles</code>、<code>instructions</code>、<code>L1-icache-load-misses</code>、<code>iTLB-load-misses</code> 这些硬件事件，最后只能看到 context switches、cpu migrations 和 page faults。因此“x86 benchmark”也要继续细分：普通云主机能做 wall-time/tail-latency 复测，但真正要分析 L1I/iTLB/cache miss，可能需要裸金属、特定实例族或能暴露 PMU 的环境。</p>
+<h4 id="2-1-5-2026-09-02：权威终态驱动-continuation-消除了整轮-cadence-空等"><a href="#2-1-5-2026-09-02：权威终态驱动-continuation-消除了整轮-cadence-空等" class="headerlink" title="2.1.5 2026-09-02：权威终态驱动 continuation 消除了整轮 cadence 空等"></a>2.1.5 2026-09-02：权威终态驱动 continuation 消除了整轮 cadence 空等</h4><p>2026-08-29 的修复前样本显示，cancel terminal 已经在本机可见后，replacement 仍等待下一次 5–10 秒正常 requote：BUY p50/p99 为 5.477/9.590 秒，SELL 为 5.379/9.537 秒。这段数据现在只作为优化前的历史基线，不能再写成当前路径。</p>
+<p>后续实现没有恢复已经删除的 async gateway。它继续保持同侧单一 ownership，只在权威 cancel/fill terminal 后唤醒唯一主决策循环，并用最新 snapshot 重新执行 inventory、cooldown、risk、ownership 和 post-only 检查。intent 只保存 side、generation 和“需要重新考虑报价”的事实，不保存可直接执行的旧价格或旧数量；unknown terminal 仍然 fail-closed。</p>
+<p>当前匿名化观测窗口累计 2,434 次成功 requote 和 1,404 次 replacement continuation；1,404 次均完整经过 <code>arm → publish → decision</code>，没有 drop。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th style="text-align:right">前序优化窗口</th>
+<th style="text-align:right">当前观察窗口</th>
+<th style="text-align:right">观测变化</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>requote total p50 / p99</td>
+<td style="text-align:right">20.81 / 211.66ms</td>
+<td style="text-align:right">17.70 / 138.17ms</td>
+<td style="text-align:right">-15.0% / -34.7%</td>
+</tr>
+<tr>
+<td>update orders p50 / p99</td>
+<td style="text-align:right">11.99 / 119.22ms</td>
+<td style="text-align:right">10.08 / 73.24ms</td>
+<td style="text-align:right">-15.9% / -38.6%</td>
+</tr>
+<tr>
+<td>terminal visible → decision p50 / p99</td>
+<td style="text-align:right">4.16 / 99.08ms</td>
+<td style="text-align:right">3.06 / 52.77ms</td>
+<td style="text-align:right">-26.4% / -46.7%</td>
+</tr>
+<tr>
+<td>REST new / cancel 每请求均值</td>
+<td style="text-align:right">9.92 / 7.86ms</td>
+<td style="text-align:right">7.30 / 7.09ms</td>
+<td style="text-align:right">-26.5% / -9.8%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>当前 BUY/SELL continuation p99 分别为 63.84ms 和 47.63ms，合并 p99 为 52.77ms，低于预先设定的 p99 ≤ 250ms 工程目标。相对最初约 9.5 秒的 p99，确定的机制结论是：整轮 cadence 空等已经消失，而且同侧 ownership 与终态安全约束仍然保留。</p>
+<p>表中两个 release 位于相邻但不重叠的市场窗口，市场状态、网络和主机负载没有被同步控制，因此 -15% 至 -47% 只能解释为观测改善，不能全部归因于代码。该窗口也不能证明更低延迟会改善 PnL；更高 quote uptime 对 fills、markout、inventory 和 tail 的影响仍需单独观察。低延时验收通过，不等于 alpha 或经济 no-harm 已经通过。</p>
 <h3 id="2-2-live-路径的-C-优化：与-replay-完全不同的约束"><a href="#2-2-live-路径的-C-优化：与-replay-完全不同的约束" class="headerlink" title="2.2 live 路径的 C++ 优化：与 replay 完全不同的约束"></a>2.2 live 路径的 C++ 优化：与 replay 完全不同的约束</h3><p>前面几节讲的 quote core batch、tick replay 状态机和 streaming features，都是以”吞吐量”为优化目标：输入是连续数组或完整窗口，可以释放 GIL、多线程并行、用 SoA 布局喂给 SIMD。但 live 路径是另一种世界。</p>
 <p>从 C++ 学习的角度看，live 优化最容易犯的错是把“语言更快”误解为“函数搬过去就会更快”。maker live path 里单个 quote 公式可能只要几十微秒，pybind 边界、Python 字典、dataclass 展开、日志对象构造和 feature merge 却可能比公式本身更贵。因此这里分析的重点不是 C++ 语法，而是 <strong>C++ 函数边界应该长什么样</strong>。</p>
 <p>事件引擎每隔 <code>requote_interval</code> 秒被 Python main loop 调用一次 <code>tick()</code>。<strong>公开代码路径中，报价决策与默认同步 REST new/cancel 在 main thread 串行执行，Binance execution callback 直接更新 <code>SignalEngine</code>。六条 external shadow feed 只描述历史实验：当时各自 callback 做 frame-level normalize 和 batched signal update，两种 Python dispatcher 拓扑都因 p99 回归而关闭；后来的某个冻结 no-shadow 快照没有启动这些 feed。</strong> main thread 在 requote 时读取一致 snapshot。这是公开实现与历史快照的分层描述，不是当前 EC2 进程清单。旧 async-gateway 实验已经连同代码和开关删除。</p>
+<p>这里还要明确 transport 边界。Binance 官方 FIX API 只覆盖 Spot，Market Data 与 Order Entry 又是不同 session；Market Data session 不能报撤单。NarrowGate 当前 execution instrument 是 Binance USD-M Futures，因此 execution market/private feed 与 new/cancel 仍然是 USD-M WebSocket/REST 路径，不能把 Spot FIX endpoint 当成 Futures 的低延迟替代。未来即使增加 Binance Spot FIX adapter，它也只覆盖相应 Spot source，不会统一覆盖 USD-M 或 Bitget/Bybit/OKX。协议是否可用必须逐 venue、逐 instrument、逐 session 核验，而不是把 <code>TCP + TLS + FIX</code> 当成跨交易所通用开关。官方能力边界见 <a target="_blank" rel="noopener" href="https://developers.binance.com/en/docs/products/spot/fix-api">Binance Spot FIX 文档</a>。</p>
 <div class="code-wrapper"><pre><code class="hljs text">Binance callback threads ─► receive/decode ─► SignalEngine update
 external callback threads ─► receive/decode/normalize
                           ├─► native fixed-array global-flow batch
@@ -2549,7 +2593,7 @@ routed = cpp_route.compute_live_routing_decision(
 <li><code>ActiveOrder</code> 是当前本地状态，不在 C++ 里发 REST；C++ 只说“应该怎么做”，Python 负责实际 cancel/new 和异常处理。</li>
 <li><code>reason_mask</code> 是整数位图，不是字符串列表；日志需要人类可读 reason 时再冷路径翻译。这样热路径不做字符串拼接，也不会因为审计文本拖慢每次报价。</li>
 </ul>
-<p>设计上有一点克制：进出 REST 的部分（cancel/new order、TTL check、GIL 相关操作）仍留在 Python，不放进 C++ call 内。这条边界的理由是：REST 中位延迟通常已经是几十毫秒，本文实测的 new/cancel 尾部还可进入百毫秒以上，比 C++ 函数的收益大多个数量级；强行把 REST 放进 C++ 只会让错误更难 debug，而不会自然消除网络与交易所尾部。</p>
+<p>设计上有一点克制：进出 REST 的部分（cancel/new order、TTL check、GIL 相关操作）仍留在 Python，不放进 C++ call 内。这条边界的理由是：当前普通 new/cancel 每请求均值约为 7ms，历史尾部仍可进入几十至上百毫秒；强行把 REST 客户端搬进 C++ 也不会自然消除公网、交易所 gateway、matching engine 与回执尾部，反而会让 unknown-state 和订单所有权错误更难诊断。</p>
 <h4 id="2-2-4-最小且可预测的热指令工作集"><a href="#2-2-4-最小且可预测的热指令工作集" class="headerlink" title="2.2.4 最小且可预测的热指令工作集"></a>2.2.4 最小且可预测的热指令工作集</h4><p>HFT 代码短小，不是为了追求源码上的简洁，而是为了控制 CPU 前端真正看见的机器码。这里采用的标准是：<strong>让一次高频事件实际触达的指令工作集最小、稳定且分支可预测，而不是让整个扩展模块都塞进 L1I。</strong></p>
 <p>这一区别很重要。在 <strong>2026-06-22 对应 commit、AppleClang Release + pybind ThinLTO 诊断构建</strong>中，<code>narrowgate_cpp</code> 的 <code>__text</code> 是 471,364 bytes，仍然大于本机性能核 192 KiB、能效核 128 KiB 的 L1I；但其中包括 pybind 注册、Python 类型转换、异常处理、批量研究接口和 trace binding，它们不会在一次 live requote 中全部执行。随后 extension 又加入 native global-flow 等代码，因此 471,364 bytes 只是一张历史 build snapshot，不是 2026-07-19 当前二进制大小。该轮 linker map 中的函数尺寸如下：</p>
 <div class="table-container">
@@ -3028,7 +3072,7 @@ buy_q90_visibility_lifecycle_path_score.v3
 <li>C++ 适合长期驻留的状态、高频低基数分支、完整窗口 replay 和稳定的 live hot path 小决策包；</li>
 <li>pybind 边界必须按数组、固定 tuple 或 compact context 设计，不能每 tick 传大 dict/dataclass；</li>
 <li>parity 比速度更重要，没有路径级和金额级一致性，sweep 越快越危险；</li>
-<li>公开架构中可持久化 native profile、canonical operational/perf telemetry 与同步 normal-order adapter 是工程对象；历史 BUY E3、q90、BUY selector、external/Flow/Ref 和 shadow/companion 快照是权限对象，不能混成一句“当前 live”。历史 per-side latest-wins gateway 已完成 soak，并因 p99/p99.9 无稳定改善、coalesce 几乎未形成而于 2026-07-17 物理删除。下一步是继续收紧状态 snapshot、WebSocket callback/lock ownership、REST/order lifecycle 与真实延迟校准，而不是复活旧开关、增加 Python worker 或为研究候选新建旁路。</li>
+<li>公开架构中可持久化 native profile、canonical operational/perf telemetry 与同步 normal-order adapter 是工程对象；历史 BUY E3、q90、BUY selector、external/Flow/Ref 和 shadow/companion 快照是权限对象，不能混成一句“当前 live”。历史 per-side latest-wins gateway 已完成 soak，并因 p99/p99.9 无稳定改善、coalesce 几乎未形成而于 2026-07-17 物理删除。2026-09 的 terminal-driven continuation 不是旧 gateway 复活：它仍等待权威终态、保持单侧 ownership，只唤醒唯一决策循环并重新读取 fresh snapshot；当前合并 p99 52.77ms 已通过延迟目标。下一步是继续收紧 watchdog、signal 与真实全链路校准，并独立验证更高 quote uptime 的经济影响，而不是复活旧开关、增加 Python worker 或为研究候选新建旁路。</li>
 <li>包名也必须表达生命周期：离线 ETL 在 <code>data/</code>，live 公共簿在 <code>live/orderbook/</code>，我方订单状态在 <code>execution/</code>，大型行情文件只存在于仓库外数据根。</li>
 </ol>
 <p>所以 C++ 在 NarrowGate 里的定位不是外置加速器，而是 maker 策略工程化的一部分：离线侧让严格 replay、反例搜索、null baseline、order-level evidence 和参数 racing 变得可负担；live 侧把稳定、高频、低基数的状态和决策边界收紧到更少动态对象、更少无意义 replace、更可控的尾延迟。低延时本身不是 alpha 结论，但它决定了一个 maker alpha 能否被真实验证、稳定执行，并在风险变坏时及时撤退。</p>
