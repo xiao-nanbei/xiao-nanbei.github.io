@@ -19,12 +19,12 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Last materially modified: 2026-08-30 1. 修复基础设施与重验旧证据是一项研究时间单位、方差 ABI、feature-ready clock、timer event、commission 与 campaign accounting 的修复，不只是工程 housekeeping；它们会改变事件先后、订单生命周期和两个策略 arm 的分叉方式。历史证据重验证因此不是">
+    <meta name="description" content="Last materially modified: 2026-09-05 2026-09-05 更新：延迟也是策略环境，下一轮先检验承担风险的价值本节是复验计划与实现状态，不是新一轮收益报告。 下文保留各历史研究自己的日期、样本与结论；它们不代表当前运行环境。当前修复后的 B0（不增加候选动作的对照策略）与候选尚未完成新的完整配对经济回测，不能发布新的 winner、PnL 改善或实盘收益预测。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate Replay Evidence Revalidation：时间、量纲与因果时钟修复后，旧结论还剩什么">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Time-Unit-Causality-Repair-Research/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="Last materially modified: 2026-08-30 1. 修复基础设施与重验旧证据是一项研究时间单位、方差 ABI、feature-ready clock、timer event、commission 与 campaign accounting 的修复，不只是工程 housekeeping；它们会改变事件先后、订单生命周期和两个策略 arm 的分叉方式。历史证据重验证因此不是">
+<meta property="og:description" content="Last materially modified: 2026-09-05 2026-09-05 更新：延迟也是策略环境，下一轮先检验承担风险的价值本节是复验计划与实现状态，不是新一轮收益报告。 下文保留各历史研究自己的日期、样本与结论；它们不代表当前运行环境。当前修复后的 B0（不增加候选动作的对照策略）与候选尚未完成新的完整配对经济回测，不能发布新的 winner、PnL 改善或实盘收益预测。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/time-unit-causality-repair.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/sys-replay-causality-repair-stack.svg">
@@ -33,7 +33,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/replay-no-trade-clock-timeline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/replay-revalidation-research-synthesis.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-08-29T18:11:00.000Z">
+<meta property="article:modified_time" content="2026-09-05T10:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="Replay">
@@ -338,7 +338,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          27k 字
+          30k 字
         
       </span>
     
@@ -350,7 +350,7 @@
         
         
           <!-- compatible with older versions-->
-          228 分钟
+          247 分钟
         
       </span>
     
@@ -394,7 +394,49 @@
             
               <div class="markdown-body">
                 
-                <p>Last materially modified: 2026-08-30</p>
+                <p>Last materially modified: 2026-09-05</p>
+<h2 id="2026-09-05-更新：延迟也是策略环境，下一轮先检验承担风险的价值"><a href="#2026-09-05-更新：延迟也是策略环境，下一轮先检验承担风险的价值" class="headerlink" title="2026-09-05 更新：延迟也是策略环境，下一轮先检验承担风险的价值"></a>2026-09-05 更新：延迟也是策略环境，下一轮先检验承担风险的价值</h2><p><strong>本节是复验计划与实现状态，不是新一轮收益报告。</strong> 下文保留各历史研究自己的日期、样本与结论；它们不代表当前运行环境。当前修复后的 B0（不增加候选动作的对照策略）与候选尚未完成新的完整配对经济回测，不能发布新的 winner、PnL 改善或实盘收益预测。</p>
+<p>本轮重点不再是把冷却秒数切得更细，而是回答：<strong>在已经测量到的延迟环境中，这一次首次开仓、再次增仓或继续保留挂单，相比等待是否值得？</strong> NarrowGate 并非没有事前控制：决策可见的毒性、方向、收益预测和 weighted-mid proxy 可以影响报价；成交后的冷却、markout 反馈和风险退出也能保护下一次决策。尚未充分闭合的是从信号到可执行动作，再到完整 campaign 终点增量价值的证据链。</p>
+<h3 id="不是从零开始，也不是把旧失败重新命名"><a href="#不是从零开始，也不是把旧失败重新命名" class="headerlink" title="不是从零开始，也不是把旧失败重新命名"></a>不是从零开始，也不是把旧失败重新命名</h3><p>公开研究已经检验过 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/sell_first_fill_conditional_value_feasibility_v3_development_20260730.md">SELL first-opener 的条件价值</a>、<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/decision_visible_negative_fill_value_evidence_m0_v1_1_development_20260729.md">首次增仓的决策可见负价值</a>，以及 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/multiscale_ema_add_wait_incremental_value_v1_2_development_20260809.md">ADD NOW 相对 WAIT ONE EXTERNAL EPOCH</a>。这些冻结身份没有证明稳定的选择增益。因此，正确说法是“选择能力尚未验证”，不是“从未研究事前选择”。用未来的 campaign 结果构造训练标签也不等于事后动作；关键是输入何时可见、动作何时生效，以及训练是否只使用过去的数据。</p>
+<p>旧关闭结论继续约束原候选与原面板；新的延迟环境只提供明确标注的环境迁移复验理由，不自动开启旧 holdout，不允许一边观察新结果一边改阈值。复验未通过时，不把失败解释成冷却常数已经最优，也不据此否定所有不同的状态或动作模型。</p>
+<h3 id="先对齐当前-B0-的执行环境"><a href="#先对齐当前-B0-的执行环境" class="headerlink" title="先对齐当前 B0 的执行环境"></a>先对齐当前 B0 的执行环境</h3><p>延迟不能压成一个额外常数，也不能把多个阶段的 p99 相加。需要分别表示源消息产生与到达、特征完成、决策计算、GLOBAL FIFO 请求等待、交易所生效，以及 HTTP 返回与私有回调可见时间。Depth 总年龄还包含源更新间隔和快照调度等待，不能整段再作为网络延迟采样，否则会重复计算等待。不能从平均 RTT 或 RTT/2 推断不可观测的交易所生效时刻。</p>
+<p>本轮可取得的原始运维样本保存在私有证据库，不随公共仓库分发。短窗口的百级请求样本只能提供有限的经验分布和实现诊断，不能冒充长期稳定的尾延迟分布。无法识别的时刻保留为显式假设及敏感性范围；原始尾部不因数字难看而默认截去。本轮没有可公开声称的完整 market-event→exchange-effective 实测 p99。</p>
+<p>两臂共享行情交付和外部网络扰动的生成规则，能够对应的请求使用相同 keyed draws；候选改变请求数量以后，各自的 FIFO 等待、订单队列、成交、库存和 campaign 必须独立演化。不能强行给两臂相同的最终等待时间，也不能把 B0 的成交路径缓存给候选。Python/C++ 共享内核一致不等于完整运行机制一致；缺少当前机制的 backend 不用于出具当前环境的经济结论。</p>
+<p>实现方面，确定 native 字段、统一加载边界和日志复用已验证模型 metadata 的调整见<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/commit/13d44967">源码修复提交</a>；root-private 部署环境文件的受限元数据读取见<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/commit/db0122cd">部署修复提交</a>。这些是工程变更，不构成延迟收益或策略收益证明；新的异步生命周期与分源可见性覆盖仍须由完整 replay 验证，不能用公共模板或旧 40/50 日金额代替实际 B0。</p>
+<h3 id="用三个决策面组织有限的复验"><a href="#用三个决策面组织有限的复验" class="headerlink" title="用三个决策面组织有限的复验"></a>用三个决策面组织有限的复验</h3><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>决策面</th>
+<th>要比较什么</th>
+<th>必须保持的边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>首次承担风险</td>
+<td>当前方向、价格和数量的 opener 相对等待</td>
+<td>BUY/SELL 分开；等待期限和重新进入规则在结果前确定</td>
+</tr>
+<tr>
+<td>挂单继续暴露</td>
+<td>保留队列位置相对撤单、等待终态再重入</td>
+<td>撤单真正生效前仍可成交；unknown 不释放 ownership</td>
+</tr>
+<tr>
+<td>再次增仓</td>
+<td>基线允许的 ADD 相对继续等待</td>
+<td>市场恢复与计时到期不是同一对象；减仓和风险退出不受选择器阻挡</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>共同目标是固定后续保护策略下的增量价值，而不是单独预测某笔成交后的涨跌：</p>
+<script type="math/tex; mode=display">
+\Delta V(s)=\mathbb E\!\left[R_{\mathrm{terminal}}\mid s,\mathrm{action},\pi_0\right]-\mathbb E\!\left[R_{\mathrm{terminal}}\mid s,\mathrm{wait},\pi_0\right].</script><p>这里的终点收益来自完整现金流和剩余库存计价；不把同一个 campaign 的终点 PnL 重复算给每个决策。历史价格档数据不能恢复全部订单级队列身份，queue/fill 仍须作为模型假设报告，而不是要求模拟成交与 live 逐笔相同。</p>
+<p>执行顺序是：先补齐当前 B0 与 no-op 对照；再重做 BUY/SELL、opener/add/reducing 的损失归因；随后用现有信号和少量预先确定的动作检验事前选择的独立增益。SELL 增仓过滤等候选先经过支持和机制检查，不先扩展成新的大参数网格。此前的 deadline-floor 和细分 cooldown 暂不作为优先调参对象；它们保留原定义，供后续有明确增量问题时复验。</p>
+<p>第一轮固定相同的成交后冷却、markout、库存限制和退出规则，避免“增加事前选择”和“撤掉事后保护”混成一个处理。只有事前机制在完整配对路径中显示稳定增益，才逐项做事后保护的消融。必须同时报告分侧成交、maker 毛收益、taker 与费用、terminal MTM、tail、库存 MAE、修复时间和 quote uptime；少成交或短期 markout 改善本身不能证明策略更好。</p>
+<p>这轮工作的公共口径是：<strong>工程修复继续，研究重点前移，经济结果待重跑。</strong> 旧临时交付包未找回时，任务记录只能恢复研究线索，不能替代原始报告、补丁与输出；不会把残缺旧结果拼成新 B0，也不新增 live shadow 来代替离线复验。</p>
 <h2 id="1-修复基础设施与重验旧证据是一项研究"><a href="#1-修复基础设施与重验旧证据是一项研究" class="headerlink" title="1. 修复基础设施与重验旧证据是一项研究"></a>1. 修复基础设施与重验旧证据是一项研究</h2><p>时间单位、方差 ABI、feature-ready clock、timer event、commission 与 campaign accounting 的修复，不只是工程 housekeeping；它们会改变事件先后、订单生命周期和两个策略 arm 的分叉方式。历史证据重验证因此不是另一篇附录，而是同一项目的第二半：先说明 identity 为什么变，再判断旧结论中哪些方向仍安全、哪些精确数字必须撤回。</p>
 <p>reservation-price 风险项提供了最直观的量纲检查：</p>
 <script type="math/tex; mode=display">
