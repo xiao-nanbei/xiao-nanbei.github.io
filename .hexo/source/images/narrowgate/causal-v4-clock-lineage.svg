@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">Causal-v4特征时钟与证据撤回谱系</title>
+  <desc id="desc">证据谱系示意。十秒bucket在结束时才可见，三天futures metrics被提前五分钟标记，导致test、ML A/B和跨日scorer分支撤回，P3分支不受影响。</desc>
+  <defs><linearGradient id="bg"><stop stop-color="#071426"/><stop offset="1" stop-color="#252443"/></linearGradient><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#7dd3fc"/></marker><style>.t{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;fill:#eef5ff}.m{fill:#abb9cf}.box{fill:#0a1d33;stroke:#3a5e79}.arr{stroke:#7dd3fc;stroke-width:3;marker-end:url(#a)}.bad{fill:#351c2c;stroke:#ff6b6b}.good{fill:#12352e;stroke:#39d98a}.big{font-size:27px;font-weight:700}.label{font-size:17px}.small{font-size:14px}</style></defs>
+  <rect width="1200" height="620" rx="24" fill="url(#bg)"/><text x="52" y="53" class="t big">Causal-v4：三天 timing error 为什么撤回整条 test 分支</text><text x="52" y="82" class="m small">证据谱系示意 · invalid evidence 不是阴性经济结果</text>
+  <g transform="translate(55 125)">
+    <rect width="250" height="110" rx="14" class="box"/><text x="20" y="34" class="t label">10 秒市场 bucket</text><text x="20" y="68" class="m small">[t, t+10s)</text><text x="20" y="94" class="m small">必须到 bucket_end 才可见</text>
+    <line x1="258" y1="55" x2="328" y2="55" class="arr"/>
+    <rect x="340" width="250" height="110" rx="14" class="good"/><text x="360" y="34" class="t label">正确 feature-ready</text><text x="360" y="70" fill="#6ee7b7" class="label">t + 10s</text><text x="360" y="96" class="m small">train / validation unaffected</text>
+    <line x1="598" y1="55" x2="668" y2="55" class="arr"/>
+    <rect x="680" width="370" height="110" rx="14" class="bad"/><text x="700" y="34" class="t label">三天 metrics archive 语义错误</text><text x="700" y="68" fill="#ff8f8f" class="label">interval observation 提前 5 分钟可见</text><text x="700" y="94" class="m small">落入 test，并传播到 blocked-day scorer</text>
+    <path d="M865 120V185" class="arr"/>
+    <rect x="625" y="195" width="480" height="145" rx="14" class="bad"/><text x="650" y="230" class="t label">必须撤回</text><text x="650" y="264" class="m small">• test prediction metrics</text><text x="650" y="292" class="m small">• test / all ML OFF-ON replay</text><text x="650" y="320" class="m small">• BUY scorer buckets 与 promotion claim</text>
+    <path d="M215 120V220" class="arr"/>
+    <rect x="0" y="230" width="460" height="110" rx="14" class="good"/><text x="22" y="264" class="t label">可保留的独立分支</text><text x="22" y="296" class="m small">P3 日期截至更早 · bucket-end rule · merged clock</text><text x="22" y="322" class="m small">dimensionally closed risk/accounting discipline</text>
+  </g>
+  <rect x="55" y="510" width="1090" height="72" rx="14" fill="#102a43"/><text x="78" y="540" class="t label">最终状态：v4 无有效 test/economic promotion authority</text><text x="78" y="566" class="m small">不能只删三日 report rows；cross-fitting 已把错误带入模型参数。</text>
+</svg>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">从负价值成交标签到可执行报价动作的四层证据阶梯</title>
+  <desc id="desc">展示 realized fill value、decision-visible prediction、候选报价的条件净价值与随机化完整路径 action uplift 是不同层级，并说明支持、反事实和 campaign terminal 缺一不可。</desc>
+  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 Z" fill="#7dd3fc"/></marker><style>.bg{fill:#071525}.box{fill:#102a43;stroke:#315873;stroke-width:2}.warn{fill:#3b2536;stroke:#fb7185;stroke-width:2}.ok{fill:#123b38;stroke:#34d399;stroke-width:2}.t{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;fill:#eef7ff}.m{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;fill:#9eb4c8}.h{font-size:28px;font-weight:700}.b{font-size:18px;font-weight:650}.s{font-size:14px}.arrow{stroke:#7dd3fc;stroke-width:3;fill:none;marker-end:url(#a)}</style></defs>
+  <rect class="bg" width="1200" height="720" rx="24"/>
+  <text class="t h" x="48" y="57">“这笔 fill 后来很差”与“当时应该换动作”之间隔着三座桥</text>
+  <text class="m s" x="48" y="86">标签、预测、quote-value selector 与 randomized policy 分别回答不同问题</text>
+  <g transform="translate(48 126)">
+    <rect class="box" x="0" y="0" width="240" height="176" rx="14"/><text class="t b" x="22" y="38">① Realized label</text><text class="m s" x="22" y="74">fill 后 markout / terminal</text><text class="m s" x="22" y="102">证明坏成交存在</text><text class="t s" x="22" y="138">未来只能做 Y</text><text class="m s" x="22" y="160">不能倒灌 decision</text>
+    <path class="arrow" d="M254 88H294"/>
+    <rect class="box" x="306" y="0" width="240" height="176" rx="14"/><text class="t b" x="328" y="38">② Prediction</text><text class="m s" x="328" y="74">Xₜ 是否排序负价值</text><text class="m s" x="328" y="102">chronological OOF</text><text class="t s" x="328" y="138">prognostic risk</text><text class="m s" x="328" y="160">还没有动作</text>
+    <path class="arrow" d="M560 88H600"/>
+    <rect class="box" x="612" y="0" width="240" height="176" rx="14"/><text class="t b" x="634" y="38">③ Quote value</text><text class="m s" x="634" y="74">多个可执行报价候选</text><text class="m s" x="634" y="102">support + conditional net value</text><text class="t s" x="634" y="138">selector 可能 0 次选择</text><text class="m s" x="634" y="160">仍需 full-path</text>
+    <path class="arrow" d="M866 88H906"/>
+    <rect class="warn" x="918" y="0" width="234" height="176" rx="14"/><text class="t b" x="940" y="38">④ Action uplift</text><text class="m s" x="940" y="74">真实改变 quote / queue</text><text class="m s" x="940" y="102">inventory 与 campaign terminal</text><text class="t s" x="940" y="138">known propensity / paired</text><text class="m s" x="940" y="160">tail + activity joint gate</text>
+  </g>
+  <g transform="translate(48 374)">
+    <rect class="ok" width="1104" height="210" rx="15"/><text class="t b" x="24" y="40">一条动作路径必须完整保留</text><text class="t s" x="24" y="82">decision-visible Xₜ → baseline / candidate quote → submit / activation → queue → fill 或 cancel ACK</text><text class="t s" x="24" y="116">→ inventory lot → reducing quote → repair / timeout → campaign terminal value</text><text class="m s" x="24" y="154">soft-widen 只改一次，也会使后续两条世界分叉；没有 terminal path 就不能把“少一笔坏 fill”直接记作收益</text><text class="m s" x="24" y="184">unsupported state 必须回退 baseline，owner continuation 不能改写原 hard gate</text>
+  </g>
+  <text class="m s" x="48" y="656">机制示意 · 不公开私有 OOF rows、模型 bundle 或当前 live 状态</text>
+</svg>

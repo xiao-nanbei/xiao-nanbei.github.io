@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">P3 从触达概率到报价动作价值的 estimand 阶梯</title>
+  <desc id="desc">图示未来十秒触达概率、离散到达时间 hazard、排队后的成交概率、单笔成交价值和完整 campaign 动作价值是五个不同对象，并展示 exchange clock 与 feature-ready clock 的边界。</desc>
+  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 Z" fill="#67e8f9"/></marker><style>.bg{fill:#071426}.box{fill:#102840;stroke:#315773;stroke-width:2}.warn{fill:#39253a;stroke:#fb7185;stroke-width:2}.t{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;fill:#eef7ff}.m{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;fill:#9db2c7}.h{font-size:28px;font-weight:700}.b{font-size:18px;font-weight:650}.s{font-size:14px}.arrow{stroke:#67e8f9;stroke-width:3;fill:none;marker-end:url(#a)}.clock{stroke:#fbbf24;stroke-width:3}.ready{stroke:#34d399;stroke-width:3}.dash{stroke-dasharray:7 6}</style></defs>
+  <rect class="bg" width="1200" height="720" rx="24"/>
+  <text class="t h" x="50" y="56">P3 不是一个可以无损塞进旧报价公式的“成交强度”</text>
+  <text class="m s" x="50" y="86">每跨一级都新增 queue、cancel、inventory 或反事实假设；预测通过不能替下一层补票</text>
+  <g transform="translate(48 126)">
+    <rect class="box" x="0" y="0" width="190" height="138" rx="13"/><text class="t b" x="18" y="34">① P(touch≤10s)</text><text class="m s" x="18" y="68">报价价位是否被市场触达</text><text class="m s" x="18" y="94">不含队列与最终成交</text><text class="t s" x="18" y="119">固定 horizon 二元对象</text>
+    <path class="arrow" d="M204 69H238"/>
+    <rect class="box" x="250" y="0" width="190" height="138" rx="13"/><text class="t b" x="268" y="34">② Reach hazard</text><text class="m s" x="268" y="68">何时首次触达、多远</text><text class="m s" x="268" y="94">含 censor 与 survival</text><text class="t s" x="268" y="119">仍不是 fill</text>
+    <path class="arrow" d="M454 69H488"/>
+    <rect class="box" x="500" y="0" width="190" height="138" rx="13"/><text class="t b" x="518" y="34">③ P(fill | queue)</text><text class="m s" x="518" y="68">排队位置与撮合消耗</text><text class="m s" x="518" y="94">cancel ACK 终止风险集</text><text class="t s" x="518" y="119">需要生命周期模型</text>
+    <path class="arrow" d="M704 69H738"/>
+    <rect class="box" x="750" y="0" width="190" height="138" rx="13"/><text class="t b" x="768" y="34">④ Fill value</text><text class="m s" x="768" y="68">成交后的 adverse markout</text><text class="m s" x="768" y="94">与 repair opportunity</text><text class="t s" x="768" y="119">单笔价值仍非终局</text>
+    <path class="arrow" d="M954 69H988"/>
+    <rect class="warn" x="1000" y="0" width="150" height="138" rx="13"/><text class="t b" x="1018" y="34">⑤ Action value</text><text class="m s" x="1018" y="68">报价改变后的</text><text class="m s" x="1018" y="94">完整 campaign</text><text class="t s" x="1018" y="119">必须 paired replay</text>
+  </g>
+  <g transform="translate(50 340)">
+    <rect class="box" width="1100" height="222" rx="16"/>
+    <text class="t b" x="24" y="38">同一段市场路径上的两只时钟</text>
+    <line class="clock" x1="44" y1="92" x2="1030" y2="92"/><text class="t s" x="44" y="77">exchange clock：trade / L2 / 首次触达</text>
+    <circle cx="240" cy="92" r="7" fill="#fbbf24"/><circle cx="520" cy="92" r="7" fill="#fbbf24"/><circle cx="820" cy="92" r="7" fill="#fbbf24"/>
+    <text class="m s" x="202" y="119">价格创新</text><text class="m s" x="478" y="119">触达 quote</text><text class="m s" x="776" y="119">生命周期终点</text>
+    <line class="ready" x1="44" y1="164" x2="1030" y2="164"/><text class="t s" x="44" y="149">feature-ready clock：完整 bucket / parent message / policy decision</text>
+    <path class="arrow dash" d="M240 100C270 142 300 158 350 164"/><path class="arrow dash" d="M520 100C550 142 580 158 630 164"/>
+    <text class="m s" x="342" y="195">只有到这里，特征才可进入 policy</text><text class="m s" x="804" y="195">不可把未来触达时间倒灌为当前输入</text>
+  </g>
+  <text class="m s" x="50" y="650">曲线、hazard、fill 与 value 可以相关，但 estimand 不同；标量压缩会丢失 side、distance、horizon 与 shape 信息。</text>
+  <text class="m s" x="50" y="678">机制示意 · 不含私有订单、实盘配置或收益承诺</text>
+</svg>

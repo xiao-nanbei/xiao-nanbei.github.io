@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">P3策略可见性双时钟</title>
+  <desc id="desc">机制示意。上方是exchange events，下方是经过冻结visibility sampler的decision-visible states；current coordinate具有精确重建，而六十秒context只是合成敏感性，不是实测receive time。</desc>
+  <defs><linearGradient id="bg"><stop stop-color="#071426"/><stop offset="1" stop-color="#18334d"/></linearGradient><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#7dd3fc"/></marker><style>.t{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;fill:#edf6ff}.m{fill:#a9bad0}.line{stroke:#587894;stroke-width:3}.arr{stroke:#7dd3fc;stroke-width:2;marker-end:url(#a)}.big{font-size:27px;font-weight:700}.label{font-size:17px}.small{font-size:14px}</style></defs>
+  <rect width="1200" height="620" rx="24" fill="url(#bg)"/><text x="52" y="53" class="t big">Exchange clock ≠ policy-visible clock</text><text x="52" y="82" class="m small">机制示意 · synthetic history 不冒充 observed receive time</text>
+  <g transform="translate(90 135)">
+    <text x="0" y="8" class="t label">Exchange events</text><line x1="170" y1="0" x2="1000" y2="0" class="line"/>
+    <g fill="#55d6be"><circle cx="245" r="8"/><circle cx="370" r="8"/><circle cx="515" r="8"/><circle cx="680" r="8"/><circle cx="845" r="8"/></g>
+    <text x="225" y="-20" class="m small">BBO</text><text x="350" y="-20" class="m small">trade</text><text x="495" y="-20" class="m small">BBO</text><text x="660" y="-20" class="m small">BBO</text><text x="825" y="-20" class="m small">trade</text>
+    <path d="M245 20 C270 75 300 85 320 122M370 20 C395 75 425 85 450 122M515 20 C545 75 575 85 600 122M680 20 C710 75 740 85 770 122M845 20 C875 75 905 85 935 122" fill="none" class="arr"/>
+    <rect x="255" y="58" width="640" height="42" rx="12" fill="#102a43" stroke="#3c607c"/><text x="330" y="84" class="t label">冻结 keyed visibility sampler：event → feature-ready</text>
+    <text x="0" y="138" class="t label">Decision-visible</text><line x1="170" y1="130" x2="1000" y2="130" class="line"/>
+    <g fill="#ffb84d"><circle cx="320" cy="130" r="8"/><circle cx="450" cy="130" r="8"/><circle cx="600" cy="130" r="8"/><circle cx="770" cy="130" r="8"/><circle cx="935" cy="130" r="8"/></g>
+    <line x1="860" y1="105" x2="860" y2="165" stroke="#ff6b6b" stroke-width="3"/><text x="790" y="190" class="t label">baseline quote decision</text>
+    <path d="M860 205V260" class="arr"/><rect x="650" y="270" width="420" height="90" rx="14" fill="#0b1d31" stroke="#365873"/><text x="672" y="302" class="t label">精确：current BUY/SELL coordinate parity</text><text x="672" y="332" class="m small">非精确：61-point synthetic 60s feature history</text>
+  </g>
+  <g transform="translate(90 520)"><rect width="1020" height="62" rx="14" fill="#102a43"/><text x="22" y="27" class="t label">467,093 decisions · coverage 98.6726% · Brier/calibration/monotonicity components pass</text><text x="22" y="50" class="m small">完整 identity stop：28 日 / 3 OOF folds，低于冻结的 30 日 / 4 folds。</text></g>
+</svg>

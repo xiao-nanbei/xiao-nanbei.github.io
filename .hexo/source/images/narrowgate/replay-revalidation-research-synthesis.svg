@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="862" viewBox="0 0 1100 862" role="img" aria-labelledby="title desc">
+  <title id="title">Replay Revalidation：修复改变的是证据身份，不只是一个数值</title>
+  <desc id="desc">单位、feature-ready clock、timer stream 与 terminal accounting 共同定义可比较的 replay world。相同 commit 或 config 名不能证明两个 replay identity 可比较。 必须在同一修复后 identity 内重新冻结 baseline、candidate、时钟、queue 与终局核算。 研究支持：corrected replay contract · historical exact economics not portable</desc>
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#98a2b3"/></marker>
+    <style>
+      .bg{fill:#fbfcfe}.card{fill:#fff;stroke:#d0d5dd;stroke-width:1.2}.connector{fill:none;stroke:#98a2b3;stroke-width:1.6;marker-end:url(#arrow)}
+      .title{font:600 24px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.subtitle{font:400 13px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#475467}
+      .stage{font:600 17px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.result{font:500 14px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#344054}.metric{font:400 12px ui-monospace,SFMono-Regular,Menlo,"PingFang SC",monospace;fill:#667085}
+      .pill{font:600 13px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif}.index{font:600 14px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.take-title{font:600 17px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#175cd3}.take{font:500 14px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#344054}.authority{font:500 12px ui-monospace,SFMono-Regular,Menlo,"PingFang SC",monospace;fill:#b42318}
+    </style>
+  </defs>
+  <rect class="bg" width="1100" height="862"/>
+  <text class="title" x="42" y="44">Replay Revalidation：修复改变的是证据身份，不只是一个数值</text>
+  <text class="subtitle" x="42" y="70">单位、feature-ready clock、timer stream 与 terminal accounting 共同定义可比较的 replay world</text>
+  <line x1="42" y1="92" x2="1058" y2="92" stroke="#eaecf0" stroke-width="1"/>
+<path class="connector" d="M112 250 V269"/>
+  <rect class="card" x="62" y="142" width="976" height="108" rx="11"/>
+  <rect x="62" y="142" width="8" height="108" rx="4" fill="#06aed4"/>
+  <circle cx="112" cy="174" r="18" fill="#ecfdff" stroke="#06aed4" stroke-width="1.5"/>
+  <text class="index" text-anchor="middle" x="112" y="180" fill="#0e7090">1</text>
+  <text class="stage" x="150" y="176">量纲闭合</text>
+  <rect x="888" y="158" width="122" height="32" rx="16" fill="#ecfdff" stroke="#06aed4" stroke-width="1"/>
+  <text class="pill" text-anchor="middle" x="949" y="179" fill="#0e7090">修复</text>
+  <text class="result" x="150" y="205">absolute-price variance 不再重复乘 mid；风险 horizon 与采样窗口分离</text>
+  <text class="metric" x="150" y="230">修复公式单位，但不替历史参数背书</text>
+<path class="connector" d="M112 382 V401"/>
+  <rect class="card" x="62" y="274" width="976" height="108" rx="11"/>
+  <rect x="62" y="274" width="8" height="108" rx="4" fill="#06aed4"/>
+  <circle cx="112" cy="306" r="18" fill="#ecfdff" stroke="#06aed4" stroke-width="1.5"/>
+  <text class="index" text-anchor="middle" x="112" y="312" fill="#0e7090">2</text>
+  <text class="stage" x="150" y="308">Feature visibility</text>
+  <rect x="888" y="290" width="122" height="32" rx="16" fill="#ecfdff" stroke="#06aed4" stroke-width="1"/>
+  <text class="pill" text-anchor="middle" x="949" y="311" fill="#0e7090">修复</text>
+  <text class="result" x="150" y="337">bucket-end observation 只在 feature-ready 时刻以后进入策略</text>
+  <text class="metric" x="150" y="362">left-labelled lookahead 被移除</text>
+<path class="connector" d="M112 514 V533"/>
+  <rect class="card" x="62" y="406" width="976" height="108" rx="11"/>
+  <rect x="62" y="406" width="8" height="108" rx="4" fill="#06aed4"/>
+  <circle cx="112" cy="438" r="18" fill="#ecfdff" stroke="#06aed4" stroke-width="1.5"/>
+  <text class="index" text-anchor="middle" x="112" y="444" fill="#0e7090">3</text>
+  <text class="stage" x="150" y="440">Merged causal event stream</text>
+  <rect x="888" y="422" width="122" height="32" rx="16" fill="#ecfdff" stroke="#06aed4" stroke-width="1"/>
+  <text class="pill" text-anchor="middle" x="949" y="443" fill="#0e7090">修复</text>
+  <text class="result" x="150" y="469">trade、BBO/L2 与 100ms timer 共同推进 TTL、cooldown、requote 与 markout</text>
+  <text class="metric" x="150" y="494">诊断日 fills 178→184，PnL −0.97→+1.18；不是 alpha</text>
+
+  <rect class="card" x="62" y="538" width="976" height="108" rx="11"/>
+  <rect x="62" y="538" width="8" height="108" rx="4" fill="#667085"/>
+  <circle cx="112" cy="570" r="18" fill="#f2f4f7" stroke="#667085" stroke-width="1.5"/>
+  <text class="index" text-anchor="middle" x="112" y="576" fill="#344054">4</text>
+  <text class="stage" x="150" y="572">Historical evidence revalidation</text>
+  <rect x="888" y="554" width="122" height="32" rx="16" fill="#f2f4f7" stroke="#667085" stroke-width="1"/>
+  <text class="pill" text-anchor="middle" x="949" y="575" fill="#344054">撤回</text>
+  <text class="result" x="150" y="601">修复后重新判断旧结论能否 preserve、reproduce、rerun 或 retract</text>
+  <text class="metric" x="150" y="626">no-promotion 可保留；旧 absolute PnL / winner / rankings 撤回</text>
+  <rect x="62" y="686" width="976" height="112" rx="11" fill="#eff8ff" stroke="#84caff" stroke-width="1.2"/>
+  <text class="take-title" x="88" y="717">合并后的读法</text>
+  <text class="take" x="88" y="744">• 相同 commit 或 config 名不能证明两个 replay identity 可比较。</text>
+  <text class="take" x="88" y="770">• 必须在同一修复后 identity 内重新冻结 baseline、candidate、时钟、queue 与终局核算。</text>
+  <text class="authority" text-anchor="middle" x="550" y="828">研究支持：corrected replay contract · historical exact economics not portable</text>
+</svg>

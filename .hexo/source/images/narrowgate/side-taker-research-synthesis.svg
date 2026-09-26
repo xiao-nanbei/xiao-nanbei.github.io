@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="862" viewBox="0 0 1100 862" role="img" aria-labelledby="title desc">
+  <title id="title">Side-Taker Lifecycle：静态信号关闭，动态风险集仍待完成</title>
+  <desc id="desc">individual-trade outcome clock 与 aggTrade policy-visible clock 必须同时保留。BUY maker 的对手方是 aggressive SELL，SELL maker 则相反；方向不能随手乘符号。 即便动态 prediction 以后通过，也只能注册新的 randomized action。 研究支持：clock / risk-set contract · predictive/action/live authority=false</desc>
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#98a2b3"/></marker>
+    <style>
+      .bg{fill:#fbfcfe}.card{fill:#fff;stroke:#d0d5dd;stroke-width:1.2}.connector{fill:none;stroke:#98a2b3;stroke-width:1.6;marker-end:url(#arrow)}
+      .title{font:600 24px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.subtitle{font:400 13px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#475467}
+      .stage{font:600 17px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.result{font:500 14px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#344054}.metric{font:400 12px ui-monospace,SFMono-Regular,Menlo,"PingFang SC",monospace;fill:#667085}
+      .pill{font:600 13px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif}.index{font:600 14px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.take-title{font:600 17px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#175cd3}.take{font:500 14px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#344054}.authority{font:500 12px ui-monospace,SFMono-Regular,Menlo,"PingFang SC",monospace;fill:#b42318}
+    </style>
+  </defs>
+  <rect class="bg" width="1100" height="862"/>
+  <text class="title" x="42" y="44">Side-Taker Lifecycle：静态信号关闭，动态风险集仍待完成</text>
+  <text class="subtitle" x="42" y="70">individual-trade outcome clock 与 aggTrade policy-visible clock 必须同时保留</text>
+  <line x1="42" y1="92" x2="1058" y2="92" stroke="#eaecf0" stroke-width="1"/>
+<path class="connector" d="M112 250 V269"/>
+  <rect class="card" x="62" y="142" width="976" height="108" rx="11"/>
+  <rect x="62" y="142" width="8" height="108" rx="4" fill="#7f56d9"/>
+  <circle cx="112" cy="174" r="18" fill="#f4f3ff" stroke="#7f56d9" stroke-width="1.5"/>
+  <text class="index" text-anchor="middle" x="112" y="180" fill="#5925dc">1</text>
+  <text class="stage" x="150" y="176">Side-specific taker flow</text>
+  <rect x="888" y="158" width="122" height="32" rx="16" fill="#f4f3ff" stroke="#7f56d9" stroke-width="1"/>
+  <text class="pill" text-anchor="middle" x="949" y="179" fill="#5925dc">仅诊断</text>
+  <text class="result" x="150" y="205">分侧微观流存在描述性线索，但更宽 denominator 未复现原始 100ms 关系</text>
+  <text class="metric" x="150" y="230">exchange-time association；action authority=0</text>
+<path class="connector" d="M112 382 V401"/>
+  <rect class="card" x="62" y="274" width="976" height="108" rx="11"/>
+  <rect x="62" y="274" width="8" height="108" rx="4" fill="#f04438"/>
+  <circle cx="112" cy="306" r="18" fill="#fef3f2" stroke="#f04438" stroke-width="1.5"/>
+  <text class="index" text-anchor="middle" x="112" y="312" fill="#b42318">2</text>
+  <text class="stage" x="150" y="308">Static hazard M0</text>
+  <rect x="888" y="290" width="122" height="32" rx="16" fill="#fef3f2" stroke="#f04438" stroke-width="1"/>
+  <text class="pill" text-anchor="middle" x="949" y="311" fill="#b42318">关闭</text>
+  <text class="result" x="150" y="337">静态 row 混合了 jump、cancel 与 repair，normalizer / label 也不闭合</text>
+  <text class="metric" x="150" y="362">SELL favorable/adverse AUC = 0.467 / 0.532</text>
+<path class="connector" d="M112 514 V533"/>
+  <rect class="card" x="62" y="406" width="976" height="108" rx="11"/>
+  <rect x="62" y="406" width="8" height="108" rx="4" fill="#f79009"/>
+  <circle cx="112" cy="438" r="18" fill="#fffaeb" stroke="#f79009" stroke-width="1.5"/>
+  <text class="index" text-anchor="middle" x="112" y="444" fill="#b54708">3</text>
+  <text class="stage" x="150" y="440">Trade-clock parity</text>
+  <rect x="888" y="422" width="122" height="32" rx="16" fill="#fffaeb" stroke="#f79009" stroke-width="1"/>
+  <text class="pill" text-anchor="middle" x="949" y="443" fill="#b54708">阻塞</text>
+  <text class="result" x="150" y="469">child trades 可映射到 aggTrade parent 的 feature-ready 时刻</text>
+  <text class="metric" x="150" y="494">recorder contract 通过；finalized-parent parity 仍阻塞</text>
+
+  <rect class="card" x="62" y="538" width="976" height="108" rx="11"/>
+  <rect x="62" y="538" width="8" height="108" rx="4" fill="#f79009"/>
+  <circle cx="112" cy="570" r="18" fill="#fffaeb" stroke="#f79009" stroke-width="1.5"/>
+  <text class="index" text-anchor="middle" x="112" y="576" fill="#b54708">4</text>
+  <text class="stage" x="150" y="572">Event identity / risk set</text>
+  <rect x="888" y="554" width="122" height="32" rx="16" fill="#fffaeb" stroke="#f79009" stroke-width="1"/>
+  <text class="pill" text-anchor="middle" x="949" y="575" fill="#b54708">阻塞</text>
+  <text class="result" x="150" y="601">合法 successor 需要 start-stop panel 与 cause-specific hazards</text>
+  <text class="metric" x="150" y="626">v2 panel / gate 尚未完成；不能注册 action</text>
+  <rect x="62" y="686" width="976" height="112" rx="11" fill="#eff8ff" stroke="#84caff" stroke-width="1.2"/>
+  <text class="take-title" x="88" y="717">合并后的读法</text>
+  <text class="take" x="88" y="744">• BUY maker 的对手方是 aggressive SELL，SELL maker 则相反；方向不能随手乘符号。</text>
+  <text class="take" x="88" y="770">• 即便动态 prediction 以后通过，也只能注册新的 randomized action。</text>
+  <text class="authority" text-anchor="middle" x="550" y="828">研究支持：clock / risk-set contract · predictive/action/live authority=false</text>
+</svg>

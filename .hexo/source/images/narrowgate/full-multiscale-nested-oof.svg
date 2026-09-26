@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="570" viewBox="0 0 1040 570" role="img" aria-labelledby="title desc">
+  <title id="title">三十个历史日期上的嵌套时间序列样本外结构</title>
+  <desc id="desc">四个外层折使用扩展训练窗与后续五日测试窗。每个训练窗内部独立完成特征筛选、规则和复杂度选择，并清除跨越边界的路径；总共有二十个从未参与对应折选择的外层测试日。</desc>
+  <defs>
+    <style>
+      .bg{fill:#fbfcfe}.train{fill:#d1e9ff;stroke:#175cd3;stroke-width:1.1}.test{fill:#fedf89;stroke:#b54708;stroke-width:1.3}.future{fill:#f2f4f7;stroke:#d0d5dd;stroke-width:1}.inner{fill:#f4f3ff;stroke:#6941c6;stroke-width:1.1}.note{fill:#fff;stroke:#d0d5dd;stroke-width:1.2}.title{font:500 23px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.text{font:500 14px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.small{font:400 12px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#475467}.tiny{font:400 10px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#667085}.mono{font:400 12px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#344054}
+    </style>
+  </defs>
+  <rect class="bg" width="1040" height="570"/>
+  <text class="title" x="36" y="42">每次都只能用过去选规则，再到紧接着的未来五天考试</text>
+  <text class="small" x="36" y="68">每个色块代表连续 5 个 UTC day；蓝色是 outer-train，橙色是 untouched outer-test，灰色当时尚未使用。</text>
+
+  <text class="text" x="36" y="128">Fold 1</text>
+  <rect class="train" x="122" y="96" width="130" height="52" rx="5"/><rect class="train" x="260" y="96" width="130" height="52" rx="5"/><rect class="test" x="398" y="96" width="130" height="52" rx="5"/><rect class="future" x="536" y="96" width="130" height="52" rx="5"/><rect class="future" x="674" y="96" width="130" height="52" rx="5"/><rect class="future" x="812" y="96" width="130" height="52" rx="5"/>
+  <text class="tiny" text-anchor="middle" x="187" y="126">D1–5</text><text class="tiny" text-anchor="middle" x="325" y="126">D6–10</text><text class="tiny" text-anchor="middle" x="463" y="126">D11–15 TEST</text>
+
+  <text class="text" x="36" y="204">Fold 2</text>
+  <rect class="train" x="122" y="172" width="130" height="52" rx="5"/><rect class="train" x="260" y="172" width="130" height="52" rx="5"/><rect class="train" x="398" y="172" width="130" height="52" rx="5"/><rect class="test" x="536" y="172" width="130" height="52" rx="5"/><rect class="future" x="674" y="172" width="130" height="52" rx="5"/><rect class="future" x="812" y="172" width="130" height="52" rx="5"/>
+  <text class="tiny" text-anchor="middle" x="394" y="202">D1–15 TRAIN</text><text class="tiny" text-anchor="middle" x="601" y="202">D16–20 TEST</text>
+
+  <text class="text" x="36" y="280">Fold 3</text>
+  <rect class="train" x="122" y="248" width="130" height="52" rx="5"/><rect class="train" x="260" y="248" width="130" height="52" rx="5"/><rect class="train" x="398" y="248" width="130" height="52" rx="5"/><rect class="train" x="536" y="248" width="130" height="52" rx="5"/><rect class="test" x="674" y="248" width="130" height="52" rx="5"/><rect class="future" x="812" y="248" width="130" height="52" rx="5"/>
+  <text class="tiny" text-anchor="middle" x="394" y="278">D1–20 TRAIN</text><text class="tiny" text-anchor="middle" x="739" y="278">D21–25 TEST</text>
+
+  <text class="text" x="36" y="356">Fold 4</text>
+  <rect class="train" x="122" y="324" width="130" height="52" rx="5"/><rect class="train" x="260" y="324" width="130" height="52" rx="5"/><rect class="train" x="398" y="324" width="130" height="52" rx="5"/><rect class="train" x="536" y="324" width="130" height="52" rx="5"/><rect class="train" x="674" y="324" width="130" height="52" rx="5"/><rect class="test" x="812" y="324" width="130" height="52" rx="5"/>
+  <text class="tiny" text-anchor="middle" x="463" y="354">D1–25 TRAIN</text><text class="tiny" text-anchor="middle" x="877" y="354">D26–30 TEST</text>
+
+  <rect class="inner" x="122" y="414" width="420" height="96" rx="8"/>
+  <text class="text" x="144" y="443">每个蓝色训练窗内部再做 3 个 expanding inner folds</text>
+  <text class="small" x="144" y="469">feature census → support → economic screen → complexity → freeze</text>
+  <text class="small" x="144" y="493">任何后代订单 / 库存 / campaign 穿过边界的训练行都 purge</text>
+
+  <rect class="note" x="582" y="414" width="360" height="96" rx="8"/>
+  <text class="text" x="604" y="443">正式 OOF denominator</text>
+  <text class="mono" x="604" y="472">4 folds × 5 test days = 20 days</text>
+  <text class="small" x="604" y="496">外层测试结果不回流到特征、阈值或规则选择</text>
+  <rect class="train" x="122" y="536" width="22" height="14"/><text class="small" x="154" y="548">outer-train</text><rect class="test" x="268" y="536" width="22" height="14"/><text class="small" x="300" y="548">outer-test</text><rect class="future" x="414" y="536" width="22" height="14"/><text class="small" x="446" y="548">not yet used</text>
+</svg>

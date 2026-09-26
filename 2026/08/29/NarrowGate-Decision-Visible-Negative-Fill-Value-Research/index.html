@@ -19,12 +19,12 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Last materially modified: 2026-08-30 1. “坏成交”必须沿库存生命周期定义这条研究从一个看似简单的问题开始：能否在成交前识别负价值 fill？但 30 秒 markout、campaign terminal、first-add decision value、decision-visible classifier 与 soft-widen action 分别处在">
+    <meta name="description" content="Last materially modified: 2026-09-26 2026-09-26 新 Tardis 有限批次后续已完成合法训练绑定、双侧十头的真实多日拟合和独立加载，以及一个冻结 F05RiskWidenPolicy 消费者的完整开发账户评价；净结果比匹配参照更差，负结果保留，不追调阈值。该 risk-to-widen 消费者不是直接净动作价值估计器，也不同于下文历史 BUY sof">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate Fill Quality 与 First-Add Quote EV：从 Markout、Campaign Loss 到 Soft-Widen 动作">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="Last materially modified: 2026-08-30 1. “坏成交”必须沿库存生命周期定义这条研究从一个看似简单的问题开始：能否在成交前识别负价值 fill？但 30 秒 markout、campaign terminal、first-add decision value、decision-visible classifier 与 soft-widen action 分别处在">
+<meta property="og:description" content="Last materially modified: 2026-09-26 2026-09-26 新 Tardis 有限批次后续已完成合法训练绑定、双侧十头的真实多日拟合和独立加载，以及一个冻结 F05RiskWidenPolicy 消费者的完整开发账户评价；净结果比匹配参照更差，负结果保留，不追调阈值。该 risk-to-widen 消费者不是直接净动作价值估计器，也不同于下文历史 BUY sof">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/fill-inventory-lifecycle.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f10-attribution-evidence-ladder.svg">
@@ -38,7 +38,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f05-fill-value-action-ladder.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/fill-quality-research-synthesis.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-08-29T18:05:00.000Z">
+<meta property="article:modified_time" content="2026-09-26T12:52:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="Fill Quality">
@@ -355,7 +355,7 @@
         
         
           <!-- compatible with older versions-->
-          359 分钟
+          361 分钟
         
       </span>
     
@@ -399,7 +399,9 @@
             
               <div class="markdown-body">
                 
-                <p>Last materially modified: 2026-08-30</p>
+                <p>Last materially modified: 2026-09-26</p>
+<h2 id="2026-09-26-新-Tardis-有限批次"><a href="#2026-09-26-新-Tardis-有限批次" class="headerlink" title="2026-09-26 新 Tardis 有限批次"></a>2026-09-26 新 Tardis 有限批次</h2><p>后续已完成合法训练绑定、双侧十头的真实多日拟合和独立加载，以及一个冻结 <code>F05RiskWidenPolicy</code> 消费者的完整开发账户评价；净结果比匹配参照更差，负结果保留，不追调阈值。该 risk-to-widen 消费者不是直接净动作价值估计器，也不同于下文历史 BUY soft-widen；首批完成不关闭整个 F05。来源见<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/README.zh-CN.md">当前 F05 主报告</a>。</p>
+<p>生命周期成交概率、成交条件 markout（bps）、成交条件不利概率、成交且不利联合风险、机会级预期 maker markout 与完整账户 USDC 净 PnL 分别解释；不把旧 gross markout 或价格差直接当净损益。私有模型、账户轨迹和未公开收益表不在此分发。</p>
 <h2 id="1-“坏成交”必须沿库存生命周期定义"><a href="#1-“坏成交”必须沿库存生命周期定义" class="headerlink" title="1. “坏成交”必须沿库存生命周期定义"></a>1. “坏成交”必须沿库存生命周期定义</h2><p>这条研究从一个看似简单的问题开始：能否在成交前识别负价值 fill？但 30 秒 markout、campaign terminal、first-add decision value、decision-visible classifier 与 soft-widen action 分别处在同一因果链的不同位置。把它们拆成五篇，会让预测失败、机制诊断与动作失败看起来像互不相干的结论；实际上它们共同回答“坏成交从哪里开始、能否提前识别、识别后能否通过一个明确报价动作改善终局”。</p>
 <p>一个 fill 的早期 maker-signed markout 可以写成</p>
 <script type="math/tex; mode=display">
@@ -407,7 +409,7 @@ M_h=\operatorname{side}\,(m_{t+h}-p_{fill})-fee,</script><p>而完整决策价�
 <script type="math/tex; mode=display">
 Y_T=\sum_{i\in\text{post-decision fills}}\!\operatorname{signedCashflow}_i
 +q_T m_T-\text{fees}-\text{incremental costs}.</script><p>前者描述 selection 的早期窗口，后者才是动作 reward。历史 add 更差、first-add 平均为负，都不能直接推出“跳过 add”有正因果价值；还必须有 overlap、counterfactual path 和稳定 policy selection。</p>
-<h2 id="2-研究阶段与证据状态"><a href="#2-研究阶段与证据状态" class="headerlink" title="2. 研究阶段与证据状态"></a>2. 研究阶段与证据状态</h2><div class="table-container">
+<h2 id="2-历史五阶段与证据状态"><a href="#2-历史五阶段与证据状态" class="headerlink" title="2. 历史五阶段与证据状态"></a>2. 历史五阶段与证据状态</h2><div class="table-container">
 <table>
 <thead>
 <tr>

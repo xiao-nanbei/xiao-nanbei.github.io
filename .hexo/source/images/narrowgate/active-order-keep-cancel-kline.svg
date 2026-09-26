@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="740" viewBox="0 0 1280 740" role="img" aria-labelledby="title desc">
+  <title id="title">Active-order KEEP 与 CANCEL RE-ENTER 的合成 K 线生命周期图</title>
+  <desc id="desc">合成行情下，K0 保留 active BUY order 的 queue position，K1 请求撤单、等待 ACK 和状态退出，再以 fresh queue re-entry。图强调两个动作面对相同市场但订单生命周期不同，且不是实盘证据。</desc>
+  <defs>
+    <linearGradient id="b5" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07131f"/>
+      <stop offset="1" stop-color="#1c2d45"/>
+    </linearGradient>
+    <marker id="ar5b" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#8bd5ff"/>
+    </marker>
+  </defs>
+  <rect width="1280" height="740" rx="24" fill="url(#b5)"/>
+  <text x="50" y="54" fill="#f7f9ff" font-size="28" font-family="sans-serif" font-weight="700">Active-order Queue Value：KEEP 还是 CANCEL / RE-ENTER</text>
+  <text x="50" y="86" fill="#98adc5" font-size="16" font-family="sans-serif">合成机制示意 · 非实盘行情 · queue priority 与 adverse exposure 同时进入价值</text>
+  <rect x="50" y="112" width="1180" height="270" rx="16" fill="#0b1c2a" stroke="#2d495f"/>
+  <line x1="78" y1="340" x2="1200" y2="340" stroke="#314b63" stroke-width="2"/>
+  <g stroke-width="4">
+    <line x1="100" y1="230" x2="100" y2="315" stroke="#7ee2a8"/><rect x="88" y="252" width="24" height="38" fill="#7ee2a8"/>
+    <line x1="155" y1="205" x2="155" y2="292" stroke="#7ee2a8"/><rect x="143" y="229" width="24" height="39" fill="#7ee2a8"/>
+    <line x1="210" y1="222" x2="210" y2="310" stroke="#ff8f91"/><rect x="198" y="245" width="24" height="41" fill="#ff8f91"/>
+    <line x1="265" y1="190" x2="265" y2="280" stroke="#7ee2a8"/><rect x="253" y="214" width="24" height="42" fill="#7ee2a8"/>
+    <line x1="320" y1="215" x2="320" y2="305" stroke="#ff8f91"/><rect x="308" y="238" width="24" height="43" fill="#ff8f91"/>
+    <line x1="375" y1="235" x2="375" y2="325" stroke="#ff8f91"/><rect x="363" y="258" width="24" height="43" fill="#ff8f91"/>
+    <line x1="430" y1="252" x2="430" y2="342" stroke="#ff8f91"/><rect x="418" y="276" width="24" height="42" fill="#ff8f91"/>
+    <line x1="485" y1="225" x2="485" y2="318" stroke="#7ee2a8"/><rect x="473" y="250" width="24" height="43" fill="#7ee2a8"/>
+    <line x1="540" y1="260" x2="540" y2="350" stroke="#ff8f91"/><rect x="528" y="284" width="24" height="42" fill="#ff8f91"/>
+    <line x1="595" y1="275" x2="595" y2="365" stroke="#ff8f91"/><rect x="583" y="299" width="24" height="42" fill="#ff8f91"/>
+    <line x1="650" y1="250" x2="650" y2="340" stroke="#7ee2a8"/><rect x="638" y="274" width="24" height="42" fill="#7ee2a8"/>
+    <line x1="705" y1="228" x2="705" y2="320" stroke="#7ee2a8"/><rect x="693" y="253" width="24" height="42" fill="#7ee2a8"/>
+    <line x1="760" y1="245" x2="760" y2="338" stroke="#ff8f91"/><rect x="748" y="270" width="24" height="43" fill="#ff8f91"/>
+    <line x1="815" y1="218" x2="815" y2="310" stroke="#7ee2a8"/><rect x="803" y="243" width="24" height="42" fill="#7ee2a8"/>
+    <line x1="870" y1="202" x2="870" y2="295" stroke="#7ee2a8"/><rect x="858" y="228" width="24" height="41" fill="#7ee2a8"/>
+    <line x1="925" y1="232" x2="925" y2="325" stroke="#ff8f91"/><rect x="913" y="257" width="24" height="43" fill="#ff8f91"/>
+    <line x1="980" y1="250" x2="980" y2="342" stroke="#ff8f91"/><rect x="968" y="275" width="24" height="42" fill="#ff8f91"/>
+    <line x1="1035" y1="220" x2="1035" y2="315" stroke="#7ee2a8"/><rect x="1023" y="246" width="24" height="43" fill="#7ee2a8"/>
+    <line x1="1090" y1="195" x2="1090" y2="290" stroke="#7ee2a8"/><rect x="1078" y="220" width="24" height="44" fill="#7ee2a8"/>
+    <line x1="1145" y1="215" x2="1145" y2="310" stroke="#ff8f91"/><rect x="1133" y="240" width="24" height="44" fill="#ff8f91"/>
+  </g>
+  <line x1="350" y1="128" x2="350" y2="365" stroke="#ffd166" stroke-width="4" stroke-dasharray="10 7"/>
+  <text x="285" y="405" fill="#ffd166" font-size="16" font-family="sans-serif" font-weight="700">frozen adverse / value state</text>
+  <rect x="50" y="430" width="570" height="235" rx="16" fill="#123047" stroke="#4a97c8"/>
+  <text x="75" y="466" fill="#dff5ff" font-size="21" font-family="sans-serif" font-weight="700">K0 KEEP</text>
+  <circle cx="105" cy="540" r="15" fill="#7ee2a8"/>
+  <text x="135" y="546" fill="#c5edd5" font-size="16" font-family="sans-serif">active order，保留 queue position</text>
+  <line x1="105" y1="575" x2="500" y2="575" stroke="#7ee2a8" stroke-width="5" marker-end="url(#ar5b)"/>
+  <text x="145" y="603" fill="#b8d0e3" font-size="15" font-family="sans-serif">继续面对 favorable fill 与 adverse fill</text>
+  <text x="145" y="630" fill="#b8d0e3" font-size="15" font-family="sans-serif">价值包含已有 queue priority</text>
+  <rect x="660" y="430" width="570" height="235" rx="16" fill="#34233c" stroke="#c67fe5"/>
+  <text x="685" y="466" fill="#f5e6ff" font-size="21" font-family="sans-serif" font-weight="700">K1 CANCEL / RE-ENTER</text>
+  <circle cx="710" cy="540" r="15" fill="#ff8f91"/>
+  <text x="738" y="522" fill="#f4c5c7" font-size="15" font-family="sans-serif">cancel request</text>
+  <line x1="725" y1="540" x2="835" y2="540" stroke="#ff8f91" stroke-width="4" marker-end="url(#ar5b)"/>
+  <circle cx="850" cy="540" r="13" fill="#ffd166"/>
+  <text x="820" y="505" fill="#fff0b5" font-size="15" font-family="sans-serif">ACK</text>
+  <line x1="863" y1="540" x2="985" y2="540" stroke="#ffd166" stroke-width="4" stroke-dasharray="8 6" marker-end="url(#ar5b)"/>
+  <circle cx="1000" cy="540" r="13" fill="#8bd5ff"/>
+  <text x="953" y="505" fill="#c7ecff" font-size="15" font-family="sans-serif">state exit</text>
+  <line x1="1013" y1="540" x2="1135" y2="540" stroke="#8bd5ff" stroke-width="4" marker-end="url(#ar5b)"/>
+  <circle cx="1150" cy="540" r="15" fill="#7ee2a8"/>
+  <text x="1072" y="590" fill="#c5edd5" font-size="15" font-family="sans-serif">fresh re-entry，queue reset</text>
+  <text x="700" y="630" fill="#ffb4b6" font-size="15" font-family="sans-serif">Development：大量减少 fills，但没有 disproportionate toxic reduction</text>
+  <rect x="80" y="688" width="1120" height="34" rx="9" fill="#172738"/>
+  <text x="105" y="711" fill="#a9bfd4" font-size="14" font-family="sans-serif">同毫秒 trade/book 无共同序列时 fail closed；known-zero queue 与 outside-range unknown 不得混写。</text>
+</svg>

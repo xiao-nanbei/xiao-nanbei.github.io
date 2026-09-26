@@ -1,0 +1,544 @@
+---
+title: 'CMU 15-445 Project 0 & 1'
+date: 2022-02-03 22:22:29
+tags:
+- CMU 15-445
+categories:
+- 数据库
+---
+
+#### 写在前面
+
+正如CMU 15-445的主讲教授所说，这门课并不会教你如何使用数据库去构建应用程序或网站，也不是教你如何去部署和管理数据库的课，这门课的核心课程是有关数据库管理系统的设计与实现。
+
+### PROJECT #0 - C++ PRIMER
+
+这个热身实验只是让我们把项目文件下载到本地，配置好相关的git，检验一下自己的C++能力，因此对其简要说明。
+
+在这个项目中，您将实现三个类模板：`Matrix`、`RowMatrix`和`RowMatrixOperations`。这些矩阵是简单的二维矩阵，必须支持加法、矩阵乘法和简化的[通用矩阵乘法](https://en.wikipedia.org/wiki/General_matrix_multiply)(GEMM) 运算（我们只要修改一个文件：p0_starter.h）。
+
+这个就不多说了。
+
+### PROJECT #1 - BUFFER POOL
+
+---
+
+以前我从来没思考过buffer和cache的区别，为什么叫buffer pool而不叫cache pool，在做这个实验时，突然想到这个问题了，现记录如下（与实验无太大关系）：
+
+1. buffer与cache操作的对象不一样
+   - buffer（缓冲）是为了提高内存和硬盘之间的数据交互的速度而设计的。
+   - cache（缓存）是为了提高CPU和内存之间的数据交互速度设计的，也就是平常见到的一级缓存、二级缓存等。
+   - CPU在执行程序所用的指令和读取数据都是针对内存的，也就是从内存中取得的。由于内存读写速度慢，为了提高cpu和内存之间数据交换的速度，在cpu和内存之间增加了cache，它的速度比内存快。
+   - 缓冲是根据磁盘的读写设计的，把分散的写操作集中进行，减少磁盘碎片和磁盘的反复寻道，从而提高系统性能。
+2. 或者可以这样说，buffer是系统两端处理速度平衡时使用的，而cache是系统两端不匹配时的一种折衷策略。我们在组原中学习过TLB（translation lookaside buffer），这玩意名字虽然叫buffer，但其实是一种cache。
+
+所以说，这里之所以叫buffer，那是因为它直接和磁盘进行数据交互。
+
+在Free命令中显示的buffer和cache，它们都是占用内存：
+
+- buffer : 作为buffer cache的内存，是块设备的读写缓冲区，更靠近存储设备，或者直接就是disk的缓冲区。
+
+- cache: 是内存的缓冲区 。
+
+补充，linux中buffer cache和page cache的概念和二者的区别：
+
+Page cache在linux读写文件时，它用于缓存文件的逻辑内容，从而加快对磁盘上映像和数据的访问。具体说是加速对文件内容的访问，buffer cache缓存文件的具体内容——物理磁盘上的磁盘块，这是加速对磁盘的访问。
+
+简单说来，page cache用来缓存文件数据，buffer cache用来缓存磁盘数据。在有文件系统的情况下，对文件操作，那么数据会缓存到page cache，如果直接采用dd等工具对磁盘进行读写，那么数据会缓存到buffer cache。
+
+由于我对文件系统所知甚少，后面再继续补充。
+
+---
+
+在传统的数据库管理系统中，数据的存储介质是磁盘，文件是以page的形式存储在磁盘上的。对于结构化数据来说，一条记录会被保存在磁盘上的某个数据块中。在对某条记录进行处理时，可以通过代表该记录地址的page_id从磁盘上获取该记录，随后系统会把存储有该条记录的数据块从磁盘读到缓冲区，缓冲区分为多个frame，每个frame可以保存一个磁盘块，再从缓冲区将该条记录读到线程或事务的工作区进行处理，处理结束后将更新的记录写回缓冲区中的数据块，再由数据库管理系统将修改过的数据块写回到磁盘上。
+
+在buffer pool中，有一个又一个的chunk块，我们称之为frame，我们可以将page放置在其中，一个frame对应一个page，这就是很简单的一对一拷贝，page可以以它们想要的任何顺序放置在frame中，如下图所示：
+
+
+在此之上，我们需要一个额外的indirection层，如果我想要某个特定的page，通过这个indirection层我就知道它在哪个frame中——也就是pagetable，pagetable就是一个hash表，它用来跟踪内存中有哪些page，如果我们想找一个特定的page，通过page表和page id，我们就可以知道这个page在哪个frame中。数据库系统必须维护一些额外的元数据，以此来跟踪当前buffer池中发生了什么。下面是对这些元数据的详解：
+
+dirty_page——这个数据告诉我们当我们从磁盘中读取到这个page后，这个page是否被修改过。
+
+pin_count——引用计数，它用来跟踪想要使用该page的当前线程数量或者是正在查询该page的数量，这意味着我们并不想该page写出到磁盘上，因为我可能回去对它进行更新。从该page被放入内存到我对它进行更新这段时间内，我不想让该page被移除或者是交换回磁盘，这也将阻止我们去移除那些还未被安全写回磁盘的page。这也是我们后面的Pin函数想要表达的意思。
+
+基本上来说，就是管理我们自己的内存，但我们也要去跟踪事务或查询是如何修改page的，在我们想做任何事之前，我们必须保护pagetable免受其他人污染或者是被其他人覆盖里面的东西。因此我们会用到Latches，下面是Locks和Latches的区别。
+
+---
+
+> 在数据库的世界中，lock是某种更高级的逻辑原语，它会去保护数据库中的逻辑内容，例如，tuple、表、以及数据库，事物会在运行的时候去持有这个lock，这就意味着可以有多个查询，数据库系统可以为我们提供这些东西，它能将这些暴露给我们这些开发人员。
+>
+> Latch是一种底层保护原语，我们使用它来保护数据库系统内部的关键部分，比如，保护数据结构和保护内存区域，我们在执行操作的期间内，会持有这些Latch,用来保护某些东西，比如说，如果我去更新我的pagetable，我会在我要去修改的地方加上一个latch，修改完后，我会将它释放。
+
+后面教授就讲得很绕了，甚至spin mutex都讲出来了，我先去查查资料，后面填坑。
+
+---
+
+另一个我们需要去区分的就是page目录和pagetable，二者之间的区别我在MIT6.S081 labs的博客里面也说过，我们还是来听听Andy教授怎么说：
+
+>page目录的作用是用来找到page在我们数据库文件中的位置，比如我们想要找到page_no_1，它会告诉我们要找的那个page在这些数据库文件中的什么地方，page中的offset值有哪些，所以我们将page目录写在磁盘上，如果系统崩溃了，恢复后我们想知道该在哪里可以找到我么拥有的page，就可以访问page目录找到。
+>
+>pagetable是内存中的映射，它将page_id映射到它们在buffer池中frame的位置。
+
+---
+
+当我们想将一个page放到内存中，但是内存中没有位置了应该怎么办呢？在替换策略中，我们最关心的就是正确性，如果说某个数据我们并没有真正地使用完，那么我们不想将它写出或移除，我们要确保我们所移除的page是在未来不太会被用到的那些page。
+
+总而言之，为什么要使用buffer pool manager呢？
+
+1. 如果没有缓冲池，那么数据都位于磁盘上，每次访问数据都要将其从磁盘读取到内存，下一次访问相同的数据时，还需要从磁盘读取，非常耗时。
+2. 现实中内存是有限的，如果我们在内存中缓存了page 1，2，3，已经存满内存了现在想访问page4，就要用到buffer pool manager，通过LRU机制进行替换。
+
+##### CLOCK算法（了解）
+
+---
+
+clock算法会给每个page设置一个标志位，唯一需要跟踪的就是每个page的标志位（referrence bit），它会告诉你自上次检查过该page之后，这个page是否被访问了。我们用环形队列来组织page，就像是一个clock，用一个能够旋转的指针去检查标志位是被设置为1还是0，如果是0，我们就可以知道从上次检查过之后该page就没有被访问过，因此我们就可以将该page从环形buffer中移除。
+
+---
+
+我们将为BusTub DBMS构建一个面向磁盘的存储管理器。这样的存储管理器假定数据库的主要存储位置在磁盘上，project_1的任务是在存储管理器中实现缓冲池，缓冲池负责将物理页面从主存移动到磁盘，值的注意的是，DBMS需要支持大于系统可用内存量的数据库；多个线程将同时访问内部数据结构，因此我们需要确保他们的关键部分受到锁存器的保护。
+
+我们可以维护一个单独的数据结构，比如队列，它根据page的时间戳进行排序，在某个时刻，有人对一个page进行读和写，我们只需要把该page从队列中拿出来，然后处理完放到队列的末尾，因为队列是先进先出的。
+
+一句话，实验一的目标便在于主动管理磁盘中的页在内存中的缓存，从而最小化磁盘访问次数、最大化相关数据连续。
+
+我们需要在存储管理器中实现以下组件：
+
+- LRU更换策略
+- 缓冲池管理器实例
+- 并行缓冲池管理器
+
+#### LRU更换策略
+
+LRU（Least recently used，最近最少使用）算法根据数据的历史访问记录来进行淘汰数据，其核心思想是“如果数据最近被访问过，那么将来被访问的几率也更高”。也就是说我们这里定义一个`lru_list`，我们把pin_count为0的frame_id存放在lru_list，然后每次按照顺序出队（victim），如果在队列中的时候，这个frame_id被访问了，那么我们就从队列中删除它，直到它的pin_count再次为0，再次将它入队，循环往复。这样就达到了LRU的机制。
+
+我们先来分析一下`include/buffer/replacer.h`中定义的父类Replacer。Replacer 是一个跟踪页面使用情况的抽象类。我们要实现以下方法：
+
+1. Victim(frame_id_t*)：Replacer跟踪与所有元素相比最近访问次数最少的对象并删除，将其删除页号存储在输出参数中，并返回 True。如果 Replacer 为空则返回 False。
+
+2. Pin(frame_id_t)：在将page固定到BufferPoolManager中的frame后，应调用此方法。它应该从LRUReplacer中删除包含固定page的frame。
+
+3. Unpin(frame_id_t)：当页面的引用计数变为 0 时，应该调用此方法。这个方法应该将未包含固定 page 的 frame 添加到 LRUReplacer，表示可能会被替换掉。（注意，需要判断是否超出了内存大小，如果超过了，则删除较新的页面，然后再添加。）
+
+4. Size()：此方法返回当前在LRUReplacer中的页面数。
+
+
+在LRUReplacer中我们要实现一个队列`std::list<frame_id_t> lru_list_;`，这个队列用来维护page写入frame。我们可以将LRUReplacer当作是一个替换器，在初始状态下，LRUReplacer应当被初始化为不包含任何frames。当page加入到buffer pool的某个frame后，调用Pin删除在LRU队列中的frame_id，表示该frame已经不应该成为victim；Unpin则将未固定page的frame加入到LRU队列，表示该frame使用情况比较差（页面的引用计数变为0）；victim方法则是将LRU队列中最后一名frame_id弹出（在另外的对应的函数中会删除对应页面）。LRUReplacer的最大页数与缓冲池的大小相同（这样做是为了管理缓冲池中的所有frames），因此我们在LRUReplacer的构造函数中将capacity_的大小设置为参数num_pages，如下所示：
+
+```c++
+LRUReplacer::LRUReplacer(size_t num_pages) {
+  capacity_ = num_pages;  // Initialization the capacity
+}
+```
+
+当我们将page加入到BufferPoolManager中的frame后，需要从LRUReplacer中删除相应的frame。Pin函数如下所示：
+
+```c++
+void LRUReplacer::Pin(frame_id_t frame_id) {
+  std::unique_lock<std::mutex> lck(latch_);
+  if (map_.count(frame_id) == 0) {
+    return;
+  }
+//
+  auto iter = map_[frame_id];
+  lru_list_.erase(iter);
+  map_.erase(frame_id);
+}
+```
+
+**值得注意的是，我们在对LRUReplacer进行操作时应该上锁，以避免内存中特定的数据结构不会因为并发访问而导致错误。**其实我们在每个函数前面用unique_lock是最稳妥的，既不会死锁，也保证安全。
+
+当页面的引用计数为0时，应该调用Unpin，这个方法应该将未固定 page 的 frame 添加到 LRUReplacer，表示有被victim的风险。代码如下所示：
+
+```c++
+void LRUReplacer::Unpin(frame_id_t frame_id) {
+  std::unique_lock<std::mutex> lck(latch_);
+  if (map_.count(frame_id) != 0) {//如果map里面已经没有这一帧/页了，就直接返回
+    return;
+  }
+
+  if (lru_list_.size() == capacity_) {
+    return;
+  }
+
+  lru_list_.push_front(frame_id);
+  map_.emplace(frame_id, lru_list_.begin());
+}
+
+```
+
+Replacer跟踪与所有元素相比最近访问次数最少的对象并删除，将其删除页号存储在输出参数中，并返回 True。如果 Replacer 为空则返回 False。代码如下：
+
+```c++
+bool LRUReplacer::Victim(frame_id_t *frame_id) {
+  std::unique_lock<std::mutex> lck(latch_);
+
+  if (map_.empty()) {
+    return false;
+  }
+//将需要删除的frame_id写入参数
+  *frame_id = lru_list_.back();
+  map_.erase(*frame_id);
+  lru_list_.pop_back();
+
+  return true;
+}
+```
+
+#### 缓冲池管理器实例
+
+接下来，需要在系统中实现缓冲池管理器实例，该BufferPoolManagerInstance负责从DiskManager中读取数据库页并将它们存储在内存中。
+
+我们来看看该类的数据结构：
+
+- `pages_`，保存在buffer pool中的page数组；
+
+- `disk_manager`，磁盘管理器；
+
+- `log_manager`
+
+- `page_table_`，页表，保存了page_id到frame_id的映射；
+
+- `replacer`，查找未固定的页面进行替换；
+
+- `free_list_`，没有被page填充的frame list。
+
+
+刚看到这个任务的时候无从下手，还是一个函数一个函数分析。
+
+- `FlushPgImp`函数，我们要将在内存中的page内容刷新到磁盘。
+
+  题外话：由刷盘想到的——面试官问我，刷盘时机怎么选择，就比如微博的热榜tag数据，本来这个tag不是热数据，但是这个tag数据可能激增，激增之后刷盘策略要怎么改变来适应，热度又会慢慢降低，这个时候又怎么改变刷盘策略，主要是刷盘时机。
+
+```c++
+bool BufferPoolManagerInstance::FlushPgImp(page_id_t page_id) {
+  // Make sure you call DiskManager::WritePage
+  //在这里也是一样，每个函数前面加上unique_lock
+  std::unique_lock<std::mutex> lck(latch_);
+  //如果page id不合法，或者page_id不存在于页表中，直接返回
+  if(page_id==INVALID_PAGE_ID||page_table_.count(page_id)==0){
+    return false;
+  }
+  //找到之后获取frame_id
+  auto iter=page_table_.find(page_id);
+  frame_id_t frame_id=iter->second;
+  //获取相应的page
+  Page *page=&pages_[frame_id];
+  //将page写入磁盘
+  disk_manager_->WritePage(page->page_id_, page->data_);//这里的page->page_id_就是参数page_id
+  //写回磁盘之后将page设置为不是脏页
+  page->is_dirty_ = false;//这里的is_dirty就是说是否在数据更改之后被刷回到盘里了，如果数据没有更改就是false,数据更改了还没有被刷回到盘里就是true
+  return true;
+}
+```
+
+- `FlushAllPgsImp`函数，刷新所有页面到磁盘。
+
+```c++
+void BufferPoolManagerInstance::FlushAllPgsImp() {
+    std::unique_lock<std::mutex> lck(latch_);
+    for (size_t i=0;i<pool_size_;++i){
+      Page *page=&pages_[i];
+      FlushPgImp(page->page_id_);
+    }
+}
+```
+
+- `NewPgImp`函数：在缓冲池创建一个新页面。
+  
+  
+  如果
+  
+  1. 确保你调用`allocatepage`函数；
+  2. 如果所有在buffer pool的page都pinned，那么返回nullptr；
+  3. 从空闲列表或替换器中选择一个受害者页面 P。 始终首先从空闲列表中选择。
+  
+  ```c++
+  page_id_t BufferPoolManagerInstance::AllocatePage() {
+    
+    const page_id_t next_page_id = next_page_id_;
+    //一旦拿出一个next_page_id，就加上num_instances，到下一个next_page_id
+    next_page_id_ += num_instances_;
+    ValidatePageId(next_page_id);
+    return next_page_id;
+  }
+  ```
+  
+  那么我们看具体的代码实现：
+  
+  ```c++
+  Page *BufferPoolManagerInstance::NewPgImp(page_id_t *page_id) {
+    // 0.   Make sure you call AllocatePage!
+    // 1.   If all the pages in the buffer pool are pinned, return nullptr.
+    // 2.   Pick a victim page P from either the free list or the replacer. Always pick from the free list first.
+    // 3.   Update P's metadata, zero out memory and add P to the page table.
+    // 4.   Set the page ID output parameter. Return a pointer to P.
+    std::unique_lock<std::mutex> lck(latch_);
+    bool all_pinned = true;
+    for (size_t i = 0; i < pool_size_; ++i) {
+      if (pages_[i].pin_count_ <= 0) {
+        all_pinned = false;
+        break;
+      }
+    }
+    if (all_pinned) {
+      return nullptr;
+    }
+    frame_id_t frame_id=-1;
+    if(!free_list_.empty()){
+      if(!replacer_->Victim(&frame_id)){
+        return nullptr;
+      }
+    }else{
+      frame_id=free_list_.front();
+      free_list_.pop_front();
+    }
+    *page_id=AllocatePage();//
+    Page *page = &pages_[frame_id];//我们找到pages序列中对应的要被替换的一帧
+    //disk page->pool page
+    if (page->IsDirty()) {//如果这一页数据是dirty,先把这一页数据写回去
+      disk_manager_->WritePage(page->page_id_, page->data_);
+      page->is_dirty_ = false;
+    }
+    page_table_.erase(page->page_id_);
+    if (*page_id != INVALID_PAGE_ID) {
+      page_table_.emplace(*page_id, frame_id);
+    }
+    page->ResetMemory();
+    page->page_id_ = *page_id;
+    replacer_->Pin(frame_id);
+    page->pin_count_=1;
+    return page;
+  }
+  ```
+  
+- `FetchPgImp`函数，从缓冲池中获取请求的页面，我们可以从官方注释中具体了解这个方法要实现的任务：
+  
+  1. 在页表中寻找请求页面P；
+     - 如果页面P存在，调用Pin方法后返回；
+     - 如果页面P不存在，则从空闲列表或替换其中查找替换页R；
+  2. 将脏页写回磁盘；
+  3. 从页表中删除R，插入P；
+  4. 更新P的元数据，从磁盘读入页面内容，返回一个指向P的指针。
+
+
+​		代码如下，具体解析在注释中：
+
+```c++
+Page *BufferPoolManagerInstance::FetchPgImp(page_id_t page_id) {
+  // 1.     Search the page table for the requested page (P).
+  // 1.1    If P exists, pin it and return it immediately.
+  // 1.2    If P does not exist, find a replacement page (R) from either the free list or the replacer.
+  //        Note that pages are always found from the free list first.
+  // 2.     If R is dirty, write it back to the disk.
+  // 3.     Delete R from the page table and insert P.
+  // 4.     Update P's metadata, read in the page content from disk, and then return a pointer to P.
+  std::unique_lock<std::mutex> lck(latch_);
+  if(page_id==INVALID_PAGE_ID){
+    return nullptr;
+  }
+  auto iter = page_table_.find(page_id);
+  if(iter==page_table_.end()){
+    frame_id_t frame_id=-1;
+    if(free_list_.empty()&&!replacer_->Victim(&frame_id)){
+      return nullptr;
+    }
+    if(!free_list_.empty()){
+      frame_id=free_list_.front();
+      free_list_.pop_front();
+    }else{
+      auto old_page_id=page_table_[frame_id];
+      auto page=&pages_[frame_id];
+      if(page->IsDirty()){
+        disk_manager_->WritePage(page->page_id_,page->data_);
+        page->is_dirty_=false;
+      }
+      page_table_.erase(old_page_id);
+    }
+    page_table_.emplace(page_id, frame_id);
+    auto tar = &pages_[frame_id];
+    tar->page_id_=page_id;
+    tar->ResetMemory();
+    disk_manager_->ReadPage(page_id, tar->data_);
+    replacer_->Pin(frame_id);
+    tar->pin_count_ = 1;
+    return tar;
+  }//如果pool中有该page
+  frame_id_t frame_id=iter->second;
+  auto tar=&pages_[frame_id];//获取相应的page_id
+  replacer_->Pin(frame_id);//不管replacer里面有没有我们都调用一次
+  tar->pin_count_++;
+  return tar;
+}
+```
+
+- `UnpinPgImp函数`：这个函数就是完成对该页面操作之后，进行Unpin操作。
+  1. 如果一开始`pin_couter==0`，直接返回。
+  2. 如果这个页面的`pin_couter>0`，我们直接返回。
+  3. 如果这个页面的`pin_couter==0`，我们需要给它加入到LRU_Replacer中。**因为没有人引用它，所以它可以成为被替换的候选人**。
+
+​		其代码如下：
+
+```c++
+bool BufferPoolManagerInstance::UnpinPgImp(page_id_t page_id, bool is_dirty) {
+  std::unique_lock<std::mutex> lck(latch_);
+  //如果page id不合法，或者page_id不存在于页表中，直接返回
+  if(page_id==INVALID_PAGE_ID||page_table_.count(page_id)==0){
+    return false;
+  }
+  //找到之后获取frame_id
+  auto iter=page_table_.find(page_id);
+
+  frame_id_t frame_id = iter->second;
+  Page *page = &pages_[frame_id];
+  //如果直接是等于0的，说明不需要unpin操作，直接返回
+  if (page->pin_count_ == 0) {
+    return false;
+  }
+  //如果之前被调用过，执行下列操作
+  page->pin_count_--;
+  if (page->pin_count_ == 0) {
+    replacer_->Unpin(frame_id);
+  }
+  if (is_dirty) {
+    page->is_dirty_ = true;
+  }
+
+  return true;
+}
+```
+
+- `DeletePgImp`函数：从缓冲池删除一个页面，如果页面存在但无法删除，则返回 false，如果页面不存在或删除成功，则返回 true。
+
+  0. Make sure you call DeallocatePage!
+  1. Search the page table for the requested page (P).
+  2. If P des not exist, return true.
+  3. If P exists, but has a non-zero pin-count, return fale. Someone is using the page.
+  4. Otherwise, P can be deleted. Remove P from the page table, reset its metadata and return it to the free list.
+  
+  代码如下：
+  
+  ```c++
+  bool BufferPoolManagerInstance::DeletePgImp(page_id_t page_id) {
+    // 0.   Make sure you call DeallocatePage!
+    // 1.   Search the page table for the requested page (P).
+    // 1.   If P does not exist, return true.
+    // 2.   If P exists, but has a non-zero pin-count, return false. Someone is using the page.
+    // 3.   Otherwise, P can be deleted. Remove P from the page table, reset its metadata and return it to the free list.
+    std::unique_lock<std::mutex> lck(latch_);
+    auto iter = page_table_.find(page_id);
+    if(iter==page_table_.end()){
+      return true;
+    }
+    if(pages_[iter->second].pin_count_>0){
+      return false;
+    }
+  
+    DeallocatePage(page_id);
+    frame_id_t frame_id=page_table_[page_id];
+    auto page=&pages_[frame_id];
+    if(page->IsDirty()){
+      disk_manager_->WritePage(page->page_id_,page->data_);
+      page->is_dirty_=false;
+    }
+    page->ResetMemory();
+    page->page_id_=INVALID_PAGE_ID;
+    free_list_.push_back(frame_id);
+    page_table_.erase(page_id);
+  
+    return true;
+  }
+  ```
+
+#### 并行缓冲池管理器
+
+正如上个任务中看到的，每一个缓冲池都有一个锁来保证线程安全。这可能导致性能问题，因为每个线程在与缓冲池交互时都会争夺该锁。一个可行的解决方案是同时维护多个缓冲池，每个缓冲池都有独立的锁。
+
+ParallelBufferPoolManager是一个包含多个bufferpoolmanagerinstance的类。对于每个操作，其都会选择一个实例并调用该实例。
+
+我们使用给定的page_id来确实使用哪个特定的实例。如果我们有多个实例，则需要某种方法将page_id映射到[0, num_instances)中。对于本项目，我们将使用模运算，即page_id mod num_instances来将给定的page_id映射到正确的范围。
+
+当ParallelBufferPoolManager初始化的时候，他的起始索引应该是0。此后每创建一个新的页面，都应从起始索引开始尝试每个实例直到某个成功。然后将起始指数加1。
+
+确保当你创建单独的BufferPoolManagerInstances时，你调用的构造函数应使用uint32_t num_instances和uint32_t instance_index，来保证页面id被正确地创建。
+
+上面是机器翻译的，我来总结一下：也就是说，现在我们可以在系统中搞多个缓冲池，每个缓冲池都有自己的锁，这样来实现并行。那么如何确定我们要查找的page位于哪个缓冲池呢，我们可以根据**某种映射方式**，也就是说，我们可以用page_id%num_instances来确定page_id是位于哪一个缓冲池实例。
+
+我们还是先来看看`ParallelBufferPoolManager`类中的数据结构，如下所示：
+
+- `size_t pool_size_`：缓冲池的页数
+- `uint32_t num_instances_ = 1`：实例的数量
+- `uint32_t instance_index_ = 0`：实例的索引
+
+有了上面的讲解，那么下面两个函数的实现就很容易了：
+
+```c++
+size_t ParallelBufferPoolManager::GetPoolSize() {
+  // Get size of all BufferPoolManagerInstances
+  return pool_size_ * num_instances_;
+}
+
+BufferPoolManager *ParallelBufferPoolManager::GetBufferPoolManager(page_id_t page_id) {
+  // Get BufferPoolManager responsible for handling given page id. You can use this method in your other methods.
+
+  return parallel_bmi_[page_id% num_instances_];
+}
+```
+
+对于缓冲区实例的操作也很简单了，我们只需要在获得page_id参数之后用`GetBufferPoolManager`，来知道是在哪一个实例当中，就可以了，代码如下所示：
+
+```c++
+Page *ParallelBufferPoolManager::FetchPgImp(page_id_t page_id) {
+  // Fetch page for page_id from responsible BufferPoolManagerInstance
+  BufferPoolManager *manager = GetBufferPoolManager(page_id);
+  return manager->FetchPage(page_id);
+}
+
+bool ParallelBufferPoolManager::UnpinPgImp(page_id_t page_id, bool is_dirty) {
+  // Unpin page_id from responsible BufferPoolManagerInstance
+  BufferPoolManager *manager = GetBufferPoolManager(page_id);
+  return manager->UnpinPage(page_id, is_dirty);
+}
+
+bool ParallelBufferPoolManager::FlushPgImp(page_id_t page_id) {
+  // Flush page_id from responsible BufferPoolManagerInstance
+  BufferPoolManager *manager = GetBufferPoolManager(page_id);
+  return manager->FlushPage(page_id);
+}
+
+Page *ParallelBufferPoolManager::NewPgImp(page_id_t *page_id) {
+  // create new page. We will request page allocation in a round robin manner from the underlying
+  // BufferPoolManagerInstances
+  // 1.   From a starting index of the BPMIs, call NewPageImpl until either 1) success and return 2) looped around to
+  // starting index and return nullptr
+  // 2.   Bump the starting index (mod number of instances) to start search at a different BPMI each time this function
+  // is called
+  Page *page = nullptr;
+  size_t index = start_id_;
+
+  for (size_t i = 0; i < num_instances_; ++i) {
+    page = parallel_bmi_[index]->NewPage(page_id);
+    if (page != nullptr) {
+      start_id_ = (index + 1) % num_instances_;
+      break;
+    }
+    index = (index + 1) % num_instances_;
+  }
+
+  return page;
+}
+
+bool ParallelBufferPoolManager::DeletePgImp(page_id_t page_id) {
+  // Delete page_id from responsible BufferPoolManagerInstance
+  BufferPoolManager *manager = GetBufferPoolManager(page_id);
+  return manager->DeletePage(page_id);
+}
+
+void ParallelBufferPoolManager::FlushAllPgsImp() {
+  // flush all pages from all BufferPoolManagerInstances
+  for (size_t i = 0; i < num_instances_; i++) {
+    parallel_bmi_[i]->FlushAllPages();
+  }
+}
+```
+

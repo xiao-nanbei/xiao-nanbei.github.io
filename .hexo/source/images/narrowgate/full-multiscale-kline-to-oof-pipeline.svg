@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="1100" viewBox="0 0 1100 1100" role="img" aria-labelledby="title desc">
+  <title id="title">从一段 K 线到四十五个 EMA 配对、嵌套时间样本外与冷却时长动作</title>
+  <desc id="desc">流程图展示同一条因果可见价格路径如何进入十个 EMA 半衰期、形成四十五个快慢配对与状态谓词，再在每个外层训练窗的内部完成有界 Boolean 搜索，最后只在后续外层测试日做重复完整路径回放。四十五个配对是一个相关特征全集，不是四十五次独立研究。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#344054"/></marker>
+    <style>
+      .bg{fill:#fbfcfe}.box{fill:#fff;stroke:#d0d5dd;stroke-width:1.2}.source{fill:#eff8ff;stroke:#175cd3;stroke-width:1.3}.ema{fill:#ecfdf3;stroke:#027a48;stroke-width:1.3}.pair{fill:#f4f3ff;stroke:#6941c6;stroke-width:1.3}.search{fill:#fff7ed;stroke:#b54708;stroke-width:1.3}.action{fill:#fef2f2;stroke:#b42318;stroke-width:1.3}.train{fill:#d1e9ff;stroke:#175cd3;stroke-width:1}.test{fill:#fedf89;stroke:#b54708;stroke-width:1.2}.future{fill:#f2f4f7;stroke:#98a2b3;stroke-width:1}.inner{fill:#f4f3ff;stroke:#6941c6;stroke-width:1.2}.line{fill:none;stroke:#344054;stroke-width:1.6;marker-end:url(#arrow)}.grid{stroke:#eaecf0;stroke-width:1}.axis{stroke:#98a2b3;stroke-width:1}.wick{stroke:#344054;stroke-width:1.2}.up{fill:#ecfdf3;stroke:#027a48;stroke-width:1.2}.down{fill:#fef2f2;stroke:#b42318;stroke-width:1.2}.title{font:500 23px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.text{font:500 14px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.small{font:400 12px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#475467}.tiny{font:400 11px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#667085}.mono{font:400 11px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#344054}.blue{fill:#175cd3}.purple{fill:#6941c6}.amber{fill:#b54708}.red{fill:#b42318}
+    </style>
+  </defs>
+  <rect class="bg" width="1100" height="1100"/>
+  <text class="title" x="36" y="42">45 个 EMA pair 不是 45 次研究：它们共同进入一次嵌套时间样本外搜索</text>
+  <text class="small" x="36" y="68">每个 outer fold 都重新只用过去日期筛选状态与规则；之后才在紧接着的未来 5 日执行 repeated full-path evaluation。</text>
+
+  <!-- Stage 1: same causal price path -->
+  <rect class="source" x="34" y="104" width="190" height="188" rx="8"/>
+  <text class="text" x="52" y="132">① 同一条因果可见 K 线</text>
+  <line class="grid" x1="54" y1="174" x2="204" y2="174"/><line class="grid" x1="54" y1="224" x2="204" y2="224"/><line class="axis" x1="54" y1="264" x2="204" y2="264"/>
+  <g aria-label="示意 K 线">
+    <line class="wick" x1="70" y1="216" x2="70" y2="254"/><rect class="down" x="64" y="225" width="12" height="18"/>
+    <line class="wick" x1="92" y1="226" x2="92" y2="258"/><rect class="up" x="86" y="236" width="12" height="13"/>
+    <line class="wick" x1="114" y1="202" x2="114" y2="245"/><rect class="up" x="108" y="211" width="12" height="27"/>
+    <line class="wick" x1="136" y1="177" x2="136" y2="221"/><rect class="up" x="130" y="188" width="12" height="24"/>
+    <line class="wick" x1="158" y1="154" x2="158" y2="198"/><rect class="down" x="152" y="166" width="12" height="20"/>
+    <line class="wick" x1="180" y1="165" x2="180" y2="210"/><rect class="down" x="174" y="176" width="12" height="22"/>
+  </g>
+  <text class="tiny" x="52" y="282">示意价格路径；不读取结果选择窗口</text>
+
+  <path class="line" d="M224 198H246"/>
+  <rect class="ema" x="246" y="104" width="190" height="188" rx="8"/>
+  <text class="text" x="264" y="132">② 十个 EMA half-life</text>
+  <text class="mono" x="264" y="163">0.5, 1, 2, 4, 8 s</text>
+  <text class="mono" x="264" y="187">16, 32, 64, 128, 256 s</text>
+  <line class="axis" x1="270" y1="229" x2="412" y2="229"/>
+  <circle cx="272" cy="229" r="5" fill="#027a48"/><circle cx="287" cy="229" r="5" fill="#027a48"/><circle cx="302" cy="229" r="5" fill="#027a48"/><circle cx="317" cy="229" r="5" fill="#027a48"/><circle cx="332" cy="229" r="5" fill="#027a48"/><circle cx="347" cy="229" r="5" fill="#027a48"/><circle cx="362" cy="229" r="5" fill="#027a48"/><circle cx="377" cy="229" r="5" fill="#027a48"/><circle cx="392" cy="229" r="5" fill="#027a48"/><circle cx="407" cy="229" r="5" fill="#027a48"/>
+  <text class="small" x="264" y="263">h 越短越快追价；越长越像背景</text>
+  <text class="tiny" x="264" y="282">half-life ≠ prediction horizon</text>
+
+  <path class="line" d="M436 198H458"/>
+  <rect class="pair" x="458" y="104" width="190" height="188" rx="8"/>
+  <text class="text" x="476" y="132">③ 全部 fast / slow 配对</text>
+  <text class="mono purple" x="476" y="162">C(10, 2) = 45</text>
+  <g aria-label="四十五配对的三角矩阵示意">
+    <rect x="480" y="182" width="14" height="14" fill="#d8ccff"/><rect x="498" y="182" width="14" height="14" fill="#d8ccff"/><rect x="516" y="182" width="14" height="14" fill="#d8ccff"/><rect x="534" y="182" width="14" height="14" fill="#d8ccff"/><rect x="552" y="182" width="14" height="14" fill="#d8ccff"/><rect x="570" y="182" width="14" height="14" fill="#d8ccff"/><rect x="588" y="182" width="14" height="14" fill="#d8ccff"/><rect x="606" y="182" width="14" height="14" fill="#d8ccff"/><rect x="624" y="182" width="14" height="14" fill="#d8ccff"/>
+    <rect x="498" y="200" width="14" height="14" fill="#d8ccff"/><rect x="516" y="200" width="14" height="14" fill="#d8ccff"/><rect x="534" y="200" width="14" height="14" fill="#d8ccff"/><rect x="552" y="200" width="14" height="14" fill="#d8ccff"/><rect x="570" y="200" width="14" height="14" fill="#d8ccff"/><rect x="588" y="200" width="14" height="14" fill="#d8ccff"/><rect x="606" y="200" width="14" height="14" fill="#d8ccff"/><rect x="624" y="200" width="14" height="14" fill="#d8ccff"/>
+    <rect x="516" y="218" width="14" height="14" fill="#d8ccff"/><rect x="534" y="218" width="14" height="14" fill="#d8ccff"/><rect x="552" y="218" width="14" height="14" fill="#d8ccff"/><rect x="570" y="218" width="14" height="14" fill="#d8ccff"/><rect x="588" y="218" width="14" height="14" fill="#d8ccff"/><rect x="606" y="218" width="14" height="14" fill="#d8ccff"/><rect x="624" y="218" width="14" height="14" fill="#d8ccff"/>
+    <rect x="534" y="236" width="14" height="14" fill="#d8ccff"/><rect x="552" y="236" width="14" height="14" fill="#d8ccff"/><rect x="570" y="236" width="14" height="14" fill="#d8ccff"/><rect x="588" y="236" width="14" height="14" fill="#d8ccff"/><rect x="606" y="236" width="14" height="14" fill="#d8ccff"/><rect x="624" y="236" width="14" height="14" fill="#d8ccff"/>
+    <rect x="552" y="254" width="14" height="14" fill="#d8ccff"/><rect x="570" y="254" width="14" height="14" fill="#d8ccff"/><rect x="588" y="254" width="14" height="14" fill="#d8ccff"/><rect x="606" y="254" width="14" height="14" fill="#d8ccff"/><rect x="624" y="254" width="14" height="14" fill="#d8ccff"/>
+  </g>
+  <text class="tiny" x="476" y="282">一个相关特征全集，不是 45 条策略</text>
+
+  <path class="line" d="M648 198H670"/>
+  <rect class="search" x="670" y="104" width="194" height="188" rx="8"/>
+  <text class="text" x="688" y="132">④ pair state + 后置状态</text>
+  <text class="small" x="688" y="161">direction · cross age</text>
+  <text class="small" x="688" y="183">persistence · distance</text>
+  <text class="small" x="688" y="205">slope · curvature</text>
+  <text class="small" x="688" y="227">expansion / convergence</text>
+  <line class="axis" x1="688" y1="242" x2="846" y2="242"/>
+  <text class="small" x="688" y="263">最后再加 trade / depth</text>
+  <text class="tiny" x="688" y="282">缺失保持 U，不填成 False</text>
+
+  <path class="line" d="M864 198H886"/>
+  <rect class="action" x="886" y="104" width="180" height="188" rx="8"/>
+  <text class="text" x="904" y="132">⑤ 有界 Boolean policy</text>
+  <text class="mono" x="904" y="162">AND / OR / NOT</text>
+  <text class="small" x="904" y="188">ordered first-match</text>
+  <text class="small" x="904" y="212">最多 7 条规则</text>
+  <text class="small" x="904" y="236">从 side-specific</text>
+  <text class="small" x="904" y="258">冻结 8 档时长选 τₛ(x)</text>
+  <text class="tiny" x="904" y="282">reducing quote 保持不变</text>
+
+  <path class="line" d="M976 292V320H932"/>
+  <rect class="inner" x="44" y="320" width="1012" height="316" rx="8"/>
+  <text class="text" x="66" y="350">⑥ Nested chronological OOF：每一折先在过去重新发现规则，再到紧接着的未来 5 日考试</text>
+  <text class="small" x="66" y="374">蓝色 = outer-train；橙色 = untouched outer-test；灰色 = 当时尚未使用。每个蓝色窗内部另做 expanding inner folds 与 purge。</text>
+
+  <text class="small" x="66" y="424">Fold 1</text>
+  <rect class="train" x="132" y="398" width="124" height="42" rx="4"/><rect class="train" x="264" y="398" width="124" height="42" rx="4"/><rect class="test" x="396" y="398" width="124" height="42" rx="4"/><rect class="future" x="528" y="398" width="124" height="42" rx="4"/><rect class="future" x="660" y="398" width="124" height="42" rx="4"/><rect class="future" x="792" y="398" width="124" height="42" rx="4"/>
+  <text class="tiny" text-anchor="middle" x="194" y="424">D1–5</text><text class="tiny" text-anchor="middle" x="326" y="424">D6–10</text><text class="tiny" text-anchor="middle" x="458" y="424">D11–15 TEST</text>
+
+  <text class="small" x="66" y="478">Fold 2</text>
+  <rect class="train" x="132" y="452" width="124" height="42" rx="4"/><rect class="train" x="264" y="452" width="124" height="42" rx="4"/><rect class="train" x="396" y="452" width="124" height="42" rx="4"/><rect class="test" x="528" y="452" width="124" height="42" rx="4"/><rect class="future" x="660" y="452" width="124" height="42" rx="4"/><rect class="future" x="792" y="452" width="124" height="42" rx="4"/>
+  <text class="tiny" text-anchor="middle" x="326" y="478">D1–15 TRAIN</text><text class="tiny" text-anchor="middle" x="590" y="478">D16–20 TEST</text>
+
+  <text class="small" x="66" y="532">Fold 3</text>
+  <rect class="train" x="132" y="506" width="124" height="42" rx="4"/><rect class="train" x="264" y="506" width="124" height="42" rx="4"/><rect class="train" x="396" y="506" width="124" height="42" rx="4"/><rect class="train" x="528" y="506" width="124" height="42" rx="4"/><rect class="test" x="660" y="506" width="124" height="42" rx="4"/><rect class="future" x="792" y="506" width="124" height="42" rx="4"/>
+  <text class="tiny" text-anchor="middle" x="392" y="532">D1–20 TRAIN</text><text class="tiny" text-anchor="middle" x="722" y="532">D21–25 TEST</text>
+
+  <text class="small" x="66" y="586">Fold 4</text>
+  <rect class="train" x="132" y="560" width="124" height="42" rx="4"/><rect class="train" x="264" y="560" width="124" height="42" rx="4"/><rect class="train" x="396" y="560" width="124" height="42" rx="4"/><rect class="train" x="528" y="560" width="124" height="42" rx="4"/><rect class="train" x="660" y="560" width="124" height="42" rx="4"/><rect class="test" x="792" y="560" width="124" height="42" rx="4"/>
+  <text class="tiny" text-anchor="middle" x="458" y="586">D1–25 TRAIN</text><text class="tiny" text-anchor="middle" x="854" y="586">D26–30 TEST</text>
+
+  <rect class="box" x="934" y="398" width="102" height="204" rx="6"/>
+  <text class="small" text-anchor="middle" x="985" y="426">每折独立</text>
+  <text class="tiny" text-anchor="middle" x="985" y="456">inner-train</text>
+  <text class="tiny" text-anchor="middle" x="985" y="476">筛特征</text>
+  <text class="tiny" text-anchor="middle" x="985" y="496">选规则</text>
+  <text class="tiny" text-anchor="middle" x="985" y="516">冻结 τ</text>
+  <line class="axis" x1="950" y1="532" x2="1020" y2="532"/>
+  <text class="tiny" text-anchor="middle" x="985" y="556">outer-test</text>
+  <text class="tiny" text-anchor="middle" x="985" y="576">repeated</text>
+  <text class="tiny" text-anchor="middle" x="985" y="594">full path</text>
+
+  <text class="small blue" x="66" y="626">4 folds × 5 test days = 20 OOF days；外层结果不回流到特征、阈值、规则或 duration 选择。</text>
+  <rect class="box" x="44" y="658" width="1012" height="382" rx="8"/>
+  <text class="text" x="66" y="688">⑦ 外层测试日不只看下一根 K 线，而是把 policy 对后续报单路径的影响完整跑完</text>
+  <text class="small" x="66" y="712">同一外层 K 线与事件流分别驱动 B0 和候选；某次时长选择会改变后续 eligibility、订单、成交、库存与下一次机会。</text>
+
+  <rect class="source" x="66" y="746" width="198" height="112" rx="7"/>
+  <text class="text" text-anchor="middle" x="165" y="774">untouched outer-test</text>
+  <text class="small" text-anchor="middle" x="165" y="800">K 线 · trade · depth</text>
+  <text class="small" text-anchor="middle" x="165" y="823">订单与 campaign 事件</text>
+  <text class="tiny" text-anchor="middle" x="165" y="844">只使用决策时刻已就绪状态</text>
+  <path class="line" d="M264 802H292"/>
+
+  <rect class="train" x="292" y="738" width="216" height="76" rx="7"/>
+  <text class="text" text-anchor="middle" x="400" y="768">B0 lane</text>
+  <text class="small" text-anchor="middle" x="400" y="792">逐行 exact baseline τ_B0(x)</text>
+  <rect class="test" x="292" y="828" width="216" height="76" rx="7"/>
+  <text class="text" text-anchor="middle" x="400" y="858">candidate lane</text>
+  <text class="small" text-anchor="middle" x="400" y="882">fold-specific Boolean τπ(x)</text>
+  <path class="line" d="M508 776H544"/><path class="line" d="M508 866H544"/>
+
+  <rect class="search" x="544" y="738" width="242" height="166" rx="7"/>
+  <text class="text" text-anchor="middle" x="665" y="768">Repeated sequential replay</text>
+  <text class="small" text-anchor="middle" x="665" y="798">报单 → touch/queue → fill/cancel</text>
+  <text class="small" text-anchor="middle" x="665" y="824">库存 → cooldown lineage</text>
+  <text class="small" text-anchor="middle" x="665" y="850">下一次 opportunity 是否仍存在</text>
+  <text class="tiny" text-anchor="middle" x="665" y="882">candidate 与 B0 各自从头跑完整路径</text>
+  <path class="line" d="M786 821H822"/>
+
+  <rect class="action" x="822" y="746" width="212" height="112" rx="7"/>
+  <text class="text" text-anchor="middle" x="928" y="776">Campaign-terminal value</text>
+  <text class="mono" text-anchor="middle" x="928" y="805">ΔY = Y(π) − Y(B0)</text>
+  <text class="small" text-anchor="middle" x="928" y="830">而非 K 线方向命中率</text>
+  <text class="tiny" text-anchor="middle" x="928" y="847">而非 one-shot labels 直接求和</text>
+
+  <rect class="inner" x="130" y="936" width="840" height="72" rx="7"/>
+  <text class="text" text-anchor="middle" x="550" y="964">一项冻结研究身份</text>
+  <text class="small" text-anchor="middle" x="550" y="989">30 日 denominator + 45-pair feature universe + nested folds + bounded policy + repeated full-path estimand</text>
+  <text class="tiny" text-anchor="middle" x="550" y="1025">执行失败或重试属于 attempt provenance；不把同一研究包装成多个独立版本。</text>
+  <text class="tiny" text-anchor="middle" x="550" y="1079">研究身份说明：30 日、45 个 pair、四个 outer folds 与多次 execution attempts 都属于同一个冻结 Full-Multiscale Development 研究。</text>
+  <text class="tiny" text-anchor="middle" x="550" y="1093">45 个 pair 是一个相关特征全集；fold 与 attempt 都不是新的独立研究或证据身份。</text>
+</svg>

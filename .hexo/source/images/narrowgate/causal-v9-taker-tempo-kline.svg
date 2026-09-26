@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">Causal-v9 taker tempo到maker经济路径</title>
+  <desc id="desc">机制示意与冻结聚合结果。aggressive SELL taker事件进入完成的十秒bucket，影响BUY maker报价；正式三日ML ON相对ML OFF的raw和terminal为负并增加三个tail campaigns。</desc>
+  <defs><linearGradient id="bg"><stop stop-color="#071426"/><stop offset="1" stop-color="#2d263f"/></linearGradient><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#7dd3fc"/></marker><style>.t{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;fill:#f0f6ff}.m{fill:#acbad0}.box{fill:#0a1d33;stroke:#3b5d78}.arr{stroke:#7dd3fc;stroke-width:3;marker-end:url(#a)}.big{font-size:27px;font-weight:700}.label{font-size:17px}.small{font-size:14px}</style></defs>
+  <rect width="1200" height="620" rx="24" fill="url(#bg)"/><text x="52" y="53" class="t big">Taker tempo 有 ranking，不代表 maker action 有 value</text><text x="52" y="82" class="m small">机制示意与 formal Test3 冻结聚合结果</text>
+  <g transform="translate(50 125)">
+    <rect width="230" height="120" rx="14" class="box"/><text x="18" y="34" class="t label">Aggressive SELL taker</text><g fill="#ff6b6b"><circle cx="38" cy="76" r="7"/><circle cx="70" cy="76" r="7"/><circle cx="102" cy="76" r="7"/><circle cx="150" cy="76" r="7"/><circle cx="178" cy="76" r="7"/></g><text x="18" y="106" class="m small">BUY maker 的对手方 flow</text>
+    <line x1="238" y1="60" x2="298" y2="60" class="arr"/>
+    <rect x="310" width="230" height="120" rx="14" class="box"/><text x="328" y="34" class="t label">Completed 10s bucket</text><text x="328" y="70" class="m small">count · run · interarrival</text><text x="328" y="98" class="m small">bucket_end 后才可见</text>
+    <line x1="548" y1="60" x2="608" y2="60" class="arr"/>
+    <rect x="620" width="230" height="120" rx="14" class="box"/><text x="638" y="34" class="t label">13-head ML ON</text><text x="638" y="70" class="m small">direction · return · vol</text><text x="638" y="98" class="m small">bid / ask toxicity</text>
+    <line x1="858" y1="60" x2="918" y2="60" class="arr"/>
+    <rect x="930" width="220" height="120" rx="14" class="box"/><text x="948" y="34" class="t label">完整 maker path</text><text x="948" y="70" class="m small">quote → fill → inventory</text><text x="948" y="98" class="m small">campaign terminal / tail</text>
+  </g>
+  <g transform="translate(50 295)">
+    <rect width="1100" height="165" rx="14" class="box"/><text x="20" y="36" class="t label">Formal Test3：ML ON - ML OFF</text>
+    <rect x="20" y="58" width="245" height="80" rx="12" fill="#351c2c"/><text x="38" y="88" class="m small">Raw PnL</text><text x="38" y="118" fill="#ff8f8f" class="label">-2.2308 USDC · 0/3 日为正</text>
+    <rect x="285" y="58" width="245" height="80" rx="12" fill="#351c2c"/><text x="303" y="88" class="m small">Terminal campaign</text><text x="303" y="118" fill="#ff8f8f" class="label">-2.6268 USDC</text>
+    <rect x="550" y="58" width="245" height="80" rx="12" fill="#351c2c"/><text x="568" y="88" class="m small">Tail campaigns</text><text x="568" y="118" fill="#ff8f8f" class="label">+3（更差）</text>
+    <rect x="815" y="58" width="245" height="80" rx="12" fill="#12352e"/><text x="833" y="88" class="m small">Inventory time</text><text x="833" y="118" fill="#6ee7b7" class="label">90.86% · 单项通过</text>
+  </g>
+  <rect x="50" y="505" width="1100" height="76" rx="14" fill="#102a43"/><text x="74" y="536" class="t label">Formal denominator 3 日，低于冻结 4 日；value 与 tail gates 同时失败</text><text x="74" y="562" class="m small">v8 是 invalid lineage，折入本项目，不作为独立经济实验。</text>
+</svg>

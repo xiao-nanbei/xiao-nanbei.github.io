@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">BUY q90 ON OFF 到 SHORT portfolio path 的合成机制图</title>
+  <desc id="desc">合成 K 线下 q90 OFF 与 ON 从 BUY cancel 开始分叉，右侧逐段展示 BUY exposure、SELL-minus-BUY imbalance、SHORT share、multi-level SHORT 和 terminal MTM。只有 imbalance link 通过 Development gate。</desc>
+  <defs>
+    <linearGradient id="bg5" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#07131f"/><stop offset="1" stop-color="#1c2d47"/></linearGradient>
+    <marker id="ar5" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 Z" fill="#8bd5ff"/></marker>
+  </defs>
+  <rect width="1280" height="720" rx="24" fill="url(#bg5)"/>
+  <text x="48" y="52" fill="#f7f9ff" font-size="28" font-family="sans-serif" font-weight="700">BUY q90 Portfolio Attribution：一条链不能只通过中间一环</text>
+  <text x="48" y="83" fill="#9eb3c8" font-size="16" font-family="sans-serif">合成机制示意 · 非实盘路径 · ON/OFF paired Development replay</text>
+  <rect x="48" y="110" width="1184" height="220" rx="16" fill="#0b1d2c" stroke="#31516a"/>
+  <line x1="78" y1="296" x2="1202" y2="296" stroke="#476179" stroke-width="2"/>
+  <g stroke-width="4">
+    <line x1="110" y1="205" x2="110" y2="284" stroke="#7ee2a8"/><rect x="98" y="228" width="24" height="35" fill="#7ee2a8"/>
+    <line x1="170" y1="185" x2="170" y2="267" stroke="#7ee2a8"/><rect x="158" y="209" width="24" height="35" fill="#7ee2a8"/>
+    <line x1="230" y1="201" x2="230" y2="282" stroke="#ff8f91"/><rect x="218" y="224" width="24" height="36" fill="#ff8f91"/>
+    <line x1="290" y1="175" x2="290" y2="258" stroke="#7ee2a8"/><rect x="278" y="199" width="24" height="36" fill="#7ee2a8"/>
+    <line x1="350" y1="196" x2="350" y2="278" stroke="#ff8f91"/><rect x="338" y="219" width="24" height="36" fill="#ff8f91"/>
+    <line x1="410" y1="218" x2="410" y2="299" stroke="#ff8f91"/><rect x="398" y="241" width="24" height="36" fill="#ff8f91"/>
+    <line x1="470" y1="202" x2="470" y2="284" stroke="#7ee2a8"/><rect x="458" y="225" width="24" height="36" fill="#7ee2a8"/>
+    <line x1="530" y1="225" x2="530" y2="306" stroke="#ff8f91"/><rect x="518" y="248" width="24" height="36" fill="#ff8f91"/>
+    <line x1="590" y1="238" x2="590" y2="318" stroke="#ff8f91"/><rect x="578" y="261" width="24" height="35" fill="#ff8f91"/>
+    <line x1="650" y1="210" x2="650" y2="292" stroke="#7ee2a8"/><rect x="638" y="233" width="24" height="36" fill="#7ee2a8"/>
+    <line x1="710" y1="192" x2="710" y2="274" stroke="#7ee2a8"/><rect x="698" y="215" width="24" height="36" fill="#7ee2a8"/>
+    <line x1="770" y1="214" x2="770" y2="296" stroke="#ff8f91"/><rect x="758" y="237" width="24" height="36" fill="#ff8f91"/>
+    <line x1="830" y1="232" x2="830" y2="313" stroke="#ff8f91"/><rect x="818" y="255" width="24" height="36" fill="#ff8f91"/>
+    <line x1="890" y1="206" x2="890" y2="288" stroke="#7ee2a8"/><rect x="878" y="229" width="24" height="36" fill="#7ee2a8"/>
+    <line x1="950" y1="188" x2="950" y2="270" stroke="#7ee2a8"/><rect x="938" y="211" width="24" height="36" fill="#7ee2a8"/>
+    <line x1="1010" y1="210" x2="1010" y2="292" stroke="#ff8f91"/><rect x="998" y="233" width="24" height="36" fill="#ff8f91"/>
+    <line x1="1070" y1="225" x2="1070" y2="307" stroke="#ff8f91"/><rect x="1058" y="248" width="24" height="36" fill="#ff8f91"/>
+    <line x1="1130" y1="199" x2="1130" y2="281" stroke="#7ee2a8"/><rect x="1118" y="222" width="24" height="36" fill="#7ee2a8"/>
+  </g>
+  <line x1="350" y1="124" x2="350" y2="318" stroke="#ffd166" stroke-width="4" stroke-dasharray="9 7"/>
+  <text x="286" y="145" fill="#ffe49a" font-size="14" font-family="sans-serif" font-weight="700">q90 eligible state</text>
+  <circle cx="350" cy="219" r="11" fill="#ffd166"/>
+  <path d="M362 219 C450 155 530 154 617 198" fill="none" stroke="#b58cff" stroke-width="4" marker-end="url(#ar5)"/>
+  <text x="438" y="171" fill="#d8c1f2" font-size="14" font-family="sans-serif">ON：cancel BUY path</text>
+  <path d="M362 231 C461 321 545 318 624 270" fill="none" stroke="#7ee2a8" stroke-width="4" marker-end="url(#ar5)"/>
+  <text x="438" y="311" fill="#bcebd0" font-size="14" font-family="sans-serif">OFF：keep baseline path</text>
+
+  <rect x="48" y="360" width="1184" height="294" rx="16" fill="#102237" stroke="#31516a"/>
+  <text x="76" y="395" fill="#dff5ff" font-size="20" font-family="sans-serif" font-weight="700">Preregistered mechanism chain · Grade A</text>
+  <g font-family="sans-serif">
+    <rect x="74" y="430" width="196" height="112" rx="12" fill="#263348" stroke="#667a90"/>
+    <text x="172" y="459" text-anchor="middle" fill="#e0e8ef" font-size="15" font-weight="700">BUY exposure</text>
+    <text x="172" y="486" text-anchor="middle" fill="#b9c8d5" font-size="14">−0.22744 / hour</text>
+    <text x="172" y="512" text-anchor="middle" fill="#ffb4b6" font-size="14">CI 上端 +0.00173</text>
+    <text x="172" y="532" text-anchor="middle" fill="#ff8f91" font-size="13" font-weight="700">FAIL</text>
+    <line x1="270" y1="486" x2="314" y2="486" stroke="#8bd5ff" stroke-width="3" marker-end="url(#ar5)"/>
+    <rect x="324" y="430" width="196" height="112" rx="12" fill="#193d3a" stroke="#7ee2a8"/>
+    <text x="422" y="459" text-anchor="middle" fill="#dcffeb" font-size="15" font-weight="700">SELL − BUY</text>
+    <text x="422" y="486" text-anchor="middle" fill="#bcebd0" font-size="14">+0.43057 / hour</text>
+    <text x="422" y="512" text-anchor="middle" fill="#bcebd0" font-size="14">CI [+0.00869,+0.85418]</text>
+    <text x="422" y="532" text-anchor="middle" fill="#7ee2a8" font-size="13" font-weight="700">PASS</text>
+    <line x1="520" y1="486" x2="564" y2="486" stroke="#8bd5ff" stroke-width="3" marker-end="url(#ar5)"/>
+    <rect x="574" y="430" width="196" height="112" rx="12" fill="#3d2935" stroke="#cf758c"/>
+    <text x="672" y="459" text-anchor="middle" fill="#fae1e7" font-size="15" font-weight="700">SHORT share</text>
+    <text x="672" y="486" text-anchor="middle" fill="#d7b8c0" font-size="14">+0.00851</text>
+    <text x="672" y="512" text-anchor="middle" fill="#ffb4b6" font-size="14">CI crosses 0</text>
+    <text x="672" y="532" text-anchor="middle" fill="#ff8f91" font-size="13" font-weight="700">FAIL</text>
+    <line x1="770" y1="486" x2="814" y2="486" stroke="#8bd5ff" stroke-width="3" marker-end="url(#ar5)"/>
+    <rect x="824" y="430" width="196" height="112" rx="12" fill="#3d2935" stroke="#cf758c"/>
+    <text x="922" y="459" text-anchor="middle" fill="#fae1e7" font-size="15" font-weight="700">Multi-level SHORT</text>
+    <text x="922" y="486" text-anchor="middle" fill="#d7b8c0" font-size="14">−0.00124</text>
+    <text x="922" y="512" text-anchor="middle" fill="#ffb4b6" font-size="14">CI crosses 0</text>
+    <text x="922" y="532" text-anchor="middle" fill="#ff8f91" font-size="13" font-weight="700">FAIL</text>
+    <line x1="1020" y1="486" x2="1064" y2="486" stroke="#8bd5ff" stroke-width="3" marker-end="url(#ar5)"/>
+    <rect x="1074" y="430" width="132" height="112" rx="12" fill="#263348" stroke="#667a90"/>
+    <text x="1140" y="459" text-anchor="middle" fill="#e0e8ef" font-size="15" font-weight="700">Terminal MTM</text>
+    <text x="1140" y="486" text-anchor="middle" fill="#b9c8d5" font-size="14">+0.09470/day</text>
+    <text x="1140" y="512" text-anchor="middle" fill="#ffb4b6" font-size="13">no harm bound</text>
+    <text x="1140" y="532" text-anchor="middle" fill="#ff8f91" font-size="13" font-weight="700">FAIL</text>
+  </g>
+  <rect x="74" y="568" width="1132" height="58" rx="11" fill="#172b40"/>
+  <text x="640" y="592" text-anchor="middle" fill="#d2e0eb" font-size="14" font-family="sans-serif">Replay treatment：105 requests / 959.963h ≈ 0.109/h</text>
+  <text x="640" y="615" text-anchor="middle" fill="#ffd166" font-size="14" font-family="sans-serif">独立历史 operational diagnostic ≈ 20.84/h：约 190× intensity gap，不能外推当前 policy</text>
+  <rect x="74" y="674" width="1132" height="30" rx="8" fill="#162b40"/>
+  <text x="640" y="695" text-anchor="middle" fill="#a8bed1" font-size="13" font-family="sans-serif">完整机制链未通过；Validation / holdout / keep-remove-roll back 权限均为 false。</text>
+</svg>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">波动率条件P3在平静与高波动状态下的差异</title>
+  <desc id="desc">机制示意。左右两段合成K线具有不同波动率，同一个十四USDC距离对应不同标准化距离和触达概率；下方展示98%与95%覆盖门槛的治理差异。</desc>
+  <defs><linearGradient id="bg"><stop stop-color="#071426"/><stop offset="1" stop-color="#133152"/></linearGradient><style>.t{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;fill:#edf6ff}.m{fill:#a9bad0}.g{stroke:#39d98a}.r{stroke:#ff6b6b}.c{stroke:#55d6be}.o{stroke:#ffb84d}.grid{stroke:#2b4b67}.big{font-size:27px;font-weight:700}.label{font-size:17px}.small{font-size:14px}</style></defs>
+  <rect width="1200" height="620" rx="24" fill="url(#bg)"/>
+  <text x="52" y="52" class="t big">相同 $d$，不同 $d/(σ√H)$：P3 应随状态改变</text><text x="52" y="80" class="m small">机制示意 · 缺失窗口 censor，不做 forward fill</text>
+  <g transform="translate(55 110)">
+    <rect width="720" height="340" rx="14" fill="#0a1d33" stroke="#365873"/><line x1="360" y1="0" x2="360" y2="340" class="grid"/><text x="125" y="30" class="t label">平静状态</text><text x="495" y="30" class="t label">高波动状态</text>
+    <g stroke-width="3">
+      <line x1="50" y1="165" x2="50" y2="225" class="g"/><rect x="42" y="182" width="16" height="25" fill="#39d98a"/>
+      <line x1="100" y1="155" x2="100" y2="218" class="r"/><rect x="92" y="174" width="16" height="26" fill="#ff6b6b"/>
+      <line x1="150" y1="160" x2="150" y2="221" class="g"/><rect x="142" y="177" width="16" height="25" fill="#39d98a"/>
+      <line x1="200" y1="149" x2="200" y2="212" class="g"/><rect x="192" y="168" width="16" height="26" fill="#39d98a"/>
+      <line x1="250" y1="156" x2="250" y2="220" class="r"/><rect x="242" y="175" width="16" height="27" fill="#ff6b6b"/>
+      <line x1="300" y1="151" x2="300" y2="214" class="g"/><rect x="292" y="169" width="16" height="27" fill="#39d98a"/>
+      <line x1="410" y1="110" x2="410" y2="238" class="r"/><rect x="398" y="132" width="24" height="76" fill="#ff6b6b"/>
+      <line x1="472" y1="174" x2="472" y2="310" class="r"/><rect x="460" y="194" width="24" height="85" fill="#ff6b6b"/>
+      <line x1="534" y1="95" x2="534" y2="253" class="g"/><rect x="522" y="122" width="24" height="96" fill="#39d98a"/>
+      <line x1="596" y1="55" x2="596" y2="202" class="g"/><rect x="584" y="78" width="24" height="91" fill="#39d98a"/>
+      <line x1="658" y1="120" x2="658" y2="290" class="r"/><rect x="646" y="147" width="24" height="103" fill="#ff6b6b"/>
+    </g>
+    <line x1="25" y1="138" x2="335" y2="138" class="o" stroke-dasharray="8 6"/><line x1="385" y1="138" x2="695" y2="138" class="o" stroke-dasharray="8 6"/>
+    <text x="38" y="125" class="m small">同一 14 USDC 距离</text><text x="400" y="125" class="m small">同一 14 USDC 距离</text>
+    <text x="74" y="286" class="t label">P(touch) ≈ 0.0189</text><text x="440" y="326" class="t label">P(touch) ≈ 0.2439</text>
+  </g>
+  <g transform="translate(805 110)">
+    <rect width="340" height="340" rx="14" fill="#0a1d33" stroke="#365873"/><text x="22" y="38" class="t label">同一 predictions，两份统计合同</text>
+    <rect x="24" y="70" width="292" height="92" rx="12" fill="#371b2b" stroke="#ff6b6b"/><text x="42" y="102" class="t label">v4：coverage ≥ 98%</text><text x="42" y="134" fill="#ff8f8f" class="label">3 天失败 → identity fail</text>
+    <rect x="24" y="186" width="292" height="92" rx="12" fill="#12352d" stroke="#39d98a"/><text x="42" y="218" class="t label">v4.1：coverage ≥ 95%</text><text x="42" y="250" fill="#6ee7b7" class="label">同一证据 → historical support</text>
+    <text x="24" y="310" class="m small">v4.1 是 outcome-informed override</text><text x="24" y="334" class="m small">不是独立确认，也没有 quote 权限</text>
+  </g>
+  <rect x="55" y="488" width="1090" height="94" rx="14" fill="#102a43"/><text x="78" y="521" class="t label">冻结聚合结果：4/4 proper-score cells、48 calibration cells、197,231,404 monotonicity comparisons 全通过</text><text x="78" y="550" class="m small">但 prediction pass 仍不能替代 queue conversion、fill value 或 full-path action uplift。</text>
+</svg>

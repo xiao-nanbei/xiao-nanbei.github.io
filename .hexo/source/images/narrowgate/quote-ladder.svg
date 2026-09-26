@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="360" viewBox="0 0 1160 360" role="img" aria-label="NarrowGate quote ladder">
+  <defs>
+    <style>
+      .bg { fill: #f8fafc; }
+      .axis { stroke: #0f172a; stroke-width: 3; marker-end: url(#arrow); }
+      .tick { stroke: #334155; stroke-width: 2; }
+      .bid { fill: #dcfce7; stroke: #16a34a; stroke-width: 2; rx: 8; }
+      .ask { fill: #fee2e2; stroke: #dc2626; stroke-width: 2; rx: 8; }
+      .mid { fill: #e0f2fe; stroke: #0284c7; stroke-width: 2; rx: 8; }
+      .text { font: 700 16px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+      .sub { font: 13px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; }
+      .title { font: 700 24px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+      .arrow { stroke: #475569; stroke-width: 2; fill: none; marker-end: url(#arrow2); }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,8 L11,4 z" fill="#0f172a"/>
+    </marker>
+    <marker id="arrow2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#475569"/>
+    </marker>
+  </defs>
+  <rect class="bg" x="0" y="0" width="1160" height="360"/>
+  <text class="title" x="40" y="44">Quote construction around BBO and reservation price</text>
+  <text class="sub" x="40" y="68">Inventory, volatility, depth, model prediction, and side guards all move the final bid/ask before routing.</text>
+
+  <line class="axis" x1="90" y1="180" x2="1080" y2="180"/>
+
+  <line class="tick" x1="260" y1="145" x2="260" y2="215"/>
+  <rect class="bid" x="170" y="86" width="180" height="52"/>
+  <text class="text" x="205" y="118">Final bid</text>
+  <text class="sub" x="174" y="242">BBO-safe, post-only</text>
+
+  <line class="tick" x1="580" y1="130" x2="580" y2="230"/>
+  <rect class="mid" x="470" y="76" width="220" height="62"/>
+  <text class="text" x="510" y="106">Reservation r</text>
+  <text class="sub" x="486" y="126">fair mid - inventory cost</text>
+  <text class="sub" x="488" y="252">microprice + model shift</text>
+
+  <line class="tick" x1="900" y1="145" x2="900" y2="215"/>
+  <rect class="ask" x="810" y="86" width="180" height="52"/>
+  <text class="text" x="846" y="118">Final ask</text>
+  <text class="sub" x="816" y="242">BBO-safe, post-only</text>
+
+  <path class="arrow" d="M580 276 H272"/>
+  <path class="arrow" d="M580 276 H888"/>
+  <text class="sub" x="360" y="304">half spread, cap, guard widening</text>
+  <text class="sub" x="690" y="304">half spread, cap, guard widening</text>
+
+  <text class="sub" x="80" y="180">lower price</text>
+  <text class="sub" x="1004" y="180">higher price</text>
+</svg>

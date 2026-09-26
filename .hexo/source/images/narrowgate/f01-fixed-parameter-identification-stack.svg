@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">固定参数从历史 winner 到可识别动作价值的五层筛选</title>
+  <desc id="desc">图示固定参数网格的 pooled winner 必须依次经过同日配对、市场状态分层、完整订单与库存路径、尾部和参与度门，最后才能讨论研究权限。</desc>
+  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 Z" fill="#7dd3fc"/></marker><style>.bg{fill:#081525}.box{fill:#102a43;stroke:#315b78;stroke-width:2}.bad{fill:#3b1f31;stroke:#fb7185;stroke-width:2}.good{fill:#123a38;stroke:#34d399;stroke-width:2}.t{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;fill:#edf6ff}.m{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;fill:#9fb5c9}.h{font-size:28px;font-weight:700}.b{font-size:19px;font-weight:650}.s{font-size:15px}.arrow{stroke:#7dd3fc;stroke-width:3;fill:none;marker-end:url(#a)}.grid{stroke:#203d55;stroke-width:1}</style></defs>
+  <rect class="bg" width="1200" height="700" rx="24"/>
+  <text class="t h" x="52" y="58">固定参数为什么不能从一次冠军榜直接升级为 Alpha</text>
+  <text class="m s" x="52" y="88">同一组常数必须穿过五层身份检查；任何一层失败，都只能保留为校准、约束或筛选基线</text>
+  <g transform="translate(52 128)">
+    <rect class="bad" x="0" y="0" width="196" height="148" rx="14"/><text class="t b" x="20" y="36">① Pooled grid</text><text class="m s" x="20" y="70">大量 arms 同样本竞速</text><text class="m s" x="20" y="96">winner 吸收噪声与 regime</text><text class="t s" x="20" y="126">max bias 尚未扣除</text>
+    <path class="arrow" d="M210 74H250"/>
+    <rect class="box" x="264" y="0" width="196" height="148" rx="14"/><text class="t b" x="284" y="36">② 同日配对</text><text class="m s" x="284" y="70">相同数据、seed、初始状态</text><text class="m s" x="284" y="96">逐日 Δ，而非 pooled PnL</text><text class="t s" x="284" y="126">先去掉日期构成差异</text>
+    <path class="arrow" d="M474 74H514"/>
+    <rect class="box" x="528" y="0" width="196" height="148" rx="14"/><text class="t b" x="548" y="36">③ Side / role</text><text class="m s" x="548" y="70">BUY / SELL 分开</text><text class="m s" x="548" y="96">opener / add / reducing</text><text class="t s" x="548" y="126">有 overlap 才能外推</text>
+    <path class="arrow" d="M738 74H778"/>
+    <rect class="box" x="792" y="0" width="196" height="148" rx="14"/><text class="t b" x="812" y="36">④ 完整路径</text><text class="m s" x="812" y="70">quote → queue → fill</text><text class="m s" x="812" y="96">inventory → repair → terminal</text><text class="t s" x="812" y="126">不能只看局部 markout</text>
+  </g>
+  <g transform="translate(52 338)">
+    <rect class="box" x="0" y="0" width="470" height="214" rx="16"/><text class="t b" x="24" y="40">⑤ 参与度与尾部共同门</text><text class="m s" x="24" y="78">d_F = 1 − fills_candidate / fills_baseline</text><text class="m s" x="24" y="108">d_L = 1 − loss_candidate / loss_baseline</text><text class="t s" x="24" y="140">S_L = d_L − d_F 只有正下界大于 0 才是选择效率</text><text class="m s" x="24" y="176">同时检查 inventory time、campaign q10 / CVaR 与残余仓位</text>
+    <path class="arrow" d="M492 107H548"/>
+    <rect class="good" x="568" y="0" width="568" height="214" rx="16"/><text class="t b" x="592" y="40">研究结论按权限分层</text><text class="t s" x="592" y="79">常数可保留：tick / lot、hard limit、circuit breaker、rolling baseline</text><text class="m s" x="592" y="111">不得越级：历史 winner → Validation → action → live</text><text class="m s" x="592" y="143">固定值是坐标或约束，不自动成为跨 regime 的市场规律</text><text class="t s" x="592" y="178">新机制必须重新冻结 state-conditioned action identity</text>
+  </g>
+  <text class="m s" x="52" y="652">机制图 · 不含私有回测路径、实盘参数或投资建议</text>
+</svg>

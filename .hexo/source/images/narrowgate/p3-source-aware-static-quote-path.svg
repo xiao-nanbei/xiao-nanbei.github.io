@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">Source-aware pooled静态P3改变报价路径</title>
+  <desc id="desc">机制示意与冻结聚合结果。合成K线上current v2和expanded v3报价带分离，expanded v3更窄、成交更多、四十四日terminal MTM更差。</desc>
+  <defs><linearGradient id="bg"><stop stop-color="#071426"/><stop offset="1" stop-color="#20304f"/></linearGradient><style>.t{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;fill:#edf5ff}.m{fill:#a8bad1}.g{stroke:#35d39a}.r{stroke:#ff6b6b}.v2{stroke:#5ab0ff}.v3{stroke:#ffb84d}.grid{stroke:#294863}.big{font-size:27px;font-weight:700}.label{font-size:17px}.small{font-size:14px}</style></defs>
+  <rect width="1200" height="620" rx="24" fill="url(#bg)"/>
+  <text x="52" y="53" class="t big">跨源静态池化：quote 更窄，fills 更多，terminal value 更差</text><text x="52" y="82" class="m small">机制示意与 44 日冻结聚合结果</text>
+  <g transform="translate(55 110)">
+    <rect width="770" height="360" rx="14" fill="#0a1d33" stroke="#365873"/><path d="M0 90H770M0 180H770M0 270H770" class="grid"/>
+    <polyline points="20,205 85,194 150,210 215,178 280,188 345,150 410,165 475,126 540,148 605,112 670,136 745,102" fill="none" stroke="#dce8f4" stroke-width="3"/>
+    <polyline points="20,132 85,122 150,138 215,106 280,116 345,78 410,93 475,54 540,76 605,40 670,64 745,30" fill="none" class="v2" stroke-width="3"/>
+    <polyline points="20,278 85,267 150,283 215,251 280,261 345,223 410,238 475,199 540,221 605,185 670,209 745,175" fill="none" class="v2" stroke-width="3"/>
+    <polyline points="20,153 85,143 150,159 215,127 280,137 345,99 410,114 475,75 540,97 605,61 670,85 745,51" fill="none" class="v3" stroke-width="3" stroke-dasharray="8 6"/>
+    <polyline points="20,257 85,246 150,262 215,230 280,240 345,202 410,217 475,178 540,200 605,164 670,188 745,154" fill="none" class="v3" stroke-width="3" stroke-dasharray="8 6"/>
+    <g fill="#ff6b6b"><circle cx="219" cy="227" r="7"/><circle cx="354" cy="198" r="7"/><circle cx="481" cy="176" r="7"/><circle cx="611" cy="151" r="7"/><circle cx="677" cy="174" r="7"/></g>
+    <text x="28" y="42" class="t small">蓝：current v2 quote band</text><text x="28" y="66" class="t small">橙虚线：expanded v3（更窄）</text><text x="545" y="332" class="m small">红点：候选新增 fills 的机制示意</text>
+  </g>
+  <g transform="translate(855 115)">
+    <rect width="290" height="355" rx="14" fill="#0a1d33" stroke="#365873"/><text x="20" y="38" class="t label">44 日冻结聚合结果</text>
+    <text x="20" y="82" class="m small">Mean raw half-spread</text><text x="20" y="108" class="t label">23.6635 → 21.0063</text>
+    <text x="20" y="150" class="m small">Fills</text><text x="20" y="176" class="t label">15,248 → 17,424</text><text x="210" y="176" fill="#ffb84d" class="small">+14.27%</text>
+    <text x="20" y="218" class="m small">Terminal MTM</text><text x="20" y="244" class="t label">-124.7455 → -161.2593</text><text x="190" y="272" fill="#ff6b6b" class="label">Δ -36.5138 USDC</text>
+    <text x="20" y="314" class="m small">Positive days</text><text x="20" y="340" class="t label">13 / 44</text>
+  </g>
+  <rect x="55" y="510" width="1090" height="72" rx="14" fill="#102a43"/><text x="80" y="540" class="t label">关闭：2025+2026 pooled static replacement</text><text x="80" y="566" class="m small">未关闭：source-specific、volatility-conditioned、side-specific 或 reach-time surface。</text>
+</svg>

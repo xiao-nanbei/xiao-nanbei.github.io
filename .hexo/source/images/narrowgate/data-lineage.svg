@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="500" viewBox="0 0 1040 500" role="img" aria-labelledby="title desc">
+  <title id="title">NarrowGate research data lineage</title>
+  <desc id="desc">A data lineage diagram from Binance Vision and CryptoHFTData through audit, feature engineering, model training, tick replay, trace generation and quote EV labels.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#344054"/>
+    </marker>
+    <style>
+      .bg { fill: #fbfcfe; }
+      .src { fill: #eff8ff; stroke: #175cd3; stroke-width: 1.4; rx: 8; }
+      .gate { fill: #fff7ed; stroke: #b45309; stroke-width: 1.4; rx: 8; }
+      .work { fill: #ffffff; stroke: #344054; stroke-width: 1.4; rx: 8; }
+      .model { fill: #ecfdf3; stroke: #027a48; stroke-width: 1.4; rx: 8; }
+      .risk { fill: #fef2f2; stroke: #b42318; stroke-width: 1.4; rx: 8; }
+      .line { stroke: #344054; stroke-width: 1.8; fill: none; marker-end: url(#arrow); }
+      .thin { stroke: #667085; stroke-width: 1.2; fill: none; marker-end: url(#arrow); }
+      .text { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #101828; font-size: 16px; }
+      .small { font-size: 13px; fill: #475467; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; fill: #344054; }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1040" height="500"/>
+
+  <rect class="src" x="42" y="44" width="196" height="86"/>
+  <text class="text" x="66" y="78">Binance Vision</text>
+  <text class="small" x="66" y="101">perp / spot aggTrades</text>
+  <text class="mono" x="66" y="121">retained daily CSV</text>
+
+  <rect class="src" x="42" y="164" width="196" height="86"/>
+  <text class="text" x="66" y="198">CryptoHFTData</text>
+  <text class="small" x="66" y="221">native orderbook</text>
+  <text class="mono" x="66" y="241">hourly parquet.zst</text>
+
+  <rect class="src" x="42" y="284" width="196" height="86"/>
+  <text class="text" x="66" y="318">Binance Metrics</text>
+  <text class="small" x="66" y="341">OI / long-short / bookDepth</text>
+  <text class="mono" x="66" y="361">slow context only</text>
+
+  <rect class="gate" x="294" y="128" width="198" height="112"/>
+  <text class="text" x="318" y="163">Quality gate</text>
+  <text class="small" x="318" y="188">bad day removal</text>
+  <text class="small" x="318" y="211">coverage audit</text>
+  <text class="mono" x="318" y="232">segment / horizon guard</text>
+
+  <rect class="work" x="548" y="48" width="190" height="82"/>
+  <text class="text" x="572" y="82">1s bars</text>
+  <text class="small" x="572" y="105">trades / flow / spot</text>
+  <text class="mono" x="572" y="125">feature_engineer.py</text>
+
+  <rect class="work" x="548" y="168" width="190" height="82"/>
+  <text class="text" x="572" y="202">BBO / L2</text>
+  <text class="small" x="572" y="225">best levels + top-N depth</text>
+  <text class="mono" x="572" y="245">execution parity</text>
+
+  <rect class="model" x="794" y="48" width="194" height="82"/>
+  <text class="text" x="818" y="82">Main model</text>
+  <text class="small" x="818" y="105">ret / vol / toxicity</text>
+  <text class="mono" x="818" y="125">LightGBM</text>
+
+  <rect class="work" x="794" y="168" width="194" height="82"/>
+  <text class="text" x="818" y="202">Tick replay</text>
+  <text class="small" x="818" y="225">queue / latency / TTL</text>
+  <text class="mono" x="818" y="245">Python ↔ C++ parity</text>
+
+  <rect class="risk" x="548" y="324" width="190" height="82"/>
+  <text class="text" x="572" y="358">Quote trace</text>
+  <text class="small" x="572" y="381">fills + markout labels</text>
+  <text class="mono" x="572" y="401">shock audit</text>
+
+  <rect class="model" x="794" y="324" width="194" height="82"/>
+  <text class="text" x="818" y="358">Quote EV</text>
+  <text class="small" x="818" y="381">P(fill), markout, tail</text>
+  <text class="mono" x="818" y="401">shadow / research gate</text>
+
+  <path class="line" d="M238 87 C262 87 268 155 294 166"/>
+  <path class="line" d="M238 207 H294"/>
+  <path class="thin" d="M238 327 C270 327 270 221 294 209"/>
+  <path class="line" d="M492 166 C522 120 522 89 548 89"/>
+  <path class="line" d="M492 207 H548"/>
+  <path class="line" d="M738 89 H794"/>
+  <path class="line" d="M738 209 H794"/>
+  <path class="thin" d="M891 130 V168"/>
+  <path class="line" d="M891 250 C891 300 765 365 738 365"/>
+  <path class="line" d="M738 365 H794"/>
+  <path class="thin" d="M643 250 V324"/>
+
+  <text class="small" x="304" y="277">The gate is a data boundary, not a warning label.</text>
+  <text class="small" x="304" y="299">Bad or discontinuous periods cannot leak into rolling features or future labels.</text>
+</svg>

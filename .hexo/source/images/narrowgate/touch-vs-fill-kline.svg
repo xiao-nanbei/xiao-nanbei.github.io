@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="660" viewBox="0 0 1040 660" role="img" aria-labelledby="title desc">
+  <title id="title">K 线触价不等于 maker 成交</title>
+  <desc id="desc">左右两幅机制示意图比较同一 maker 买单报价被 K 线下影线触及但队列未耗尽，以及主动卖单穿透队列后真正成交。图中明确区分 P touch 和 P fill，并标注为非实盘证据。</desc>
+  <defs>
+    <pattern id="down-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="6" height="6" fill="#fef2f2"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#f97066" stroke-width="2"/>
+    </pattern>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#344054"/></marker>
+    <style>
+      .bg{fill:#fbfcfe}.panel{fill:#fff;stroke:#d0d5dd;stroke-width:1.2}.grid{stroke:#eaecf0;stroke-width:1}.axis{stroke:#667085;stroke-width:1.2}.tick{font:400 11px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#667085}.title{font:500 23px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.subtitle{font:400 13px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#475467}.panel-title{font:500 16px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.text{font:500 14px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.small{font:400 12px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#475467}.mono{font:400 12px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#344054}.wick-up{stroke:#027a48;stroke-width:2}.body-up{fill:#ecfdf3;stroke:#027a48;stroke-width:2}.wick-down{stroke:#b42318;stroke-width:2}.body-down{fill:url(#down-hatch);stroke:#b42318;stroke-width:2}.quote{stroke:#175cd3;stroke-width:2.2;stroke-dasharray:8 5}.quote-label{font:500 12px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#175cd3}.touch{fill:#fff;stroke:#b45309;stroke-width:2.5}.fill{fill:#ecfdf3;stroke:#027a48;stroke-width:2.5}.callout{fill:#fff7ed;stroke:#b45309;stroke-width:1.2}.callout-ok{fill:#ecfdf3;stroke:#027a48;stroke-width:1.2}.line{fill:none;stroke:#344054;stroke-width:1.4;marker-end:url(#arrow)}.formula{fill:#f8fafc;stroke:#98a2b3;stroke-width:1.1;stroke-dasharray:5 4}.danger{fill:#b42318}.ok-text{fill:#027a48}
+    </style>
+  </defs>
+  <rect class="bg" width="1040" height="660"/>
+  <text class="title" x="40" y="42">K 线的 wick 碰到报价，只证明 touch；不证明轮到自己的 maker 单</text>
+  <text class="subtitle" x="40" y="68">两幅图使用归一化价格与数量，仅解释机制；不是实盘行情、回测样本或策略收益证据。</text>
+
+  <g aria-label="图例">
+    <line class="wick-up" x1="54" y1="88" x2="54" y2="108"/><rect class="body-up" x="48" y="93" width="12" height="10"/>
+    <text class="small" x="68" y="103">收阳 K 线（空心）</text>
+    <line class="wick-down" x1="210" y1="88" x2="210" y2="108"/><rect class="body-down" x="204" y="93" width="12" height="10"/>
+    <text class="small" x="224" y="103">收阴 K 线（斜纹）</text>
+    <line class="quote" x1="372" y1="98" x2="414" y2="98"/><text class="small" x="423" y="103">maker BUY 报价</text>
+    <circle class="touch" cx="578" cy="98" r="7"/><text class="small" x="592" y="103">触价</text>
+    <circle class="fill" cx="664" cy="98" r="7"/><path d="M660 98l3 3 6-7" fill="none" stroke="#027a48" stroke-width="1.8"/><text class="small" x="678" y="103">成交</text>
+  </g>
+
+  <rect class="panel" x="42" y="126" width="466" height="374" rx="8"/>
+  <rect class="panel" x="532" y="126" width="466" height="374" rx="8"/>
+  <text class="panel-title" x="64" y="154">A｜wick 触价，但 queue ahead 未耗尽</text>
+  <text class="panel-title" x="554" y="154">B｜穿透前方队列，自己的单才成交</text>
+
+  <g aria-label="左图价格坐标">
+    <line class="grid" x1="88" y1="190" x2="484" y2="190"/><line class="grid" x1="88" y1="250" x2="484" y2="250"/><line class="grid" x1="88" y1="310" x2="484" y2="310"/><line class="grid" x1="88" y1="370" x2="484" y2="370"/><line class="grid" x1="88" y1="430" x2="484" y2="430"/>
+    <line class="axis" x1="88" y1="176" x2="88" y2="452"/><line class="axis" x1="88" y1="452" x2="484" y2="452"/>
+    <text class="tick" x="55" y="194">100.6</text><text class="tick" x="55" y="254">100.4</text><text class="tick" x="55" y="314">100.2</text><text class="tick" x="55" y="374">100.0</text><text class="tick" x="61" y="434">99.8</text>
+    <text class="tick" x="109" y="470">t₀</text><text class="tick" x="175" y="470">t₁</text><text class="tick" x="241" y="470">t₂</text><text class="tick" x="307" y="470">t₃</text><text class="tick" x="373" y="470">t₄</text><text class="tick" x="439" y="470">t₅</text>
+    <text class="small" transform="translate(52 338) rotate(-90)">价格（归一化）</text><text class="small" x="267" y="490">时间</text>
+  </g>
+  <g aria-label="左图 K 线">
+    <line class="wick-up" x1="116" y1="206" x2="116" y2="264"/><rect class="body-up" x="107" y="222" width="18" height="24"/>
+    <line class="wick-down" x1="182" y1="214" x2="182" y2="286"/><rect class="body-down" x="173" y="230" width="18" height="34"/>
+    <line class="wick-down" x1="248" y1="242" x2="248" y2="322"/><rect class="body-down" x="239" y="258" width="18" height="38"/>
+    <line class="wick-down" x1="314" y1="278" x2="314" y2="370"/><rect class="body-down" x="305" y="292" width="18" height="38"/>
+    <line class="wick-up" x1="380" y1="296" x2="380" y2="344"/><rect class="body-up" x="371" y="308" width="18" height="20"/>
+    <line class="wick-up" x1="446" y1="268" x2="446" y2="330"/><rect class="body-up" x="437" y="282" width="18" height="34"/>
+    <line class="quote" x1="88" y1="370" x2="484" y2="370"/><text class="quote-label" x="350" y="362">maker bid = 100.0</text>
+    <circle class="touch" cx="314" cy="370" r="8"/><path d="M308 364l12 12M320 364l-12 12" stroke="#b45309" stroke-width="1.8"/>
+  </g>
+  <rect class="callout" x="104" y="392" width="264" height="48" rx="6"/>
+  <text class="text" x="120" y="413">触价成立；前方数量仍未吃完</text>
+  <text class="mono" x="120" y="431">aggressive sell qty &lt; queue ahead</text>
+  <path class="line" d="M300 392C310 384 312 380 314 378"/>
+  <text class="text danger" x="382" y="416">NO FILL</text><text class="small" x="382" y="435">自己的单仍在队尾</text>
+
+  <g aria-label="右图价格坐标">
+    <line class="grid" x1="578" y1="190" x2="974" y2="190"/><line class="grid" x1="578" y1="250" x2="974" y2="250"/><line class="grid" x1="578" y1="310" x2="974" y2="310"/><line class="grid" x1="578" y1="370" x2="974" y2="370"/><line class="grid" x1="578" y1="430" x2="974" y2="430"/>
+    <line class="axis" x1="578" y1="176" x2="578" y2="452"/><line class="axis" x1="578" y1="452" x2="974" y2="452"/>
+    <text class="tick" x="545" y="194">100.6</text><text class="tick" x="545" y="254">100.4</text><text class="tick" x="545" y="314">100.2</text><text class="tick" x="545" y="374">100.0</text><text class="tick" x="551" y="434">99.8</text>
+    <text class="tick" x="599" y="470">t₀</text><text class="tick" x="665" y="470">t₁</text><text class="tick" x="731" y="470">t₂</text><text class="tick" x="797" y="470">t₃</text><text class="tick" x="863" y="470">t₄</text><text class="tick" x="929" y="470">t₅</text>
+    <text class="small" transform="translate(542 338) rotate(-90)">价格（归一化）</text><text class="small" x="757" y="490">时间</text>
+  </g>
+  <g aria-label="右图 K 线">
+    <line class="wick-up" x1="606" y1="206" x2="606" y2="264"/><rect class="body-up" x="597" y="222" width="18" height="24"/>
+    <line class="wick-down" x1="672" y1="214" x2="672" y2="286"/><rect class="body-down" x="663" y="230" width="18" height="34"/>
+    <line class="wick-down" x1="738" y1="242" x2="738" y2="322"/><rect class="body-down" x="729" y="258" width="18" height="38"/>
+    <line class="wick-down" x1="804" y1="278" x2="804" y2="420"/><rect class="body-down" x="795" y="292" width="18" height="92"/>
+    <line class="wick-up" x1="870" y1="354" x2="870" y2="428"/><rect class="body-up" x="861" y="372" width="18" height="30"/>
+    <line class="wick-up" x1="936" y1="330" x2="936" y2="396"/><rect class="body-up" x="927" y="346" width="18" height="38"/>
+    <line class="quote" x1="578" y1="370" x2="974" y2="370"/><text class="quote-label" x="840" y="362">maker bid = 100.0</text>
+    <circle class="fill" cx="804" cy="370" r="9"/><path d="M799 370l4 4 8-10" fill="none" stroke="#027a48" stroke-width="2"/>
+  </g>
+  <rect class="callout-ok" x="592" y="392" width="298" height="48" rx="6"/>
+  <text class="text" x="608" y="413">触价 + 主动量穿透 queue ahead</text>
+  <text class="mono" x="608" y="431">sell qty &gt; queue + own qty</text>
+  <path class="line" d="M790 392C798 384 801 380 803 379"/>
+  <text class="text ok-text" x="900" y="416">FILL</text><text class="small" x="900" y="435">成交时钟启动</text>
+
+  <rect class="formula" x="42" y="522" width="956" height="96" rx="8"/>
+  <text class="text" x="64" y="550">事件定义不同，不能把固定期限 P(touch) 直接压成执行到达率或 P(fill)</text>
+  <text class="mono" x="64" y="576">touch := min(low path) ≤ quote price</text>
+  <text class="mono" x="454" y="576">fill := active ∧ crossed ∧ queue=0 ∧ residual qty&gt;0</text>
+  <text class="small" x="64" y="602">K 线最多告诉你价格路径“碰过哪里”；maker 成交还需要逐笔方向、数量、激活时刻、排队和撤单生命周期。</text>
+  <text class="small" x="792" y="642">机制示意，非实盘证据</text>
+</svg>

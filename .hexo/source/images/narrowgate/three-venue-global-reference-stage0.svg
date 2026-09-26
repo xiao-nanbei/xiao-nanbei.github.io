@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">三交易所 Global Reference Stage 0 因果机制示意</title>
+  <desc id="desc">Bitget、Bybit、OKX 现货永续的一秒 K 线经过右边界可见性、二取三共识、稳定币 bridge 和 leave-one-out 检验，形成只供诊断的 BTCUSDC 外部参考坐标。</desc>
+  <rect width="1200" height="620" fill="#08111f"/>
+  <text x="54" y="48" fill="#f4f7fb" font-size="25" font-family="system-ui,sans-serif" font-weight="700">Three-Venue Global Reference Stage 0</text>
+  <text x="54" y="76" fill="#9fb3c8" font-size="14" font-family="system-ui,sans-serif">机制示意 · archived trades → causal 1s state → diagnostic only</text>
+  <g transform="translate(54 112)">
+    <rect width="410" height="300" rx="16" fill="#0d1b2d" stroke="#27415f"/>
+    <text x="22" y="32" fill="#dce7f4" font-size="16" font-family="system-ui,sans-serif" font-weight="650">三家现货 / 永续逐笔成交</text>
+    <line x1="34" y1="58" x2="34" y2="258" stroke="#36516f"/>
+    <line x1="34" y1="258" x2="385" y2="258" stroke="#36516f"/>
+    <polyline points="40,214 84,202 128,210 172,166 216,176 260,130 304,146 348,96 382,112" fill="none" stroke="#58d6c7" stroke-width="3"/>
+    <polyline points="40,224 84,216 128,219 172,184 216,190 260,148 304,160 348,116 382,126" fill="none" stroke="#7aa2f7" stroke-width="3"/>
+    <polyline points="40,206 84,198 128,216 172,174 216,182 260,142 304,151 348,108 382,120" fill="none" stroke="#f5a65b" stroke-width="3"/>
+    <g stroke-width="2">
+      <line x1="92" y1="190" x2="92" y2="226" stroke="#dce7f4"/><rect x="85" y="198" width="14" height="18" fill="#58d6c7"/>
+      <line x1="180" y1="154" x2="180" y2="196" stroke="#dce7f4"/><rect x="173" y="165" width="14" height="22" fill="#58d6c7"/>
+      <line x1="268" y1="120" x2="268" y2="162" stroke="#dce7f4"/><rect x="261" y="132" width="14" height="20" fill="#58d6c7"/>
+      <line x1="356" y1="88" x2="356" y2="132" stroke="#dce7f4"/><rect x="349" y="100" width="14" height="23" fill="#58d6c7"/>
+    </g>
+    <circle cx="52" cy="279" r="5" fill="#58d6c7"/><text x="64" y="284" fill="#a8bfd3" font-size="13" font-family="system-ui,sans-serif">Bitget</text>
+    <circle cx="137" cy="279" r="5" fill="#7aa2f7"/><text x="149" y="284" fill="#a8bfd3" font-size="13" font-family="system-ui,sans-serif">Bybit</text>
+    <circle cx="218" cy="279" r="5" fill="#f5a65b"/><text x="230" y="284" fill="#a8bfd3" font-size="13" font-family="system-ui,sans-serif">OKX</text>
+  </g>
+  <path d="M475 262 H535" stroke="#7695b3" stroke-width="2" marker-end="url(#arrow)"/>
+  <g transform="translate(535 112)">
+    <rect width="280" height="300" rx="16" fill="#0d1b2d" stroke="#27415f"/>
+    <text x="22" y="34" fill="#dce7f4" font-size="16" font-family="system-ui,sans-serif" font-weight="650">因果 reference</text>
+    <rect x="22" y="57" width="236" height="46" rx="9" fill="#122941" stroke="#3a5a7c"/>
+    <text x="42" y="85" fill="#c8d8e8" font-size="14" font-family="system-ui,sans-serif">[t,t+1s) → t+1s 可见</text>
+    <rect x="22" y="119" width="236" height="46" rx="9" fill="#12312f" stroke="#36766e"/>
+    <text x="48" y="147" fill="#bce9df" font-size="14" font-family="system-ui,sans-serif">2-of-3 + weighted median</text>
+    <rect x="22" y="181" width="236" height="46" rx="9" fill="#30251a" stroke="#755530"/>
+    <text x="43" y="209" fill="#f2d2a8" font-size="14" font-family="system-ui,sans-serif">BTCUSDT ÷ USDCUSDT</text>
+    <rect x="22" y="243" width="236" height="36" rx="9" fill="#201d36" stroke="#514878"/>
+    <text x="55" y="266" fill="#d6cdf5" font-size="13" font-family="system-ui,sans-serif">all + 3 × leave-one-out</text>
+  </g>
+  <path d="M825 262 H880" stroke="#7695b3" stroke-width="2" marker-end="url(#arrow)"/>
+  <g transform="translate(880 112)">
+    <rect width="266" height="300" rx="16" fill="#0d1b2d" stroke="#27415f"/>
+    <text x="22" y="34" fill="#dce7f4" font-size="16" font-family="system-ui,sans-serif" font-weight="650">冻结判定</text>
+    <text x="22" y="72" fill="#9fb3c8" font-size="13" font-family="system-ui,sans-serif">6,247,083 reference states</text>
+    <text x="22" y="97" fill="#9fb3c8" font-size="13" font-family="system-ui,sans-serif">4,659,028 pass strict gates</text>
+    <line x1="22" y1="119" x2="244" y2="119" stroke="#27415f"/>
+    <text x="22" y="151" fill="#f4c27a" font-size="14" font-family="system-ui,sans-serif">SELL submit 1s clue</text>
+    <text x="22" y="176" fill="#9fb3c8" font-size="13" font-family="system-ui,sans-serif">30s ≈ +0.05…+0.10 bps</text>
+    <text x="22" y="200" fill="#f08a8a" font-size="13" font-family="system-ui,sans-serif">5s negative · daily signs ≈ 1/2</text>
+    <rect x="22" y="225" width="222" height="48" rx="10" fill="#3a1e26" stroke="#8e4150"/>
+    <text x="51" y="255" fill="#ffd0d6" font-size="15" font-family="system-ui,sans-serif" font-weight="700">NO ACTION AUTHORITY</text>
+  </g>
+  <rect x="54" y="447" width="1092" height="112" rx="15" fill="#0b1727" stroke="#27415f"/>
+  <text x="76" y="478" fill="#dce7f4" font-size="15" font-family="system-ui,sans-serif" font-weight="650">边界</text>
+  <text x="76" y="506" fill="#a8bfd3" font-size="14" font-family="system-ui,sans-serif">关闭：archived trades → causal 1s state → maker action</text>
+  <text x="76" y="534" fill="#7ddbcf" font-size="14" font-family="system-ui,sans-serif">未关闭：receive-time BBO / trades → flow &amp; depletion → subsecond fill toxicity</text>
+  <text x="1000" y="596" fill="#617993" font-size="12" font-family="system-ui,sans-serif">冻结聚合结果 / 机制示意</text>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#7695b3"/></marker></defs>
+</svg>

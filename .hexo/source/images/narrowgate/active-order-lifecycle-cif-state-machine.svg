@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" viewBox="0 0 1280 760" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">Active-order lifecycle 状态机与 100ms 竞争风险 CIF</title>
+  <desc id="desc">左侧展示 ACTIVE、PARTIALLY FILLED、CANCEL PENDING 与 EXCHANGE TERMINAL 的冻结状态转换，右侧展示合成的 survival 和四条 cause-specific CIF 曲线。图为机制示意，不是实盘行情、订单或经济结果。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07131f"/>
+      <stop offset="1" stop-color="#1a2b42"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#10283b"/>
+      <stop offset="1" stop-color="#0b1b2a"/>
+    </linearGradient>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#8bd5ff"/>
+    </marker>
+    <marker id="arrowGold" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#ffd166"/>
+    </marker>
+    <marker id="arrowRed" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#ff8f91"/>
+    </marker>
+  </defs>
+
+  <rect width="1280" height="760" rx="24" fill="url(#bg)"/>
+  <text x="46" y="52" fill="#f7f9ff" font-size="28" font-family="sans-serif" font-weight="700">Active-Order Lifecycle CIF：状态先正确，概率才有意义</text>
+  <text x="46" y="83" fill="#9db2c8" font-size="16" font-family="sans-serif">冻结 mechanics 示意 · 100ms causal visibility grid · 非实盘订单 · 非经济结果</text>
+
+  <rect x="40" y="108" width="570" height="548" rx="18" fill="url(#panel)" stroke="#31506a" stroke-width="2"/>
+  <text x="66" y="142" fill="#dff5ff" font-size="20" font-family="sans-serif" font-weight="700">A. Remaining-quantity risk spell 状态机</text>
+
+  <rect x="76" y="170" width="188" height="62" rx="12" fill="#19344b" stroke="#6fbbe7" stroke-width="2"/>
+  <text x="170" y="196" text-anchor="middle" fill="#d9f2ff" font-size="17" font-family="sans-serif" font-weight="700">ACTIVE</text>
+  <text x="170" y="218" text-anchor="middle" fill="#a9c8da" font-size="13" font-family="sans-serif">remaining qty &gt; 0</text>
+
+  <rect x="354" y="170" width="218" height="62" rx="12" fill="#173d3a" stroke="#7ee2a8" stroke-width="2"/>
+  <text x="463" y="196" text-anchor="middle" fill="#d9ffea" font-size="17" font-family="sans-serif" font-weight="700">PARTIALLY_FILLED</text>
+  <text x="463" y="218" text-anchor="middle" fill="#aee0c1" font-size="13" font-family="sans-serif">new spell · CIF reset</text>
+
+  <line x1="264" y1="194" x2="342" y2="194" stroke="#7ee2a8" stroke-width="3" marker-end="url(#arrowBlue)"/>
+  <text x="303" y="181" text-anchor="middle" fill="#bcebd0" font-size="12" font-family="sans-serif">partial fill</text>
+  <path d="M463 232 C463 270 170 270 170 236" fill="none" stroke="#7ee2a8" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#arrowBlue)"/>
+  <text x="319" y="269" text-anchor="middle" fill="#aee0c1" font-size="12" font-family="sans-serif">正余量继续，last edge 不倒退</text>
+
+  <rect x="186" y="316" width="242" height="68" rx="12" fill="#44371d" stroke="#ffd166" stroke-width="2"/>
+  <text x="307" y="344" text-anchor="middle" fill="#fff1ba" font-size="17" font-family="sans-serif" font-weight="700">CANCEL_PENDING</text>
+  <text x="307" y="368" text-anchor="middle" fill="#e8d79b" font-size="13" font-family="sans-serif">request 已可见，ACK 尚未终局</text>
+
+  <path d="M170 232 L170 288 L230 314" fill="none" stroke="#ffd166" stroke-width="3" marker-end="url(#arrowGold)"/>
+  <path d="M463 232 L463 286 L390 314" fill="none" stroke="#ffd166" stroke-width="3" marker-end="url(#arrowGold)"/>
+  <text x="307" y="298" text-anchor="middle" fill="#f2dc94" font-size="12" font-family="sans-serif">cancel request：非终局</text>
+  <path d="M186 350 C118 350 110 290 144 238" fill="none" stroke="#8bd5ff" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#arrowBlue)"/>
+  <text x="92" y="329" fill="#b7def4" font-size="12" font-family="sans-serif">reject</text>
+
+  <rect x="154" y="458" width="306" height="86" rx="14" fill="#43252f" stroke="#ff8f91" stroke-width="2"/>
+  <text x="307" y="487" text-anchor="middle" fill="#ffe2e3" font-size="17" font-family="sans-serif" font-weight="700">EXCHANGE_TERMINAL</text>
+  <text x="307" y="511" text-anchor="middle" fill="#f4bdc0" font-size="13" font-family="sans-serif">full fill · cancel ACK · other terminal</text>
+  <text x="307" y="532" text-anchor="middle" fill="#f4bdc0" font-size="13" font-family="sans-serif">吸收态：禁止后续 hazard / queue reuse</text>
+
+  <line x1="307" y1="384" x2="307" y2="446" stroke="#ff8f91" stroke-width="3" marker-end="url(#arrowRed)"/>
+  <text x="320" y="421" fill="#f5b6b8" font-size="12" font-family="sans-serif">cancel ACK</text>
+  <path d="M170 232 C95 346 105 472 148 491" fill="none" stroke="#ff8f91" stroke-width="2.5" marker-end="url(#arrowRed)"/>
+  <path d="M463 232 C548 348 520 472 466 491" fill="none" stroke="#ff8f91" stroke-width="2.5" marker-end="url(#arrowRed)"/>
+  <text x="86" y="410" fill="#f5b6b8" font-size="12" font-family="sans-serif">full fill / other</text>
+
+  <rect x="76" y="574" width="496" height="54" rx="11" fill="#142638" stroke="#50677d"/>
+  <text x="324" y="597" text-anchor="middle" fill="#c5d4e2" font-size="13" font-family="sans-serif">local shutdown、缺失 exact-native queue → 显式 censor</text>
+  <text x="324" y="618" text-anchor="middle" fill="#90a8bd" font-size="12" font-family="sans-serif">censor 不是 exchange terminal，unknown 也不能按 zero 处理</text>
+
+  <rect x="632" y="108" width="608" height="548" rx="18" fill="url(#panel)" stroke="#31506a" stroke-width="2"/>
+  <text x="658" y="142" fill="#dff5ff" font-size="20" font-family="sans-serif" font-weight="700">B. Jointly normalized 100ms CIF（合成曲线）</text>
+
+  <line x1="700" y1="574" x2="1192" y2="574" stroke="#678096" stroke-width="2"/>
+  <line x1="700" y1="190" x2="700" y2="574" stroke="#678096" stroke-width="2"/>
+  <line x1="700" y1="382" x2="1192" y2="382" stroke="#29465d" stroke-width="1" stroke-dasharray="5 6"/>
+  <line x1="700" y1="286" x2="1192" y2="286" stroke="#29465d" stroke-width="1" stroke-dasharray="5 6"/>
+  <line x1="700" y1="478" x2="1192" y2="478" stroke="#29465d" stroke-width="1" stroke-dasharray="5 6"/>
+  <text x="678" y="196" text-anchor="end" fill="#9db2c8" font-size="12" font-family="sans-serif">1.0</text>
+  <text x="678" y="388" text-anchor="end" fill="#9db2c8" font-size="12" font-family="sans-serif">0.5</text>
+  <text x="678" y="579" text-anchor="end" fill="#9db2c8" font-size="12" font-family="sans-serif">0.0</text>
+  <text x="704" y="597" fill="#9db2c8" font-size="12" font-family="sans-serif">0ms</text>
+  <text x="925" y="597" fill="#9db2c8" font-size="12" font-family="sans-serif">time on causal grid</text>
+  <text x="1157" y="597" fill="#9db2c8" font-size="12" font-family="sans-serif">horizon</text>
+
+  <path d="M700 190 C785 209 842 234 905 270 C977 311 1055 350 1192 382" fill="none" stroke="#f7f9ff" stroke-width="5"/>
+  <path d="M700 574 C792 561 860 542 925 515 C1000 485 1086 455 1192 429" fill="none" stroke="#ff8f91" stroke-width="4"/>
+  <path d="M700 574 C790 568 868 557 934 540 C1012 520 1096 502 1192 489" fill="none" stroke="#7ee2a8" stroke-width="4"/>
+  <path d="M700 574 C792 552 866 526 933 495 C1016 456 1098 422 1192 398" fill="none" stroke="#ffd166" stroke-width="4"/>
+  <path d="M700 574 C820 572 901 568 983 561 C1050 555 1121 548 1192 541" fill="none" stroke="#b58cff" stroke-width="4"/>
+
+  <rect x="730" y="211" width="420" height="62" rx="10" fill="#122c40" stroke="#37566f"/>
+  <text x="750" y="237" fill="#d6e8f5" font-size="14" font-family="sans-serif">每个 edge：S + F_fav + F_adv + F_ack + F_other = 1</text>
+  <text x="750" y="259" fill="#9eb8cb" font-size="13" font-family="sans-serif">survival 单调下降；每条 cause-specific CIF 单调上升</text>
+
+  <line x1="680" y1="625" x2="710" y2="625" stroke="#f7f9ff" stroke-width="4"/>
+  <text x="718" y="630" fill="#d9e3ec" font-size="12" font-family="sans-serif">survival</text>
+  <line x1="798" y1="625" x2="828" y2="625" stroke="#ff8f91" stroke-width="4"/>
+  <text x="836" y="630" fill="#f5c2c4" font-size="12" font-family="sans-serif">adverse fill</text>
+  <line x1="948" y1="625" x2="978" y2="625" stroke="#7ee2a8" stroke-width="4"/>
+  <text x="986" y="630" fill="#bcebd0" font-size="12" font-family="sans-serif">favorable fill</text>
+  <line x1="1096" y1="615" x2="1126" y2="615" stroke="#ffd166" stroke-width="4"/>
+  <text x="1134" y="620" fill="#f2dc94" font-size="12" font-family="sans-serif">cancel ACK</text>
+  <line x1="1096" y1="638" x2="1126" y2="638" stroke="#b58cff" stroke-width="4"/>
+  <text x="1134" y="643" fill="#d5c3f2" font-size="12" font-family="sans-serif">other terminal</text>
+
+  <rect x="40" y="680" width="1200" height="50" rx="12" fill="#142638" stroke="#314b63"/>
+  <text x="640" y="702" text-anchor="middle" fill="#c9d8e5" font-size="14" font-family="sans-serif">冻结聚合 mechanics：665,831 eligible spells · 120 CIF cells · event mismatch 0 · checkpoint difference 0</text>
+  <text x="640" y="721" text-anchor="middle" fill="#8fa7bb" font-size="12" font-family="sans-serif">曲线为概率会计示意，不代表当前校准、KEEP/CANCEL uplift、PnL 或任何实盘权限</text>
+</svg>

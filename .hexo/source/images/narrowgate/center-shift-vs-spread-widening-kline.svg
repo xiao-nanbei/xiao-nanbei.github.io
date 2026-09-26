@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="1100" viewBox="0 0 1100 1100" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">K 线冲击下，报价中心位移与价差 widening 是两种不同机制</title>
+  <desc id="desc">两幅图使用完全相同的从平静到波动冲击的示意 K 线。左图只改变 weighted-mid proxy 形成的报价中心，双边宽度保持不变；右图保持中心不变，只让波动率和流动性乘数扩大半价差。图为机制示意，不是实盘或回测证据。</desc>
+  <defs>
+    <style>
+      .bg{fill:#fbfcfe}.panel{fill:#fff;stroke:#d0d5dd;stroke-width:1.2}.shock-zone{fill:#fff4ed}.grid{stroke:#eaecf0;stroke-width:1}.axis{stroke:#667085;stroke-width:1.3}.regime{stroke:#b54708;stroke-width:1.5;stroke-dasharray:6 5}.divider{stroke:#98a2b3;stroke-width:1.2;stroke-dasharray:5 5}.wick{stroke:#344054;stroke-width:1.5}.up{fill:#fff;stroke:#039855;stroke-width:1.8}.down{fill:#f97066;stroke:#b42318;stroke-width:1.8}.mid{fill:none;stroke:#667085;stroke-width:2;stroke-dasharray:7 5}.center{fill:none;stroke:#175cd3;stroke-width:3}.bid{fill:none;stroke:#039855;stroke-width:2.6}.ask{fill:none;stroke:#d92d20;stroke-width:2.6}.band{fill:#d1e9ff;opacity:.45}.bracket{stroke:#7f56d9;stroke-width:2}.arrow{stroke:#7f56d9;stroke-width:2.2;fill:none;marker-end:url(#arr)}.arrow-gray{stroke:#667085;stroke-width:2;fill:none;marker-end:url(#arr-gray)}.guide{fill:#f9fafb;stroke:#d0d5dd;stroke-width:1.2}.title{font:500 24px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.heading{font:500 17px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.text{font:400 14px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#344054}.small{font:400 12px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#475467}.mono{font:400 13px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#344054}.accent{font:500 13px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#6941c6}.marker-bid{fill:#fff;stroke:#039855;stroke-width:2}.marker-ask{fill:#fff;stroke:#d92d20;stroke-width:2}
+    </style>
+    <marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7f56d9"/></marker>
+    <marker id="arr-gray" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#667085"/></marker>
+    <clipPath id="left-clip"><rect x="70" y="160" width="450" height="350"/></clipPath>
+    <clipPath id="right-clip"><rect x="70" y="160" width="450" height="350"/></clipPath>
+    <g id="shared-candles">
+      <line class="wick" x1="96" y1="350" x2="96" y2="393"/><rect class="up" x="87" y="364" width="18" height="17"/>
+      <line class="wick" x1="132" y1="344" x2="132" y2="382"/><rect class="down" x="123" y="364" width="18" height="8"/>
+      <line class="wick" x1="168" y1="348" x2="168" y2="391"/><rect class="up" x="159" y="360" width="18" height="12"/>
+      <line class="wick" x1="204" y1="337" x2="204" y2="380"/><rect class="up" x="195" y="348" width="18" height="12"/>
+      <line class="wick" x1="240" y1="342" x2="240" y2="388"/><rect class="down" x="231" y="348" width="18" height="25"/>
+      <line class="wick" x1="276" y1="350" x2="276" y2="390"/><rect class="up" x="267" y="360" width="18" height="13"/>
+      <line class="wick" x1="312" y1="266" x2="312" y2="397"/><rect class="up" x="303" y="292" width="18" height="68"/>
+      <line class="wick" x1="348" y1="222" x2="348" y2="325"/><rect class="up" x="339" y="248" width="18" height="44"/>
+      <line class="wick" x1="384" y1="231" x2="384" y2="354"/><rect class="down" x="375" y="248" width="18" height="79"/>
+      <line class="wick" x1="420" y1="287" x2="420" y2="424"/><rect class="down" x="411" y="327" width="18" height="60"/>
+      <line class="wick" x1="456" y1="301" x2="456" y2="405"/><rect class="up" x="447" y="328" width="18" height="59"/>
+      <line class="wick" x1="492" y1="270" x2="492" y2="370"/><rect class="up" x="483" y="300" width="18" height="28"/>
+    </g>
+  </defs>
+
+  <rect class="bg" width="1100" height="1100"/>
+  <text class="title" x="40" y="42">不要把“中心移动”和“价差变宽”画成同一件事</text>
+  <text class="text" x="40" y="69">同一段冲击 K 线可以同时触发两种机制；这里用控制变量方式分开展示。</text>
+
+  <rect class="panel" x="36" y="106" width="500" height="466" rx="10"/>
+  <rect class="panel" x="564" y="106" width="500" height="466" rx="10"/>
+  <text class="heading" x="70" y="138">A　中心位移：盘口数量不平衡改变 m_w</text>
+  <text class="heading" x="590" y="138">B　宽度变化：波动 / 流动性改变 h</text>
+
+  <g>
+    <rect class="shock-zone" x="300" y="160" width="220" height="350"/>
+    <line class="grid" x1="70" y1="200" x2="520" y2="200"/><line class="grid" x1="70" y1="280" x2="520" y2="280"/><line class="grid" x1="70" y1="360" x2="520" y2="360"/><line class="grid" x1="70" y1="440" x2="520" y2="440"/><line class="grid" x1="70" y1="510" x2="520" y2="510"/>
+    <line class="axis" x1="70" y1="160" x2="70" y2="510"/><line class="axis" x1="70" y1="510" x2="520" y2="510"/>
+    <line class="regime" x1="300" y1="160" x2="300" y2="510"/>
+    <text class="small" x="185" y="180" text-anchor="middle">平静段</text><text class="small" x="410" y="180" text-anchor="middle">冲击段</text>
+    <text class="small" x="62" y="204" text-anchor="end">101</text><text class="small" x="62" y="284" text-anchor="end">100.5</text><text class="small" x="62" y="364" text-anchor="end">100</text><text class="small" x="62" y="444" text-anchor="end">99.5</text>
+    <text class="small" x="70" y="532">0</text><text class="small" x="284" y="532">30</text><text class="small" x="498" y="532">60 s</text>
+    <text class="small" transform="translate(20 388) rotate(-90)">归一化价格指数</text>
+    <g clip-path="url(#left-clip)"><use href="#shared-candles"/>
+      <path class="mid" d="M80 367 C140 361 190 355 245 363 S294 346 315 326 S352 258 386 289 S430 361 458 347 S486 319 510 309"/>
+      <path class="center" d="M80 367 C140 361 190 355 245 363 S294 342 315 313 S352 239 386 268 S430 337 458 324 S486 295 510 285"/>
+      <path class="ask" d="M80 332 C140 326 190 320 245 328 S294 307 315 278 S352 204 386 233 S430 302 458 289 S486 260 510 250"/>
+      <path class="bid" d="M80 402 C140 396 190 390 245 398 S294 377 315 348 S352 274 386 303 S430 372 458 359 S486 330 510 320"/>
+    </g>
+    <path class="arrow" d="M448 348 V327"/><text class="accent" x="329" y="467">Δcenter = m_w − mid</text>
+    <line class="bracket" x1="498" y1="250" x2="498" y2="320"/><line class="bracket" x1="492" y1="250" x2="504" y2="250"/><line class="bracket" x1="492" y1="320" x2="504" y2="320"/><text class="small" x="390" y="490">双边宽度 2h 不变</text>
+  </g>
+
+  <g>
+    <rect class="shock-zone" x="820" y="160" width="220" height="350"/>
+    <line class="grid" x1="590" y1="200" x2="1040" y2="200"/><line class="grid" x1="590" y1="280" x2="1040" y2="280"/><line class="grid" x1="590" y1="360" x2="1040" y2="360"/><line class="grid" x1="590" y1="440" x2="1040" y2="440"/><line class="grid" x1="590" y1="510" x2="1040" y2="510"/>
+    <line class="axis" x1="590" y1="160" x2="590" y2="510"/><line class="axis" x1="590" y1="510" x2="1040" y2="510"/>
+    <line class="regime" x1="820" y1="160" x2="820" y2="510"/>
+    <text class="small" x="705" y="180" text-anchor="middle">平静段</text><text class="small" x="930" y="180" text-anchor="middle">冲击段</text>
+    <text class="small" x="582" y="204" text-anchor="end">101</text><text class="small" x="582" y="284" text-anchor="end">100.5</text><text class="small" x="582" y="364" text-anchor="end">100</text><text class="small" x="582" y="444" text-anchor="end">99.5</text>
+    <text class="small" x="590" y="532">0</text><text class="small" x="804" y="532">30</text><text class="small" x="1018" y="532">60 s</text>
+    <text class="small" transform="translate(540 388) rotate(-90)">归一化价格指数</text>
+    <g clip-path="url(#right-clip)" transform="translate(520 0)"><use href="#shared-candles"/>
+      <path class="band" d="M80 335 C140 329 190 323 245 331 S294 314 315 264 S352 184 386 215 S430 287 458 274 S486 245 510 235 L510 383 C486 393 458 422 430 435 S386 363 352 332 S315 412 294 412 S245 405 190 397 S140 403 80 409 Z"/>
+      <path class="center" d="M80 367 C140 361 190 355 245 363 S294 346 315 326 S352 258 386 289 S430 361 458 347 S486 319 510 309"/>
+      <path class="ask" d="M80 335 C140 329 190 323 245 331 S294 314 315 264 S352 184 386 215 S430 287 458 274 S486 245 510 235"/>
+      <path class="bid" d="M80 399 C140 393 190 387 245 395 S294 378 315 388 S352 332 386 363 S430 435 458 422 S486 393 510 383"/>
+    </g>
+    <line class="bracket" x1="1018" y1="235" x2="1018" y2="383"/><line class="bracket" x1="1012" y1="235" x2="1024" y2="235"/><line class="bracket" x1="1012" y1="383" x2="1024" y2="383"/>
+    <text class="accent" x="855" y="467">h ↑：ask 上移、bid 下移</text><text class="small" x="855" y="490">中心 r 保持不变</text>
+  </g>
+
+  <rect class="guide" x="36" y="596" width="500" height="84" rx="8"/>
+  <text class="heading" x="60" y="625">中心机制（坐标往哪移）</text>
+  <text class="mono" x="60" y="650">m_w − mid = spread/2 × (Q_b − Q_a)/(Q_b + Q_a)</text>
+  <text class="small" x="60" y="670">数量不平衡改变 fair / reservation 的中心，不等价于未来价格条件期望。</text>
+
+  <rect class="guide" x="564" y="596" width="500" height="84" rx="8"/>
+  <text class="heading" x="588" y="625">宽度机制（离中心多远）</text>
+  <text class="mono" x="588" y="650">bid = r − h，ask = r + h；h ← volatility × liquidity × guard</text>
+  <text class="small" x="588" y="670">波动或流动性风险扩大报价带；实际系统中中心与宽度可以同时变化。</text>
+
+  <g transform="translate(70 705)">
+    <line class="mid" x1="0" y1="0" x2="34" y2="0"/><text class="small" x="44" y="4">mid（虚线）</text>
+    <line class="center" x1="162" y1="0" x2="196" y2="0"/><text class="small" x="206" y="4">中心 r / m_w（实线）</text>
+    <line class="bid" x1="420" y1="0" x2="454" y2="0"/><circle class="marker-bid" cx="437" cy="0" r="4"/><text class="small" x="464" y="4">bid ○</text>
+    <line class="ask" x1="560" y1="0" x2="594" y2="0"/><path class="marker-ask" d="M577 -6 l6 10 h-12 z"/><text class="small" x="604" y="4">ask △</text>
+    <rect class="shock-zone" x="700" y="-10" width="24" height="20"/><text class="small" x="734" y="4">冲击区</text>
+    <text class="small" x="840" y="4">机制示意，非实盘证据</text>
+  </g>
+
+  <line class="divider" x1="40" y1="744" x2="1060" y2="744"/>
+  <text class="heading" x="40" y="779">实际 quote core 会把两条路径合并，但变量角色仍必须分开</text>
+
+  <rect class="guide" x="40" y="806" width="452" height="164" rx="9"/>
+  <text class="heading" x="62" y="838">中心 r：决定整套报价的位置</text>
+  <text class="mono" x="62" y="870">r = mid + Δweighted-mid proxy</text>
+  <text class="mono" x="62" y="896">    + Δmodel return − inventory cost</text>
+  <text class="text" x="62" y="930">中心变化会让 bid 与 ask 同向移动。</text>
+  <text class="small" x="62" y="953">盘口不平衡是当前坐标，不是未来价格条件期望。</text>
+
+  <path class="arrow-gray" d="M492 888 H542"/>
+  <rect class="guide" x="542" y="806" width="518" height="164" rx="9"/>
+  <text class="heading" x="564" y="838">半价差 h：决定双边离中心的距离</text>
+  <text class="mono" x="564" y="870">h = max(h_controller, fee floor)</text>
+  <text class="mono" x="564" y="896">    × m_regime × m_liquidity × m_guard</text>
+  <text class="text" x="564" y="930">宽度变化让 ask 向上、bid 向下，方向相反。</text>
+  <text class="small" x="564" y="953">高波动先 widening；逐侧信息冲击再决定是否 pause。</text>
+
+  <rect class="guide" x="40" y="994" width="1020" height="48" rx="8"/>
+  <text class="mono" x="60" y="1024">final bid = floor_tick(r − h + Δ_bid)　　final ask = ceil_tick(r + h + Δ_ask)</text>
+  <text class="small" x="550" y="1074" text-anchor="middle">机制示意，非实盘证据；K 线、中心偏移和 widening 均为归一化绘图值，不代表历史日期、当前 live 参数或经济效果。</text>
+</svg>

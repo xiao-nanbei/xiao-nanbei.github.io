@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="420" viewBox="0 0 1040 420" role="img" aria-labelledby="title desc">
+  <title id="title">Full-Multiscale 研究从状态到动作价值的完整链路</title>
+  <desc id="desc">图中展示因果可见状态经过仅限训练集的规则发现，生成冷却时长策略，再通过重复顺序回放与精确基线比较终局价值；一次性标签只服务于训练。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#344054"/></marker>
+    <style>
+      .bg{fill:#fbfcfe}.state{fill:#eff8ff;stroke:#175cd3;stroke-width:1.5}.learn{fill:#f4f3ff;stroke:#6941c6;stroke-width:1.5}.action{fill:#fff7ed;stroke:#b45309;stroke-width:1.5}.replay{fill:#ecfdf3;stroke:#027a48;stroke-width:1.5}.result{fill:#fef2f2;stroke:#b42318;stroke-width:1.5}.lane{fill:#fff;stroke:#d0d5dd;stroke-width:1.2}.line{fill:none;stroke:#344054;stroke-width:1.8;marker-end:url(#arrow)}.dash{fill:none;stroke:#667085;stroke-width:1.4;stroke-dasharray:6 5;marker-end:url(#arrow)}.title{font:500 23px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.text{font:500 16px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.small{font:400 13px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#475467}.mono{font:400 12px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#344054}
+    </style>
+  </defs>
+  <rect class="bg" width="1040" height="420"/>
+  <text class="title" x="36" y="42">研究真正问的是：状态能否改变动作价值？</text>
+
+  <rect class="state" x="30" y="90" width="170" height="108" rx="9"/>
+  <text class="text" x="50" y="122">因果可见状态</text>
+  <text class="small" x="50" y="149">市场 · 订单 · 库存</text>
+  <text class="small" x="50" y="171">campaign · EMA</text>
+
+  <rect class="learn" x="232" y="90" width="170" height="108" rx="9"/>
+  <text class="text" x="252" y="122">规则发现</text>
+  <text class="small" x="252" y="149">只看 inner-train</text>
+  <text class="small" x="252" y="171">有界 AND / OR / NOT</text>
+
+  <rect class="action" x="434" y="90" width="170" height="108" rx="9"/>
+  <text class="text" x="454" y="122">冷却时长策略</text>
+  <text class="small" x="454" y="149">从冻结的八档动作</text>
+  <text class="small" x="454" y="171">中选择一个 duration</text>
+
+  <rect class="replay" x="636" y="90" width="170" height="108" rx="9"/>
+  <text class="text" x="656" y="122">重复顺序回放</text>
+  <text class="small" x="656" y="149">每次合格成交重算</text>
+  <text class="small" x="656" y="171">后续订单与库存路径</text>
+
+  <rect class="result" x="838" y="90" width="172" height="108" rx="9"/>
+  <text class="text" x="858" y="122">终局增量价值</text>
+  <text class="mono" x="858" y="150">ΔY = Yπ − YB0</text>
+  <text class="small" x="858" y="174">而非下一秒涨跌</text>
+
+  <path class="line" d="M200 144H232"/><path class="line" d="M402 144H434"/><path class="line" d="M604 144H636"/><path class="line" d="M806 144H838"/>
+
+  <rect class="lane" x="70" y="264" width="400" height="102" rx="8"/>
+  <text class="text" x="92" y="294">训练层：one-shot counterfactual labels</text>
+  <text class="small" x="92" y="320">帮助发现“这个机会若换一个时长会怎样”</text>
+  <text class="small" x="92" y="343">只允许进入 inner-train，不得直接相加成策略 PnL</text>
+
+  <rect class="lane" x="570" y="264" width="400" height="102" rx="8"/>
+  <text class="text" x="592" y="294">评价层：untouched outer-test full path</text>
+  <text class="small" x="592" y="320">候选与 B0 分别跑完整、反复触发的路径</text>
+  <text class="small" x="592" y="343">只在这里读取正式 OOF 经济结果</text>
+
+  <path class="dash" d="M317 198V240H270V264"/><path class="dash" d="M721 198V240H770V264"/>
+</svg>

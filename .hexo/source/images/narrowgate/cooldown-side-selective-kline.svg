@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="760" viewBox="0 0 1040 760" role="img" aria-labelledby="title desc">
+  <title id="title">成交后 cooldown 如何按库存角色影响两侧报价</title>
+  <desc id="desc">示意已经持有多头库存时，一笔 maker 买单成交后增加风险的买侧报价在冷却期内被阻止，而降低库存的卖侧报价继续可用。下方比较固定冷却时长与 Full-Multiscale 状态到时长候选映射，并说明研究没有 action 或 live 权限。</desc>
+  <defs>
+    <pattern id="down-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#fef2f2"/><line x1="0" y1="0" x2="0" y2="6" stroke="#f97066" stroke-width="2"/></pattern>
+    <pattern id="blocked-hatch" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#fef2f2"/><path d="M0 8L8 0M-2 2L2-2M6 10L10 6" stroke="#f97066" stroke-width="1.4"/></pattern>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#344054"/></marker>
+    <style>
+      .bg{fill:#fbfcfe}.panel{fill:#fff;stroke:#d0d5dd;stroke-width:1.2}.grid{stroke:#eaecf0;stroke-width:1}.axis{stroke:#667085;stroke-width:1.2}.title{font:500 23px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.subtitle{font:400 13px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#475467}.text{font:500 14px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.small{font:400 12px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#475467}.tiny{font:400 11px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#667085}.mono{font:400 11px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#344054}.wick-up{stroke:#027a48;stroke-width:2}.body-up{fill:#ecfdf3;stroke:#027a48;stroke-width:2}.wick-down{stroke:#b42318;stroke-width:2}.body-down{fill:url(#down-hatch);stroke:#b42318;stroke-width:2}.buy{fill:none;stroke:#175cd3;stroke-width:2.4;stroke-dasharray:8 5}.sell{fill:none;stroke:#027a48;stroke-width:2.4}.inventory{fill:none;stroke:#6941c6;stroke-width:2.2}.fill{fill:#ecfdf3;stroke:#027a48;stroke-width:2.5}.block-x{stroke:#b42318;stroke-width:2.5}.cool-zone{fill:url(#blocked-hatch);opacity:.55;stroke:#b42318;stroke-width:1.2}.fixed{fill:#fef2f2;stroke:#b42318;stroke-width:1.2}.selected{fill:#fff7ed;stroke:#b45309;stroke-width:1.2}.feature{fill:#eff8ff;stroke:#175cd3;stroke-width:1.2}.policy{fill:#f4f3ff;stroke:#6941c6;stroke-width:1.2}.action{fill:#ecfdf3;stroke:#027a48;stroke-width:1.2}.note{fill:#f8fafc;stroke:#98a2b3;stroke-width:1.1;stroke-dasharray:5 4}.status{fill:#fef2f2;stroke:#b42318;stroke-width:1.2}.line{fill:none;stroke:#344054;stroke-width:1.4;marker-end:url(#arrow)}.timeline{stroke:#667085;stroke-width:1.4}.bracket{fill:none;stroke:#b45309;stroke-width:1.8}.side-square{fill:#ecfdf3;stroke:#027a48;stroke-width:1.8}.side-triangle{fill:#eff8ff;stroke:#175cd3;stroke-width:1.8}
+    </style>
+  </defs>
+  <rect class="bg" width="1040" height="760"/>
+  <text class="title" x="40" y="42">Cooldown 应该阻止“继续加风险”，而不是把两边一起关掉</text>
+  <text class="subtitle" x="40" y="68">场景：成交前已经是多头 q&gt;0；BUY 是 exposure-increasing，SELL 是 reducing。机制示意，非实盘证据。</text>
+
+  <g aria-label="图例">
+    <line class="buy" x1="52" y1="96" x2="96" y2="96"/><path class="side-triangle" d="M74 88L81 101H67Z"/><text class="small" x="106" y="101">BUY（加多风险，虚线+三角）</text>
+    <line class="sell" x1="310" y1="96" x2="354" y2="96"/><rect class="side-square" x="327" y="90" width="12" height="12"/><text class="small" x="364" y="101">SELL（减仓，实线+方块）</text>
+    <path class="block-x" d="M570 89l14 14M584 89l-14 14"/><text class="small" x="594" y="101">该次加仓报价被 cooldown 阻止</text>
+  </g>
+
+  <rect class="panel" x="48" y="122" width="944" height="318" rx="8"/>
+  <rect class="cool-zone" x="378" y="146" width="406" height="246" rx="5"/>
+  <text class="text" text-anchor="middle" x="581" y="168">cooldown 区间：只屏蔽 exposure-increasing BUY</text>
+
+  <line class="grid" x1="90" y1="194" x2="970" y2="194"/><line class="grid" x1="90" y1="246" x2="970" y2="246"/><line class="grid" x1="90" y1="298" x2="970" y2="298"/><line class="grid" x1="90" y1="350" x2="970" y2="350"/>
+  <line class="axis" x1="90" y1="178" x2="90" y2="402"/><line class="axis" x1="90" y1="402" x2="970" y2="402"/>
+  <text class="tiny" x="59" y="198">100.6</text><text class="tiny" x="59" y="250">100.4</text><text class="tiny" x="59" y="302">100.2</text><text class="tiny" x="59" y="354">100.0</text><text class="small" transform="translate(55 330) rotate(-90)">价格（归一化）</text>
+  <text class="tiny" x="128" y="420">t₀</text><text class="tiny" x="238" y="420">t₁</text><text class="tiny" x="348" y="420">t_fill</text><text class="tiny" x="458" y="420">t₃</text><text class="tiny" x="568" y="420">t₄</text><text class="tiny" x="678" y="420">t₅</text><text class="tiny" x="788" y="420">t_end</text><text class="tiny" x="898" y="420">t₇</text>
+
+  <g aria-label="示意 K 线">
+    <line class="wick-up" x1="138" y1="222" x2="138" y2="302"/><rect class="body-up" x="128" y="242" width="20" height="32"/>
+    <line class="wick-down" x1="248" y1="230" x2="248" y2="326"/><rect class="body-down" x="238" y="250" width="20" height="44"/>
+    <line class="wick-down" x1="358" y1="270" x2="358" y2="366"/><rect class="body-down" x="348" y="292" width="20" height="38"/>
+    <line class="wick-down" x1="468" y1="304" x2="468" y2="388"/><rect class="body-down" x="458" y="324" width="20" height="36"/>
+    <line class="wick-up" x1="578" y1="310" x2="578" y2="382"/><rect class="body-up" x="568" y="328" width="20" height="32"/>
+    <line class="wick-up" x1="688" y1="278" x2="688" y2="354"/><rect class="body-up" x="678" y="298" width="20" height="36"/>
+    <line class="wick-up" x1="798" y1="246" x2="798" y2="326"/><rect class="body-up" x="788" y="264" width="20" height="40"/>
+    <line class="wick-down" x1="908" y1="238" x2="908" y2="314"/><rect class="body-down" x="898" y="260" width="20" height="30"/>
+  </g>
+
+  <path class="sell" d="M112 212L248 220L358 250L468 272L578 278L688 260L798 232L938 238"/>
+  <rect class="side-square" x="132" y="206" width="12" height="12"/><rect class="side-square" x="242" y="214" width="12" height="12"/><rect class="side-square" x="352" y="244" width="12" height="12"/><rect class="side-square" x="462" y="266" width="12" height="12"/><rect class="side-square" x="572" y="272" width="12" height="12"/><rect class="side-square" x="682" y="254" width="12" height="12"/><rect class="side-square" x="792" y="226" width="12" height="12"/><rect class="side-square" x="902" y="232" width="12" height="12"/>
+  <text class="small" x="810" y="218" fill="#027a48">reducing SELL 始终可用*</text>
+
+  <path class="buy" d="M112 326L248 334L358 350"/>
+  <path class="side-triangle" d="M138 319L145 332H131Z"/><path class="side-triangle" d="M248 327L255 340H241Z"/>
+  <circle class="fill" cx="358" cy="350" r="9"/><path d="M353 350l4 4 8-10" fill="none" stroke="#027a48" stroke-width="2"/>
+  <rect class="note" x="256" y="178" width="116" height="42" rx="5"/>
+  <text class="text" text-anchor="middle" x="314" y="196">maker BUY fill</text><text class="small" text-anchor="middle" x="314" y="213">q → q + z</text>
+  <path class="line" d="M332 220C346 254 353 302 357 340"/>
+  <path class="buy" d="M784 314L938 320"/>
+  <path class="side-triangle" d="M798 307L805 320H791Z"/><path class="side-triangle" d="M908 313L915 326H901Z"/>
+  <g aria-label="被阻止的买侧报价">
+    <path class="block-x" d="M451 328l18 18M469 328l-18 18"/><path class="block-x" d="M561 332l18 18M579 332l-18 18"/><path class="block-x" d="M671 314l18 18M689 314l-18 18"/><path class="block-x" d="M761 300l18 18M779 300l-18 18"/>
+  </g>
+  <text class="tiny" x="64" y="434">*“保持可用”仍受 max inventory、freshness、Post-Only 与其他硬安全约束；cooldown 本身不应误伤 reducing side。</text>
+
+  <text class="text" x="48" y="474">两种 duration 机制</text>
+  <line class="timeline" x1="168" y1="512" x2="952" y2="512"/>
+  <text class="text" x="48" y="517">固定时长</text>
+  <circle class="fill" cx="358" cy="512" r="7"/><rect class="fixed" x="358" y="494" width="286" height="36" rx="5"/><text class="small" text-anchor="middle" x="501" y="516">每次 fill 都 block 同一个 τ_fixed</text><line class="axis" x1="644" y1="488" x2="644" y2="536"/><text class="tiny" text-anchor="middle" x="644" y="550">t_fill + τ_fixed</text>
+
+  <line class="timeline" x1="168" y1="590" x2="952" y2="590"/>
+  <text class="text" x="48" y="595">Full-Multiscale</text><text class="tiny" x="48" y="612">研究候选</text>
+  <circle class="fill" cx="358" cy="590" r="7"/><rect class="selected" x="358" y="572" width="404" height="36" rx="5"/><text class="small" text-anchor="middle" x="560" y="594">由 fill 时刻的冻结状态 x_fill 选择 τ_k</text><path class="bracket" d="M358 616V626H762V616"/><text class="tiny" text-anchor="middle" x="560" y="642">可变结束点：t_fill + τ_k；不是看见未来 K 线后再改时长</text>
+
+  <rect class="feature" x="48" y="646" width="292" height="86" rx="6"/>
+  <text class="text" x="64" y="671">x_fill：多尺度状态</text>
+  <text class="tiny" x="64" y="688">10 half-lives × 45 EMA fast/slow pairs</text>
+  <text class="tiny" x="64" y="704">cross age / persistence / distance + trade/depth</text>
+  <text class="tiny" x="64" y="720">slope / curvature / convergence / expansion</text>
+  <rect class="policy" x="370" y="646" width="250" height="86" rx="6"/>
+  <text class="text" text-anchor="middle" x="495" y="671">有界三值 Boolean policy</text>
+  <text class="tiny" text-anchor="middle" x="495" y="691">TRUE / FALSE / UNOBSERVED</text>
+  <text class="tiny" text-anchor="middle" x="495" y="708">ordered first match；缺失 fail closed</text>
+  <rect class="action" x="650" y="646" width="164" height="86" rx="6"/>
+  <text class="text" text-anchor="middle" x="732" y="674">选择 τ_k</text>
+  <text class="tiny" text-anchor="middle" x="732" y="695">τ_k ∈ 冻结时长集合</text>
+  <text class="tiny" text-anchor="middle" x="732" y="711">无匹配 → 精确 B0</text>
+  <path class="line" d="M340 689H370"/><path class="line" d="M620 689H650"/>
+  <rect class="status" x="844" y="646" width="148" height="86" rx="6"/>
+  <text class="text" text-anchor="middle" x="918" y="674">研究权限</text>
+  <text class="mono" text-anchor="middle" x="918" y="695">supported_sides=[]</text>
+  <text class="tiny" text-anchor="middle" x="918" y="712">无 action / live authority</text>
+  <text class="small" x="48" y="744">库存角色镜像：q&lt;0 时 SELL 是 exposure-increasing、BUY 是 reducing。图只解释候选机制，不声明当前 live 状态。</text>
+</svg>

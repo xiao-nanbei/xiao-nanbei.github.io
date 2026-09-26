@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">条件P3标量适配器的完整路径机制</title>
+  <desc id="desc">机制示意与冻结聚合结果。条件曲面先被平均压成delta star和kappa，再进入旧报价公式，报价显著收窄、成交增加百分之一百四十五，但二十四日terminal MTM下降一百一十五点六六USDC。</desc>
+  <defs><linearGradient id="bg"><stop stop-color="#071426"/><stop offset="1" stop-color="#302441"/></linearGradient><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#7dd3fc"/></marker><style>.t{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;fill:#f0f6ff}.m{fill:#b2bed0}.box{fill:#0b1d31;stroke:#3b5e7a}.arr{stroke:#7dd3fc;stroke-width:3;marker-end:url(#a)}.big{font-size:27px;font-weight:700}.label{font-size:17px}.small{font-size:14px}</style></defs>
+  <rect width="1200" height="620" rx="24" fill="url(#bg)"/><text x="52" y="53" class="t big">Prediction → scalar compression → quote path：权限不能跳级</text><text x="52" y="82" class="m small">机制示意与 24 日冻结聚合结果</text>
+  <g transform="translate(50 125)">
+    <rect width="220" height="120" rx="14" class="box"/><text x="20" y="34" class="t label">BUY / SELL curves</text><path d="M20 95 C60 40 120 50 195 84" fill="none" stroke="#55d6be" stroke-width="3"/><path d="M20 103 C70 61 130 58 195 91" fill="none" stroke="#ffb84d" stroke-width="3"/>
+    <line x1="228" y1="60" x2="288" y2="60" class="arr"/>
+    <rect x="300" width="220" height="120" rx="14" class="box"/><text x="320" y="34" class="t label">等权平均与压缩</text><text x="320" y="70" class="m small">argmax d·P(d)</text><text x="320" y="96" class="m small">local log-slope</text>
+    <line x1="528" y1="60" x2="588" y2="60" class="arr"/>
+    <rect x="600" width="220" height="120" rx="14" class="box"/><text x="620" y="34" class="t label">两个动态标量</text><text x="620" y="70" class="t small">delta_star 10.3851</text><text x="620" y="96" class="t small">kappa_eff 0.168434</text>
+    <line x1="828" y1="60" x2="888" y2="60" class="arr"/>
+    <rect x="900" width="220" height="120" rx="14" class="box"/><text x="920" y="34" class="t label">旧 AS / GLFT ABI</text><text x="920" y="70" class="m small">spread term + P3 floor</text><text x="920" y="96" fill="#ff8f8f" class="small">同一信号双通道收窄</text>
+  </g>
+  <g transform="translate(50 285)">
+    <rect width="1070" height="175" rx="14" class="box"/>
+    <polyline points="20,104 90,92 160,108 230,80 300,94 370,59 440,77 510,47 580,68 650,42 720,61" fill="none" stroke="#e7eef7" stroke-width="3"/>
+    <polyline points="20,42 90,30 160,46 230,18 300,32 370,6 440,23 510,4 580,20 650,4 720,17" fill="none" stroke="#5ab0ff" stroke-width="3"/>
+    <polyline points="20,165 90,153 160,169 230,141 300,155 370,120 440,138 510,108 580,129 650,103 720,122" fill="none" stroke="#5ab0ff" stroke-width="3"/>
+    <polyline points="20,66 90,54 160,70 230,42 300,56 370,22 440,40 510,20 580,41 650,15 720,34" fill="none" stroke="#ffb84d" stroke-width="3" stroke-dasharray="8 6"/>
+    <polyline points="20,141 90,129 160,145 230,117 300,131 370,96 440,114 510,84 580,105 650,79 720,98" fill="none" stroke="#ffb84d" stroke-width="3" stroke-dasharray="8 6"/>
+    <g fill="#ff6b6b"><circle cx="238" cy="111" r="6"/><circle cx="375" cy="90" r="6"/><circle cx="516" cy="80" r="6"/><circle cx="655" cy="73" r="6"/></g>
+    <text x="765" y="42" class="t label">Mean half-spread</text><text x="765" y="68" class="m small">24.5822 → 13.4900</text><text x="765" y="101" class="t label">Fills</text><text x="765" y="127" class="m small">8,799 → 21,597 (+145.45%)</text><text x="765" y="158" fill="#ff8f8f" class="label">Terminal Δ -115.6608 USDC</text>
+  </g>
+  <rect x="50" y="500" width="1070" height="72" rx="14" fill="#102a43"/><text x="75" y="530" class="t label">关闭：pair-averaged scalar compression adapter</text><text x="75" y="556" class="m small">未关闭：side-specific curve + queue conversion + fill value + campaign economics 的新映射。</text>
+</svg>

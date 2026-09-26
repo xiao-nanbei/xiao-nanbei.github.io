@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">Individual trade、aggregate parent 与策略可见时钟</title>
+  <desc id="desc">三笔 individual trades 在交易所时钟发生，聚合成一个 parent aggTrade，完成后经过传输和特征处理才在策略时钟可见；结果标签与策略输入必须使用不同身份。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#091426"/><stop offset="1" stop-color="#132742"/></linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#8aa4c7"/></marker>
+    <style>.h{font:700 28px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#f1f6ff}.t{font:600 18px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#e8f0ff}.s{font:15px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#afc2dc}.tiny{font:13px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#a9bfdc}.box{fill:#142c49;stroke:#4d6f98;stroke-width:2}.good{fill:#143c3a;stroke:#3bc8a5;stroke-width:2}.warn{fill:#47331d;stroke:#f2ae49;stroke-width:2}.bad{fill:#45263a;stroke:#ef6f9e;stroke-width:2}.line{stroke:#8aa4c7;stroke-width:2;marker-end:url(#arrow)}</style>
+  </defs>
+  <rect width="1200" height="700" rx="24" fill="url(#bg)"/>
+  <text x="55" y="55" class="h">同一批成交有两种合法身份，也有两条不能混用的时钟</text>
+  <text x="55" y="88" class="s">individual trade 决定物理结果；finalized parent 决定策略何时能消费聚合流量</text>
+  <text x="55" y="142" class="t">Exchange event time</text>
+  <line x1="210" y1="170" x2="1120" y2="170" class="line"/>
+  <g><circle cx="310" cy="170" r="12" fill="#53d1b3"/><rect x="235" y="205" width="150" height="82" rx="12" class="good"/><text x="255" y="235" class="t">child #41</text><text x="255" y="263" class="tiny">BUY 0.001</text></g>
+  <g><circle cx="500" cy="170" r="12" fill="#53d1b3"/><rect x="425" y="205" width="150" height="82" rx="12" class="good"/><text x="445" y="235" class="t">child #42</text><text x="445" y="263" class="tiny">BUY 0.002</text></g>
+  <g><circle cx="680" cy="170" r="12" fill="#53d1b3"/><rect x="605" y="205" width="150" height="82" rx="12" class="good"/><text x="625" y="235" class="t">child #43</text><text x="625" y="263" class="tiny">BUY 0.001</text></g>
+  <rect x="805" y="195" width="260" height="105" rx="14" class="warn"/><text x="830" y="230" class="t">parent aggTrade P9</text><text x="830" y="260" class="tiny">first=41 · last=43</text><text x="830" y="282" class="tiny">finalized after child #43</text>
+  <path d="M385 247H425M575 247H605M755 247H805" class="line"/>
+  <text x="55" y="363" class="t">Strategy feature-ready time</text>
+  <line x1="270" y1="390" x2="1120" y2="390" class="line"/>
+  <rect x="335" y="425" width="270" height="118" rx="14" class="bad"/><text x="360" y="460" class="t">不合法：提前展开 parent</text><text x="360" y="490" class="s">在 #41 时就消费 P9 总量</text><text x="360" y="517" class="s">等于读取 #42/#43 的未来</text>
+  <rect x="760" y="425" width="300" height="118" rx="14" class="good"/><text x="785" y="460" class="t">合法：finalize + transport</text><text x="785" y="490" class="s">P9 完成并经过 receive/feature</text><text x="785" y="517" class="s">之后才进入 policy state</text>
+  <path d="M935 300V390" class="line"/>
+  <text x="55" y="603" class="t">身份分工</text>
+  <rect x="190" y="570" width="360" height="80" rx="12" class="box"/><text x="215" y="603" class="t">Outcome：individual trade</text><text x="215" y="630" class="s">精确 side、price、qty、first passage</text>
+  <rect x="615" y="570" width="430" height="80" rx="12" class="box"/><text x="640" y="603" class="t">Policy input：finalized parent</text><text x="640" y="630" class="s">完成后才聚合；ready time ≤ decision time</text>
+</svg>

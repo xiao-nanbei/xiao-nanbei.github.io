@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="1100" viewBox="0 0 1100 1100" role="img" aria-labelledby="title desc">
+  <title id="title">K 线如何经过多尺度 EMA 状态进入三值 Boolean 冷却策略</title>
+  <desc id="desc">合成 K 线叠加快慢 EMA，展示正向交叉、交叉年龄、排列持续时间、距离、斜率、曲率、扩张与收敛，并说明交易流和盘口深度状态如何与三值 Boolean 条件组合，最终从冻结的冷却时长集合中选择延长、精确基线或缩短。图为机制示意，不是历史 E3 私有规则或实盘证据。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#344054"/></marker>
+    <marker id="arrow-purple" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#6941c6"/></marker>
+    <style>
+      .bg{fill:#fbfcfe}.frame{fill:#fff;stroke:#d0d5dd;stroke-width:1.2}.grid{stroke:#eaecf0;stroke-width:1}.axis{stroke:#98a2b3;stroke-width:1.2}.wick{stroke:#344054;stroke-width:1.5}.up{fill:#ecfdf3;stroke:#027a48;stroke-width:1.5}.down{fill:#fef2f2;stroke:#b42318;stroke-width:1.5}.fast{fill:none;stroke:#175cd3;stroke-width:3}.slow{fill:none;stroke:#027a48;stroke-width:3;stroke-dasharray:9 5}.cross{stroke:#b54708;stroke-width:1.7;stroke-dasharray:6 5}.measure{stroke:#6941c6;stroke-width:1.8;marker-start:url(#arrow-purple);marker-end:url(#arrow-purple)}.distance{stroke:#b42318;stroke-width:1.8;marker-start:url(#arrow);marker-end:url(#arrow)}.phase-expand{fill:#fff7ed;stroke:#b54708;stroke-width:1.1}.phase-converge{fill:#eff8ff;stroke:#175cd3;stroke-width:1.1}.state{fill:#fff;stroke:#d0d5dd;stroke-width:1.2}.feed{fill:#f2f4f7;stroke:#667085;stroke-width:1.2}.rule{fill:#f4f3ff;stroke:#6941c6;stroke-width:1.3}.longer{fill:#fef2f2;stroke:#b42318;stroke-width:1.4}.baseline{fill:#f2f4f7;stroke:#667085;stroke-width:1.4}.shorter{fill:#ecfdf3;stroke:#027a48;stroke-width:1.4}.line{fill:none;stroke:#344054;stroke-width:1.6;marker-end:url(#arrow)}.dashline{fill:none;stroke:#667085;stroke-width:1.3;stroke-dasharray:6 5;marker-end:url(#arrow)}.title{font:500 23px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.text{font:500 14px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.small{font:400 12px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#475467}.tiny{font:400 11px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#667085}.mono{font:400 11px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#344054}.blue{fill:#175cd3}.green{fill:#027a48}.red{fill:#b42318}.purple{fill:#6941c6}.amber{fill:#b54708}
+    </style>
+  </defs>
+  <rect class="bg" width="1100" height="1100"/>
+  <text class="title" x="36" y="42">同一段 K 线：交叉方向不够，还要知道它在“扩张”还是“收敛”</text>
+  <text class="small" x="36" y="68">4s / 16s 仅作一对 EMA 的直觉示意；正式研究对十个 half-life 形成的全部 45 对构造同类状态。</text>
+
+  <rect class="frame" x="44" y="100" width="700" height="370" rx="7"/>
+  <line class="grid" x1="88" y1="150" x2="720" y2="150"/><line class="grid" x1="88" y1="225" x2="720" y2="225"/><line class="grid" x1="88" y1="300" x2="720" y2="300"/><line class="grid" x1="88" y1="375" x2="720" y2="375"/>
+  <line class="axis" x1="88" y1="420" x2="720" y2="420"/><line class="axis" x1="88" y1="124" x2="88" y2="420"/>
+  <text class="tiny" text-anchor="end" x="79" y="154">高</text><text class="tiny" text-anchor="end" x="79" y="304">价格</text><text class="tiny" text-anchor="end" x="79" y="379">低</text>
+
+  <!-- Synthetic candlesticks: direction is encoded by body fill and ▲/▼ labels, not color alone. -->
+  <g aria-label="合成 K 线">
+    <line class="wick" x1="120" y1="315" x2="120" y2="374"/><rect class="down" x="110" y="329" width="20" height="31"/><text class="tiny" text-anchor="middle" x="120" y="392">▼</text>
+    <line class="wick" x1="168" y1="326" x2="168" y2="395"/><rect class="down" x="158" y="345" width="20" height="31"/><text class="tiny" text-anchor="middle" x="168" y="410">▼</text>
+    <line class="wick" x1="216" y1="338" x2="216" y2="407"/><rect class="up" x="206" y="354" width="20" height="32"/><text class="tiny" text-anchor="middle" x="216" y="423">▲</text>
+    <line class="wick" x1="264" y1="310" x2="264" y2="377"/><rect class="up" x="254" y="326" width="20" height="35"/><text class="tiny" text-anchor="middle" x="264" y="392">▲</text>
+    <line class="wick" x1="312" y1="271" x2="312" y2="344"/><rect class="up" x="302" y="288" width="20" height="40"/><text class="tiny" text-anchor="middle" x="312" y="358">▲</text>
+    <line class="wick" x1="360" y1="223" x2="360" y2="302"/><rect class="up" x="350" y="243" width="20" height="44"/><text class="tiny" text-anchor="middle" x="360" y="317">▲</text>
+    <line class="wick" x1="408" y1="176" x2="408" y2="260"/><rect class="up" x="398" y="198" width="20" height="45"/><text class="tiny" text-anchor="middle" x="408" y="274">▲</text>
+    <line class="wick" x1="456" y1="137" x2="456" y2="219"/><rect class="up" x="446" y="158" width="20" height="40"/><text class="tiny" text-anchor="middle" x="456" y="233">▲</text>
+    <line class="wick" x1="504" y1="119" x2="504" y2="190"/><rect class="down" x="494" y="145" width="20" height="27"/><text class="tiny" text-anchor="middle" x="504" y="205">▼</text>
+    <line class="wick" x1="552" y1="138" x2="552" y2="211"/><rect class="down" x="542" y="154" width="20" height="38"/><text class="tiny" text-anchor="middle" x="552" y="226">▼</text>
+    <line class="wick" x1="600" y1="153" x2="600" y2="229"/><rect class="up" x="590" y="177" width="20" height="25"/><text class="tiny" text-anchor="middle" x="600" y="244">▲</text>
+    <line class="wick" x1="648" y1="159" x2="648" y2="236"/><rect class="down" x="638" y="174" width="20" height="40"/><text class="tiny" text-anchor="middle" x="648" y="250">▼</text>
+    <line class="wick" x1="696" y1="174" x2="696" y2="247"/><rect class="up" x="686" y="192" width="20" height="30"/><text class="tiny" text-anchor="middle" x="696" y="262">▲</text>
+  </g>
+
+  <path class="fast" d="M104 348 C150 356 190 371 226 364 C266 354 290 326 314 294 C350 246 392 194 438 160 C474 134 500 137 520 149 C552 158 582 174 614 181 C646 184 674 187 706 190"/>
+  <path class="slow" d="M104 332 C158 337 204 345 250 342 C294 334 336 309 378 276 C420 244 466 217 512 203 C558 192 606 192 650 196 C674 198 692 201 706 204"/>
+  <line class="cross" x1="286" y1="126" x2="286" y2="420"/>
+  <text class="small amber" text-anchor="middle" x="286" y="116">positive cross</text>
+  <line class="measure" x1="296" y1="398" x2="696" y2="398"/>
+  <text class="small purple" text-anchor="middle" x="496" y="389">cross age；本例也等于已观测 persistence</text>
+  <line class="distance" x1="716" y1="190" x2="716" y2="204"/>
+  <text class="small red" text-anchor="end" x="706" y="181">d_now &gt; 0</text>
+
+  <rect class="phase-expand" x="322" y="108" width="202" height="34" rx="6"/>
+  <text class="small" text-anchor="middle" x="423" y="130">① 两线拉开：d·v &gt; 0（expansion）</text>
+  <rect class="phase-converge" x="536" y="108" width="190" height="34" rx="6"/>
+  <text class="small" text-anchor="middle" x="631" y="130">② 尚未反叉，但 d·v &lt; 0</text>
+  <path class="dashline" d="M430 150C450 158 470 168 492 181"/>
+  <path class="dashline" d="M620 166C642 176 661 185 680 195"/>
+  <line class="fast" x1="105" y1="445" x2="137" y2="445"/><text class="small blue" x="146" y="449">fast EMA（实线）</text>
+  <line class="slow" x1="286" y1="445" x2="318" y2="445"/><text class="small green" x="328" y="449">slow EMA（虚线）</text>
+  <text class="small" x="510" y="449">▲ 上涨 K / ▼ 下跌 K；颜色只是辅助</text>
+
+  <rect class="state" x="768" y="100" width="288" height="370" rx="7"/>
+  <text class="text" x="790" y="130">在 now，pair state 不止一个 bit</text>
+  <text class="small" x="790" y="164">direction</text><text class="mono" x="924" y="164">fast &gt; slow</text>
+  <text class="small" x="790" y="195">last-cross</text><text class="mono" x="924" y="195">negative → positive</text>
+  <text class="small" x="790" y="226">cross age</text><text class="mono" x="924" y="226">t_now − t_cross</text>
+  <text class="small" x="790" y="257">persistence</text><text class="mono" x="924" y="257">ordering 持续时间</text>
+  <text class="small" x="790" y="288">distance</text><text class="mono" x="924" y="288">d &gt; 0</text>
+  <text class="small" x="790" y="319">slope gap</text><text class="mono" x="924" y="319">v &lt; 0</text>
+  <text class="small" x="790" y="350">curvature</text><text class="mono" x="924" y="350">Δv / Δt</text>
+  <text class="small" x="790" y="381">geometry</text><text class="mono" x="924" y="381">d·v &lt; 0</text>
+  <rect class="phase-converge" x="790" y="402" width="244" height="44" rx="6"/>
+  <text class="text blue" text-anchor="middle" x="912" y="429">positive ordering + converging</text>
+  <text class="tiny" x="790" y="454">若启动时已在上方但未见交叉：</text>
+  <text class="tiny" x="790" y="467">persistence 可见，cross age=U。</text>
+
+  <text class="text" x="44" y="510">同一时点再拼入因果可见的 trade / depth 状态</text>
+  <rect class="feed" x="44" y="530" width="252" height="72" rx="7"/>
+  <text class="text" x="64" y="558">aggressive trade flow</text><text class="small" x="64" y="582">方向、强度、tempo（已就绪 / U）</text>
+  <rect class="feed" x="320" y="530" width="252" height="72" rx="7"/>
+  <text class="text" x="340" y="558">depth / refill</text><text class="small" x="340" y="582">耗尽后是否补回、imbalance、quantity</text>
+  <rect class="feed" x="596" y="530" width="252" height="72" rx="7"/>
+  <text class="text" x="616" y="558">campaign / inventory</text><text class="small" x="616" y="582">side、age、连续加仓与当前暴露</text>
+  <rect class="feed" x="872" y="530" width="184" height="72" rx="7"/>
+  <text class="text" x="892" y="558">readiness</text><text class="small" x="892" y="582">stale / missing → U</text>
+
+  <path class="line" d="M170 602V630H285"/><path class="line" d="M446 602V630H370"/><path class="line" d="M722 602V630H460"/><path class="line" d="M964 602V630H550"/>
+  <rect class="rule" x="180" y="630" width="740" height="92" rx="8"/>
+  <text class="text" x="204" y="658">有界 ordered first-match（仅作结构示意，不是 E3 私有规则）</text>
+  <text class="mono" x="204" y="686">R_long = adverse_flow ∧ expanding ∧ ¬refilled</text>
+  <text class="mono" x="610" y="686">R_short = converging ∧ refilled</text>
+  <text class="small" x="204" y="708">predicate ∈ {T, F, U}；更早规则为 U 时 fail closed，不让后规则“补票”。</text>
+
+  <rect class="state" x="82" y="758" width="936" height="130" rx="8"/>
+  <text class="text" x="104" y="786">三值是 predicate 的证据状态；“延长 / 基线 / 缩短”只是相对逐行 B0 的动作解释</text>
+  <rect class="longer" x="104" y="808" width="274" height="56" rx="6"/>
+  <text class="small red" text-anchor="middle" x="241" y="832">R_long = T</text><text class="tiny" text-anchor="middle" x="241" y="851">选择它携带的冻结长时长 τ</text>
+  <rect class="baseline" x="413" y="808" width="274" height="56" rx="6"/>
+  <text class="small" text-anchor="middle" x="550" y="832">更早规则 = U，或全部未命中</text><text class="tiny" text-anchor="middle" x="550" y="851">精确回退到该行 τ_B0(x)</text>
+  <rect class="shorter" x="722" y="808" width="274" height="56" rx="6"/>
+  <text class="small green" text-anchor="middle" x="859" y="832">R_long = F 且 R_short = T</text><text class="tiny" text-anchor="middle" x="859" y="851">选择它携带的冻结短时长 τ</text>
+
+  <path class="line" d="M350 722C350 740 241 740 241 758"/>
+  <path class="dashline" d="M550 722V758"/>
+  <path class="line" d="M750 722C750 740 859 740 859 758"/>
+  <path class="line" d="M241 888V926"/><path class="dashline" d="M550 888V926"/><path class="line" d="M859 888V926"/>
+  <rect class="longer" x="82" y="926" width="306" height="72" rx="7"/>
+  <text class="text red" text-anchor="middle" x="235" y="956">延长 cooldown</text><text class="small" text-anchor="middle" x="235" y="979">减少较早的同侧 exposure-increasing 报单</text>
+  <rect class="baseline" x="397" y="926" width="306" height="72" rx="7"/>
+  <text class="text" text-anchor="middle" x="550" y="956">精确 B0 cooldown</text><text class="small" text-anchor="middle" x="550" y="979">缺失不制造动作；保持冻结基线</text>
+  <rect class="shorter" x="712" y="926" width="306" height="72" rx="7"/>
+  <text class="text green" text-anchor="middle" x="865" y="956">缩短 cooldown</text><text class="small" text-anchor="middle" x="865" y="979">较早恢复同侧 exposure-increasing 报单</text>
+  <rect class="state" x="82" y="1022" width="936" height="48" rx="6"/>
+  <text class="small" text-anchor="middle" x="550" y="1043">无论选哪一档：BUY / SELL 分开学习；reducing quote 与硬安全边界不由这项 policy 改写。</text>
+  <text class="tiny" text-anchor="middle" x="550" y="1060">规则输出 duration，不输出涨跌预测；K 线走势只通过当时因果可见的状态影响下一次可加仓时刻。</text>
+  <text class="tiny" text-anchor="middle" x="550" y="1079">机制示意：K 线、状态取值与规则均为合成；正式研究在 nested chronological OOF 内学习 side-specific bounded duration policy。</text>
+  <text class="tiny" text-anchor="middle" x="550" y="1093">本图不披露或重建历史 E3 规则，也不构成实盘或动作授权证据。</text>
+</svg>

@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-labelledby="title desc">
+  <title id="title">Conditional P3 到联合报价价值的合成 K 线机制图</title>
+  <desc id="desc">图展示一个十秒决策点上的 baseline bid ask，以及单侧 closer 和 farther 候选。未来合成 K 线触达部分价位，但触达概率与 terminal value 被明确分成两层。</desc>
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#071522"/>
+      <stop offset="1" stop-color="#19283b"/>
+    </linearGradient>
+    <marker id="a2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#8bd5ff"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="650" rx="24" fill="url(#bg2)"/>
+  <text x="52" y="54" fill="#f7f9ff" font-size="28" font-family="sans-serif" font-weight="700">Conditional P3：触达概率不是报价终局价值</text>
+  <text x="52" y="86" fill="#94aac3" font-size="16" font-family="sans-serif">合成机制示意 · 非历史行情 · 每次只移动 BUY 或 SELL 一侧</text>
+  <rect x="52" y="112" width="720" height="420" rx="16" fill="#0c1c2b" stroke="#29455f"/>
+  <line x1="82" y1="470" x2="742" y2="470" stroke="#314b63" stroke-width="2"/>
+  <g stroke-width="4">
+    <line x1="105" y1="300" x2="105" y2="390" stroke="#7ee2a8"/><rect x="93" y="326" width="24" height="40" fill="#7ee2a8"/>
+    <line x1="158" y1="270" x2="158" y2="365" stroke="#7ee2a8"/><rect x="146" y="296" width="24" height="42" fill="#7ee2a8"/>
+    <line x1="211" y1="288" x2="211" y2="380" stroke="#ff8f91"/><rect x="199" y="310" width="24" height="43" fill="#ff8f91"/>
+    <line x1="264" y1="250" x2="264" y2="350" stroke="#7ee2a8"/><rect x="252" y="278" width="24" height="42" fill="#7ee2a8"/>
+    <line x1="317" y1="230" x2="317" y2="332" stroke="#7ee2a8"/><rect x="305" y="257" width="24" height="44" fill="#7ee2a8"/>
+    <line x1="370" y1="245" x2="370" y2="345" stroke="#ff8f91"/><rect x="358" y="270" width="24" height="46" fill="#ff8f91"/>
+    <line x1="423" y1="215" x2="423" y2="320" stroke="#7ee2a8"/><rect x="411" y="244" width="24" height="45" fill="#7ee2a8"/>
+    <line x1="476" y1="190" x2="476" y2="300" stroke="#7ee2a8"/><rect x="464" y="220" width="24" height="48" fill="#7ee2a8"/>
+    <line x1="529" y1="220" x2="529" y2="330" stroke="#ff8f91"/><rect x="517" y="246" width="24" height="52" fill="#ff8f91"/>
+    <line x1="582" y1="260" x2="582" y2="370" stroke="#ff8f91"/><rect x="570" y="286" width="24" height="50" fill="#ff8f91"/>
+    <line x1="635" y1="240" x2="635" y2="350" stroke="#7ee2a8"/><rect x="623" y="270" width="24" height="46" fill="#7ee2a8"/>
+    <line x1="688" y1="275" x2="688" y2="388" stroke="#ff8f91"/><rect x="676" y="300" width="24" height="54" fill="#ff8f91"/>
+  </g>
+  <line x1="335" y1="126" x2="335" y2="512" stroke="#ffd166" stroke-width="4" stroke-dasharray="9 7"/>
+  <text x="274" y="556" fill="#ffd166" font-size="17" font-family="sans-serif" font-weight="700">canonical 10s decision</text>
+  <line x1="78" y1="205" x2="742" y2="205" stroke="#ff8f91" stroke-width="3"/>
+  <line x1="78" y1="235" x2="742" y2="235" stroke="#ffb1b3" stroke-width="2" stroke-dasharray="8 6"/>
+  <line x1="78" y1="395" x2="742" y2="395" stroke="#7ee2a8" stroke-width="3"/>
+  <line x1="78" y1="425" x2="742" y2="425" stroke="#aaf0c3" stroke-width="2" stroke-dasharray="8 6"/>
+  <text x="88" y="195" fill="#ff8f91" font-size="15" font-family="sans-serif">SELL closer</text>
+  <text x="88" y="230" fill="#ffb1b3" font-size="15" font-family="sans-serif">SELL baseline / farther grid</text>
+  <text x="88" y="389" fill="#7ee2a8" font-size="15" font-family="sans-serif">BUY baseline / closer grid</text>
+  <text x="88" y="449" fill="#aaf0c3" font-size="15" font-family="sans-serif">BUY farther</text>
+  <circle cx="475" cy="205" r="9" fill="#ffd166"/>
+  <text x="495" y="188" fill="#fff0b5" font-size="15" font-family="sans-serif">price reaches one quote level</text>
+  <path d="M760 260 C820 260 820 190 860 190" fill="none" stroke="#8bd5ff" stroke-width="3" marker-end="url(#a2)"/>
+  <rect x="850" y="118" width="300" height="150" rx="14" fill="#12304a" stroke="#438bc1"/>
+  <text x="872" y="150" fill="#dff4ff" font-size="19" font-family="sans-serif" font-weight="700">Layer 1：P3</text>
+  <text x="872" y="180" fill="#b8d0e3" font-size="15" font-family="sans-serif">P(reach within 10s | state, side, d)</text>
+  <text x="872" y="208" fill="#b8d0e3" font-size="15" font-family="sans-serif">有序概率与 calibration</text>
+  <text x="872" y="238" fill="#ffd166" font-size="15" font-family="sans-serif">不能直接写成动作价值</text>
+  <rect x="850" y="300" width="300" height="195" rx="14" fill="#33243c" stroke="#c77be7"/>
+  <text x="872" y="333" fill="#f6e5ff" font-size="19" font-family="sans-serif" font-weight="700">Layer 2：Value selector</text>
+  <text x="872" y="365" fill="#ddc4e8" font-size="15" font-family="sans-serif">13 joint-quote candidates</text>
+  <text x="872" y="395" fill="#ddc4e8" font-size="15" font-family="sans-serif">terminal overlay delta</text>
+  <text x="872" y="425" fill="#ddc4e8" font-size="15" font-family="sans-serif">chronological simultaneous screen</text>
+  <text x="872" y="460" fill="#ff9fa1" font-size="16" font-family="sans-serif" font-weight="700">结果：126 / 126 fallback baseline</text>
+  <rect x="82" y="575" width="1068" height="42" rx="10" fill="#172636"/>
+  <text x="105" y="602" fill="#a9bfd4" font-size="15" font-family="sans-serif">机制边界：单侧 overlay 不重生完整 inventory / cooldown / campaign 路径，也不识别 BUY 与 SELL 同时移动的交互。</text>
+</svg>

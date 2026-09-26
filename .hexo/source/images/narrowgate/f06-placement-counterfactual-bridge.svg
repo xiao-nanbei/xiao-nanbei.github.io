@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">Placement distance 从共同市场路径到成交 CIF 与边际价值的配对桥梁</title>
+  <desc id="desc">展示同一决策生成近、中、远三个报价候选，它们共享未来市场与时钟但拥有独立订单生命周期；先比较共同风险集上的成交 CIF，再将差异连接到完整库存终局。</desc>
+  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 Z" fill="#7dd3fc"/></marker><style>.bg{fill:#071525}.box{fill:#102a43;stroke:#315873;stroke-width:2}.near{fill:#173a3b;stroke:#34d399;stroke-width:2}.far{fill:#392b3c;stroke:#f472b6;stroke-width:2}.t{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;fill:#eef7ff}.m{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;fill:#9eb4c8}.h{font-size:28px;font-weight:700}.b{font-size:18px;font-weight:650}.s{font-size:14px}.arrow{stroke:#7dd3fc;stroke-width:3;fill:none;marker-end:url(#a)}.dash{stroke-dasharray:7 6}</style></defs>
+  <rect class="bg" width="1200" height="720" rx="24"/>
+  <text class="t h" x="48" y="57">同一未来市场路径，三个 placement orders，三条独立生命周期</text>
+  <text class="m s" x="48" y="85">成交概率差不是策略 PnL；必须保持 common support 并追到 campaign terminal</text>
+  <rect class="box" x="48" y="126" width="252" height="166" rx="14"/><text class="t b" x="70" y="164">Frozen decision</text><text class="m s" x="70" y="200">同一 side / role / inventory</text><text class="m s" x="70" y="228">同一 market path / latency seed</text><text class="t s" x="70" y="260">submit origin 在此冻结</text>
+  <path class="arrow" d="M316 210H368"/>
+  <g transform="translate(382 114)">
+    <rect class="near" x="0" y="0" width="218" height="98" rx="12"/><text class="t b" x="20" y="36">Near δ₁</text><text class="m s" x="20" y="66">queue₁ / activation₁ / terminal₁</text>
+    <rect class="box" x="0" y="116" width="218" height="98" rx="12"/><text class="t b" x="20" y="152">Mid δ₂</text><text class="m s" x="20" y="182">queue₂ / activation₂ / terminal₂</text>
+    <rect class="far" x="0" y="232" width="218" height="98" rx="12"/><text class="t b" x="20" y="268">Far δ₃</text><text class="m s" x="20" y="298">queue₃ / activation₃ / terminal₃</text>
+  </g>
+  <path class="arrow" d="M616 280H674"/>
+  <rect class="box" x="688" y="126" width="220" height="330" rx="14"/><text class="t b" x="710" y="164">Competing risks</text><text class="m s" x="710" y="204">fill</text><text class="m s" x="710" y="232">cancel request → ACK</text><text class="m s" x="710" y="260">price move / expiry</text><text class="t s" x="710" y="302">CIF on common clock</text><text class="m s" x="710" y="338">同毫秒不明顺序 → censor</text><text class="m s" x="710" y="374">unknown ≠ no event</text><text class="t s" x="710" y="416">先证明 Δfill 可分辨</text>
+  <path class="arrow" d="M924 290H972"/>
+  <rect class="far" x="986" y="126" width="166" height="330" rx="14"/><text class="t b" x="1008" y="164">Marginal value</text><text class="m s" x="1008" y="208">新增 / 删除 fills</text><text class="m s" x="1008" y="240">条件 fill value</text><text class="m s" x="1008" y="272">inventory path</text><text class="m s" x="1008" y="304">campaign terminal</text><text class="t s" x="1008" y="352">Development</text><text class="t s" x="1008" y="380">仍不可识别</text>
+  <rect class="box" x="48" y="528" width="1104" height="112" rx="14"/><text class="t b" x="72" y="566">识别顺序</text><text class="m s" x="72" y="600">共同市场路径 → 独立订单状态 → common-risk-set CIF → fill difference → terminal value；跳过任一步，都会把参与度变化误写成 Alpha</text>
+  <text class="m s" x="48" y="682">机制示意 · 非真实订单价格或私有 queue 数据</text>
+</svg>

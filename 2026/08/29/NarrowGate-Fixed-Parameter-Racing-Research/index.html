@@ -19,12 +19,12 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Last materially modified: 2026-08-30 1. 一条研究主线，而不是三篇互不相干的参数文章这项研究真正追问的是：在当前做市基线之外，改变报价距离或中心能否创造可迁移的增量终局价值？最早的固定参数 grid 只能告诉我们某个全局组合在一段历史上排名靠前；随后加入 Widen、Recenter 与 Prevent-Over-Widen 的随机化路径，才把问题改写成动作反">
+    <meta name="description" content="Last materially modified: 2026-09-26 2026-09-26 范围说明下文阶段表、DR 公式、随机化比例和负结果属于各自历史合同，不关闭整个 F01。新 Tardis 已有有限固定参数比较；后续用户选定的离线研究参照与原首批风险门结论分别保留，见当前 F01 主报告。g 是历史联动轴标签，不是恢复旧配置键；新 g&#x2F;asym 问题须有明确共同输入、支持与预算。本文不">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate 报价动作研究：从固定参数竞速到随机化 Widen、Recenter 与条件策略">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Fixed-Parameter-Racing-Research/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="Last materially modified: 2026-08-30 1. 一条研究主线，而不是三篇互不相干的参数文章这项研究真正追问的是：在当前做市基线之外，改变报价距离或中心能否创造可迁移的增量终局价值？最早的固定参数 grid 只能告诉我们某个全局组合在一段历史上排名靠前；随后加入 Widen、Recenter 与 Prevent-Over-Widen 的随机化路径，才把问题改写成动作反">
+<meta property="og:description" content="Last materially modified: 2026-09-26 2026-09-26 范围说明下文阶段表、DR 公式、随机化比例和负结果属于各自历史合同，不关闭整个 F01。新 Tardis 已有有限固定参数比较；后续用户选定的离线研究参照与原首批风险门结论分别保留，见当前 F01 主报告。g 是历史联动轴标签，不是恢复旧配置键；新 g&#x2F;asym 问题须有明确共同输入、支持与预算。本文不">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/fixed-parameter-racing-regime-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f01-fixed-parameter-identification-stack.svg">
@@ -34,7 +34,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f09-campaign-action-causal-path.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/fixed-parameter-research-synthesis.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-08-29T18:01:00.000Z">
+<meta property="article:modified_time" content="2026-09-26T12:52:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="报价动作">
@@ -351,7 +351,7 @@
         
         
           <!-- compatible with older versions-->
-          233 分钟
+          235 分钟
         
       </span>
     
@@ -395,7 +395,8 @@
             
               <div class="markdown-body">
                 
-                <p>Last materially modified: 2026-08-30</p>
+                <p>Last materially modified: 2026-09-26</p>
+<h2 id="2026-09-26-范围说明"><a href="#2026-09-26-范围说明" class="headerlink" title="2026-09-26 范围说明"></a>2026-09-26 范围说明</h2><p>下文阶段表、DR 公式、随机化比例和负结果属于各自历史合同，不关闭整个 F01。新 Tardis 已有有限固定参数比较；后续用户选定的离线研究参照与原首批风险门结论分别保留，见<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/README.zh-CN.md">当前 F01 主报告</a>。g 是历史联动轴标签，不是恢复旧配置键；新 g/asym 问题须有明确共同输入、支持与预算。本文不补造尚未完成的候选结果，不将研究参照解释为 live 配置。</p>
 <h2 id="1-一条研究主线，而不是三篇互不相干的参数文章"><a href="#1-一条研究主线，而不是三篇互不相干的参数文章" class="headerlink" title="1. 一条研究主线，而不是三篇互不相干的参数文章"></a>1. 一条研究主线，而不是三篇互不相干的参数文章</h2><p>这项研究真正追问的是：在当前做市基线之外，改变报价距离或中心能否创造可迁移的增量终局价值？最早的固定参数 grid 只能告诉我们某个全局组合在一段历史上排名靠前；随后加入 Widen、Recenter 与 Prevent-Over-Widen 的随机化路径，才把问题改写成动作反事实；最后的 BUY 条件加宽则检验 decision-visible state 能否稳定选择动作。三者不是三个孤立项目，而是同一条从 parameter racing 到 causal action value 的证据升级。</p>
 <p>统一写成一篇文章后，读者可以直接看见三个经常被混淆的量：参数排名、动作发生率与动作价值。它们分别回答“哪个配置在这段样本里更好”“候选是否真的改变订单路径”“改变以后是否改善 assignment-to-terminal USDC”。任何一层失败，都不能靠另一层漂亮的数字补票。</p>
 <p>核心 estimand 是</p>
@@ -432,7 +433,7 @@
 <h2 id="3-固定参数竞速"><a href="#3-固定参数竞速" class="headerlink" title="3. 固定参数竞速"></a>3. 固定参数竞速</h2><h3 id="TL-DR：固定值可以做基线，不能因为赢过一次-grid-就被叫作-alpha"><a href="#TL-DR：固定值可以做基线，不能因为赢过一次-grid-就被叫作-alpha" class="headerlink" title="TL;DR：固定值可以做基线，不能因为赢过一次 grid 就被叫作 alpha"></a>TL;DR：固定值可以做基线，不能因为赢过一次 grid 就被叫作 alpha</h3><p>NarrowGate 的 F01 固定参数竞速研究问过一个很诱人的问题：如果把 <code>gamma</code>、<code>kappa</code>、cooldown、maximum inventory、spread cap、guard threshold 和固定一档报价动作放进一个足够大的搜索空间，历史回放里最好的那组参数，能不能成为跨市场状态都有效的策略？</p>
 <p>最终答案是否定的，但这个“否定”需要说准确。项目没有证明固定常数在数学上不可能成为某个冻结模型和样本里的最优解；它证明的是，历史 pooled winner 没有在修复后的因果时钟、side/role 分层、chronological transfer、campaign tail 和 action-uplift 口径下形成稳定、可识别、可迁移的增量价值。</p>
 <p>更重要的是，早期 48、512、1024-arm generations，以及 retained39、blocked71、late4 等面板的精确 PnL、排名和 winner 身份已经撤回。它们依赖后来被修复的 left-labelled features、trade clock、P3、queue、mixed L2 或历史 incident 语义。本文不会把这些旧数字重新排成一张“冠军榜”，因为那会把无效证据包装成精确结论。</p>
-<p>保留下来的研究结论是：<strong>固定参数 alpha 家族关闭；固定值仍可作为安全约束、经验校准、风险预算和 rolling baseline 身份；新的经济机制必须注册成新的 state-conditioned action family。</strong></p>
+<p>保留下来的研究结论是：<strong>所列历史固定参数候选／排名不获得晋级，原身份不重开；F01 新问题可在明确范围、预算和使用历史下继续。固定值仍可作为约束、经验校准、风险预算和研究参照；不能靠另起名字清零旧使用历史。</strong></p>
 <p><img src="/images/narrowgate/fixed-parameter-racing-regime-kline.svg" srcset="/img/loading.gif" lazyload alt="固定参数在不同市场状态下产生不同路径"></p>
 <p><em>图 1：机制示意。相同的固定 spread/cooldown 在低波动、单边冲击和修复阶段会删除不同类型的成交；“参与更少”不能自动解释为“选择更好”。图中不是历史私有交易或实盘 K 线。</em></p>
 <p>本文只讨论历史研究方法和公开结论，不建议任何真实交易行为。文中的 PnL、fill、inventory 与 campaign 指标都是特定 replay identity 下的研究量，不是收益承诺。</p>
@@ -449,7 +450,7 @@
 <p>在 side、order role、queue state、volatility、flow 与 campaign state 都不同的情况下，同一个固定动作是否仍具有正的条件净价值，并且能从 Development 转移到后续面板？</p>
 </blockquote>
 <h3 id="2-输入、动作与-estimand"><a href="#2-输入、动作与-estimand" class="headerlink" title="2. 输入、动作与 estimand"></a>2. 输入、动作与 estimand</h3><p>F01 的输入是完整 maker replay 所需的本地市场状态、策略状态、订单生命周期和账户状态。历史 arms 覆盖过 <code>gamma / kappa ratio / depth-kappa / cap / guard / cooldown / max inventory</code> 的联合 sweep，也覆盖过 <code>prevent_over_widen</code>、<code>widen_1tick</code>、<code>recenter_1tick</code>、固定跳过一个 add cycle 等离散报价动作。</p>
-<p>连续参数 arm 的“动作”是整套策略坐标发生变化；离散 local action 的动作则是某个 eligible decision 上保持 baseline 或执行冻结的 widen/re-center/skip。两者不能混成一个 estimand：前者比较完整策略路径，后者需要已知 propensity、overlap 和 decision/campaign attribution。</p>
+<p>连续参数 arm 的“动作”是整套策略坐标发生变化；离散 local action 的动作则是某个 eligible decision 上保持 baseline 或执行冻结的 widen/re-center/skip。两者不能混成一个 estimand：两者均须明确比较对象和完整路径归因。历史随机化／logged-policy OPE 分析需要真实分配概率、overlap 及相应识别假设；直接完整配对模拟不伪造 propensity，但结论只在冻结模拟假设下成立，不自动获得线上因果解释。</p>
 <p>F01 最终采用的研究判断至少要求同时看：</p>
 <script type="math/tex; mode=display">
 \text{value uplift},\quad
