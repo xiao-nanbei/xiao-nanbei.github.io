@@ -1013,7 +1013,6 @@ fmt.Println(<span class="hljs-type">string</span>(b)) <span class="hljs-comment"
 
 
 
-
   <script>
   Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
     mermaid.initialize({"theme":"default"});
@@ -1287,41 +1286,49 @@ fmt.Println(<span class="hljs-type">string</span>(b)) <span class="hljs-comment"
       <script>
         if (!window.MathJax) {
           window.MathJax = {
-            tex    : {
-              inlineMath: { '[+]': [['$', '$']] }
-            },
-            loader : {
-              load: ['ui/lazy']
-            },
+            tex: { inlineMath: { '[+]': [['$', '$']] } },
+            loader: { load: ['ui/lazy'] },
             options: {
               renderActions: {
-                insertedScript: [200, () => {
-                  document.querySelectorAll('mjx-container').forEach(node => {
-                    let target = node.parentNode;
-                    if (target.nodeName.toLowerCase() === 'li') {
-                      target.parentNode.classList.add('has-jax');
-                    }
+                // Kramed emits v2 script nodes. Keep v3's default delimiter find.
+                // https://docs.mathjax.org/en/v3.2/upgrading/v2.html
+                findScript: [10, function (doc) {
+                  for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                    if (node.closest('pre, code')) continue;
+                    const display = /;\s*mode=display/.test(node.type);
+                    const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                    const text = document.createTextNode('');
+                    node.parentNode.replaceChild(text, node);
+                    math.start = {node: text, delim: '', n: 0};
+                    math.end = {node: text, delim: '', n: 0};
+                    doc.math.push(math);
+                  }
+                }, ''],
+                insertedScript: [200, function () {
+                  document.querySelectorAll('mjx-container').forEach(function (node) {
+                    const target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') target.parentNode.classList.add('has-jax');
                   });
                 }, '', false]
               }
             }
           };
-        } else {
-          MathJax.startup.document.state(0);
-          MathJax.texReset();
-          MathJax.typeset();
-          MathJax.typesetPromise();
         }
-
-        Fluid.events.registerRefreshCallback(function() {
-          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+        // Serialize refreshes after startup. Consumed scripts cannot register twice.
+        function refreshMath() {
+          if (!window.MathJax || !MathJax.startup) return;
+          MathJax.startup.promise = MathJax.startup.promise.then(function () {
             MathJax.startup.document.state(0);
             MathJax.texReset();
-            MathJax.typeset();
-            MathJax.typesetPromise();
-          }
-        });
+            return MathJax.typesetPromise();
+          }).catch(function (error) { console.error('MathJax typesetting failed', error); });
+        }
+        Fluid.events.registerRefreshCallback(refreshMath);
+        if (window.MathJax.startup) refreshMath();
       </script>
+      <style>
+        .markdown-body mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; padding: 0.15em 0; }
+      </style>
     
 
   <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>

@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate：回测吞吐与 Live 尾延迟工程'
 date: 2026-07-01 08:03:00
-updated: 2026-09-26 20:52:00
+updated: 2026-09-27 10:45:00
 categories:
 - C++
 tags:
@@ -13,21 +13,22 @@ tags:
 math: true
 ---
 
-Last materially modified: 2026-09-26
 
-## 2026-09-26：旧 v12 与 execution_v1 分流
+做市系统的工程目标不只是更快地算出报价，还要让行情可见性、订单生效和账户记账在回放与实际运行中各有清楚定义。本文讨论共享计算内核、事件调度和尾延迟测量；接口测试、有限组装与完整经济评价分别说明，不互相替代。
+
+## 执行协议与工程证据范围
 
 下文 9 月 6 日及更早快照、测试计数和 benchmark 保留原日期，不能读作今天的测量。当前 `strategy.live_public_signal.LivePublicSignalEngine` 的 execution_v1 路径消费 individual `@trade` 与 depth，通过共享特征生成已就绪 FeatureFrame，加载当前 13 头及后处理；该入口拒绝 aggTrade，关闭旧 native feature/inference 路径。它不是旧 causal-v12 固定 10000ms 桶说明的直接延续，也不表示所有 live 入口都已改用 individual 或全部 C++ 已停用：native 报价与 native 模型推理是不同能力，部署状态仍由具体运行证据确定。
 
 维护中的 Python ConsumerBundle 回放已有绑定输入／配置／源码的完整状态恢复；F06/F07 规则状态测试和一个原生 BUY/SELL 冷却启用的完整开发账户恢复已在声明范围内验收。这不是任意跨版本／主机、完整 C++ 主循环恢复或 CIF/hazard 科学研究完成。隔离 Linux 候选的有限真实观察→13 头→P3→native 报价→无交易能力记录意图组装已验收，但不代表已激活或当前 live 身份。详见[维护架构及验收范围](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/docs/architecture.zh-CN.md)。
 
-## TL;DR：读者收益摘要
+## 从计算内核到完整运行路径
 
 这篇文章是 NarrowGate 的工程篇，接在算法篇 [《NarrowGate：Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift》](/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/) 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。
 
 > **版本边界（2026-09-06）**：本文保留工程结构、parity 方法与历史 benchmark，但所有数值必须按小节日期阅读。9 月 2 日 terminal-continuation 的匿名化聚合观测不是今天的实测值、长期 SLA 或 PnL 证据。公开代码不包含私有当前 release manifest、精确 live config 或进程状态，不能据此推断现役开关。最新源码已整合进 main，但完整日执行器的分源交付与计算耗时接入尚未完成，也尚未产生这一环境下完成的 B0 或候选经济结果。历史 F05 失败结论与 owner 风险试验分别保留，代码修复不将它们改写成研究通过。
 
-### 2026-09-06：执行修复已合并，性能与经济验证分开
+### 历史执行修复与性能测量（2026-09-06）
 
 本轮已经公开的 [native 接口精简](https://github.com/xiao-nanbei/NarrowGateMaker/commit/13d44967) 把内部 C++ Bar 和配置字段当成明确接口：缺字段不再补零或跳过，已选 native 后的计算异常直接暴露；测试 fixture 补齐正式依赖，私有流 generation 未绑定时不再假定安全。为日志重复验证模型包的工作也改为复用已验证 metadata。[部署环境元数据读取修复](https://github.com/xiao-nanbei/NarrowGateMaker/commit/db0122cd) 则处理 root-private 文件的受限检查。这些是维护性和正确性修复，不是新的实盘延迟测量。
 
@@ -35,7 +36,7 @@ Last materially modified: 2026-09-26
 
 Replay 必须分别推进行情产生、各源消息到达、特征完成、决策计算、FIFO 等待、请求发出、订单 exchange-effective、HTTP 返回和私有回调可见这些时钟。多个阶段重叠时，不能重复叠加；同一次请求的 effective/return 样本要成对保留，不能把 RTT 一律除以二。IOC 尤其需要区分“交易所已经减仓”和“本地账本还未收到可见成交证明”：前者限制真实剩余可成交量，后者决定策略何时更新库存、费用和冷却。[本轮合并](https://github.com/xiao-nanbei/NarrowGateMaker/commit/5672e838) 已在 Python replay 中实现这项分离：交易所激活时扫盘一次，HTTP 返回释放串行 worker，本地账本等到成交可见才推进；同步 close 调用者仍按其真实调用语义等待响应和成交证明。C++ IOC trace 也改用交易所激活时间，而不是下一笔历史 trade 的时间。
 
-2026-09-26 补充：当前策略可见现金／库存按本地通知推进；经济成交事实在撮合处独立记录，并用于完整经济结算，含账户终点前已撮合但尚未通知的成交。本地通知日志不是全账户物理撮合顺序，两套账户在通知未到齐时不必相等。旧通知日志不能靠排序变成新撮合事实。
+撮合与通知分离后，策略可见现金／库存按本地通知推进；经济成交事实在撮合处独立记录，并用于完整经济结算，含账户终点前已撮合但尚未通知的成交。本地通知日志不是全账户物理撮合顺序，两套账户在通知未到齐时不必相等。旧通知日志不能靠排序变成新撮合事实。
 
 另一个值得做的减法是 [复用 lifecycle 持久化实现](https://github.com/xiao-nanbei/NarrowGateMaker/commit/249a2549)：strict-native writer 不再维护一份近乎相同的持久化代码，正常回调采用增量提交，不再每次扫描全部历史 part；启动、失败恢复和最终完整性检查保留。恢复必须先于读取 cursor 和准备新 batch，这样减少的是重复工作，不是崩溃恢复保障。
 

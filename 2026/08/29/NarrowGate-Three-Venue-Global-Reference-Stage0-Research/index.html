@@ -19,12 +19,12 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Last materially modified: 2026-08-30 1. BABEL 外部市场研究是一张并行路线图Bitget、Bybit 与 OKX 的价格和主动成交可以提供本地 BTCUSDC 之外的信息，但“外部市场有预测增量”离“应当移动本地报价”相隔多层。Stage 0、information decay、causal fair price、first-add M0&#x2F;M1、adve">
+    <meta name="description" content="1. BABEL 外部市场研究是一张并行路线图Bitget、Bybit 与 OKX 的价格和主动成交可以提供本地 BTCUSDC 之外的信息，但“外部市场有预测增量”离“应当移动本地报价”相隔多层。Stage 0、information decay、causal fair price、first-add M0&#x2F;M1、adverse-edge guard 和 fair-center randomiz">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate External Market Alpha：三交易所参考、信息衰减、First-Add 与 Fair-Center 动作">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Three-Venue-Global-Reference-Stage0-Research/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="Last materially modified: 2026-08-30 1. BABEL 外部市场研究是一张并行路线图Bitget、Bybit 与 OKX 的价格和主动成交可以提供本地 BTCUSDC 之外的信息，但“外部市场有预测增量”离“应当移动本地报价”相隔多层。Stage 0、information decay、causal fair price、first-add M0&#x2F;M1、adve">
+<meta property="og:description" content="1. BABEL 外部市场研究是一张并行路线图Bitget、Bybit 与 OKX 的价格和主动成交可以提供本地 BTCUSDC 之外的信息，但“外部市场有预测增量”离“应当移动本地报价”相隔多层。Stage 0、information decay、causal fair price、first-add M0&#x2F;M1、adverse-edge guard 和 fair-center randomiz">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/three-venue-global-reference-stage0.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f04-external-signal-to-action-clock.svg">
@@ -40,7 +40,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f09-campaign-action-causal-path.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/external-market-research-synthesis.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-08-29T18:04:00.000Z">
+<meta property="article:modified_time" content="2026-09-27T02:45:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="因果推断">
@@ -401,8 +401,7 @@
             
               <div class="markdown-body">
                 
-                <p>Last materially modified: 2026-08-30</p>
-<h2 id="1-BABEL-外部市场研究是一张并行路线图"><a href="#1-BABEL-外部市场研究是一张并行路线图" class="headerlink" title="1. BABEL 外部市场研究是一张并行路线图"></a>1. BABEL 外部市场研究是一张并行路线图</h2><p>Bitget、Bybit 与 OKX 的价格和主动成交可以提供本地 BTCUSDC 之外的信息，但“外部市场有预测增量”离“应当移动本地报价”相隔多层。Stage 0、information decay、causal fair price、first-add M0/M1、adverse-edge guard 和 fair-center randomized replay 都属于同一 BABEL 研究计划的不同桥段：先建立信息与时钟，再建立坐标，再问状态价值，最后才允许动作。</p>
+                <h2 id="1-BABEL-外部市场研究是一张并行路线图"><a href="#1-BABEL-外部市场研究是一张并行路线图" class="headerlink" title="1. BABEL 外部市场研究是一张并行路线图"></a>1. BABEL 外部市场研究是一张并行路线图</h2><p>Bitget、Bybit 与 OKX 的价格和主动成交可以提供本地 BTCUSDC 之外的信息，但“外部市场有预测增量”离“应当移动本地报价”相隔多层。Stage 0、information decay、causal fair price、first-add M0/M1、adverse-edge guard 和 fair-center randomized replay 都属于同一 BABEL 研究计划的不同桥段：先建立信息与时钟，再建立坐标，再问状态价值，最后才允许动作。</p>
 <p>统一结构可以写成</p>
 <script type="math/tex; mode=display">
 \text{external messages}
@@ -789,7 +788,7 @@ LCB_h=\bar\Delta_h-q_{0.95}\left(\max_j|\bar\Delta_j^*-\bar\Delta_j|\right).</sc
 </div>
 <p>1–7 秒全部有正 simultaneous LCB，说明短 horizon 增量不是只靠挑中一根最高柱子；8 秒以后 lower bound 开始跨零。曲线并非严格单调，例如 4 秒略高于 3 秒、10 秒略高于 9 秒，这是有限日样本中的正常波动。冻结选择仍是 LCB 最大的 1 秒。</p>
 <p>post-peak half-gain horizon 为 9 秒：它描述经验曲线从 1 秒峰值下降到一半附近所需的时间，不是说 9 秒一定无用。事实上 10 秒 mean gain 仍为正，只是其 uncertainty 无法排除零；“大部分方向增量在 10 秒前消失”比“10 秒没有任何信息”更准确。</p>
-<h3 id="6-历史-3-秒结果如何被合并，而不是另写一篇"><a href="#6-历史-3-秒结果如何被合并，而不是另写一篇" class="headerlink" title="6. 历史 3 秒结果如何被合并，而不是另写一篇"></a>6. 历史 3 秒结果如何被合并，而不是另写一篇</h3><p>前身 audit 只比较 fast <code>1s/3s/5s</code> 与旧 10 秒 bundle。在一整 bucket 延迟下，3 秒 M1−M0 AUC gain 在旧 screening、test 与三个 later days 分别约 <code>+0.00365</code>、<code>+0.00413</code>、<code>+0.00381</code>，正日为 20/20、20/20 与 3/3；绝对 AUC 约 <code>0.59445</code>、<code>0.59611</code>、<code>0.62382</code>。相反，旧 10 秒 direction gain 只有约 <code>+0.000050</code>、<code>+0.000055</code>、<code>+0.000151</code>，实质接近平坦。</p>
+<h3 id="6-历史-3-秒结果的适用范围"><a href="#6-历史-3-秒结果的适用范围" class="headerlink" title="6. 历史 3 秒结果的适用范围"></a>6. 历史 3 秒结果的适用范围</h3><p>前身 audit 只比较 fast <code>1s/3s/5s</code> 与旧 10 秒 bundle。在一整 bucket 延迟下，3 秒 M1−M0 AUC gain 在旧 screening、test 与三个 later days 分别约 <code>+0.00365</code>、<code>+0.00413</code>、<code>+0.00381</code>，正日为 20/20、20/20 与 3/3；绝对 AUC 约 <code>0.59445</code>、<code>0.59611</code>、<code>0.62382</code>。相反，旧 10 秒 direction gain 只有约 <code>+0.000050</code>、<code>+0.000055</code>、<code>+0.000151</code>，实质接近平坦。</p>
 <p>这些历史结果提供了“衰减在数秒内发生”的动机，但它们已经看过旧命名为 validation/test/later 的面板，不能再被包装为 v1 的 untouched confirmation。正式 v1 更换为完整支持、明确 Development 角色、past-only early stopping 和 simultaneous selection，并推翻了“3 秒天然最佳”的叙事。</p>
 <p>因此 granularity audit、正式 decay curve 和执行中的 target-name collision 都属于同一个 research project 的演进。<code>fast1s/dir_10s</code> 与历史 <code>10s/dir_10s</code> 曾发生名字冲突，修复只是让 cadence 进入 target identity；1–9 秒已完成 artifacts 被严格校验后复用，10–18 秒继续拟合。没有 feature、label 或 model parameter 被借故改变，也不值得单独写成“执行修复研究”。</p>
 <h3 id="7-一个具体的时钟例子"><a href="#7-一个具体的时钟例子" class="headerlink" title="7. 一个具体的时钟例子"></a>7. 一个具体的时钟例子</h3><p>假设外部市场在 <code>12:00:00.200</code> 到 <code>12:00:00.800</code> 连续下跌。该创新进入标记为这一秒的 archive state，但最早在 <code>12:00:01</code> 右边界可见；再加一个完整 visibility bucket 后，模型按冻结合同使用的时间更晚。一个 1 秒 target 此时已经非常接近数据能表达的最快边界。</p>
@@ -920,7 +919,7 @@ T^{feature\ ready}_{i}\le T^{decision}.</script><p>历史 sensitivity 没有精�
 <script type="math/tex; mode=display">
 0.667349537037037\approx66.73\%.</script><p>这说明大多数一秒 states 能构造四路共同坐标，但某些日仍有三分之一左右时间因来源、锚、warmup 或 dispersion 回退。support 并非 100%，所以任何后续 action 必须把 fallback rows 保留在 denominator 中，而不能只报告 candidate-active rows。</p>
 <p>没有预测指标或 PnL 指标可报告，这是有意的。该研究 frozen at evidence-only before action outcome read；参数 grid/outcome tuning 被禁止。</p>
-<h3 id="8-研究演进与相邻项目为何不能合并"><a href="#8-研究演进与相邻项目为何不能合并" class="headerlink" title="8. 研究演进与相邻项目为何不能合并"></a>8. 研究演进与相邻项目为何不能合并</h3><p>cross-venue price translation、fair-price spec、historical cache audit、feature DAG 与 coordinate parity 都在回答同一个 identity：坐标怎样被因果地计算。它们是本文的版本/实现章节，不应拆成多篇“研究”。</p>
+<h3 id="8-研究演进与相邻项目为何不能合并"><a href="#8-研究演进与相邻项目为何不能合并" class="headerlink" title="8. 研究演进与相邻项目为何不能合并"></a>8. 研究演进与相邻项目为何不能合并</h3><p>cross-venue price translation、fair-price spec、historical cache audit、feature DAG 与 coordinate parity 都在回答同一个 identity：坐标怎样被因果地计算。坐标一致性为后续动作比较提供输入，并不直接证明收益增量。</p>
 <p>而 Stage 0 global residual、external information decay 和后来的 fair-center shift action 必须保持独立。Stage 0 问一秒状态是否排序结果；decay 问未来方向的 target horizon；本项目只定义 fair coordinate；动作 sibling 才问移动 bid/ask 是否改善 campaign economics。输入相似不代表 estimand 相同。</p>
 <p>后来的对称 center-shift 动作在另一研究族的 24-day Grade-A Development 上点估计为正，但 lower bound 跨零，leave-Bybit-out 的 reward 与 USDC/day 方向为负，因此 action 关闭。这个结果不删除本 coordinate，也不授权改成 outward-only guard；每个动作需要自己的冻结身份。</p>
 <h3 id="9-关闭、支持与权限边界"><a href="#9-关闭、支持与权限边界" class="headerlink" title="9. 关闭、支持与权限边界"></a>9. 关闭、支持与权限边界</h3><p>支持：在 40 日历史一秒 sensitivity source 上，past-only basis、2-of-3 weighted median、online gain 和四路 common-mask LOO 可以稳定产出一条有明确 fallback 的 BTCUSDC coordinate，overall support 约 89.65%。</p>
@@ -1093,7 +1092,7 @@ T^{feature\ ready}_{i,k}\le T^{first\ add\ decision}_i.</script><p>外部 event 
 <p>v1 历史面板的 immutable ledger 有 19 个 valid full windows / 18 个不同 UTC 日；quote logs 实际覆盖 17 windows / 16 日，形成 <code>9,138</code> 个 paired quote decisions，即 <code>18,276</code> 个 side opportunities。外部输入包含 <code>50,359,162</code> 个 public book events；<code>feature_ready_ts_ns</code> 有 <code>4,481</code> 次输入顺序回退，最大 <code>209.563275ms</code>，全部在冻结的 5,000ms bounded reorder 内复原，评估 rows 没有 future-feature violation。</p>
 <p>关键结果不是“触发后效果好”，因为 economics 根本没读；而是 support 极稀疏。在 <code>7,786</code> 个 guard-eligible opener/add side opportunities 中只有 <code>26</code> 次 outward coordinate changes，candidate rate <code>0.334%</code>，约为冻结 5% selective-action floor 的十五分之一。BUY/SELL triggers 分别只有 18/8；在额外 500ms delay 下存活率为 61.1%/75.0%，但样本太小，只能描述。按 0.5 随机 assignment，预期真正改变的路径约 13 条，无法支撑一个 action experiment。</p>
 <p>v1 还暴露了 denominator 问题：<code>inventory_ratio</code> 是 $|q|/q_{max}$，没有符号，不能判断 opener/add/reducing；历史 quote timestamp 是 post-decision log-write clock，不是 exact decision start；缺稳定 decision ID 和权威 order/ACK/queue lineage。v2 因此把 formal denominator 改为 native exact opener opportunities，记录 signed inventory、feature-ready time、baseline/candidate coordinates 与完整 lifecycle。v2.1/v2.2 继续强化 schema、runtime binding、writer health、hot-start quarantine、cancel-reject、crash recovery 和 atomic admission。</p>
-<p>这些版本是同一个研究项目的 evidence chain，不是多篇独立“修复研究”。正式 prospective tape 最终仍处于 disabled、未采集状态，所以不能声称 v2 已得到新的 support rate。项目的冻结结论是：v1 成功证明有限的 clock/coordinate mechanics，却因 0.334% support 不能注册动作；v2 只完成 infrastructure contract，没有 prediction、action、Validation、holdout 或 live authority。</p>
+<p>这些版本逐步修正同一采集与对齐链路。正式 prospective tape 最终仍处于 disabled、未采集状态，所以不能声称 v2 已得到新的 support rate。项目的冻结结论是：v1 成功证明有限的 clock/coordinate mechanics，却因 0.334% support 不能注册动作；v2 只完成 infrastructure contract，没有 prediction、action、Validation、holdout 或 live authority。</p>
 <p><img src="/images/narrowgate/external-adverse-edge-guard-kline.svg" srcset="/img/loading.gif" lazyload alt="外部不利edge推动报价向外并经历延迟和生命周期的机制"></p>
 <p><em>图 1：机制示意。外部 fair 下移时，BUY exposure-increasing quote 只向外远离 touch；信号还必须通过 all/LOO、可见性、signed-role、spread cap 与 exact lifecycle。K 线和 tick 距离不是实盘数据。</em></p>
 <p>本文只讨论冻结的 Development mechanics evidence，不建议任何真实交易行为。</p>
@@ -1449,7 +1448,7 @@ t_{ready}=\max_v(t_{bar,end}^{v}+L_{receive}^{v}+L_{feature}^{v}).</script><p>�
 <h3 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h3><p>这是比“预测分数好看”严格得多的检验：动作每次发生，fill 与 activity 保留充分，完整路径点估计也偏正；但时间日不确定性、SELL 方向与 Bybit 依赖共同阻止晋级。一个可信的 cross-venue alpha 必须同时跨过价值与运输门，而不只是保留一个漂亮均值。</p>
 <p><img src="/images/narrowgate/external-market-research-synthesis.svg" srcset="/img/loading.gif" lazyload alt="三交易所外部市场研究从信息坐标到 maker action 的结果收敛"></p>
 <p><em>图：短时外部信息和稳健 fair coordinate 可以保留；first-add、adverse-edge 与 fair-center 仍未取得稳定的完整路径动作价值。</em></p>
-<h2 id="9-合并后的结论：外部市场是信息源，不是免费动作"><a href="#9-合并后的结论：外部市场是信息源，不是免费动作" class="headerlink" title="9. 合并后的结论：外部市场是信息源，不是免费动作"></a>9. 合并后的结论：外部市场是信息源，不是免费动作</h2><p>三市场研究最稳定的发现是短时信息确实存在，而且可以用 past-only basis、two-of-three aggregation 与 leave-one-venue-out 构造可审计的 fair coordinate。最不稳定的部分恰恰是从坐标到动作：first-add 路径缺 exact common lifecycle，adverse-edge candidate rate 太低，symmetric fair-center 的主区间跨零并依赖具体 venue。</p>
+<h2 id="9-结论：外部市场是信息源，不是免费动作"><a href="#9-结论：外部市场是信息源，不是免费动作" class="headerlink" title="9. 结论：外部市场是信息源，不是免费动作"></a>9. 结论：外部市场是信息源，不是免费动作</h2><p>三市场研究最稳定的发现是短时信息确实存在，而且可以用 past-only basis、two-of-three aggregation 与 leave-one-venue-out 构造可审计的 fair coordinate。最不稳定的部分恰恰是从坐标到动作：first-add 路径缺 exact common lifecycle，adverse-edge candidate rate 太低，symmetric fair-center 的主区间跨零并依赖具体 venue。</p>
 <p>所以当前结论不是“跨市场无效”，也不是“外部 fair price 已能交易”，而是 prediction/mechanics 与 action value 仍分层。后继动作必须在同一 receive-time denominator 上同时冻结 feature-ready clock、venue availability、LOO、signed inventory role、quote coordinates、native lifecycle 与 terminal reward；不能把历史 provider-time prediction 拼接到另一批本地订单结果上。</p>
 
                 
@@ -1621,7 +1620,6 @@ t_{ready}=\max_v(t_{bar,end}^{v}+L_{receive}^{v}+L_{feature}^{v}).</script><p>�
 
   
   
-
 
 
 
@@ -1899,41 +1897,49 @@ t_{ready}=\max_v(t_{bar,end}^{v}+L_{receive}^{v}+L_{feature}^{v}).</script><p>�
       <script>
         if (!window.MathJax) {
           window.MathJax = {
-            tex    : {
-              inlineMath: { '[+]': [['$', '$']] }
-            },
-            loader : {
-              load: ['ui/lazy']
-            },
+            tex: { inlineMath: { '[+]': [['$', '$']] } },
+            loader: { load: ['ui/lazy'] },
             options: {
               renderActions: {
-                insertedScript: [200, () => {
-                  document.querySelectorAll('mjx-container').forEach(node => {
-                    let target = node.parentNode;
-                    if (target.nodeName.toLowerCase() === 'li') {
-                      target.parentNode.classList.add('has-jax');
-                    }
+                // Kramed emits v2 script nodes. Keep v3's default delimiter find.
+                // https://docs.mathjax.org/en/v3.2/upgrading/v2.html
+                findScript: [10, function (doc) {
+                  for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                    if (node.closest('pre, code')) continue;
+                    const display = /;\s*mode=display/.test(node.type);
+                    const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                    const text = document.createTextNode('');
+                    node.parentNode.replaceChild(text, node);
+                    math.start = {node: text, delim: '', n: 0};
+                    math.end = {node: text, delim: '', n: 0};
+                    doc.math.push(math);
+                  }
+                }, ''],
+                insertedScript: [200, function () {
+                  document.querySelectorAll('mjx-container').forEach(function (node) {
+                    const target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') target.parentNode.classList.add('has-jax');
                   });
                 }, '', false]
               }
             }
           };
-        } else {
-          MathJax.startup.document.state(0);
-          MathJax.texReset();
-          MathJax.typeset();
-          MathJax.typesetPromise();
         }
-
-        Fluid.events.registerRefreshCallback(function() {
-          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+        // Serialize refreshes after startup. Consumed scripts cannot register twice.
+        function refreshMath() {
+          if (!window.MathJax || !MathJax.startup) return;
+          MathJax.startup.promise = MathJax.startup.promise.then(function () {
             MathJax.startup.document.state(0);
             MathJax.texReset();
-            MathJax.typeset();
-            MathJax.typesetPromise();
-          }
-        });
+            return MathJax.typesetPromise();
+          }).catch(function (error) { console.error('MathJax typesetting failed', error); });
+        }
+        Fluid.events.registerRefreshCallback(refreshMath);
+        if (window.MathJax.startup) refreshMath();
       </script>
+      <style>
+        .markdown-body mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; padding: 0.15em 0; }
+      </style>
     
 
   <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>

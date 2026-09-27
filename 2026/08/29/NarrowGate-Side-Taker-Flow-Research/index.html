@@ -19,12 +19,12 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Last materially modified: 2026-08-30 1. 同一笔成交同时属于两种时间真相Side-taker 研究最初想检验主动买卖流能否预示 maker fill quality，但很快发现输入事件、策略可见时间和订单风险集没有闭合。individual trades 提供 exchange-time 的撮合顺序；aggTrade parent 才接近 live 策略能整体">
+    <meta name="description" content="1. 同一笔成交同时属于两种时间真相Side-taker 研究最初想检验主动买卖流能否预示 maker fill quality，但很快发现输入事件、策略可见时间和订单风险集没有闭合。individual trades 提供 exchange-time 的撮合顺序；aggTrade parent 才接近 live 策略能整体看到的消息；订单自身又经历 submit、activation、parti">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate Side-Taker Lifecycle：微观流、双时钟 Trade Identity 与动态 Risk Set">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Side-Taker-Flow-Research/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="Last materially modified: 2026-08-30 1. 同一笔成交同时属于两种时间真相Side-taker 研究最初想检验主动买卖流能否预示 maker fill quality，但很快发现输入事件、策略可见时间和订单风险集没有闭合。individual trades 提供 exchange-time 的撮合顺序；aggTrade parent 才接近 live 策略能整体">
+<meta property="og:description" content="1. 同一笔成交同时属于两种时间真相Side-taker 研究最初想检验主动买卖流能否预示 maker fill quality，但很快发现输入事件、策略可见时间和订单风险集没有闭合。individual trades 提供 exchange-time 的撮合顺序；aggTrade parent 才接近 live 策略能整体看到的消息；订单自身又经历 submit、activation、parti">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/side-taker-flow-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f08-trade-parent-child-dual-clock.svg">
@@ -36,7 +36,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f08-trade-parent-child-dual-clock.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/side-taker-research-synthesis.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-08-29T18:07:00.000Z">
+<meta property="article:modified_time" content="2026-09-27T02:45:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="Taker Flow">
@@ -397,8 +397,7 @@
             
               <div class="markdown-body">
                 
-                <p>Last materially modified: 2026-08-30</p>
-<h2 id="1-同一笔成交同时属于两种时间真相"><a href="#1-同一笔成交同时属于两种时间真相" class="headerlink" title="1. 同一笔成交同时属于两种时间真相"></a>1. 同一笔成交同时属于两种时间真相</h2><p>Side-taker 研究最初想检验主动买卖流能否预示 maker fill quality，但很快发现输入事件、策略可见时间和订单风险集没有闭合。individual trades 提供 exchange-time 的撮合顺序；aggTrade parent 才接近 live 策略能整体看到的消息；订单自身又经历 submit、activation、partial fill、cancel request、cancel ACK 与 terminal。flow、hazard、trade parity 与 event identity 因而是一项完整研究，而不是四篇方法短文。</p>
+                <h2 id="1-同一笔成交同时属于两种时间真相"><a href="#1-同一笔成交同时属于两种时间真相" class="headerlink" title="1. 同一笔成交同时属于两种时间真相"></a>1. 同一笔成交同时属于两种时间真相</h2><p>Side-taker 研究最初想检验主动买卖流能否预示 maker fill quality，但很快发现输入事件、策略可见时间和订单风险集没有闭合。individual trades 提供 exchange-time 的撮合顺序；aggTrade parent 才接近 live 策略能整体看到的消息；订单自身又经历 submit、activation、partial fill、cancel request、cancel ACK 与 terminal。因此，流量特征、风险率和事件身份必须在同一条订单生命周期上对齐。</p>
 <p>maker side 与 counterparty taker 的映射必须冻结：</p>
 <script type="math/tex; mode=display">
 \text{BUY maker}\leftarrow\text{aggressive SELL},\qquad
@@ -533,7 +532,7 @@ Q^{ready}_{100}(t)=\sum_p Q_p\mathbf 1\{t-100ms\le T_p^{ready}<t\}.</script><p>�
 <p>真正能重开的结果应同时满足：预先冻结 maker-side mapping；使用 parent-ready 特征；在未参与窗口选择的未来日期复现；相对于只含 campaign/order state 的 M0 有增量；并且有足够 top-risk support。之后最多获得 action-registration eligibility，仍不是动作通过。</p>
 <h4 id="6-3-读图时应把-K-线放在哪一层"><a href="#6-3-读图时应把-K-线放在哪一层" class="headerlink" title="6.3 读图时应把 K 线放在哪一层"></a>6.3 读图时应把 K 线放在哪一层</h4><p>K 线只是把 price path 压成可视窗口。红色长阴线附近 aggressive SELL flow 增强，既可能是信息型卖出导致下跌，也可能是下跌触发更多市价卖出；仅从同一窗口无法辨别方向。研究通过“只用决策前完成窗口、未来 markout 只作标签”阻止最直接的时间穿越，却没有创造外生冲击。</p>
 <p>所以图 1 的用途是解释 maker side 与流向，图 2 的用途是解释信息何时可见。两张图都不是“看到红 K 就撤 BUY”的策略图。一个可执行图还必须画出 baseline 与 candidate 两条订单/库存路径，并以 terminal value 收尾；本项目尚未到那一层。</p>
-<h4 id="为什么版本必须写进同一主文"><a href="#为什么版本必须写进同一主文" class="headerlink" title="为什么版本必须写进同一主文"></a>为什么版本必须写进同一主文</h4><p>窗口描述、maker-side mapping、宽 denominator 复核和 hazard gate 回答的是同一条研究链上的不同问题。只有输入状态、目标、面板和统计契约共同冻结后，才形成可以单独下结论的 research identity。一次字段修正、一次运行失败或一次图表更新都不是新项目。把这些文件拆成多篇，会让读者误以为发生了多次独立验证，实际上 Validation 与 holdout 从未打开。</p>
+<h4 id="为什么版本必须写进同一主文"><a href="#为什么版本必须写进同一主文" class="headerlink" title="为什么版本必须写进同一主文"></a>为什么版本必须写进同一主文</h4><p>窗口描述、maker-side mapping、宽 denominator 复核和 hazard gate 回答的是同一条研究链上的不同问题。只有输入状态、目标、面板和统计契约共同冻结后，才形成可以单独下结论的 research identity。这些实现检查没有增加独立验证样本；Validation 与 holdout 从未打开。</p>
 <h3 id="7-关闭与支持边界"><a href="#7-关闭与支持边界" class="headerlink" title="7. 关闭与支持边界"></a>7. 关闭与支持边界</h3><p>这项研究支持三件事：maker side 必须按真实对手方映射；亚秒流可能比分秒级聚合更不对称；任何策略特征必须服从 parent <code>aggTrade</code> 的可见时钟。</p>
 <p>它不支持把一个窗口、一个相关系数或一个 fill-conditioned bucket 变成动作。初始信号也不能因“方向符合直觉”而跳过宽 denominator 复核。</p>
 <h3 id="8-没有获得的权限"><a href="#8-没有获得的权限" class="headerlink" title="8. 没有获得的权限"></a>8. 没有获得的权限</h3><ul>
@@ -795,7 +794,7 @@ P_p(u)=\{i:f_p\le id_i\le l_p(u),\ T_i^{ex}\le u\},</script><p>其中 $l_p(u)$ �
 </ul>
 <p>这种字段级 authority 比“数据日好/坏”的单布尔更精确，也避免把少量 gap 变成幸存者偏差：只保留完全平静的日期，可能反而改变市场分布。</p>
 <h3 id="4-研究演进-2"><a href="#4-研究演进-2" class="headerlink" title="4. 研究演进"></a>4. 研究演进</h3><p>recorder-v1 没保存 <code>f/l</code>、typed schema 和 source contract，因此即使基础字段全部匹配，正式状态仍 blocked。v2 增加 aggregate ID、<code>f/l</code>、range-derived child count、<code>q/nq</code> 与 source identity。随后发现一条 live slice 的 parent 在 95ms 内继续扩展：live 当时看到的是 child 974..978，REST 最终 parent 延伸到 982。这不是 recorder bug，而是实时切片与日后 finalized database object 的语义差异。</p>
-<p>这条 lineage 里有 recorder 版本、mapping audit 和 parity result，但只有一个研究项目：建立可执行 trade-information contract。v1 的字段缺失是采集契约不足；v2 的 source contract 是同一项目的修正；parent extension 是研究发现。将它们拆成三篇会把一次合同收敛写成三次实验。</p>
+<p>这条 lineage 里有 recorder 版本、mapping audit 和 parity result，但只有一个研究项目：建立可执行 trade-information contract。v1 的字段缺失是采集契约不足；v2 的 source contract 是同一项目的修正；parent extension 是研究发现。三项变化都属于输入契约的修正，不应计为三次独立实验。</p>
 <h3 id="5-结果与不确定性-2"><a href="#5-结果与不确定性-2" class="headerlink" title="5. 结果与不确定性"></a>5. 结果与不确定性</h3><p>recorder/live source contract 通过；2,421/2,421 aggregate IDs matched；exact quantity 和完整 <code>f..l</code> 为 99.958695%，其中 1 个 parent 发生扩展。</p>
 <p>该窗口的 trade-to-receive lag p50/p95 为 109.64ms/1,293.12ms，feature latency p50/p95 为 106.32us/3.808ms。前者包含 Binance 聚合与发布等待，不能命名为纯网络延迟。</p>
 <p>一个扩展样本足以阻止“finalized payload 精确复刻 live slice”的绝对声明，却不能否定 recorder contract。这里的不确定性是数据对象在时间中的演化，不是传统置信区间。</p>
@@ -1054,7 +1053,7 @@ E[Y_T(keep)-Y_T(cancel)\mid H_t],</script><p>其中$H_t$必须只包含$t$前可
 <h3 id="结语-3"><a href="#结语-3" class="headerlink" title="结语"></a>结语</h3><p>风险集不是“从决策到第一个事件”的便捷切片，而是订单实际暴露、策略动作与 campaign 状态共同决定的对象。先把事件身份做对，预测才有资格开始。</p>
 <p><img src="/images/narrowgate/side-taker-research-synthesis.svg" srcset="/img/loading.gif" lazyload alt="Side-Taker 从描述性微观流到双时钟动态风险集的结果收敛"></p>
 <p><em>图：旧静态 hazard 已关闭；parent-child 可见时钟和 start-stop risk set 是动态 successor 的前置合同，而不是现成 action。</em></p>
-<h2 id="7-合并后的结论：静态-side-signal-关闭，动态生命周期问题仍然开放"><a href="#7-合并后的结论：静态-side-signal-关闭，动态生命周期问题仍然开放" class="headerlink" title="7. 合并后的结论：静态 side signal 关闭，动态生命周期问题仍然开放"></a>7. 合并后的结论：静态 side signal 关闭，动态生命周期问题仍然开放</h2><p>早期 side-taker M0 没有在更严格 denominator 上复现，且把 non-absorbing jump、策略 cancel 与 campaign repair 混进了错误的事件结构。双时钟与 risk-set 审计解释了为什么：输入可见性和订单生存状态不是一个静态 row 可以表达的。这个诊断关闭旧 M0，却没有否定所有 side-specific taker information。</p>
+<h2 id="7-结论：静态-side-signal-关闭，动态生命周期问题仍然开放"><a href="#7-结论：静态-side-signal-关闭，动态生命周期问题仍然开放" class="headerlink" title="7. 结论：静态 side signal 关闭，动态生命周期问题仍然开放"></a>7. 结论：静态 side signal 关闭，动态生命周期问题仍然开放</h2><p>早期 side-taker M0 没有在更严格 denominator 上复现，且把 non-absorbing jump、策略 cancel 与 campaign repair 混进了错误的事件结构。双时钟与 risk-set 审计解释了为什么：输入可见性和订单生存状态不是一个静态 row 可以表达的。这个诊断关闭旧 M0，却没有否定所有 side-specific taker information。</p>
 <p>合法 successor 必须先通过 historical/live aggTrade feature-time parity，再用统一 normalizer、side intercept 与动态 start-stop panel 估计 cause-specific hazards。即便 prediction 通过，也只能注册新的 randomized action；不能直接生成 live guard。</p>
 
                 
@@ -1226,7 +1225,6 @@ E[Y_T(keep)-Y_T(cancel)\mid H_t],</script><p>其中$H_t$必须只包含$t$前可
 
   
   
-
 
 
 
@@ -1504,41 +1502,49 @@ E[Y_T(keep)-Y_T(cancel)\mid H_t],</script><p>其中$H_t$必须只包含$t$前可
       <script>
         if (!window.MathJax) {
           window.MathJax = {
-            tex    : {
-              inlineMath: { '[+]': [['$', '$']] }
-            },
-            loader : {
-              load: ['ui/lazy']
-            },
+            tex: { inlineMath: { '[+]': [['$', '$']] } },
+            loader: { load: ['ui/lazy'] },
             options: {
               renderActions: {
-                insertedScript: [200, () => {
-                  document.querySelectorAll('mjx-container').forEach(node => {
-                    let target = node.parentNode;
-                    if (target.nodeName.toLowerCase() === 'li') {
-                      target.parentNode.classList.add('has-jax');
-                    }
+                // Kramed emits v2 script nodes. Keep v3's default delimiter find.
+                // https://docs.mathjax.org/en/v3.2/upgrading/v2.html
+                findScript: [10, function (doc) {
+                  for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                    if (node.closest('pre, code')) continue;
+                    const display = /;\s*mode=display/.test(node.type);
+                    const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                    const text = document.createTextNode('');
+                    node.parentNode.replaceChild(text, node);
+                    math.start = {node: text, delim: '', n: 0};
+                    math.end = {node: text, delim: '', n: 0};
+                    doc.math.push(math);
+                  }
+                }, ''],
+                insertedScript: [200, function () {
+                  document.querySelectorAll('mjx-container').forEach(function (node) {
+                    const target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') target.parentNode.classList.add('has-jax');
                   });
                 }, '', false]
               }
             }
           };
-        } else {
-          MathJax.startup.document.state(0);
-          MathJax.texReset();
-          MathJax.typeset();
-          MathJax.typesetPromise();
         }
-
-        Fluid.events.registerRefreshCallback(function() {
-          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+        // Serialize refreshes after startup. Consumed scripts cannot register twice.
+        function refreshMath() {
+          if (!window.MathJax || !MathJax.startup) return;
+          MathJax.startup.promise = MathJax.startup.promise.then(function () {
             MathJax.startup.document.state(0);
             MathJax.texReset();
-            MathJax.typeset();
-            MathJax.typesetPromise();
-          }
-        });
+            return MathJax.typesetPromise();
+          }).catch(function (error) { console.error('MathJax typesetting failed', error); });
+        }
+        Fluid.events.registerRefreshCallback(refreshMath);
+        if (window.MathJax.startup) refreshMath();
       </script>
+      <style>
+        .markdown-body mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; padding: 0.15em 0; }
+      </style>
     
 
   <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>

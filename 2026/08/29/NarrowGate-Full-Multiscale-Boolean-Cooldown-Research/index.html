@@ -19,12 +19,12 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Last materially modified: 2026-08-29 TL;DR：这是一个有正信号、但没有通过研究门槛的实验NarrowGate 的 Full-Multiscale 研究问了一个很具体的问题：在一次 maker 成交增加库存以后，能否根据从 0.5 秒到 256 秒的多尺度市场状态，动态决定下一次允许继续加仓前要等待多久，并且比实验冻结时的精确 owner baseline 获">
+    <meta name="description" content="TL;DR：这是一个有正信号、但没有通过研究门槛的实验NarrowGate 的 Full-Multiscale 研究问了一个很具体的问题：在一次 maker 成交增加库存以后，能否根据从 0.5 秒到 256 秒的多尺度市场状态，动态决定下一次允许继续加仓前要等待多久，并且比实验冻结时的精确 owner baseline 获得更好的 campaign-terminal USDC value？ 把它">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate Full-Multiscale：从多尺度 EMA 到 Boolean Cooldown 的一次阴性研究">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Full-Multiscale-Boolean-Cooldown-Research/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="Last materially modified: 2026-08-29 TL;DR：这是一个有正信号、但没有通过研究门槛的实验NarrowGate 的 Full-Multiscale 研究问了一个很具体的问题：在一次 maker 成交增加库存以后，能否根据从 0.5 秒到 256 秒的多尺度市场状态，动态决定下一次允许继续加仓前要等待多久，并且比实验冻结时的精确 owner baseline 获">
+<meta property="og:description" content="TL;DR：这是一个有正信号、但没有通过研究门槛的实验NarrowGate 的 Full-Multiscale 研究问了一个很具体的问题：在一次 maker 成交增加库存以后，能否根据从 0.5 秒到 256 秒的多尺度市场状态，动态决定下一次允许继续加仓前要等待多久，并且比实验冻结时的精确 owner baseline 获得更好的 campaign-terminal USDC value？ 把它">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-research-loop.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/cooldown-side-selective-kline.svg">
@@ -41,7 +41,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-buy-intervals.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-evidence-boundary.svg">
 <meta property="article:published_time" content="2026-08-29T06:25:53.000Z">
-<meta property="article:modified_time" content="2026-08-29T13:10:00.000Z">
+<meta property="article:modified_time" content="2026-09-27T02:45:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="因果推断">
@@ -358,7 +358,7 @@
         
         
           <!-- compatible with older versions-->
-          145 分钟
+          143 分钟
         
       </span>
     
@@ -402,8 +402,7 @@
             
               <div class="markdown-body">
                 
-                <p>Last materially modified: 2026-08-29</p>
-<h2 id="TL-DR：这是一个有正信号、但没有通过研究门槛的实验"><a href="#TL-DR：这是一个有正信号、但没有通过研究门槛的实验" class="headerlink" title="TL;DR：这是一个有正信号、但没有通过研究门槛的实验"></a>TL;DR：这是一个有正信号、但没有通过研究门槛的实验</h2><p>NarrowGate 的 Full-Multiscale 研究问了一个很具体的问题：<strong>在一次 maker 成交增加库存以后，能否根据从 0.5 秒到 256 秒的多尺度市场状态，动态决定下一次允许继续加仓前要等待多久，并且比实验冻结时的精确 owner baseline 获得更好的 campaign-terminal USDC value？</strong></p>
+                <h2 id="TL-DR：这是一个有正信号、但没有通过研究门槛的实验"><a href="#TL-DR：这是一个有正信号、但没有通过研究门槛的实验" class="headerlink" title="TL;DR：这是一个有正信号、但没有通过研究门槛的实验"></a>TL;DR：这是一个有正信号、但没有通过研究门槛的实验</h2><p>NarrowGate 的 Full-Multiscale 研究问了一个很具体的问题：<strong>在一次 maker 成交增加库存以后，能否根据从 0.5 秒到 256 秒的多尺度市场状态，动态决定下一次允许继续加仓前要等待多久，并且比实验冻结时的精确 owner baseline 获得更好的 campaign-terminal USDC value？</strong></p>
 <p>把它翻译成人话：研究让同一条价格同时经过十把“反应速度不同的尺子”——最快只记得最近约 0.5 秒，最慢保留约 256 秒的背景；任取一快一慢两把尺子，共有 45 种配对。程序不只问“快线在慢线上面吗”，还问“刚交叉多久、两线正在分开还是靠拢、这种排列持续了多久”，然后只用过去日期学习一组有长度上限的 AND / OR / NOT 规则，为当前成交选择一个预先冻结的冷却时长。</p>
 <p>这里的“三值”也不是三种动作，而是每个条件有 <code>true / false / unobserved</code> 三种状态：数据缺失不能被当成 <code>false</code>，取反以后也不能凭空变成证据。动作空间仍是 BUY 与 SELL 各自预先冻结的八档 duration。第 4 节会把 EMA、pair state 和 policy 分别写成式子。</p>
 <p>结果并不是“没有信号”。BUY 侧最强候选 <code>E3_HIGHER_ORDER_BOOLEAN</code> 相对精确 baseline 的 terminal value 改善 <code>+0.458577 USDC/day</code>，closed-campaign value 改善 <code>+0.604012 USDC/day</code>，保留 97.29% 的 fills，四个 outer-fold 平均值全部为正；在匹配 action rate 与 duration distribution 的控制组之上，仍有 <code>+0.193888 USDC/day</code> 的额外点估计。</p>
@@ -411,7 +410,6 @@
 <p>这篇文章讲的不是一个“成功上线的策略”，而是一个更有代表性的研究结果：为什么看起来相当漂亮的点估计，仍然不足以证明一个做市动作具有可迁移的增量价值。</p>
 <p>项目源码：<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker">GitHub - xiao-nanbei/NarrowGateMaker</a>。完整的研究框架见 <a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/">Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift</a>，执行器与 C++ parity 背景见 <a href="/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/">回测吞吐与 Live 尾延迟工程</a>。</p>
 <p>本文只讨论研究方法和历史 Development 证据，不讨论或建议任何真实交易行为。文中的 PnL、value、fill 和 uplift 都是特定 replay identity 下的研究量，不是收益承诺。</p>
-<p>本文把原先容易被误读为十项独立研究的方法切面统一收回一条叙事：先定义动作反事实与证据时钟，再解释多尺度状态和三值规则，随后说明 nested chronological OOF、one-shot 与 repeated replay、BUY/SELL 分侧、feature hierarchy 与 action-matched control，最后给出冻结结果、执行身份和权限边界。它们是同一研究身份的组成部分，不是十篇相互独立的实验。</p>
 <h2 id="1-问题不是“EMA-能不能预测价格”，而是“状态能不能改变动作价值”"><a href="#1-问题不是“EMA-能不能预测价格”，而是“状态能不能改变动作价值”" class="headerlink" title="1. 问题不是“EMA 能不能预测价格”，而是“状态能不能改变动作价值”"></a>1. 问题不是“EMA 能不能预测价格”，而是“状态能不能改变动作价值”</h2><p>maker 策略里的 cooldown，是一次 exposure-increasing fill 之后暂时不允许同侧继续增加库存的时间。最简单的实现是固定等待，例如按连续成交单位使用 <code>85 × N</code> 秒。它的好处是可解释、稳定、容易在 live 和 replay 之间保持一致；缺点是把所有市场状态都压缩成同一个时间常数。</p>
 <p>直觉上，固定 cooldown 很可能过于粗糙。一次短促的流动性冲击，可能在几十秒内完成 refill；一次持续性的单边 taker flow，则可能在几分钟后仍未恢复。快慢 EMA 的交叉方向、交叉发生多久、价差是否继续扩张、盘口深度是否恢复，看起来都可能帮助回答“现在恢复加仓是否太早”。</p>
 <p>但这不是普通的价格预测问题。即使某个状态能预测未来继续下跌，也不能直接推出“延长 cooldown 更好”。延长等待会同时删除一部分有毒成交和一部分自然修复成交，还会改变后续订单、库存、campaign 长度和终局价值。研究真正要估计的是动作反事实：</p>
@@ -1095,7 +1093,6 @@ operations: candidate release -&gt; safety gate -&gt; canary -&gt; observation -
 
 
 
-
   <script>
   Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
     mermaid.initialize({"theme":"default"});
@@ -1369,41 +1366,49 @@ operations: candidate release -&gt; safety gate -&gt; canary -&gt; observation -
       <script>
         if (!window.MathJax) {
           window.MathJax = {
-            tex    : {
-              inlineMath: { '[+]': [['$', '$']] }
-            },
-            loader : {
-              load: ['ui/lazy']
-            },
+            tex: { inlineMath: { '[+]': [['$', '$']] } },
+            loader: { load: ['ui/lazy'] },
             options: {
               renderActions: {
-                insertedScript: [200, () => {
-                  document.querySelectorAll('mjx-container').forEach(node => {
-                    let target = node.parentNode;
-                    if (target.nodeName.toLowerCase() === 'li') {
-                      target.parentNode.classList.add('has-jax');
-                    }
+                // Kramed emits v2 script nodes. Keep v3's default delimiter find.
+                // https://docs.mathjax.org/en/v3.2/upgrading/v2.html
+                findScript: [10, function (doc) {
+                  for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                    if (node.closest('pre, code')) continue;
+                    const display = /;\s*mode=display/.test(node.type);
+                    const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                    const text = document.createTextNode('');
+                    node.parentNode.replaceChild(text, node);
+                    math.start = {node: text, delim: '', n: 0};
+                    math.end = {node: text, delim: '', n: 0};
+                    doc.math.push(math);
+                  }
+                }, ''],
+                insertedScript: [200, function () {
+                  document.querySelectorAll('mjx-container').forEach(function (node) {
+                    const target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') target.parentNode.classList.add('has-jax');
                   });
                 }, '', false]
               }
             }
           };
-        } else {
-          MathJax.startup.document.state(0);
-          MathJax.texReset();
-          MathJax.typeset();
-          MathJax.typesetPromise();
         }
-
-        Fluid.events.registerRefreshCallback(function() {
-          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+        // Serialize refreshes after startup. Consumed scripts cannot register twice.
+        function refreshMath() {
+          if (!window.MathJax || !MathJax.startup) return;
+          MathJax.startup.promise = MathJax.startup.promise.then(function () {
             MathJax.startup.document.state(0);
             MathJax.texReset();
-            MathJax.typeset();
-            MathJax.typesetPromise();
-          }
-        });
+            return MathJax.typesetPromise();
+          }).catch(function (error) { console.error('MathJax typesetting failed', error); });
+        }
+        Fluid.events.registerRefreshCallback(refreshMath);
+        if (window.MathJax.startup) refreshMath();
       </script>
+      <style>
+        .markdown-body mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; padding: 0.15em 0; }
+      </style>
     
 
   <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>

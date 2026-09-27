@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate Empirical P3：从十秒触达曲线到 Reach-Time Hazard 与报价价值'
 date: 2026-08-29 13:30:00
-updated: 2026-08-30 02:02:00
+updated: 2026-09-27 10:45:00
 categories:
 - Market Making
 tags:
@@ -14,7 +14,6 @@ math: true
 ---
 
 
-Last materially modified: 2026-08-30
 
 
 ## 1. P3 研究真正经历了什么
@@ -33,7 +32,7 @@ $$
 F_{\mathrm{reach},s}(u,d\mid X_t)=P(T_{\mathrm{reach},s}(d)\le u\mid X_t),
 $$
 
-但它始终不是 $P(\mathrm{fill})$，也不是 GLFT 的 execution-intensity slope $\kappa$。touch/reach 之后还隔着订单是否提交、是否激活、队列位置、撤改、竞争风险、成交后 selection 和库存终局。此前把整条研究拆成六篇，反而遮蔽了最重要的结论：预测层确有进步，两个报价映射却都没有获得动作价值。
+但它始终不是 $P(\mathrm{fill})$，也不是 GLFT 的 execution-intensity slope $\kappa$。touch/reach 之后还隔着订单是否提交、是否激活、队列位置、撤改、竞争风险、成交后 selection 和库存终局。这解释了为什么预测层确有进步，两个报价映射却都没有获得动作价值。
 
 ## 2. 研究阶段与证据状态
 
@@ -549,7 +548,7 @@ owner 在读取 v4 结果后，把唯一一个字段 `minimum_fraction` 从 0.98
 
 v4.1 的正确权限是 `historical_development_prediction_supported_owner_coverage_override`。它证明同一 conditional surface 在一个明确披露、较宽松的 coverage contract 下通过；它不洗掉 v4 的原始失败，也不是 prospective 或 independent confirmation。
 
-把 v4 与 v4.1 拆成两篇“成功/失败新闻”会掩盖最关键的治理事实。它们应当作为同一研究演进中的两个统计身份：原门槛结果与事后覆写结果并列展示。
+v4 与 v4.1 使用不同统计判断，需区分原门槛结果与事后覆写结果并列展示。
 
 可以用一个简单的门函数说明：
 
@@ -1576,7 +1575,7 @@ reach truth 使用 exchange-time aggressive events；feature 只能在窗口起�
 
 冻结 Spec 随后确定 source panels、four-fold chronology、constraints、proper score、coverage、transport 与权限。模型训练和 report 只是执行这份研究合同，不产生新的项目。
 
-固定 10 秒 v2、volatility-conditioned v4 与 reach-time hazard 是不同 estimands，所以它们各自成文；而 `surface design`、JSON Spec、cache manifest 与训练 report 是本项目的不同章节，不应拆成“设计文章”“实现文章”“结果文章”。
+固定 10 秒 v2、波动率条件面 v4 与 reach-time hazard 估计不同对象；曲面设计、输入定义和训练报告分别用于确定目标、来源与拟合过程，不能互相替代结果验证。
 
 ### 6. 结果
 
@@ -1707,7 +1706,7 @@ IBS对整个时间区间平均，早期与晚期误差可以互相抵消。实�
 
 *图：P3 的概率层多次得到支持，但标量 adapter 给出了关键经济反例；joint quote selector 也没有找到优于 baseline 的 OOF 动作。*
 
-## 10. 合并后的结论：P3 成功回答了概率问题，却没有跨过报价价值的桥
+## 10. 结论：P3 成功回答了概率问题，却没有跨过报价价值的桥
 
 这条研究链留下了一个可复用的 first-passage probability 基础设施，也留下了一个实质性反例：更好的概率模型通过错误 adapter 接入旧报价 ABI，可以让报价更激进、成交更多，却让 terminal MTM 更差。失败的不是概率建模本身，而是把不同 estimand 压成相似标量的工程捷径。
 

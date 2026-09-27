@@ -19,15 +19,15 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Last materially modified: 2026-09-26 2026-09-26 当前导航新 Tardis F03 的既定模型比较和完整 Final 已完成，结果及使用历史见新 13-Head 主文。F01、F04、F05 的有限批次进展应与全族未完范围分开，当前入口与真实状态以代码研究台账和各族主报告为准；F05 已有真实十头及一个冻结消费者的负结果，不代表全族完成。新的参数比较、">
+    <meta name="description" content="做市研究的难点，是把市场信息变成值得执行的订单。预测价格方向或触达概率只是起点；订单还要经历提交、排队、成交、库存持有和减仓，最终由完整账户收益检验。这里按这条链组织 NarrowGate 的研究入口，方便读者从具体问题找到方法、实验和限制。 从哪个问题开始 报价为什么在这里？ 阅读报价动作与 P3：前者比较价格和中心的改变，后者区分市场触达与实际成交。 预测提供了什么信息？ 阅读新 Tardis">
 <meta property="og:type" content="article">
-<meta property="og:title" content="NarrowGate 研究地图：十个研究族如何收敛为 12 篇主研究长文">
+<meta property="og:title" content="NarrowGate 研究地图：从市场预测、订单决策到完整账户收益">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Research-Project-Map/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="Last materially modified: 2026-09-26 2026-09-26 当前导航新 Tardis F03 的既定模型比较和完整 Final 已完成，结果及使用历史见新 13-Head 主文。F01、F04、F05 的有限批次进展应与全族未完范围分开，当前入口与真实状态以代码研究台账和各族主报告为准；F05 已有真实十头及一个冻结消费者的负结果，不代表全族完成。新的参数比较、">
+<meta property="og:description" content="做市研究的难点，是把市场信息变成值得执行的订单。预测价格方向或触达概率只是起点；订单还要经历提交、排队、成交、库存持有和减仓，最终由完整账户收益检验。这里按这条链组织 NarrowGate 的研究入口，方便读者从具体问题找到方法、实验和限制。 从哪个问题开始 报价为什么在这里？ 阅读报价动作与 P3：前者比较价格和中心的改变，后者区分市场触达与实际成交。 预测提供了什么信息？ 阅读新 Tardis">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-09-26T12:52:00.000Z">
+<meta property="article:modified_time" content="2026-09-27T02:45:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="因果推断">
@@ -38,7 +38,7 @@
   
   
   
-  <title>NarrowGate 研究地图：十个研究族如何收敛为 12 篇主研究长文 - databrains</title>
+  <title>NarrowGate 研究地图：从市场预测、订单决策到完整账户收益 - databrains</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
 
@@ -307,7 +307,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="NarrowGate 研究地图：十个研究族如何收敛为 12 篇主研究长文"></span>
+            <span id="subtitle" data-typed-text="NarrowGate 研究地图：从市场预测、订单决策到完整账户收益"></span>
           
         </div>
 
@@ -331,7 +331,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          5.8k 字
+          3.2k 字
         
       </span>
     
@@ -343,7 +343,7 @@
         
         
           <!-- compatible with older versions-->
-          49 分钟
+          27 分钟
         
       </span>
     
@@ -382,57 +382,21 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">NarrowGate 研究地图：十个研究族如何收敛为 12 篇主研究长文</h1>
+            <h1 id="seo-header">NarrowGate 研究地图：从市场预测、订单决策到完整账户收益</h1>
             
             
               <div class="markdown-body">
                 
-                <p>Last materially modified: 2026-09-26</p>
-<h2 id="2026-09-26-当前导航"><a href="#2026-09-26-当前导航" class="headerlink" title="2026-09-26 当前导航"></a>2026-09-26 当前导航</h2><p>新 Tardis F03 的既定模型比较和完整 Final 已完成，结果及使用历史见<a href="/2026/08/29/NarrowGate-Causal-13-Head-Source-Aware-v12-Research/">新 13-Head 主文</a>。F01、F04、F05 的有限批次进展应与全族未完范围分开，当前入口与真实状态以<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/recompute_407.json">代码研究台账</a>和各族主报告为准；F05 已有真实十头及一个冻结消费者的负结果，不代表全族完成。新的参数比较、工程组装与实盘激活是不同任务，不从前两者推断当前 live 状态。</p>
-<p>下列 9 月 5 日顺序及历史表格保留其当时范围，不再作为今天的未完成清单。当前页面仍按 12 条研究叙事组织；重组计划不等于站点已经改成另一种篇数。</p>
-<h2 id="2026-09-05-历史阶段：旧研究地图保留，新环境先重建-B0"><a href="#2026-09-05-历史阶段：旧研究地图保留，新环境先重建-B0" class="headerlink" title="2026-09-05 历史阶段：旧研究地图保留，新环境先重建 B0"></a>2026-09-05 历史阶段：旧研究地图保留，新环境先重建 B0</h2><p>本页的 12 条叙事总结的是各自冻结环境中的历史研究，不是当前私有 live 的开关清单，也不是新延迟环境的收益结论。当前修复后的 B0 与候选还没有完成新的完整配对经济回测。工程测试通过不能自动更新表中的策略结论，旧 PnL、winner 和参数排名也不能搬进新的 baseline。</p>
-<p>下一轮的优先级前移到“承担风险之前是否值得”：首次开仓相对等待、挂单继续保留相对撤单重入，以及再次增仓相对继续等待。项目不是没有事前信号，也不是从未研究这一问题；<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/README.md">F05 英文研究索引</a>已经登记 first-opener、决策可见 first-add 和 ADD/WAIT 的阴性结果。缺口是尚未建立可靠的信号→动作→完整路径经济价值映射，而不是简单缺少更多阈值。</p>
+                <p>做市研究的难点，是把市场信息变成值得执行的订单。预测价格方向或触达概率只是起点；订单还要经历提交、排队、成交、库存持有和减仓，最终由完整账户收益检验。这里按这条链组织 NarrowGate 的研究入口，方便读者从具体问题找到方法、实验和限制。</p>
+<h2 id="从哪个问题开始"><a href="#从哪个问题开始" class="headerlink" title="从哪个问题开始"></a>从哪个问题开始</h2><ul>
+<li><strong>报价为什么在这里？</strong> 阅读报价动作与 P3：前者比较价格和中心的改变，后者区分市场触达与实际成交。</li>
+<li><strong>预测提供了什么信息？</strong> 阅读新 Tardis 13-Head、外部市场和主动成交流：分别讨论本地预测、跨市场信息和订单风险集。</li>
+<li><strong>这笔风险是否值得承担？</strong> 阅读 Fill Quality、订单级价值和库存控制：区分成交后的标签、决策前可见状态与真正的动作差额。</li>
+<li><strong>怎样知道回测证据可信？</strong> 阅读时间量纲与因果时钟、工程主文：先确定数据到达、订单生效、成交通知和会计口径，再解释收益。</li>
+</ul>
+<p>这些问题相互依赖，但一个环节通过不替代下一环节。触达预测改善不代表成交价值改善，库存时间下降也不保证净收益提高。首次下单相对等待（POST/WAIT）以及挂单保留相对撤销（KEEP/CANCEL）需要各自的完整路径检验；这里不把尚未完成的成交前 E/C 选择研究写成有效策略。</p>
+<h2 id="主文与实验范围"><a href="#主文与实验范围" class="headerlink" title="主文与实验范围"></a>主文与实验范围</h2><p>下表中的历史结论只属于相应冻结实验。新 Tardis F03 已有模型比较与完整 Final 结果；F05 已有双侧十头与一个固定风险加宽消费者的开发账户负结果，详见各自文章。执行进度和维护入口由<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/recompute_407.json">仓库研究台账</a>记录，不由本页推断实盘状态。</p>
 <div class="table-container">
-<table>
-<thead>
-<tr>
-<th>次序</th>
-<th>当前工作</th>
-<th>不得推断的结论</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>1</td>
-<td>SYS/F10：对齐当前策略配置、分源可见时钟、异步 GLOBAL FIFO、私有回调和退出路径，建立当前 B0</td>
-<td>共享 C++ 内核 parity 不等于完整调度或经济路径一致</td>
-</tr>
-<tr>
-<td>2</td>
-<td>F10：重新做 BUY/SELL、opener/add/reducing 与完整现金流归因</td>
-<td>旧日损失构成不代表当前损失构成</td>
-</tr>
-<tr>
-<td>3</td>
-<td>F05/F06/F07/F09：用现有信号、少量明确动作检验首次/继续承担风险的增量价值</td>
-<td>原来关闭的精确候选不因换名或降低延迟自动获准</td>
-</tr>
-<tr>
-<td>4</td>
-<td>事前选择有独立增益后，再逐项移除重叠的成交后保护</td>
-<td>更少保护、更快续单或更少成交不必然更赚钱</td>
-</tr>
-</tbody>
-</table>
-</div>
-<p>第一轮两臂保持相同的成交后冷却、markout、风险限制和退出规则，不同时细调 cooldown 时长。候选可以改变自己的请求数量、FIFO 等待、队列与库存，但必须使用共同的行情/外部延迟抽样规则，不能复用 B0 的成交路径。旧环境迁移复验与发现新策略是不同问题，均须在看结果前确定动作、日期、初态和评价口径；不会借复验重新打开旧的 Validation 或 sealed holdout。</p>
-<p>完整实施计划与延迟边界见<a href="/2026/08/29/NarrowGate-Time-Unit-Causality-Repair-Research/">Replay Evidence Revalidation 的 2026-09-05 更新</a>。精确运行配置和原始运维样本在私有证据库，不随公共仓库分发；本页不发布当前账户状态、原始订单或私有 PnL。以下历史结论仍保留原来的适用范围。</p>
-<h2 id="TL-DR：研究-identity-可以很多，读者层面的主文章不应该跟着碎裂"><a href="#TL-DR：研究-identity-可以很多，读者层面的主文章不应该跟着碎裂" class="headerlink" title="TL;DR：研究 identity 可以很多，读者层面的主文章不应该跟着碎裂"></a>TL;DR：研究 identity 可以很多，读者层面的主文章不应该跟着碎裂</h2><p>NarrowGate 公共仓库包含十个策略/证据研究族、一个系统工程分支，以及大量 spec、amendment、preflight、failure receipt、producer、parity 和 execution attempt。此前博客把其中 47 个阶段分别写成文章，并称为“48 个真实项目”；这个粒度是错误的。它混淆了用于证据治理的 research identity 与用于解释科学问题的 research narrative。</p>
-<p>Research identity 必须严格区分样本、baseline/candidate、fold、estimand 和统计合同：</p>
-<script type="math/tex; mode=display">
-\mathcal R=(D,B,C,F,\theta,S).</script><p>只要其中实质字段改变，机器证据就需要新 identity，不能覆盖旧结果。但一篇面向读者的研究文章应当解释完整问题如何经过这些 identity 演进：为什么换样本、为什么修时钟、为什么预测通过仍不能动作、为什么某个 successor 关闭。Full‑Multiscale 主文章一直采用这种叙事粒度；现在其余研究也统一按同一标准整理。</p>
-<p>整理后共有 <strong>12 条主研究叙事</strong>。每篇覆盖一条完整的科学问题、方法演进、反例、经济检验和权限边界；校准版本、时钟修复、prediction gate、mechanics preflight 与失败 attempt 回到对应正文中，不再单独占一篇文章。</p>
-<h2 id="12-篇主研究长文"><a href="#12-篇主研究长文" class="headerlink" title="12 篇主研究长文"></a>12 篇主研究长文</h2><div class="table-container">
 <table>
 <thead>
 <tr>
@@ -531,11 +495,10 @@
 </tbody>
 </table>
 </div>
-<h2 id="为什么这些合并是必要的"><a href="#为什么这些合并是必要的" class="headerlink" title="为什么这些合并是必要的"></a>为什么这些合并是必要的</h2><h3 id="P3-不是六个互不相干的模型"><a href="#P3-不是六个互不相干的模型" class="headerlink" title="P3 不是六个互不相干的模型"></a>P3 不是六个互不相干的模型</h3><p>Normalized-100ms、source-aware v3、volatility-conditioned v4/v4.1、scalar adapter、policy-visible cadence、joint quote value 与 reach-time hazard 依次回答同一条链上的问题。分别阅读时，读者容易把“条件概率预测通过”和“报价动作失败”当成矛盾；合并后可以看见失败发生在 estimand mapping，而不是概率模型自动失效。</p>
-<h3 id="Causal-13-Head-的-v4、v5、v9、v12-与一秒-cadence-是一次持续重建"><a href="#Causal-13-Head-的-v4、v5、v9、v12-与一秒-cadence-是一次持续重建" class="headerlink" title="Causal 13-Head 的 v4、v5、v9、v12 与一秒 cadence 是一次持续重建"></a>Causal 13-Head 的 v4、v5、v9、v12 与一秒 cadence 是一次持续重建</h3><p>这些版本更换了 P3、数据身份、taker-tempo、source semantics 和决策频率，但没有改变最高层问题：prediction 是否能穿过 full path 形成经济增量。把每次修复各写一篇，会让局部通过的 head 或某个正 PnL 点估计脱离最终 gate。</p>
-<h3 id="Placement-与-Active-Order-Continuation-是同一张订单的前后半段"><a href="#Placement-与-Active-Order-Continuation-是同一张订单的前后半段" class="headerlink" title="Placement 与 Active-Order Continuation 是同一张订单的前后半段"></a>Placement 与 Active-Order Continuation 是同一张订单的前后半段</h3><p>Placement 决定初始价格与 queue position；KEEP/CANCEL 决定是否保留已经获得的 queue option。Fill CIF、cancel-ACK competing risk 和 lifecycle parity 是动作估值的前置层，不应被包装成与 action value 平行的研究结论。</p>
-<h3 id="Cooldown-五个候选必须放在同一-leverage-frontier-上"><a href="#Cooldown-五个候选必须放在同一-leverage-frontier-上" class="headerlink" title="Cooldown 五个候选必须放在同一 leverage frontier 上"></a>Cooldown 五个候选必须放在同一 leverage frontier 上</h3><p>One-cycle skip 改得太少，stop-until-flat 改得太多，state/recovery/variance-time 在中间寻找可执行区域。只有合并后才能看见结构性阴性结果：当前测试范围内，没有候选同时满足真实 path divergence、活动保留和正 terminal reward lower bound。</p>
-<h3 id="Guard-的共同难点是订单所有权，不是阈值名字"><a href="#Guard-的共同难点是订单所有权，不是阈值名字" class="headerlink" title="Guard 的共同难点是订单所有权，不是阈值名字"></a>Guard 的共同难点是订单所有权，不是阈值名字</h3><p>历史 <code>BER</code> 实际是 trade-intensity acceleration proxy；BUY q90 是 active-order hazard 分位；ranked toxicity 是 persistent exposure permission。三者信号不同，却都必须处理 feature-ready clock、cancel ACK、terminal risk set、dynamic role 和 carryover ownership。把它们拆开，会重复讲状态机，却看不见同一执行合同如何逐步收紧。</p>
+<h2 id="研究之间的依赖"><a href="#研究之间的依赖" class="headerlink" title="研究之间的依赖"></a>研究之间的依赖</h2><p><strong>概率到报价。</strong> P3 的条件概率、距离目标和实际报价映射是不同对象。触达之后还有激活、队列和撤改单；因此概率层的改进可以与报价动作的负结果同时存在。</p>
+<p><strong>下单到续单。</strong> Placement 决定初始价格和排队位置，KEEP/CANCEL 决定是否保留已有队列位置的价值。二者需要共同的订单生命周期，不能将独立的填单概率模型直接当成订单净价值。</p>
+<p><strong>成交到库存。</strong> 短期 markout、库存归因与完整终局分别回答价格变化、损失位置和账户结果。冷却或加仓限制可能减少风险，也可能切断后续修复；它们需要与参与度和终局收益一起比较。</p>
+<p><strong>特征到证据。</strong> 本地与外部信息都必须在决策前可见，标签则可以读取后续结果。时钟或撮合规则修复可能使旧精确数字失效；保留历史失败决定不等于把旧数值重新当成当前标定。</p>
 <h2 id="按研究族寻找文章"><a href="#按研究族寻找文章" class="headerlink" title="按研究族寻找文章"></a>按研究族寻找文章</h2><div class="table-container">
 <table>
 <thead>
@@ -592,12 +555,9 @@
 </tbody>
 </table>
 </div>
-<h2 id="两篇基础长文不计入-12-个研究项目"><a href="#两篇基础长文不计入-12-个研究项目" class="headerlink" title="两篇基础长文不计入 12 个研究项目"></a>两篇基础长文不计入 12 个研究项目</h2><p><a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/">Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift</a> 是整个项目的算法、术语与证据框架总览；<a href="/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/">回测吞吐与 Live 尾延迟工程</a> 是 Python/C++、回放吞吐和运行时延迟的工程专著。它们为各研究主文提供背景，但不因为篇幅更长就被重复计算成策略研究项目。</p>
-<h2 id="怎样阅读阴性、阻塞与未完成结果"><a href="#怎样阅读阴性、阻塞与未完成结果" class="headerlink" title="怎样阅读阴性、阻塞与未完成结果"></a>怎样阅读阴性、阻塞与未完成结果</h2><p><code>closed</code> 只关闭对应冻结 identity，不表示整个研究族没有信息；<code>prediction supported</code> 不等于 quote/action supported；<code>mechanics complete</code> 不等于经济效果存在；<code>blocked</code> 表示必要字段、时钟、支持或生命周期尚未闭合。<code>withdrawn</code> 则表示旧数值不再具有当前引用权限，不自动等于反向结论。</p>
-<p>同理，owner operational decision 可以显式接受研究尚未闭合的风险，却不能倒写成历史 gate 已通过。每篇主文同时写明“看到了什么”“没有获得什么权限”，并把 K 线、报单、queue、inventory 与 campaign terminal 放在同一机制链中。</p>
-<p>精确私有 artifact、OOF rows、缓存、原始 live 记录与 owner-side evidence 不随公共博客分发。公共文章提供可审计的方法、聚合结果、公开仓库链接和证据边界；它不把“公开可审计”夸大成“第三方可端到端复算所有私有结果”。</p>
-<h2 id="结语：文章应该按问题合并，证据仍要按-identity-分开"><a href="#结语：文章应该按问题合并，证据仍要按-identity-分开" class="headerlink" title="结语：文章应该按问题合并，证据仍要按 identity 分开"></a>结语：文章应该按问题合并，证据仍要按 identity 分开</h2><p>合并文章不等于合并证据。正文可以把同一科学问题的失败、修复和 successor 写成一条连贯故事；机器 manifest、fold、artifact 与 receipt 仍必须保持各自不可混用的 identity。前者服务理解，后者保护因果与统计完整性。</p>
-<p>这也是 Full-Multiscale 给出的正确模板：不是把每个执行 attempt 单独发布，而是让读者在一篇文章中看到问题、状态空间、nested OOF、one-shot/repeated distinction、BUY/SELL 分侧、结果、失败原因与权限边界。现在其余 NarrowGate 研究也按同一标准阅读。</p>
+<h2 id="基础阅读与结果边界"><a href="#基础阅读与结果边界" class="headerlink" title="基础阅读与结果边界"></a>基础阅读与结果边界</h2><p><a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/">Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift</a> 给出术语、价值函数与比较方法；<a href="/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/">回测吞吐与 Live 尾延迟工程</a> 说明执行与运行时约束。</p>
+<p>阅读结果时，需要区分三种情况：负结果表示指定实验没有支持收益主张；支持不足表示信息量尚不能回答问题；已撤回表示旧精确数字不再可用，并不等于反向结论。历史候选关闭不证明整个研究族无效，工程组装通过也不表示已经开始实盘。</p>
+<p>公共文章提供方法、已公开聚合结果和来源链接。不同实验的数据、基线、候选、日期划分与统计方法分别保留，不合成一个看似连续的“总实验”。</p>
 
                 
               </div>
@@ -651,7 +611,7 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>NarrowGate 研究地图：十个研究族如何收敛为 12 篇主研究长文</div>
+      <div>NarrowGate 研究地图：从市场预测、订单决策到完整账户收益</div>
       <div>https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Research-Project-Map/</div>
     </div>
     <div class="license-meta">
@@ -768,7 +728,6 @@
 
   
   
-
 
 
 
@@ -1046,41 +1005,49 @@
       <script>
         if (!window.MathJax) {
           window.MathJax = {
-            tex    : {
-              inlineMath: { '[+]': [['$', '$']] }
-            },
-            loader : {
-              load: ['ui/lazy']
-            },
+            tex: { inlineMath: { '[+]': [['$', '$']] } },
+            loader: { load: ['ui/lazy'] },
             options: {
               renderActions: {
-                insertedScript: [200, () => {
-                  document.querySelectorAll('mjx-container').forEach(node => {
-                    let target = node.parentNode;
-                    if (target.nodeName.toLowerCase() === 'li') {
-                      target.parentNode.classList.add('has-jax');
-                    }
+                // Kramed emits v2 script nodes. Keep v3's default delimiter find.
+                // https://docs.mathjax.org/en/v3.2/upgrading/v2.html
+                findScript: [10, function (doc) {
+                  for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                    if (node.closest('pre, code')) continue;
+                    const display = /;\s*mode=display/.test(node.type);
+                    const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                    const text = document.createTextNode('');
+                    node.parentNode.replaceChild(text, node);
+                    math.start = {node: text, delim: '', n: 0};
+                    math.end = {node: text, delim: '', n: 0};
+                    doc.math.push(math);
+                  }
+                }, ''],
+                insertedScript: [200, function () {
+                  document.querySelectorAll('mjx-container').forEach(function (node) {
+                    const target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') target.parentNode.classList.add('has-jax');
                   });
                 }, '', false]
               }
             }
           };
-        } else {
-          MathJax.startup.document.state(0);
-          MathJax.texReset();
-          MathJax.typeset();
-          MathJax.typesetPromise();
         }
-
-        Fluid.events.registerRefreshCallback(function() {
-          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+        // Serialize refreshes after startup. Consumed scripts cannot register twice.
+        function refreshMath() {
+          if (!window.MathJax || !MathJax.startup) return;
+          MathJax.startup.promise = MathJax.startup.promise.then(function () {
             MathJax.startup.document.state(0);
             MathJax.texReset();
-            MathJax.typeset();
-            MathJax.typesetPromise();
-          }
-        });
+            return MathJax.typesetPromise();
+          }).catch(function (error) { console.error('MathJax typesetting failed', error); });
+        }
+        Fluid.events.registerRefreshCallback(refreshMath);
+        if (window.MathJax.startup) refreshMath();
       </script>
+      <style>
+        .markdown-body mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; padding: 0.15em 0; }
+      </style>
     
 
   <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>

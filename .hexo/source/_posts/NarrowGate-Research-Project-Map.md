@@ -1,7 +1,7 @@
 ---
-title: 'NarrowGate 研究地图：十个研究族如何收敛为 12 篇主研究长文'
+title: 'NarrowGate 研究地图：从市场预测、订单决策到完整账户收益'
 date: 2026-08-29 13:30:00
-updated: 2026-09-26 20:52:00
+updated: 2026-09-27 10:45:00
 categories:
 - Market Making
 tags:
@@ -13,46 +13,20 @@ tags:
 math: true
 ---
 
-Last materially modified: 2026-09-26
+做市研究的难点，是把市场信息变成值得执行的订单。预测价格方向或触达概率只是起点；订单还要经历提交、排队、成交、库存持有和减仓，最终由完整账户收益检验。这里按这条链组织 NarrowGate 的研究入口，方便读者从具体问题找到方法、实验和限制。
 
-## 2026-09-26 当前导航
+## 从哪个问题开始
 
-新 Tardis F03 的既定模型比较和完整 Final 已完成，结果及使用历史见[新 13-Head 主文](/2026/08/29/NarrowGate-Causal-13-Head-Source-Aware-v12-Research/)。F01、F04、F05 的有限批次进展应与全族未完范围分开，当前入口与真实状态以[代码研究台账](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/recompute_407.json)和各族主报告为准；F05 已有真实十头及一个冻结消费者的负结果，不代表全族完成。新的参数比较、工程组装与实盘激活是不同任务，不从前两者推断当前 live 状态。
+- **报价为什么在这里？** 阅读报价动作与 P3：前者比较价格和中心的改变，后者区分市场触达与实际成交。
+- **预测提供了什么信息？** 阅读新 Tardis 13-Head、外部市场和主动成交流：分别讨论本地预测、跨市场信息和订单风险集。
+- **这笔风险是否值得承担？** 阅读 Fill Quality、订单级价值和库存控制：区分成交后的标签、决策前可见状态与真正的动作差额。
+- **怎样知道回测证据可信？** 阅读时间量纲与因果时钟、工程主文：先确定数据到达、订单生效、成交通知和会计口径，再解释收益。
 
-下列 9 月 5 日顺序及历史表格保留其当时范围，不再作为今天的未完成清单。当前页面仍按 12 条研究叙事组织；重组计划不等于站点已经改成另一种篇数。
+这些问题相互依赖，但一个环节通过不替代下一环节。触达预测改善不代表成交价值改善，库存时间下降也不保证净收益提高。首次下单相对等待（POST/WAIT）以及挂单保留相对撤销（KEEP/CANCEL）需要各自的完整路径检验；这里不把尚未完成的成交前 E/C 选择研究写成有效策略。
 
-## 2026-09-05 历史阶段：旧研究地图保留，新环境先重建 B0
+## 主文与实验范围
 
-本页的 12 条叙事总结的是各自冻结环境中的历史研究，不是当前私有 live 的开关清单，也不是新延迟环境的收益结论。当前修复后的 B0 与候选还没有完成新的完整配对经济回测。工程测试通过不能自动更新表中的策略结论，旧 PnL、winner 和参数排名也不能搬进新的 baseline。
-
-下一轮的优先级前移到“承担风险之前是否值得”：首次开仓相对等待、挂单继续保留相对撤单重入，以及再次增仓相对继续等待。项目不是没有事前信号，也不是从未研究这一问题；[F05 英文研究索引](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/README.md)已经登记 first-opener、决策可见 first-add 和 ADD/WAIT 的阴性结果。缺口是尚未建立可靠的信号→动作→完整路径经济价值映射，而不是简单缺少更多阈值。
-
-| 次序 | 当前工作 | 不得推断的结论 |
-| --- | --- | --- |
-| 1 | SYS/F10：对齐当前策略配置、分源可见时钟、异步 GLOBAL FIFO、私有回调和退出路径，建立当前 B0 | 共享 C++ 内核 parity 不等于完整调度或经济路径一致 |
-| 2 | F10：重新做 BUY/SELL、opener/add/reducing 与完整现金流归因 | 旧日损失构成不代表当前损失构成 |
-| 3 | F05/F06/F07/F09：用现有信号、少量明确动作检验首次/继续承担风险的增量价值 | 原来关闭的精确候选不因换名或降低延迟自动获准 |
-| 4 | 事前选择有独立增益后，再逐项移除重叠的成交后保护 | 更少保护、更快续单或更少成交不必然更赚钱 |
-
-第一轮两臂保持相同的成交后冷却、markout、风险限制和退出规则，不同时细调 cooldown 时长。候选可以改变自己的请求数量、FIFO 等待、队列与库存，但必须使用共同的行情/外部延迟抽样规则，不能复用 B0 的成交路径。旧环境迁移复验与发现新策略是不同问题，均须在看结果前确定动作、日期、初态和评价口径；不会借复验重新打开旧的 Validation 或 sealed holdout。
-
-完整实施计划与延迟边界见[Replay Evidence Revalidation 的 2026-09-05 更新](/2026/08/29/NarrowGate-Time-Unit-Causality-Repair-Research/)。精确运行配置和原始运维样本在私有证据库，不随公共仓库分发；本页不发布当前账户状态、原始订单或私有 PnL。以下历史结论仍保留原来的适用范围。
-
-## TL;DR：研究 identity 可以很多，读者层面的主文章不应该跟着碎裂
-
-NarrowGate 公共仓库包含十个策略/证据研究族、一个系统工程分支，以及大量 spec、amendment、preflight、failure receipt、producer、parity 和 execution attempt。此前博客把其中 47 个阶段分别写成文章，并称为“48 个真实项目”；这个粒度是错误的。它混淆了用于证据治理的 research identity 与用于解释科学问题的 research narrative。
-
-Research identity 必须严格区分样本、baseline/candidate、fold、estimand 和统计合同：
-
-$$
-\mathcal R=(D,B,C,F,\theta,S).
-$$
-
-只要其中实质字段改变，机器证据就需要新 identity，不能覆盖旧结果。但一篇面向读者的研究文章应当解释完整问题如何经过这些 identity 演进：为什么换样本、为什么修时钟、为什么预测通过仍不能动作、为什么某个 successor 关闭。Full‑Multiscale 主文章一直采用这种叙事粒度；现在其余研究也统一按同一标准整理。
-
-整理后共有 **12 条主研究叙事**。每篇覆盖一条完整的科学问题、方法演进、反例、经济检验和权限边界；校准版本、时钟修复、prediction gate、mechanics preflight 与失败 attempt 回到对应正文中，不再单独占一篇文章。
-
-## 12 篇主研究长文
+下表中的历史结论只属于相应冻结实验。新 Tardis F03 已有模型比较与完整 Final 结果；F05 已有双侧十头与一个固定风险加宽消费者的开发账户负结果，详见各自文章。执行进度和维护入口由[仓库研究台账](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/recompute_407.json)记录，不由本页推断实盘状态。
 
 | # | 主研究 | 覆盖研究族 | 完整问题 | 原冻结环境的结论 |
 |---:|---|---|---|---|
@@ -69,27 +43,15 @@ $$
 | 11 | [Exposure Guards：BER Proxy、BUY q90 与 Ranked Toxicity](/2026/08/29/NarrowGate-Ranked-Toxicity-Exposure-Guard-Research/) | F09、F10 | 风险分数如何绑定合法订单、ACK 风险集和跨 campaign ownership？ | 旧 add-only guard 有经济伤害；q90 身份失效；新 guard 仅完成 plumbing |
 | 12 | [Replay Evidence Revalidation：时间、量纲与因果时钟](/2026/08/29/NarrowGate-Time-Unit-Causality-Repair-Research/) | F10、SYS | 基础时钟/单位修复后，旧回测证据还能保留什么？ | No-promotion 权限方向保留；旧 PnL、winner 与排名撤回 |
 
-## 为什么这些合并是必要的
+## 研究之间的依赖
 
-### P3 不是六个互不相干的模型
+**概率到报价。** P3 的条件概率、距离目标和实际报价映射是不同对象。触达之后还有激活、队列和撤改单；因此概率层的改进可以与报价动作的负结果同时存在。
 
-Normalized-100ms、source-aware v3、volatility-conditioned v4/v4.1、scalar adapter、policy-visible cadence、joint quote value 与 reach-time hazard 依次回答同一条链上的问题。分别阅读时，读者容易把“条件概率预测通过”和“报价动作失败”当成矛盾；合并后可以看见失败发生在 estimand mapping，而不是概率模型自动失效。
+**下单到续单。** Placement 决定初始价格和排队位置，KEEP/CANCEL 决定是否保留已有队列位置的价值。二者需要共同的订单生命周期，不能将独立的填单概率模型直接当成订单净价值。
 
-### Causal 13-Head 的 v4、v5、v9、v12 与一秒 cadence 是一次持续重建
+**成交到库存。** 短期 markout、库存归因与完整终局分别回答价格变化、损失位置和账户结果。冷却或加仓限制可能减少风险，也可能切断后续修复；它们需要与参与度和终局收益一起比较。
 
-这些版本更换了 P3、数据身份、taker-tempo、source semantics 和决策频率，但没有改变最高层问题：prediction 是否能穿过 full path 形成经济增量。把每次修复各写一篇，会让局部通过的 head 或某个正 PnL 点估计脱离最终 gate。
-
-### Placement 与 Active-Order Continuation 是同一张订单的前后半段
-
-Placement 决定初始价格与 queue position；KEEP/CANCEL 决定是否保留已经获得的 queue option。Fill CIF、cancel-ACK competing risk 和 lifecycle parity 是动作估值的前置层，不应被包装成与 action value 平行的研究结论。
-
-### Cooldown 五个候选必须放在同一 leverage frontier 上
-
-One-cycle skip 改得太少，stop-until-flat 改得太多，state/recovery/variance-time 在中间寻找可执行区域。只有合并后才能看见结构性阴性结果：当前测试范围内，没有候选同时满足真实 path divergence、活动保留和正 terminal reward lower bound。
-
-### Guard 的共同难点是订单所有权，不是阈值名字
-
-历史 `BER` 实际是 trade-intensity acceleration proxy；BUY q90 是 active-order hazard 分位；ranked toxicity 是 persistent exposure permission。三者信号不同，却都必须处理 feature-ready clock、cancel ACK、terminal risk set、dynamic role 和 carryover ownership。把它们拆开，会重复讲状态机，却看不见同一执行合同如何逐步收紧。
+**特征到证据。** 本地与外部信息都必须在决策前可见，标签则可以读取后续结果。时钟或撮合规则修复可能使旧精确数字失效；保留历史失败决定不等于把旧数值重新当成当前标定。
 
 ## 按研究族寻找文章
 
@@ -107,20 +69,10 @@ One-cycle skip 改得太少，stop-until-flat 改得太多，state/recovery/vari
 | F10 Live/Replay Attribution | Fill Quality、Exposure Guards、Replay Revalidation 三篇 |
 | SYS | Replay Evidence Revalidation 主文 |
 
-## 两篇基础长文不计入 12 个研究项目
+## 基础阅读与结果边界
 
-[Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift](/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/) 是整个项目的算法、术语与证据框架总览；[回测吞吐与 Live 尾延迟工程](/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/) 是 Python/C++、回放吞吐和运行时延迟的工程专著。它们为各研究主文提供背景，但不因为篇幅更长就被重复计算成策略研究项目。
+[Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift](/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/) 给出术语、价值函数与比较方法；[回测吞吐与 Live 尾延迟工程](/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/) 说明执行与运行时约束。
 
-## 怎样阅读阴性、阻塞与未完成结果
+阅读结果时，需要区分三种情况：负结果表示指定实验没有支持收益主张；支持不足表示信息量尚不能回答问题；已撤回表示旧精确数字不再可用，并不等于反向结论。历史候选关闭不证明整个研究族无效，工程组装通过也不表示已经开始实盘。
 
-`closed` 只关闭对应冻结 identity，不表示整个研究族没有信息；`prediction supported` 不等于 quote/action supported；`mechanics complete` 不等于经济效果存在；`blocked` 表示必要字段、时钟、支持或生命周期尚未闭合。`withdrawn` 则表示旧数值不再具有当前引用权限，不自动等于反向结论。
-
-同理，owner operational decision 可以显式接受研究尚未闭合的风险，却不能倒写成历史 gate 已通过。每篇主文同时写明“看到了什么”“没有获得什么权限”，并把 K 线、报单、queue、inventory 与 campaign terminal 放在同一机制链中。
-
-精确私有 artifact、OOF rows、缓存、原始 live 记录与 owner-side evidence 不随公共博客分发。公共文章提供可审计的方法、聚合结果、公开仓库链接和证据边界；它不把“公开可审计”夸大成“第三方可端到端复算所有私有结果”。
-
-## 结语：文章应该按问题合并，证据仍要按 identity 分开
-
-合并文章不等于合并证据。正文可以把同一科学问题的失败、修复和 successor 写成一条连贯故事；机器 manifest、fold、artifact 与 receipt 仍必须保持各自不可混用的 identity。前者服务理解，后者保护因果与统计完整性。
-
-这也是 Full-Multiscale 给出的正确模板：不是把每个执行 attempt 单独发布，而是让读者在一篇文章中看到问题、状态空间、nested OOF、one-shot/repeated distinction、BUY/SELL 分侧、结果、失败原因与权限边界。现在其余 NarrowGate 研究也按同一标准阅读。
+公共文章提供方法、已公开聚合结果和来源链接。不同实验的数据、基线、候选、日期划分与统计方法分别保留，不合成一个看似连续的“总实验”。

@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate Side-Taker Lifecycle：微观流、双时钟 Trade Identity 与动态 Risk Set'
 date: 2026-08-29 13:30:00
-updated: 2026-08-30 02:07:00
+updated: 2026-09-27 10:45:00
 categories:
 - Market Making
 tags:
@@ -14,12 +14,11 @@ math: true
 ---
 
 
-Last materially modified: 2026-08-30
 
 
 ## 1. 同一笔成交同时属于两种时间真相
 
-Side-taker 研究最初想检验主动买卖流能否预示 maker fill quality，但很快发现输入事件、策略可见时间和订单风险集没有闭合。individual trades 提供 exchange-time 的撮合顺序；aggTrade parent 才接近 live 策略能整体看到的消息；订单自身又经历 submit、activation、partial fill、cancel request、cancel ACK 与 terminal。flow、hazard、trade parity 与 event identity 因而是一项完整研究，而不是四篇方法短文。
+Side-taker 研究最初想检验主动买卖流能否预示 maker fill quality，但很快发现输入事件、策略可见时间和订单风险集没有闭合。individual trades 提供 exchange-time 的撮合顺序；aggTrade parent 才接近 live 策略能整体看到的消息；订单自身又经历 submit、activation、partial fill、cancel request、cancel ACK 与 terminal。因此，流量特征、风险率和事件身份必须在同一条订单生命周期上对齐。
 
 maker side 与 counterparty taker 的映射必须冻结：
 
@@ -214,7 +213,7 @@ K 线只是把 price path 压成可视窗口。红色长阴线附近 aggressive 
 
 #### 为什么版本必须写进同一主文
 
-窗口描述、maker-side mapping、宽 denominator 复核和 hazard gate 回答的是同一条研究链上的不同问题。只有输入状态、目标、面板和统计契约共同冻结后，才形成可以单独下结论的 research identity。一次字段修正、一次运行失败或一次图表更新都不是新项目。把这些文件拆成多篇，会让读者误以为发生了多次独立验证，实际上 Validation 与 holdout 从未打开。
+窗口描述、maker-side mapping、宽 denominator 复核和 hazard gate 回答的是同一条研究链上的不同问题。只有输入状态、目标、面板和统计契约共同冻结后，才形成可以单独下结论的 research identity。这些实现检查没有增加独立验证样本；Validation 与 holdout 从未打开。
 
 ### 7. 关闭与支持边界
 
@@ -616,7 +615,7 @@ $$
 
 recorder-v1 没保存 `f/l`、typed schema 和 source contract，因此即使基础字段全部匹配，正式状态仍 blocked。v2 增加 aggregate ID、`f/l`、range-derived child count、`q/nq` 与 source identity。随后发现一条 live slice 的 parent 在 95ms 内继续扩展：live 当时看到的是 child 974..978，REST 最终 parent 延伸到 982。这不是 recorder bug，而是实时切片与日后 finalized database object 的语义差异。
 
-这条 lineage 里有 recorder 版本、mapping audit 和 parity result，但只有一个研究项目：建立可执行 trade-information contract。v1 的字段缺失是采集契约不足；v2 的 source contract 是同一项目的修正；parent extension 是研究发现。将它们拆成三篇会把一次合同收敛写成三次实验。
+这条 lineage 里有 recorder 版本、mapping audit 和 parity result，但只有一个研究项目：建立可执行 trade-information contract。v1 的字段缺失是采集契约不足；v2 的 source contract 是同一项目的修正；parent extension 是研究发现。三项变化都属于输入契约的修正，不应计为三次独立实验。
 
 ### 5. 结果与不确定性
 
@@ -982,7 +981,7 @@ $$
 
 *图：旧静态 hazard 已关闭；parent-child 可见时钟和 start-stop risk set 是动态 successor 的前置合同，而不是现成 action。*
 
-## 7. 合并后的结论：静态 side signal 关闭，动态生命周期问题仍然开放
+## 7. 结论：静态 side signal 关闭，动态生命周期问题仍然开放
 
 早期 side-taker M0 没有在更严格 denominator 上复现，且把 non-absorbing jump、策略 cancel 与 campaign repair 混进了错误的事件结构。双时钟与 risk-set 审计解释了为什么：输入可见性和订单生存状态不是一个静态 row 可以表达的。这个诊断关闭旧 M0，却没有否定所有 side-specific taker information。
 

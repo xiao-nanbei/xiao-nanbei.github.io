@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate External Market Alpha：三交易所参考、信息衰减、First-Add 与 Fair-Center 动作'
 date: 2026-08-29 13:30:00
-updated: 2026-08-30 02:04:00
+updated: 2026-09-27 10:45:00
 categories:
 - Market Making
 tags:
@@ -14,7 +14,6 @@ math: true
 ---
 
 
-Last materially modified: 2026-08-30
 
 
 ## 1. BABEL 外部市场研究是一张并行路线图
@@ -363,7 +362,7 @@ early stopping 必须只使用 training 内的过去 tail。较早实现曾允�
 
 post-peak half-gain horizon 为 9 秒：它描述经验曲线从 1 秒峰值下降到一半附近所需的时间，不是说 9 秒一定无用。事实上 10 秒 mean gain 仍为正，只是其 uncertainty 无法排除零；“大部分方向增量在 10 秒前消失”比“10 秒没有任何信息”更准确。
 
-### 6. 历史 3 秒结果如何被合并，而不是另写一篇
+### 6. 历史 3 秒结果的适用范围
 
 前身 audit 只比较 fast `1s/3s/5s` 与旧 10 秒 bundle。在一整 bucket 延迟下，3 秒 M1−M0 AUC gain 在旧 screening、test 与三个 later days 分别约 `+0.00365`、`+0.00413`、`+0.00381`，正日为 20/20、20/20 与 3/3；绝对 AUC 约 `0.59445`、`0.59611`、`0.62382`。相反，旧 10 秒 direction gain 只有约 `+0.000050`、`+0.000055`、`+0.000151`，实质接近平坦。
 
@@ -613,7 +612,7 @@ $$
 
 ### 8. 研究演进与相邻项目为何不能合并
 
-cross-venue price translation、fair-price spec、historical cache audit、feature DAG 与 coordinate parity 都在回答同一个 identity：坐标怎样被因果地计算。它们是本文的版本/实现章节，不应拆成多篇“研究”。
+cross-venue price translation、fair-price spec、historical cache audit、feature DAG 与 coordinate parity 都在回答同一个 identity：坐标怎样被因果地计算。坐标一致性为后续动作比较提供输入，并不直接证明收益增量。
 
 而 Stage 0 global residual、external information decay 和后来的 fair-center shift action 必须保持独立。Stage 0 问一秒状态是否排序结果；decay 问未来方向的 target horizon；本项目只定义 fair coordinate；动作 sibling 才问移动 bid/ask 是否改善 campaign economics。输入相似不代表 estimand 相同。
 
@@ -950,7 +949,7 @@ v1 历史面板的 immutable ledger 有 19 个 valid full windows / 18 个不同
 
 v1 还暴露了 denominator 问题：`inventory_ratio` 是 $|q|/q_{max}$，没有符号，不能判断 opener/add/reducing；历史 quote timestamp 是 post-decision log-write clock，不是 exact decision start；缺稳定 decision ID 和权威 order/ACK/queue lineage。v2 因此把 formal denominator 改为 native exact opener opportunities，记录 signed inventory、feature-ready time、baseline/candidate coordinates 与完整 lifecycle。v2.1/v2.2 继续强化 schema、runtime binding、writer health、hot-start quarantine、cancel-reject、crash recovery 和 atomic admission。
 
-这些版本是同一个研究项目的 evidence chain，不是多篇独立“修复研究”。正式 prospective tape 最终仍处于 disabled、未采集状态，所以不能声称 v2 已得到新的 support rate。项目的冻结结论是：v1 成功证明有限的 clock/coordinate mechanics，却因 0.334% support 不能注册动作；v2 只完成 infrastructure contract，没有 prediction、action、Validation、holdout 或 live authority。
+这些版本逐步修正同一采集与对齐链路。正式 prospective tape 最终仍处于 disabled、未采集状态，所以不能声称 v2 已得到新的 support rate。项目的冻结结论是：v1 成功证明有限的 clock/coordinate mechanics，却因 0.334% support 不能注册动作；v2 只完成 infrastructure contract，没有 prediction、action、Validation、holdout 或 live authority。
 
 ![外部不利edge推动报价向外并经历延迟和生命周期的机制](/images/narrowgate/external-adverse-edge-guard-kline.svg)
 
@@ -1378,7 +1377,7 @@ source health还应包含venue count、basis jump、staleness与disagreement。�
 
 *图：短时外部信息和稳健 fair coordinate 可以保留；first-add、adverse-edge 与 fair-center 仍未取得稳定的完整路径动作价值。*
 
-## 9. 合并后的结论：外部市场是信息源，不是免费动作
+## 9. 结论：外部市场是信息源，不是免费动作
 
 三市场研究最稳定的发现是短时信息确实存在，而且可以用 past-only basis、two-of-three aggregation 与 leave-one-venue-out 构造可审计的 fair coordinate。最不稳定的部分恰恰是从坐标到动作：first-add 路径缺 exact common lifecycle，adverse-edge candidate rate 太低，symmetric fair-center 的主区间跨零并依赖具体 venue。
 

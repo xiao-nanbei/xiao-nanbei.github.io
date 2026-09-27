@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate Order-Level Quote Value：Placement Distance、Queue Value 与 Active-Order Continuation'
 date: 2026-08-29 13:30:00
-updated: 2026-08-30 02:06:00
+updated: 2026-09-27 10:45:00
 categories:
 - Market Making
 tags:
@@ -14,12 +14,11 @@ math: true
 ---
 
 
-Last materially modified: 2026-08-30
 
 
 ## 1. 一张订单的价值从 placement 开始，在 continuation 中结束
 
-F06 研究订单提交前应该离 touch 多远，F07 研究订单激活后遇到 adverse state 应该 KEEP 还是 CANCEL/RE-ENTER。它们在仓库中分属 placement 与 continuation 两个 family，却共同构成一张订单的完整决策问题：placement 决定初始价格与 queue position，continuation 决定是否保留已经获得的 queue option。把二者拆成三篇文章，会误以为 fill-CIF 校准、placement action value 与 active-order queue value 可以分别得出动作结论。
+F06 研究订单提交前应该离 touch 多远，F07 研究订单激活后遇到 adverse state 应该 KEEP 还是 CANCEL/RE-ENTER。它们在仓库中分属 placement 与 continuation 两个 family，却共同构成一张订单的完整决策问题：placement 决定初始价格与 queue position，continuation 决定是否保留已经获得的 queue option。成交概率校准只是估值输入；下单和续单是否值得，仍要分别比较完整路径收益。
 
 提交时的 placement action $a_0$ 与存续期 action $a_t$ 共同生成终局：
 
@@ -470,7 +469,7 @@ F07 因此研究一个直接动作：
 - **K0 KEEP**：保留 active order 与当前 queue position；
 - **K1 CANCEL/RE-ENTER**：请求撤单，等待真实 cancel ACK 与冻结的状态退出条件，再把第一个 baseline-authorized re-entry order 绑定回同一次 intervention。
 
-整个项目经历了 top-20 queue approximation、deep-book audit、strategy-independent native scheduler、native keep/cancel、explicit net-hazard value 与 corrected dynamic fill risk set。它们都是同一个 KEEP/CANCEL 项目的证据链，不是六篇独立文章。
+整个项目经历了 top-20 queue approximation、deep-book audit、strategy-independent native scheduler、native keep/cancel、explicit net-hazard value 与 corrected dynamic fill risk set。这些变化分别修正了队列近似、事件调度和动态风险集；结果仍需按对应实现范围解释。
 
 结论很一致。旧 top-20 结果不能解释 exact active-price queue；native queue identity 修复后，严格 support 又低于冻结门，方向性 ITT 区间跨零；最后的 net-hazard action 在 17 个 Development 日上只保留 7.67% intervention fills，却以几乎相同比例删除 toxic fills，pooled reward 为 $-0.01448$ USDC/intervention，95% 日期区间 $[-0.02577,-0.00239]$。BUY 显著有害，SELL 没有正证据。
 
@@ -1203,7 +1202,7 @@ $$
 
 *图：placement probability、KEEP/CANCEL action value 与 lifecycle CIF 是三层证据；更准确的动态风险集没有把已失败的 continuation 动作改写成通过。*
 
-## 6. 合并后的结论：更准确的生命周期模型不会自动复活失败动作
+## 6. 结论：更准确的生命周期模型不会自动复活失败动作
 
 Placement 研究证明二、四 tick 的 raw fill difference 可以被识别，但 marginal fills 太稀、campaign attribution 不完整、terminal interval 全部跨零；KEEP/CANCEL 的随机化证据又显示，候选大量删除 intervention fills，却几乎按同比例保留 toxic fills，选择效率接近零，pooled ITT 为负。后续 100ms CIF 把 activation、fill、cancel、jump、repair 与持续生存放回合法风险集，并完成 Python/C++ lockstep；这提升了机制建模质量，却没有把旧动作结果倒写成通过。
 

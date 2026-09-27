@@ -19,12 +19,12 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Last materially modified: 2026-09-26 2026-09-26 范围说明下文阶段表、DR 公式、随机化比例和负结果属于各自历史合同，不关闭整个 F01。新 Tardis 已有有限固定参数比较；后续用户选定的离线研究参照与原首批风险门结论分别保留，见当前 F01 主报告。g 是历史联动轴标签，不是恢复旧配置键；新 g&#x2F;asym 问题须有明确共同输入、支持与预算。本文不">
+    <meta name="description" content="参数搜索比较的是：在指定历史范围内，哪一套完整配置表现更好。局部报价动作进一步追问：在某个决策时可见的状态下，改变这一次报价，是否比保持原报价带来更高的后续净收益？两者都需要回放订单与库存，但比较的对象不同。 Widen 将增加风险暴露的一侧报价向外移动，Recenter 将报价向合理中心收回，Prevent-Over-Widen 则阻止额外的外移。它们先改变订单价格和排队位置，再通过成交与库存影">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate 报价动作研究：从固定参数竞速到随机化 Widen、Recenter 与条件策略">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Fixed-Parameter-Racing-Research/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="Last materially modified: 2026-09-26 2026-09-26 范围说明下文阶段表、DR 公式、随机化比例和负结果属于各自历史合同，不关闭整个 F01。新 Tardis 已有有限固定参数比较；后续用户选定的离线研究参照与原首批风险门结论分别保留，见当前 F01 主报告。g 是历史联动轴标签，不是恢复旧配置键；新 g&#x2F;asym 问题须有明确共同输入、支持与预算。本文不">
+<meta property="og:description" content="参数搜索比较的是：在指定历史范围内，哪一套完整配置表现更好。局部报价动作进一步追问：在某个决策时可见的状态下，改变这一次报价，是否比保持原报价带来更高的后续净收益？两者都需要回放订单与库存，但比较的对象不同。 Widen 将增加风险暴露的一侧报价向外移动，Recenter 将报价向合理中心收回，Prevent-Over-Widen 则阻止额外的外移。它们先改变订单价格和排队位置，再通过成交与库存影">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/fixed-parameter-racing-regime-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f01-fixed-parameter-identification-stack.svg">
@@ -32,9 +32,8 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f09-campaign-action-causal-path.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/buy-conditional-widen-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f09-campaign-action-causal-path.svg">
-<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/fixed-parameter-research-synthesis.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-09-26T12:52:00.000Z">
+<meta property="article:modified_time" content="2026-09-27T02:45:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="报价动作">
@@ -339,7 +338,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          28k 字
+          23k 字
         
       </span>
     
@@ -351,7 +350,7 @@
         
         
           <!-- compatible with older versions-->
-          235 分钟
+          195 分钟
         
       </span>
     
@@ -395,20 +394,18 @@
             
               <div class="markdown-body">
                 
-                <p>Last materially modified: 2026-09-26</p>
-<h2 id="2026-09-26-范围说明"><a href="#2026-09-26-范围说明" class="headerlink" title="2026-09-26 范围说明"></a>2026-09-26 范围说明</h2><p>下文阶段表、DR 公式、随机化比例和负结果属于各自历史合同，不关闭整个 F01。新 Tardis 已有有限固定参数比较；后续用户选定的离线研究参照与原首批风险门结论分别保留，见<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/README.zh-CN.md">当前 F01 主报告</a>。g 是历史联动轴标签，不是恢复旧配置键；新 g/asym 问题须有明确共同输入、支持与预算。本文不补造尚未完成的候选结果，不将研究参照解释为 live 配置。</p>
-<h2 id="1-一条研究主线，而不是三篇互不相干的参数文章"><a href="#1-一条研究主线，而不是三篇互不相干的参数文章" class="headerlink" title="1. 一条研究主线，而不是三篇互不相干的参数文章"></a>1. 一条研究主线，而不是三篇互不相干的参数文章</h2><p>这项研究真正追问的是：在当前做市基线之外，改变报价距离或中心能否创造可迁移的增量终局价值？最早的固定参数 grid 只能告诉我们某个全局组合在一段历史上排名靠前；随后加入 Widen、Recenter 与 Prevent-Over-Widen 的随机化路径，才把问题改写成动作反事实；最后的 BUY 条件加宽则检验 decision-visible state 能否稳定选择动作。三者不是三个孤立项目，而是同一条从 parameter racing 到 causal action value 的证据升级。</p>
-<p>统一写成一篇文章后，读者可以直接看见三个经常被混淆的量：参数排名、动作发生率与动作价值。它们分别回答“哪个配置在这段样本里更好”“候选是否真的改变订单路径”“改变以后是否改善 assignment-to-terminal USDC”。任何一层失败，都不能靠另一层漂亮的数字补票。</p>
-<p>核心 estimand 是</p>
+                <p>参数搜索比较的是：在指定历史范围内，哪一套完整配置表现更好。局部报价动作进一步追问：在某个决策时可见的状态下，改变这一次报价，是否比保持原报价带来更高的后续净收益？两者都需要回放订单与库存，但比较的对象不同。</p>
+<p>Widen 将增加风险暴露的一侧报价向外移动，Recenter 将报价向合理中心收回，Prevent-Over-Widen 则阻止额外的外移。它们先改变订单价格和排队位置，再通过成交与库存影响收益：挂得更远可能避开不利成交，也可能错过正常价差或减仓机会。因此，参数排名、实际订单变化和相对基线的净收益变化需要分别检验。</p>
+<h2 id="报价动作要估计什么"><a href="#报价动作要估计什么" class="headerlink" title="报价动作要估计什么"></a>报价动作要估计什么</h2><p>核心 estimand 是</p>
 <script type="math/tex; mode=display">
-\tau(a\mid x)=E\!\left[Y_T(a)-Y_T(a_0)\mid X=x\right],</script><p>其中 $a_0$ 是冻结 baseline，$a$ 是明确的报价动作，$X$ 只能包含决策时可见状态，$Y_T$ 必须穿过 submit、queue、fill、inventory 与 campaign terminal。固定参数竞速并没有识别这个量；随机化或严格 paired replay 才开始接近它。</p>
-<h2 id="2-研究阶段与证据状态"><a href="#2-研究阶段与证据状态" class="headerlink" title="2. 研究阶段与证据状态"></a>2. 研究阶段与证据状态</h2><div class="table-container">
+\tau(a\mid x)=E\!\left[Y_T(a)-Y_T(a_0)\mid X=x\right],</script><p>其中 $a_0$ 是冻结 baseline，$a$ 是明确的报价动作，$X$ 只能包含决策时可见状态，$Y_T$ 必须穿过 submit、queue、fill、inventory 与 campaign terminal。完整配置的配对回放估计策略差值；若要回答这里的局部条件动作价值，还需在同一决策状态上定义干预与后续路径。直接配对模拟依赖冻结的撮合与延迟假设；随机化日志的离线策略评估（OPE）还需要真实分配概率和共同支持。</p>
+<h2 id="三类实验分别回答什么"><a href="#三类实验分别回答什么" class="headerlink" title="三类实验分别回答什么"></a>三类实验分别回答什么</h2><div class="table-container">
 <table>
 <thead>
 <tr>
-<th>阶段</th>
-<th>它真正问什么</th>
-<th>结论/权限</th>
+<th>实验</th>
+<th>比较对象</th>
+<th>公开结果的范围</th>
 </tr>
 </thead>
 <tbody>
@@ -430,14 +427,13 @@
 </tbody>
 </table>
 </div>
-<h2 id="3-固定参数竞速"><a href="#3-固定参数竞速" class="headerlink" title="3. 固定参数竞速"></a>3. 固定参数竞速</h2><h3 id="TL-DR：固定值可以做基线，不能因为赢过一次-grid-就被叫作-alpha"><a href="#TL-DR：固定值可以做基线，不能因为赢过一次-grid-就被叫作-alpha" class="headerlink" title="TL;DR：固定值可以做基线，不能因为赢过一次 grid 就被叫作 alpha"></a>TL;DR：固定值可以做基线，不能因为赢过一次 grid 就被叫作 alpha</h3><p>NarrowGate 的 F01 固定参数竞速研究问过一个很诱人的问题：如果把 <code>gamma</code>、<code>kappa</code>、cooldown、maximum inventory、spread cap、guard threshold 和固定一档报价动作放进一个足够大的搜索空间，历史回放里最好的那组参数，能不能成为跨市场状态都有效的策略？</p>
-<p>最终答案是否定的，但这个“否定”需要说准确。项目没有证明固定常数在数学上不可能成为某个冻结模型和样本里的最优解；它证明的是，历史 pooled winner 没有在修复后的因果时钟、side/role 分层、chronological transfer、campaign tail 和 action-uplift 口径下形成稳定、可识别、可迁移的增量价值。</p>
-<p>更重要的是，早期 48、512、1024-arm generations，以及 retained39、blocked71、late4 等面板的精确 PnL、排名和 winner 身份已经撤回。它们依赖后来被修复的 left-labelled features、trade clock、P3、queue、mixed L2 或历史 incident 语义。本文不会把这些旧数字重新排成一张“冠军榜”，因为那会把无效证据包装成精确结论。</p>
-<p>保留下来的研究结论是：<strong>所列历史固定参数候选／排名不获得晋级，原身份不重开；F01 新问题可在明确范围、预算和使用历史下继续。固定值仍可作为约束、经验校准、风险预算和研究参照；不能靠另起名字清零旧使用历史。</strong></p>
+<p><span id="3-固定参数竞速"></span></p>
+<h2 id="固定参数竞速"><a href="#固定参数竞速" class="headerlink" title="固定参数竞速"></a>固定参数竞速</h2><p>历史搜索覆盖过风险系数、距离衰减、冷却、库存上限和价差约束。它能比较整套配置，却也同时改变参与度和风险暴露。以下先说明怎样构造可比差值，再讨论参数排名的选择偏差。</p>
 <p><img src="/images/narrowgate/fixed-parameter-racing-regime-kline.svg" srcset="/img/loading.gif" lazyload alt="固定参数在不同市场状态下产生不同路径"></p>
 <p><em>图 1：机制示意。相同的固定 spread/cooldown 在低波动、单边冲击和修复阶段会删除不同类型的成交；“参与更少”不能自动解释为“选择更好”。图中不是历史私有交易或实盘 K 线。</em></p>
 <p>本文只讨论历史研究方法和公开结论，不建议任何真实交易行为。文中的 PnL、fill、inventory 与 campaign 指标都是特定 replay identity 下的研究量，不是收益承诺。</p>
-<h3 id="1-研究问题：我们到底在搜索什么"><a href="#1-研究问题：我们到底在搜索什么" class="headerlink" title="1. 研究问题：我们到底在搜索什么"></a>1. 研究问题：我们到底在搜索什么</h3><p>固定参数竞速最朴素的形式，是在一个参数集合 $\Theta$ 上运行完整策略回放，并选择 pooled score 最大的 arm：</p>
+<p><span id="1-研究问题：我们到底在搜索什么"></span></p>
+<h3 id="研究问题：我们到底在搜索什么"><a href="#研究问题：我们到底在搜索什么" class="headerlink" title="研究问题：我们到底在搜索什么"></a>研究问题：我们到底在搜索什么</h3><p>固定参数竞速最朴素的形式，是在一个参数集合 $\Theta$ 上运行完整策略回放，并选择 pooled score 最大的 arm：</p>
 <script type="math/tex; mode=display">
 \hat\theta=\arg\max_{\theta\in\Theta}\widehat J(\theta).</script><p>这里的 $\theta$ 可能同时包含风险厌恶、订单到达曲线、加仓冷却、库存上限、报价上限和保护阈值；$\widehat J$ 可能是 raw PnL、terminal MTM、Sharpe、inventory-adjusted PnL，或它们的加权组合。</p>
 <p>问题在于，maker 策略不是把一个静态预测直接换成一次收益。参数会改变 bid/ask 坐标、place/replace/cancel、queue position、fill、库存、后续 eligibility、cooldown lineage 和 campaign 终局。两个 arm 的差异应当在同一天、同一数据身份、同一随机种子与相同非候选机制下成对估计：</p>
@@ -449,7 +445,8 @@
 <blockquote>
 <p>在 side、order role、queue state、volatility、flow 与 campaign state 都不同的情况下，同一个固定动作是否仍具有正的条件净价值，并且能从 Development 转移到后续面板？</p>
 </blockquote>
-<h3 id="2-输入、动作与-estimand"><a href="#2-输入、动作与-estimand" class="headerlink" title="2. 输入、动作与 estimand"></a>2. 输入、动作与 estimand</h3><p>F01 的输入是完整 maker replay 所需的本地市场状态、策略状态、订单生命周期和账户状态。历史 arms 覆盖过 <code>gamma / kappa ratio / depth-kappa / cap / guard / cooldown / max inventory</code> 的联合 sweep，也覆盖过 <code>prevent_over_widen</code>、<code>widen_1tick</code>、<code>recenter_1tick</code>、固定跳过一个 add cycle 等离散报价动作。</p>
+<p><span id="2-输入、动作与-estimand"></span></p>
+<h3 id="输入、动作与-estimand"><a href="#输入、动作与-estimand" class="headerlink" title="输入、动作与 estimand"></a>输入、动作与 estimand</h3><p>F01 的输入是完整 maker replay 所需的本地市场状态、策略状态、订单生命周期和账户状态。历史 arms 覆盖过 <code>gamma / kappa ratio / depth-kappa / cap / guard / cooldown / max inventory</code> 的联合 sweep，也覆盖过 <code>prevent_over_widen</code>、<code>widen_1tick</code>、<code>recenter_1tick</code>、固定跳过一个 add cycle 等离散报价动作。</p>
 <p>连续参数 arm 的“动作”是整套策略坐标发生变化；离散 local action 的动作则是某个 eligible decision 上保持 baseline 或执行冻结的 widen/re-center/skip。两者不能混成一个 estimand：两者均须明确比较对象和完整路径归因。历史随机化／logged-policy OPE 分析需要真实分配概率、overlap 及相应识别假设；直接完整配对模拟不伪造 propensity，但结论只在冻结模拟假设下成立，不自动获得线上因果解释。</p>
 <p>F01 最终采用的研究判断至少要求同时看：</p>
 <script type="math/tex; mode=display">
@@ -462,25 +459,25 @@
 d_F=1-\frac{F_1}{F_0},\qquad
 d_L=1-\frac{L_1}{L_0},\qquad
 S_L=d_L-d_F.</script><p>$S_L\le 0$ 意味着损失下降没有快于活动下降，不能用“亏得少了”掩盖“几乎不做了”。</p>
-<h3 id="3-数据与因果时钟：为什么旧冠军榜必须撤回"><a href="#3-数据与因果时钟：为什么旧冠军榜必须撤回" class="headerlink" title="3. 数据与因果时钟：为什么旧冠军榜必须撤回"></a>3. 数据与因果时钟：为什么旧冠军榜必须撤回</h3><p>历史参数竞速跨过多代 replay identity。后来审计发现，其中一部分使用了左标签特征、错误的 trade 可见时钟、旧 P3 override、近似 queue、mixed-cadence L2 或历史 live incident 语义。它们不是可以通过改一列标签就修好的小误差，因为 arm 之间的订单、fill、库存和 campaign 路径已经发生分叉。</p>
+<p><span id="3-数据与因果时钟：为什么旧冠军榜必须撤回"></span></p>
+<h3 id="数据与因果时钟：为什么旧冠军榜必须撤回"><a href="#数据与因果时钟：为什么旧冠军榜必须撤回" class="headerlink" title="数据与因果时钟：为什么旧冠军榜必须撤回"></a>数据与因果时钟：为什么旧冠军榜必须撤回</h3><p>历史参数竞速跨过多代 replay identity。后来审计发现，其中一部分使用了左标签特征、错误的 trade 可见时钟、旧 P3 override、近似 queue、mixed-cadence L2 或历史 live incident 语义。它们不是可以通过改一列标签就修好的小误差，因为 arm 之间的订单、fill、库存和 campaign 路径已经发生分叉。</p>
 <p>一旦输入时钟或执行机制改变，旧日级差值不再估计同一个 $Y_d(\theta)$。因此旧的 48/512/1024-arm 精确 PnL、retained39/blocked71/late4 排名与 winner 身份被正式撤回；“当时没有晋级”的治理决定可以保留，但不能把旧数值重新称为当前因果证据。</p>
 <p>这也是为什么数据修复不能自动复活一个已经读取过 outcome 的 family。若再次搜索相同 grid，研究者已经知道哪些区域曾经看起来好；如果不建立新的 action semantics、数据身份、chronological split 和统计合同，所谓重跑只是对已消费面板的再优化。</p>
-<h3 id="4-研究演进：版本是章节，不是十几篇新研究"><a href="#4-研究演进：版本是章节，不是十几篇新研究" class="headerlink" title="4. 研究演进：版本是章节，不是十几篇新研究"></a>4. 研究演进：版本是章节，不是十几篇新研究</h3><p>第一阶段是大规模 global parameter racing。它证明 runner 能覆盖大量 arm，也暴露了 pooled rank 对 replay identity 和面板的高度敏感。</p>
+<h3 id="从全局配置到局部干预"><a href="#从全局配置到局部干预" class="headerlink" title="从全局配置到局部干预"></a>从全局配置到局部干预</h3><p>第一阶段是大规模 global parameter racing。它证明 runner 能覆盖大量 arm，也暴露了 pooled rank 对 replay identity 和面板的高度敏感。</p>
 <p>第二阶段把动作缩窄到 side-specific 固定报价变化，例如 baseline、prevent-over-widen、widen one tick 与 recenter one tick。Development 领先动作没有稳定转移到 Validation，并出现 winner rotation；极端 campaign tail 又缺乏足够支持。</p>
 <p>第三阶段测试 BUY add 的固定 widen、SELL add 的固定 skip，以及 85 秒之后的固定/状态条件 rearm。结论不是“shock、refill、recovery 没有信息”，而是被冻结的动作映射没有产生可靠 uplift：描述路径较差，不等于继续停止加仓更好，因为等待也可能切断 repair fill。</p>
 <p>第四阶段用 native queue 与 competing-risk/value 机制检查 keep/cancel。简单阈值动作把 intervention fills 大幅削掉，却没有更快削掉 toxic fills，进一步说明固定防守规则容易退化为停止参与。</p>
-<p>这些阶段属于同一个“固定参数能否成为普适 alpha”的研究演进。实现修复、scorecard 版本和执行批次只说明证据怎样被生产，不是新的经济问题，所以都应写在这一篇主文章里。</p>
-<h3 id="5-结果：关闭的是固定-alpha-范式，不是所有常数"><a href="#5-结果：关闭的是固定-alpha-范式，不是所有常数" class="headerlink" title="5. 结果：关闭的是固定 alpha 范式，不是所有常数"></a>5. 结果：关闭的是固定 alpha 范式，不是所有常数</h3><p>公开关闭报告保留了五类结论。</p>
+<p>这组比较逐步缩小了干预范围：从整套配置，缩到单侧的一次报价，再检验状态是否能帮助选择。范围缩小让机制更容易解释，却不保证经济效果更强；一次报价可能根本没有改变后续成交。</p>
+<h3 id="历史结果：没有可稳定迁移的参数赢家"><a href="#历史结果：没有可稳定迁移的参数赢家" class="headerlink" title="历史结果：没有可稳定迁移的参数赢家"></a>历史结果：没有可稳定迁移的参数赢家</h3><p>公开关闭报告保留了五类结论。</p>
 <p>第一，没有一组历史 fixed arm 在 corrected causal replay、side/role transfer、campaign tail 和 action-uplift 口径下保持稳定为正。</p>
 <p>第二，某些参数看似改善 PnL，实质上是在降低 fills、延长库存持有或改变尾部构成。没有选择效率与条件净价值，就不能把 participation reduction 写成 alpha。</p>
 <p>第三，BUY 与 SELL、opener/add/reducing 对同一动作的反应不同。一个 pooled winner 会掩盖失败的 side 或 role。</p>
 <p>第四，参数写成函数也不自动变成 state-conditioned alpha。只有函数实际改变订单路径，并在冻结反事实下提高终局价值，才具有策略意义。</p>
 <p>第五，固定值仍然不可或缺。tick/lot、fee、GTX 语义、hard inventory limit、circuit breaker、pair-spread cap、随机种子、latency profile 和 rolling baseline 都需要冻结。区别在于它们的权限：它们是交易所规则、安全约束、经验校准或实验控制，而不是从一次 PnL sweep 推导出的市场常数。</p>
-<h3 id="6-关闭边界与没有获得的权限"><a href="#6-关闭边界与没有获得的权限" class="headerlink" title="6. 关闭边界与没有获得的权限"></a>6. 关闭边界与没有获得的权限</h3><p>本研究关闭以下路径：扩大旧 grid、在已读面板上换 score、重新排名旧 winner、把固定 elapsed-time rearm 或一档 widen/re-center 当作普适动作、通过减少 activity 宣称 alpha。</p>
-<p>它没有关闭 AS/GLFT 作为库存感知坐标系，没有关闭 P3、queue、latency、volatility 的直接经验校准，也没有关闭 side-specific、role-aware、state-conditioned action-value 研究。</p>
-<p>该家族没有获得 Validation/holdout 重读权限，没有 action promotion，没有 shadow 权限，也没有 live authority。保留的 <code>paired_screen_v2</code> 只有筛选与排名权限；panel transition 必须由独立 promotion controller 决定。</p>
-<h3 id="7-后继研究应怎样提出问题"><a href="#7-后继研究应怎样提出问题" class="headerlink" title="7. 后继研究应怎样提出问题"></a>7. 后继研究应怎样提出问题</h3><p>新的研究应把问题从“再找一组常数”改写为：在一个明确 decision surface 上，KEEP、CANCEL、REENTER、ADD、NO-ADD、WIDEN 或 RECENTER 哪个动作相对 baseline 有更高的条件净价值？</p>
-<p>这要求冻结 side/role eligibility、known propensity、完整 campaign reward、overlap/ESS、day-cluster uncertainty、tail 与 participation gates。unsupported state 回退 baseline，而不是依靠回归外推。</p>
+<h3 id="历史结论的适用范围"><a href="#历史结论的适用范围" class="headerlink" title="历史结论的适用范围"></a>历史结论的适用范围</h3><p>旧参数排名已撤回，历史筛选结果不构成当前标定或实盘依据。这不否定 AS/GLFT 的库存感知坐标、经验校准和固定实验对照，也不证明所有固定参数都无效。</p>
+<p><span id="7-后继研究应怎样提出问题"></span></p>
+<h3 id="后继研究应怎样提出问题"><a href="#后继研究应怎样提出问题" class="headerlink" title="后继研究应怎样提出问题"></a>后继研究应怎样提出问题</h3><p>新的研究应把问题从“再找一组常数”改写为：在一个明确 decision surface 上，KEEP、CANCEL、REENTER、ADD、NO-ADD、WIDEN 或 RECENTER 哪个动作相对 baseline 有更高的条件净价值？</p>
+<p>比较需要明确订单侧别与角色、完整库存生命周期收益、有效日期数、尾部风险和参与度。随机化日志另需核对分配概率、共同支持与有效样本量；直接配对模拟则检查共同输入和两条独立执行路径。两种方法都应明确缺乏支持时如何回到基线。</p>
 <p>固定参数竞速最有价值的产物并不是一个 winner，而是一条研究纪律：<strong>参数可以被冻结，证据不能被混用；screening 可以排序，排序不能越级变成策略权限。</strong></p>
 <h3 id="深入推导：为什么历史冠军天然带有乐观偏差"><a href="#深入推导：为什么历史冠军天然带有乐观偏差" class="headerlink" title="深入推导：为什么历史冠军天然带有乐观偏差"></a>深入推导：为什么历史冠军天然带有乐观偏差</h3><p>设每个 arm 的真实条件价值为 $J(\theta)$，历史估计为 $\widehat J(\theta)=J(\theta)+\varepsilon_\theta$。即便所有 arm 的真实价值完全相同，只要研究者从 $K$ 个含噪估计中选择最大者，就通常有：</p>
 <script type="math/tex; mode=display">
@@ -549,28 +546,19 @@ E\left[\max_{k\le K}\hat\mu_k\right]
 <p>同理，risk horizon、requote interval、order TTL与campaign horizon不是一个时钟。固定$\gamma$只能在固定的variance定义与horizon下解释；把60×1s variance与1s horizon、10s P3、5–10s订单寿命混在一起，可能让“最佳gamma”只是吸收期限错配。固定参数继续作为工程baseline的前提，是它的语义和单位已被锁定，而不是它曾经赢过一张表。</p>
 <h3 id="固定参数与-regime-interaction-的可视化方式"><a href="#固定参数与-regime-interaction-的可视化方式" class="headerlink" title="固定参数与 regime interaction 的可视化方式"></a>固定参数与 regime interaction 的可视化方式</h3><p>与其画一条总PnL冠军线，更有信息的是按日期把候选相对baseline的差值与volatility、spread、activity和initial inventory并列。若参数A只在高波动日好、B只在平静日好，总平均winner可能仅由样本regime占比决定。逐日paired scatter与累积差值能显示winner rotation和尾部集中。</p>
 <p>但这些图只能生成后继假说，不能在同一数据上定义regime selector再宣称通过。selector需在inner folds训练、outer chronology评价；否则“按图分段”只是把全局参数搜索变成更大conditional search。</p>
-<h3 id="基线参数为什么也需要持续审计"><a href="#基线参数为什么也需要持续审计" class="headerlink" title="基线参数为什么也需要持续审计"></a>基线参数为什么也需要持续审计</h3><p>把常数作为baseline不等于证明其最优。它的合法身份是稳定对照、运行兼容值或owner明确接受的工程配置；研究应监控其量纲、action binding率、risk horizon与市场tick/lot变化。若交易所规则或数据contract变化，baseline也可能需要新identity。</p>
-<p>审计与重新优化要分开。发现quote horizon和TTL错位，可以先做paired sensitivity，不能直接以“理论更正确”为理由改live；发现denomination不变性失败，则属于correctness bug，需要修复后撤回旧evidence。两类变化的权限路径不同。</p>
-<h3 id="一个可证伪的参数后继"><a href="#一个可证伪的参数后继" class="headerlink" title="一个可证伪的参数后继"></a>一个可证伪的参数后继</h3><p>先选择单一机制，例如risk horizon与inventory skew，不再同时搜索gamma、kappa、cap、guard和cooldown。冻结两三个量纲闭合的候选，在完整corrected baseline、共同queue与chronological days上做paired full-path；primary看terminal value，辅以fills、BTC-hours和tail。</p>
-<p>若候选效果只在某regime出现，先把它当探索线索；新日期再检验固定selector。这样参数研究从“谁赢排行榜”转变为“哪条机制在什么状态改变动作价值”，也与后来的action-uplift路线一致。</p>
-<h3 id="8-公共证据"><a href="#8-公共证据" class="headerlink" title="8. 公共证据"></a>8. 公共证据</h3><ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/README.md">F01 Fixed Parameter Racing README</a></li>
-<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/docs/fixed_parameter_strategy_family_closed.md">固定参数策略研究族关闭报告</a></li>
-<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/docs/paired_screen_v2_architecture_20260727.md">Paired Screen v2 Architecture</a></li>
-</ul>
-<p>公开报告提供问题、结论与证据边界；大型 replay artifacts 和逐行结果不随公共仓库分发。SHA256 是字节身份，不是读者可访问的下载地址。</p>
-<h2 id="4-固定局部报价动作"><a href="#4-固定局部报价动作" class="headerlink" title="4. 固定局部报价动作"></a>4. 固定局部报价动作</h2><h3 id="TL-DR：第一组真正随机化的局部动作，没有稳定赢家"><a href="#TL-DR：第一组真正随机化的局部动作，没有稳定赢家" class="headerlink" title="TL;DR：第一组真正随机化的局部动作，没有稳定赢家"></a>TL;DR：第一组真正随机化的局部动作，没有稳定赢家</h3><p>这项研究把“模型分数看起来不错”改写成一个可以直接失败的动作问题：<strong>在每个 inventory campaign 的 exposure-increasing add surface 上，保持订单大小、减仓侧、安全限制、queue 和 latency 不变，只改变当前报价的一小步几何，是否能稳定提高 decision-to-terminal value？</strong></p>
-<p>四个 behavior actions 是 <code>baseline</code>、<code>prevent_over_widen</code>、<code>widen_1tick</code> 和 <code>recenter_1tick</code>，概率为 0.40/0.20/0.20/0.20。Development 中某些动作有正点估计，Validation 的 winner 却发生旋转；所有 day-cluster interval 都没有形成稳定正下界，极端尾部也缺乏候选事件支持。因此 family 关闭，sealed holdout 保持未读。</p>
-<p>后来数据与 replay identity 修复使旧精确 DR、PnL、fill 和 tail 数值失去当前校准权限，但<strong>不晋级决定仍然保守有效</strong>。修复数据不能成为打开已锁面板、重跑同一动作的理由。</p>
+<p><span id="4-固定局部报价动作"></span></p>
+<h2 id="固定局部报价动作"><a href="#固定局部报价动作" class="headerlink" title="固定局部报价动作"></a>固定局部报价动作</h2><p>局部动作实验将变化限制在已有库存的加仓侧：订单规模、减仓报价、风险限制、队列与延迟规则保持不变，只改变一次报价的几何位置。下表给出具体动作与随机分配方式。</p>
 <p><img src="/images/narrowgate/fixed-local-quote-actions-kline.svg" srcset="/img/loading.gif" lazyload alt="固定局部报价动作在 K 线与报单上的含义"></p>
 <p><em>图 1：机制示意。四个动作只改变 exposure-increasing add 的局部报价；reducing quote、size、inventory limit 和市场路径保持冻结。</em></p>
 <p><img src="/images/narrowgate/f09-campaign-action-causal-path.svg" srcset="/img/loading.gif" lazyload alt="Campaign 动作从分配到终局的完整路径"></p>
 <p><em>图 2：同一个 untreated opportunity 先冻结 eligibility，再随机分配报价动作。candidate 必须自行生成 submit、queue、fill、inventory 与 campaign terminal；mechanics、participation、risk 和 economics 是四道不同的门。</em></p>
-<h3 id="1-研究问题：不是哪个-tick-最赚钱，而是局部动作能否迁移"><a href="#1-研究问题：不是哪个-tick-最赚钱，而是局部动作能否迁移" class="headerlink" title="1. 研究问题：不是哪个 tick 最赚钱，而是局部动作能否迁移"></a>1. 研究问题：不是哪个 tick 最赚钱，而是局部动作能否迁移</h3><p>maker 策略很容易产生局部直觉：盘口恶化时再 widen 一 tick，过度 widening 时撤回一部分，或者让报价重新靠近合理中心。传统参数回测会在很多 tick 距离中挑赢家，却无法区分随机波动、日期选择与动作本身。</p>
+<p><span id="1-研究问题：不是哪个-tick-最赚钱，而是局部动作能否迁移"></span></p>
+<h3 id="研究问题：不是哪个-tick-最赚钱，而是局部动作能否迁移"><a href="#研究问题：不是哪个-tick-最赚钱，而是局部动作能否迁移" class="headerlink" title="研究问题：不是哪个 tick 最赚钱，而是局部动作能否迁移"></a>研究问题：不是哪个 tick 最赚钱，而是局部动作能否迁移</h3><p>maker 策略很容易产生局部直觉：盘口恶化时再 widen 一 tick，过度 widening 时撤回一部分，或者让报价重新靠近合理中心。传统参数回测会在很多 tick 距离中挑赢家，却无法区分随机波动、日期选择与动作本身。</p>
 <p>本项目把问题冻结为一个 campaign-level intervention。每个 campaign 最多有一次 exposure-increasing add intervention；opener 与 reducing 没有动作 overlap，因此不能继承结果。形式上，动作价值是：</p>
 <script type="math/tex; mode=display">
 \tau_a=E[Y(a)-Y(a_0)],</script><p>其中 $a_0$ 是 baseline，$Y$ 是从 intervention decision 到 campaign terminal 的完整路径价值，而不是当前订单的孤立 30 秒 markout。</p>
-<h3 id="2-动作、输入与-estimand"><a href="#2-动作、输入与-estimand" class="headerlink" title="2. 动作、输入与 estimand"></a>2. 动作、输入与 estimand</h3><p>行为向量冻结为：</p>
+<p><span id="2-动作、输入与-estimand"></span></p>
+<h3 id="动作、输入与-estimand"><a href="#动作、输入与-estimand" class="headerlink" title="动作、输入与 estimand"></a>动作、输入与 estimand</h3><p>行为向量冻结为：</p>
 <div class="table-container">
 <table>
 <thead>
@@ -615,26 +603,32 @@ R=V_{fill}-C_{campaign}-C_{queue\ reset}.</script><p>maker-signed fill value 已
 <p>离线评估使用 clipped doubly robust estimator：</p>
 <script type="math/tex; mode=display">
 \widehat V_{DR}(\pi)=\frac1n\sum_i\left[\widehat\mu(X_i,\pi(X_i))+\frac{\mathbf1\{A_i=\pi(X_i)\}}{p_i(A_i\mid X_i)}\left(Y_i-\widehat\mu(X_i,A_i)\right)\right].</script><p>已知 propensity 让 overlap 可以核对，却不会自动消除模型误设、campaign interference 或 replay identity 缺陷。</p>
-<h3 id="3-冻结证据面板与因果时钟"><a href="#3-冻结证据面板与因果时钟" class="headerlink" title="3. 冻结证据面板与因果时钟"></a>3. 冻结证据面板与因果时钟</h3><p>面板按时间冻结为 80 个 Development 日、1 日 embargo、20 个 Validation 日、1 日 embargo 和 20 个 family-specific sealed holdout 日。holdout 只是本动作族未读，不宣称在所有 NarrowGate 假设上全球 untouched。</p>
+<p><span id="3-冻结证据面板与因果时钟"></span></p>
+<h3 id="冻结证据面板与因果时钟"><a href="#冻结证据面板与因果时钟" class="headerlink" title="冻结证据面板与因果时钟"></a>冻结证据面板与因果时钟</h3><p>面板按时间冻结为 80 个 Development 日、1 日 embargo、20 个 Validation 日、1 日 embargo 和 20 个 family-specific sealed holdout 日。holdout 只是本动作族未读，不宣称在所有 NarrowGate 假设上全球 untouched。</p>
 <p>Development 产生 5,746 个 interventions，Validation 产生 1,508 个；BUY/SELL 与四动作均有支持。Development behavior mixture 的 control/random fills 为 47,901/47,890，Validation 为 12,277/12,285，说明随机化没有靠整体停止交易制造表面收益。</p>
 <p>特征必须在 decision timestamp 前 ready。市场、queue、P3、latency seed 与 initial state 在所有 arms 相同。一个 extra cancel 不能让后续所有随机延迟错位，因此 latency 使用 keyed deterministic path，而不是顺序 RNG。</p>
-<h3 id="4-一个具体路径例子"><a href="#4-一个具体路径例子" class="headerlink" title="4. 一个具体路径例子"></a>4. 一个具体路径例子</h3><p>假设 BUY add baseline price 为 99,999.9，tick 为 0.1，当前 inventory 已为 +0.001 BTC。<code>widen_1tick</code> 把 bid 改为 99,999.8。若 baseline order 在队列前端原本会成交，而 widened order 没成交，candidate 不仅少一个 fill，也少一段库存、一个 reducing quote 和后续 cooldown。不能把“没吃到那笔 -0.2bps markout”直接当收益；必须把失去的修复机会与 queue reset 一起算到 terminal。</p>
+<p><span id="4-一个具体路径例子"></span></p>
+<h3 id="一个具体路径例子"><a href="#一个具体路径例子" class="headerlink" title="一个具体路径例子"></a>一个具体路径例子</h3><p>假设 BUY add baseline price 为 99,999.9，tick 为 0.1，当前 inventory 已为 +0.001 BTC。<code>widen_1tick</code> 把 bid 改为 99,999.8。若 baseline order 在队列前端原本会成交，而 widened order 没成交，candidate 不仅少一个 fill，也少一段库存、一个 reducing quote 和后续 cooldown。不能把“没吃到那笔 -0.2bps markout”直接当收益；必须把失去的修复机会与 queue reset 一起算到 terminal。</p>
 <p>相反，<code>recenter_1tick</code> 可能增加 fills，却也可能以更差选择进入库存。局部价格变化的经济含义来自完整路径，不来自 quote 距离本身。</p>
-<h4 id="4-1-四臂不是四个独立回测"><a href="#4-1-四臂不是四个独立回测" class="headerlink" title="4.1 四臂不是四个独立回测"></a>4.1 四臂不是四个独立回测</h4><p>每个 campaign 只能观察一个实际 assignment。四臂价值由同一随机行为分布识别，而不是分别选择四个“最好日期”运行。设行为概率为 $p(a)$，某个目标 policy 为 $\pi(x)$，则 inverse-propensity correction 只在日志动作恰好等于目标动作时启用：</p>
+<p><span id="4-1-四臂不是四个独立回测"></span></p>
+<h4 id="四臂不是四个独立回测"><a href="#四臂不是四个独立回测" class="headerlink" title="四臂不是四个独立回测"></a>四臂不是四个独立回测</h4><p>每个 campaign 只能观察一个实际 assignment。四臂价值由同一随机行为分布识别，而不是分别选择四个“最好日期”运行。设行为概率为 $p(a)$，某个目标 policy 为 $\pi(x)$，则 inverse-propensity correction 只在日志动作恰好等于目标动作时启用：</p>
 <script type="math/tex; mode=display">
 \frac{\mathbf 1\{A_i=\pi(X_i)\}}{p(A_i\mid X_i)}.</script><p>由于 baseline 概率 0.4、其余各 0.2，稀有动作匹配行权重更高。clipping 可控制方差，却也改变 estimand 附近的偏差—方差权衡。因此 clipping 是冻结合同，不是看到哪个动作区间差一点就调哪个。</p>
 <p>四臂共享同一天行情和相似 campaign 状态，动作估计也彼此相关。对每个动作分别做 95% 区间、再挑唯一正的一个，会放大 familywise 假阳性。正确 scorecard 要同时约束动作族、side、tail 与日期方向。</p>
-<h4 id="4-2-DR-估计器为什么不是“机器学习保证”"><a href="#4-2-DR-估计器为什么不是“机器学习保证”" class="headerlink" title="4.2 DR 估计器为什么不是“机器学习保证”"></a>4.2 DR 估计器为什么不是“机器学习保证”</h4><p>DR 的双重稳健性指：在一定正则条件下，propensity 或 outcome model 至少一方正确可带来一致性。这里 propensity 由 replay 已知，是强项；但仍需要 consistency、no interference、正确 reward 与稳定的 campaign assignment。</p>
+<p><span id="4-2-DR-估计器为什么不是“机器学习保证”"></span></p>
+<h4 id="DR-估计器为什么不是“机器学习保证”"><a href="#DR-估计器为什么不是“机器学习保证”" class="headerlink" title="DR 估计器为什么不是“机器学习保证”"></a>DR 估计器为什么不是“机器学习保证”</h4><p>DR 的双重稳健性指：在一定正则条件下，propensity 或 outcome model 至少一方正确可带来一致性。这里 propensity 由 replay 已知，是强项；但仍需要 consistency、no interference、正确 reward 与稳定的 campaign assignment。</p>
 <p>如果同一 campaign 被随机多次，早期 action 改变后来 $X$，那么后续行不是独立的静态 contextual bandit。项目将 intervention 限为每 campaign 一次，就是为了让：</p>
 <script type="math/tex; mode=display">
 Y_i=Y_i(A_i)</script><p>保持清楚。known propensity 不能修复错误的订单 lifecycle、重复 terminal PnL 或时间穿越特征；这些都属于 DR 公式之外的识别前提。</p>
-<h4 id="4-3-一个-winner-rotation-的合成解释"><a href="#4-3-一个-winner-rotation-的合成解释" class="headerlink" title="4.3 一个 winner rotation 的合成解释"></a>4.3 一个 winner rotation 的合成解释</h4><p>假设 Development 恰有较多缓慢下跌日。BUY widen 少接到一些 add fills，点估计领先；SELL recenter 在反弹段增加修复，亦略正。Validation 若趋势组成改变，BUY widen 的优势缩小，SELL recenter 可能反号，而 prevent-over-widen 偶然领先。</p>
+<p><span id="4-3-一个-winner-rotation-的合成解释"></span></p>
+<h4 id="一个-winner-rotation-的合成解释"><a href="#一个-winner-rotation-的合成解释" class="headerlink" title="一个 winner rotation 的合成解释"></a>一个 winner rotation 的合成解释</h4><p>假设 Development 恰有较多缓慢下跌日。BUY widen 少接到一些 add fills，点估计领先；SELL recenter 在反弹段增加修复，亦略正。Validation 若趋势组成改变，BUY widen 的优势缩小，SELL recenter 可能反号，而 prevent-over-widen 偶然领先。</p>
 <p>这不必意味着“市场规律每月彻底相反”。当真实 action effect 接近零、日间噪声大于信号时，最大样本均值本来就会旋转。若四个真值都为零：</p>
 <script type="math/tex; mode=display">
 \Pr\left(\arg\max_a\widehat\tau_a^{Dev}
 =
 \arg\max_a\widehat\tau_a^{Val}\right)</script><p>并不会很高。winner rotation 因此是弱信号与选择噪声的自然诊断，不能成为在 Validation 再选一次动作的理由。</p>
-<h3 id="5-结果：Development-线索没有穿过-Validation"><a href="#5-结果：Development-线索没有穿过-Validation" class="headerlink" title="5. 结果：Development 线索没有穿过 Validation"></a>5. 结果：Development 线索没有穿过 Validation</h3><p>历史冻结报告中，Development 每个动作的 DR interval 都跨零。点估计领先者是 BUY <code>widen_1tick</code> 与 SELL <code>recenter_1tick</code>；它们只被记录为 diagnostic candidates，并未通过晋级门。</p>
+<p><span id="5-结果：Development-线索没有穿过-Validation"></span></p>
+<h3 id="结果：Development-线索没有穿过-Validation"><a href="#结果：Development-线索没有穿过-Validation" class="headerlink" title="结果：Development 线索没有穿过 Validation"></a>结果：Development 线索没有穿过 Validation</h3><p>历史冻结报告中，Development 每个动作的 DR interval 都跨零。点估计领先者是 BUY <code>widen_1tick</code> 与 SELL <code>recenter_1tick</code>；它们只被记录为 diagnostic candidates，并未通过晋级门。</p>
 <p>Validation 不回灌训练。BUY widen 仍是很小的正点估计，但日正率低于 50%；SELL recenter 反号；Validation 中最大的 SELL 点估计反而来自 Development 为负的 <code>prevent_over_widen</code>。这种 winner rotation 是不稳定性证据，不是让研究者在 Validation 再挑一次赢家的许可。</p>
 <div class="table-container">
 <table>
@@ -670,27 +664,24 @@ Y_i=Y_i(A_i)</script><p>保持清楚。known propensity 不能修复错误的订
 </table>
 </div>
 <p>预注册极端尾部为 terminal campaign MTM 不高于 -5 USDC，并要求每个候选至少五个 logged events。Development 与 Validation 的候选动作都没有足够事件。缺事件只能标为 unsupported，不能说动作“消除了尾部”。</p>
-<h3 id="6-研究演进与数值撤回"><a href="#6-研究演进与数值撤回" class="headerlink" title="6. 研究演进与数值撤回"></a>6. 研究演进与数值撤回</h3><p>原 action identity 建立在当时的 causal-v4、queue、P3 与数据合同上。随后 normalized L2、trade-side、time/unit 和 replay identities 被修复，旧精确 DR、PnL、fill、campaign、tail 与 winner ordering 因而撤回。</p>
+<p><span id="6-研究演进与数值撤回"></span></p>
+<h3 id="研究演进与数值撤回"><a href="#研究演进与数值撤回" class="headerlink" title="研究演进与数值撤回"></a>研究演进与数值撤回</h3><p>原 action identity 建立在当时的 causal-v4、queue、P3 与数据合同上。随后 normalized L2、trade-side、time/unit 和 replay identities 被修复，旧精确 DR、PnL、fill、campaign、tail 与 winner ordering 因而撤回。</p>
 <p>这不生成一个“v2 重跑义务”。研究身份由 sample、action set、folds、estimand 与统计合同共同定义。数据修复说明旧数值不能做当前标定，却没有让一个已看过 Development/Validation 的动作重新获得独立性。若未来重启，必须提出真正不同的 action、重新冻结 split 和 score profile，而不是用修复过的数据复刻同一局部 tick family。</p>
-<h3 id="7-不确定性为何不能由-pooled-PnL-覆盖"><a href="#7-不确定性为何不能由-pooled-PnL-覆盖" class="headerlink" title="7. 不确定性为何不能由 pooled PnL 覆盖"></a>7. 不确定性为何不能由 pooled PnL 覆盖</h3><p>行为 mixture 的 raw aggregate delta 只是 sanity check。DR uncertainty 以 UTC day cluster 为单位，因为同一天的 campaign 共享 market regime。若把 5,746 个 interventions 当独立样本，区间会虚假收窄。</p>
+<p><span id="7-不确定性为何不能由-pooled-PnL-覆盖"></span></p>
+<h3 id="不确定性为何不能由-pooled-PnL-覆盖"><a href="#不确定性为何不能由-pooled-PnL-覆盖" class="headerlink" title="不确定性为何不能由 pooled PnL 覆盖"></a>不确定性为何不能由 pooled PnL 覆盖</h3><p>行为 mixture 的 raw aggregate delta 只是 sanity check。DR uncertainty 以 UTC day cluster 为单位，因为同一天的 campaign 共享 market regime。若把 5,746 个 interventions 当独立样本，区间会虚假收窄。</p>
 <p>BUY 与 SELL 也必须分开。一个 pooled positive estimate 可能由 BUY 支撑、同时掩盖 SELL 伤害；opener、add、reducing 则必须拥有实际 action overlap 才能获得角色结论。本项目只有 add overlap。</p>
 <p>还要区分 assignment support 与 outcome information。四臂都有足够随机化行，只能说明 $p_i(a\mid X_i)&gt;0$；极端 tail 每个 candidate 少于五个事件，则对应的有效信息仍接近零。用总 fills 或总 campaigns 给 tail interval “补样本”会混淆 estimand。一个直观反例是：一万个普通 terminal rows 加上零个 $Y\le-5$ 的 candidate event，仍然不能估计 candidate 对这一阈值事件的保护率。因而 scorecard 同时保留 overlap、daily cluster、tail-event count 与 activity gates，任何单一均值都不能覆盖其余缺口。</p>
 <p>此外，known propensity 只解决行为分配，不解决 interference。一个动作改变当前 queue 后可能改变同 campaign 的下一次 eligible decision；这也是 intervention 被限制为每 campaign 至多一次、reward 登记一次的原因。若把后续 rows 再当独立 assignments，标准误与 treatment count 都会被重复放大。</p>
-<h4 id="7-1-Mechanics、activity-与-economics-的联合读法"><a href="#7-1-Mechanics、activity-与-economics-的联合读法" class="headerlink" title="7.1 Mechanics、activity 与 economics 的联合读法"></a>7.1 Mechanics、activity 与 economics 的联合读法</h4><p>一个动作要有意义，至少要沿三层漏斗：被分配后是否真的改变可执行价格；价格变化是否改变 activation/fill/path；改变的路径是否带来足够 terminal value。第一层失败是 no-op，第二层过弱是低 leverage，第二层过强又可能是 shutdown；只有第三层给出经济方向。</p>
+<p><span id="7-1-Mechanics、activity-与-economics-的联合读法"></span></p>
+<h4 id="Mechanics、activity-与-economics-的联合读法"><a href="#Mechanics、activity-与-economics-的联合读法" class="headerlink" title="Mechanics、activity 与 economics 的联合读法"></a>Mechanics、activity 与 economics 的联合读法</h4><p>一个动作要有意义，至少要沿三层漏斗：被分配后是否真的改变可执行价格；价格变化是否改变 activation/fill/path；改变的路径是否带来足够 terminal value。第一层失败是 no-op，第二层过弱是低 leverage，第二层过强又可能是 shutdown；只有第三层给出经济方向。</p>
 <p>因此“control/random fills 几乎相同”在本项目只是完整性检查：随机化没有让系统总体停摆。它不能证明四个 action 的 path-changing rate 相同，也不能证明新增或删除 fills 的质量。后者必须由 action-specific full path 与 terminal scorecard 决定。</p>
-<h4 id="7-2-第三方怎样复核而不依赖旧精确-PnL"><a href="#7-2-第三方怎样复核而不依赖旧精确-PnL" class="headerlink" title="7.2 第三方怎样复核而不依赖旧精确 PnL"></a>7.2 第三方怎样复核而不依赖旧精确 PnL</h4><p>即使旧数值因 replay identity 修复而撤回，第三方仍可检查研究决定是否保守：四臂 propensity 是否冻结；Development 是否没有正下界；Validation 是否 leader rotation；tail 是否缺候选事件；holdout 是否未读；修复后是否没有把同一已消费 family 重跑成新确认。</p>
+<p><span id="7-2-第三方怎样复核而不依赖旧精确-PnL"></span></p>
+<h4 id="第三方怎样复核而不依赖旧精确-PnL"><a href="#第三方怎样复核而不依赖旧精确-PnL" class="headerlink" title="第三方怎样复核而不依赖旧精确 PnL"></a>第三方怎样复核而不依赖旧精确 PnL</h4><p>即使旧数值因 replay identity 修复而撤回，第三方仍可检查研究决定是否保守：四臂 propensity 是否冻结；Development 是否没有正下界；Validation 是否 leader rotation；tail 是否缺候选事件；holdout 是否未读；修复后是否没有把同一已消费 family 重跑成新确认。</p>
 <p>这些结构事实足以支持“不晋级”。它们不支持重新引用具体动作排名，也不支持说某个 tick 永久无效。把决定与数值 authority 分开，是历史证据 revalidation 的核心。</p>
-<h4 id="7-3-什么才算真正不同的-successor"><a href="#7-3-什么才算真正不同的-successor" class="headerlink" title="7.3 什么才算真正不同的 successor"></a>7.3 什么才算真正不同的 successor</h4><p>改变 action lever 会产生新项目，例如从静态一 tick移动改为保留 queue 的 active-order action、外部 fair-center 对整对报价的连续平移，或库存条件的持久 permission。仅更换模型、clip、树深、日期数量或阈值，仍在追问同一个已消费问题。</p>
+<p><span id="7-3-什么才算真正不同的-successor"></span></p>
+<h4 id="什么才算真正不同的-successor"><a href="#什么才算真正不同的-successor" class="headerlink" title="什么才算真正不同的 successor"></a>什么才算真正不同的 successor</h4><p>改变 action lever 会产生新项目，例如从静态一 tick移动改为保留 queue 的 active-order action、外部 fair-center 对整对报价的连续平移，或库存条件的持久 permission。仅更换模型、clip、树深、日期数量或阈值，仍在追问同一个已消费问题。</p>
 <p>新 successor 还需重新建立 untreated eligibility、独立 split 和经济预算，并说明与旧四臂的重叠。旧结果可以作为设计先验，例如避免低 leverage 或 participation shutdown，但不能作为新 policy 的训练标签或确认数据。</p>
-<h3 id="8-关闭边界"><a href="#8-关闭边界" class="headerlink" title="8. 关闭边界"></a>8. 关闭边界</h3><p>关闭的是这四个固定局部 add actions 在冻结 causal-v4 identity 下的 family。它不证明所有 quote geometry 无效，也不关闭使用新状态表示或不同经济杠杆的动作。</p>
-<p>不能做的补救包括：在 Validation 选 winner、改变 clipping、调新阈值、把 zero tail events 当安全证据、把 opener/reducing 写进结论，或等待新日期重复同一个 family。</p>
-<h3 id="9-没有获得的权限"><a href="#9-没有获得的权限" class="headerlink" title="9. 没有获得的权限"></a>9. 没有获得的权限</h3><ul>
-<li>sealed holdout 未读；</li>
-<li>没有 action、shadow 或 live 权限；</li>
-<li>没有当前 baseline 的数值校准权限；</li>
-<li>没有将历史 point estimate 作为方向性 alpha 的权限；</li>
-<li>live baseline、order size、inventory limit 与 reducing behavior 均未改变。</li>
-</ul>
+<h3 id="适用范围"><a href="#适用范围" class="headerlink" title="适用范围"></a>适用范围</h3><p>这项历史实验只覆盖加仓侧的四个局部动作，不包含首次开仓或减仓角色。Development 与 Validation 没有建立稳定收益，封存测试集未读，也没有据此改变实盘。后续时钟和执行修复使其精确数值撤回；历史不晋级决定保留，不把旧排名当作当前参数依据。</p>
 <h3 id="随机化单位为何必须跟随-campaign-lineage"><a href="#随机化单位为何必须跟随-campaign-lineage" class="headerlink" title="随机化单位为何必须跟随 campaign lineage"></a>随机化单位为何必须跟随 campaign lineage</h3><p>如果每个100ms row独立随机keep/widen/recenter/skip，同一订单会在生命周期中不断换arm；后续fill无法归因给哪次assignment，action还会通过库存影响未来rows。更安全的单位是在冻结decision opportunity上随机一次，并把assignment沿订单或campaign lineage携带到terminal outcome。</p>
 <p>令$Z_c$为campaign $c$的首次合法assignment，结果为$Y_c(Z_c)$。随机化保证在共同支持内</p>
 <script type="math/tex; mode=display">
@@ -699,32 +690,23 @@ Z_c\perp\{Y_c(a):a\in\mathcal A\}\mid X_c,</script><p>但不同campaign仍可能
 <p>一个常见形式是</p>
 <script type="math/tex; mode=display">
 \hat V(a)=\frac1n\sum_i\left[\hat m_a(X_i)+\frac{\mathbf1(A_i=a)}{\hat e_a(X_i)}\{Y_i-\hat m_a(X_i)\}\right].</script><p>它不会消除从多个arms、subgroups和日期切片中事后挑winner的选择偏差。Development里胜出的动作若在Validation旋转，说明异质性、噪声或模型选择没有transport；正确反应是关闭当前family，而不是用更复杂DR learner重新排序同一已读面板。</p>
-<h3 id="这项研究给后继动作设计留下的坐标"><a href="#这项研究给后继动作设计留下的坐标" class="headerlink" title="这项研究给后继动作设计留下的坐标"></a>这项研究给后继动作设计留下的坐标</h3><p>局部一tick动作不是完全无效：它们能改变报价与一部分fills，却没有稳定迁移。后继应缩小动作空间，并由机制证据提出明确方向，例如只在exposure-increasing first-add时widen，或只在active queue option value为负时cancel。</p>
-<p>新实验还应预注册最小action leverage、有效日期数和terminal value gate。若动作只改变极少订单，应该在看PnL前因MDE不足停止；若activity足够但value跨零，则得到经济阴性。把“无力检验”和“有力但失败”分开，比继续从四臂表里找最好的小数更有信息。</p>
 <h3 id="多臂-simultaneous-inference"><a href="#多臂-simultaneous-inference" class="headerlink" title="多臂 simultaneous inference"></a>多臂 simultaneous inference</h3><p>四个arms相对baseline产生多个pairwise contrasts。若逐个看95% interval，再挑唯一为正者，family-wise错误率超过单检验。可以用按日bootstrap每次同时计算所有arms，并以最大t统计量构造共同下界；或者在spec中指定唯一primary arm、其它只作diagnostic。</p>
 <p>Development用于选arm、Validation用于确认时，Validation门还必须考虑selection：它确认的是完整选择程序，而不是把winner当事先固定。winner rotation表明选择程序没有迁移。</p>
 <h3 id="Full-path-随机化仍需检查-execution-integrity"><a href="#Full-path-随机化仍需检查-execution-integrity" class="headerlink" title="Full-path 随机化仍需检查 execution integrity"></a>Full-path 随机化仍需检查 execution integrity</h3><p>随机assignment正确不代表replay正确。各arms应共享market events、queue inputs、latency key和initial state；submit/cancel/fill数量守恒；unsupported action回退规则一致。arm-specific action多产生event是treatment结果，不应强制event count相等。</p>
 <p>随机化balance表应在pre-action covariates、day和role上检查，但不能按post-action fills重新配平。后者会删除真实action路径并引入collider。</p>
-<h3 id="数值撤回后，研究结论为何仍可复核"><a href="#数值撤回后，研究结论为何仍可复核" class="headerlink" title="数值撤回后，研究结论为何仍可复核"></a>数值撤回后，研究结论为何仍可复核</h3><p>旧exact PnL受后续replay修复影响而撤回，但随机化合同、Development winner未穿过Validation、无promotion的权限记录仍可审计。公共读者不需要信任一张失效收益表，也能核对研究没有给任何arm上线许可。</p>
-<p>若要恢复数值证据，只能在corrected baseline上重新执行整套四臂程序，不能单独重跑旧winner。否则selection denominator已经变化。</p>
-<h3 id="10-公共证据"><a href="#10-公共证据" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h3><ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/side_specific_action_uplift_existing_split_20260718.md"><code>side_specific_action_uplift_existing_split_20260718.md</code></a></li>
-<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/README.md"><code>F09 README</code></a></li>
-<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/historical_backtest_evidence_revalidation_20260720.md"><code>historical_backtest_evidence_revalidation_20260720.md</code></a></li>
-</ul>
-<h3 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h3><p>这项研究最有价值的结果不是某个局部动作曾经短暂领先，而是一个完整的反例：已知 propensity、充足样本与看似合理的微小干预，仍然可以在时间外评估中没有稳定赢家。关闭它，比在 Validation 再挑一次数字更接近可复核研究。</p>
-<h2 id="5-BUY-条件加宽"><a href="#5-BUY-条件加宽" class="headerlink" title="5. BUY 条件加宽"></a>5. BUY 条件加宽</h2><h3 id="TL-DR：无条件点估计有一点好看，时间外条件策略却没有学到稳定正区域"><a href="#TL-DR：无条件点估计有一点好看，时间外条件策略却没有学到稳定正区域" class="headerlink" title="TL;DR：无条件点估计有一点好看，时间外条件策略却没有学到稳定正区域"></a>TL;DR：无条件点估计有一点好看，时间外条件策略却没有学到稳定正区域</h3><p><code>buy_add_conditional_widen_causal_v4_v1</code> 只研究一个动作：当 BUY quote 会继续增加已有 LONG 暴露时，将它向外移动一个 tick。SELL 全程 baseline，reducing quote、size、inventory limit、queue、latency 与 safety gates 全部冻结。</p>
-<p>Development 的随机化行为路径保留了几乎全部 fills 和 campaigns，说明动作不是通过停止交易产生结果。无条件 widen 的历史点估计略偏正；但用 past-only doubly robust pseudo-outcomes 学到的浅层 conditional policy 在未来日没有正 reward lower bound，campaign cost、negative terminal、q10 与 fill consistency gates 全部失败。研究在 Development 关闭，Validation 与 sealed holdout 未读。</p>
-<p>旧精确经济数值随后因 denominator 与 replay identity 修复而撤回；本文把它们只作为冻结历史报告的诊断，不把它们重新包装成当前 alpha。当前仍有权限的结论是：<strong>这一个 BUY one-tick conditional-widen family 失败，不能靠换树、换阈值或打开锁定日期救援。</strong></p>
+<p><span id="5-BUY-条件加宽"></span></p>
+<h2 id="BUY-条件加宽"><a href="#BUY-条件加宽" class="headerlink" title="BUY 条件加宽"></a>BUY 条件加宽</h2><p>接下来的实验只在 BUY 报价会增加已有多仓时外移一 tick，SELL、减仓侧和数量保持原样。与前面的固定动作比较不同，这里还训练一个条件规则，检验它能否在未来日期选择更有价值的机会。</p>
 <p><img src="/images/narrowgate/buy-conditional-widen-kline.svg" srcset="/img/loading.gif" lazyload alt="BUY Add 条件加宽的 K 线与完整路径"></p>
 <p><em>图 1：机制示意。候选只把 exposure-increasing BUY bid 外移一 tick；是否少一个 fill 会继续改变 inventory、reducing quote、cooldown 与 terminal。</em></p>
 <p><img src="/images/narrowgate/f09-campaign-action-causal-path.svg" srcset="/img/loading.gif" lazyload alt="BUY conditional action 的完整 campaign 路径"></p>
 <p><em>图 2：CATE tree 只决定在什么 untreated opportunity 上执行 widen；真正结果仍由 candidate 自己的订单、queue、fill、inventory 与 terminal 生成。全局 overlap 通过，不代表每个 leaf 都有经济信息。</em></p>
-<h3 id="1-为什么单独研究-BUY-add"><a href="#1-为什么单独研究-BUY-add" class="headerlink" title="1. 为什么单独研究 BUY add"></a>1. 为什么单独研究 BUY add</h3><p>BUY add 与 SELL add 不是一组正负号。BUY add 增加 LONG inventory，它面对的直接流是 aggressive SELL taker；它的后续修复由 reducing SELL 完成。一个同样的“一 tick 外移”在 SHORT campaign 上对应不同对手方、queue 与修复路径。</p>
+<p><span id="1-为什么单独研究-BUY-add"></span></p>
+<h3 id="为什么单独研究-BUY-add"><a href="#为什么单独研究-BUY-add" class="headerlink" title="为什么单独研究 BUY add"></a>为什么单独研究 BUY add</h3><p>BUY add 与 SELL add 不是一组正负号。BUY add 增加 LONG inventory，它面对的直接流是 aggressive SELL taker；它的后续修复由 reducing SELL 完成。一个同样的“一 tick 外移”在 SHORT campaign 上对应不同对手方、queue 与修复路径。</p>
 <p>研究问题因此冻结为：</p>
 <script type="math/tex; mode=display">
 \tau_{BUY}(x)=E[Y(W=1)-Y(W=0)\mid X=x,\ role=add,\ side=BUY],</script><p>其中 $W=1$ 是 widen one tick，$W=0$ 是 exact baseline，$Y$ 是 decision-to-campaign-terminal reward。</p>
-<h3 id="2-动作、特征与-estimand"><a href="#2-动作、特征与-estimand" class="headerlink" title="2. 动作、特征与 estimand"></a>2. 动作、特征与 estimand</h3><p>行为 policy 为 exact 0.5/0.5：</p>
+<p><span id="2-动作、特征与-estimand"></span></p>
+<h3 id="动作、特征与-estimand"><a href="#动作、特征与-estimand" class="headerlink" title="动作、特征与 estimand"></a>动作、特征与 estimand</h3><p>行为 policy 为 exact 0.5/0.5：</p>
 <div class="table-container">
 <table>
 <thead>
@@ -770,30 +752,37 @@ Z_c\perp\{Y_c(a):a\in\mathcal A\}\mid X_c,</script><p>但不同campaign仍可能
 \widehat\psi_i=\widehat\mu_1(X_i)-\widehat\mu_0(X_i)
 +\frac{W_i(Y_i-\widehat\mu_1(X_i))}{p_i}
 -\frac{(1-W_i)(Y_i-\widehat\mu_0(X_i))}{1-p_i}.</script><p>第二层 depth-2 honest treatment tree 只能在更早 pseudo-outcomes 上选择结构，并在不相交日期估计 leaf value。unsupported leaf 回退 baseline。</p>
-<h3 id="3-数据、split-与时钟"><a href="#3-数据、split-与时钟" class="headerlink" title="3. 数据、split 与时钟"></a>3. 数据、split 与时钟</h3><p>Development 是此前已检查的 100 个 good days，截至 2026-06-23；随后一日 embargo。Validation 为 9 日并锁定，再经过一日 embargo；sealed holdout 为 10 个 good days，同样锁定。</p>
+<p><span id="3-数据、split-与时钟"></span></p>
+<h3 id="数据、split-与时钟"><a href="#数据、split-与时钟" class="headerlink" title="数据、split 与时钟"></a>数据、split 与时钟</h3><p>Development 是此前已检查的 100 个 good days，截至 2026-06-23；随后一日 embargo。Validation 为 9 日并锁定，再经过一日 embargo；sealed holdout 为 10 个 good days，同样锁定。</p>
 <p>Development replay 产生 4,387 个 unique BUY campaigns，baseline/widen rows 为 2,207/2,180，assignment rate 49.69%，每行 propensity 0.5。46 个 campaign 在 replay 边界 censor，reward identity 最大误差仅 $2.78\times10^{-17}$ USDC。</p>
 <p>market feature、P3、queue 与 latency 都必须在 decision 前 ready。widen 后的 order activation、queue-ahead 与 fill 重新生成；不能把 baseline fill 复制给 candidate 再改 markout。</p>
-<h3 id="4-一个订单例子：外移一-tick并不只改变价格"><a href="#4-一个订单例子：外移一-tick并不只改变价格" class="headerlink" title="4. 一个订单例子：外移一 tick并不只改变价格"></a>4. 一个订单例子：外移一 tick并不只改变价格</h3><p>假设 baseline BUY add 为 100,000.0，candidate 为 99,999.9，order size 0.001 BTC。后续 aggressive SELL trade 最低打到 99,999.95。baseline order 可能在 queue 支持下成交，candidate 则不触价。candidate 看似“避开”了一笔 fill，但真正差额是：</p>
+<p><span id="4-一个订单例子：外移一-tick并不只改变价格"></span></p>
+<h3 id="一个订单例子：外移一-tick并不只改变价格"><a href="#一个订单例子：外移一-tick并不只改变价格" class="headerlink" title="一个订单例子：外移一 tick并不只改变价格"></a>一个订单例子：外移一 tick并不只改变价格</h3><p>假设 baseline BUY add 为 100,000.0，candidate 为 99,999.9，order size 0.001 BTC。后续 aggressive SELL trade 最低打到 99,999.95。baseline order 可能在 queue 支持下成交，candidate 则不触价。candidate 看似“避开”了一笔 fill，但真正差额是：</p>
 <script type="math/tex; mode=display">
 \Delta Y=Y(\text{no fill, altered future path})-Y(\text{fill, inventory repair path}).</script><p>若 baseline fill 后几秒内 reducing SELL 以更好价格修复，widen 反而失去 maker spread；若市场继续下跌，widen 可能避免 toxic inventory。模型必须在 decision-visible state 上稳定区分这两种路径，而不能只预测下一段价格方向。</p>
-<h4 id="4-1-一-tick动作的价值可拆成“是否分叉”与“分叉后符号”"><a href="#4-1-一-tick动作的价值可拆成“是否分叉”与“分叉后符号”" class="headerlink" title="4.1 一 tick动作的价值可拆成“是否分叉”与“分叉后符号”"></a>4.1 一 tick动作的价值可拆成“是否分叉”与“分叉后符号”</h4><p>令 $D=1$ 表示 baseline 与 widen 最终产生不同路径。则：</p>
+<p><span id="4-1-一-tick动作的价值可拆成“是否分叉”与“分叉后符号”"></span></p>
+<h4 id="一-tick动作的价值可拆成“是否分叉”与“分叉后符号”"><a href="#一-tick动作的价值可拆成“是否分叉”与“分叉后符号”" class="headerlink" title="一 tick动作的价值可拆成“是否分叉”与“分叉后符号”"></a>一 tick动作的价值可拆成“是否分叉”与“分叉后符号”</h4><p>令 $D=1$ 表示 baseline 与 widen 最终产生不同路径。则：</p>
 <script type="math/tex; mode=display">
 \mathbb E[\Delta Y\mid X=x]
 =
 \Pr(D=1\mid x)\,
 \mathbb E[\Delta Y\mid D=1,x].</script><p>第一项近似由未来价格是否进入两张 bid 之间、activation 与 queue 决定；第二项还要看成交后的 trend、repair 与 terminal。一个价格方向模型可能预测第一项，却未必预测第二项。若一 tick 间隔很少改变 fill，$\Pr(D=1)$ 很小，conditional value 也会变成由少量路径支配的稀疏标签。</p>
 <p>因此动作强度不能只用“widen 在 50% campaigns 上分配”衡量。assignment rate、quote-change rate、path-change rate 与 terminal-nonzero rate 是四个不同层级；只有最后两个直接决定可学习的经济信息。</p>
-<h4 id="4-2-为什么无条件略正与条件策略为负并不矛盾"><a href="#4-2-为什么无条件略正与条件策略为负并不矛盾" class="headerlink" title="4.2 为什么无条件略正与条件策略为负并不矛盾"></a>4.2 为什么无条件略正与条件策略为负并不矛盾</h4><p>无条件动作值是：</p>
+<p><span id="4-2-为什么无条件略正与条件策略为负并不矛盾"></span></p>
+<h4 id="为什么无条件略正与条件策略为负并不矛盾"><a href="#为什么无条件略正与条件策略为负并不矛盾" class="headerlink" title="为什么无条件略正与条件策略为负并不矛盾"></a>为什么无条件略正与条件策略为负并不矛盾</h4><p>无条件动作值是：</p>
 <script type="math/tex; mode=display">
 \tau_{all}=\mathbb E[\psi].</script><p>conditional policy 只在集合 $G(X)=1$ 上 widen，其值取决于：</p>
 <script type="math/tex; mode=display">
 \tau_G=\mathbb E[\psi\mid G(X)=1].</script><p>如果 treatment heterogeneity 很弱，而 tree 在有限样本中按 noisy pseudo-outcomes 切分，它可能把总体少量正值留在 baseline leaf、把负噪声误识别为 candidate leaf。于是 $\tau_{all}&gt;0$ 与 $\tau_G&lt;0$ 可以同时发生。</p>
 <p>这也是 honest tree 分离结构选择与 leaf value估计的原因。但 honest 不会凭空创造 signal；它只是降低同一噪声既选 split 又评估 split 的偏差。未来日仍然没有正下界，说明冻结特征没有形成稳定 effect modifier。</p>
-<h4 id="4-3-35-个特征为什么不等于-35-个独立证据来源"><a href="#4-3-35-个特征为什么不等于-35-个独立证据来源" class="headerlink" title="4.3 35 个特征为什么不等于 35 个独立证据来源"></a>4.3 35 个特征为什么不等于 35 个独立证据来源</h4><p>shock、refill、queue、campaign 与 markout state 之间高度相关，许多又来自同一段 BBO/trade history。feature count 不能当成信息维度。depth-2 tree 最多形成少量 leaves，却仍在大量候选 split 中选择；若不在 inner train 中完成，阈值搜索会泄漏到 OOF。</p>
+<p><span id="4-3-35-个特征为什么不等于-35-个独立证据来源"></span></p>
+<h4 id="35-个特征为什么不等于-35-个独立证据来源"><a href="#35-个特征为什么不等于-35-个独立证据来源" class="headerlink" title="35 个特征为什么不等于 35 个独立证据来源"></a>35 个特征为什么不等于 35 个独立证据来源</h4><p>shock、refill、queue、campaign 与 markout state 之间高度相关，许多又来自同一段 BBO/trade history。feature count 不能当成信息维度。depth-2 tree 最多形成少量 leaves，却仍在大量候选 split 中选择；若不在 inner train 中完成，阈值搜索会泄漏到 OOF。</p>
 <p>研究把结构学习限制在过去 pseudo-outcomes，并让 unsupported leaf回退 baseline，正是为了允许“没有条件区域”这一答案。强迫每棵树选一个 positive leaf，只会把最大噪声命名为 regime。</p>
-<h3 id="5-Replay-integrity-与-support"><a href="#5-Replay-integrity-与-support" class="headerlink" title="5. Replay integrity 与 support"></a>5. Replay integrity 与 support</h3><p>相对 no-randomization control，fills、placed actions、campaigns 分别保留 99.988%、99.979%、99.945%，inventory time 约 1.0009 倍。由此可以排除“候选停止报价，所以少亏”的粗糙解释。</p>
+<p><span id="5-Replay-integrity-与-support"></span></p>
+<h3 id="Replay-integrity-与-support"><a href="#Replay-integrity-与-support" class="headerlink" title="Replay integrity 与 support"></a>Replay integrity 与 support</h3><p>相对 no-randomization control，fills、placed actions、campaigns 分别保留 99.988%、99.979%、99.945%，inventory time 约 1.0009 倍。由此可以排除“候选停止报价，所以少亏”的粗糙解释。</p>
 <p>conditional policy 层在 28 个未来评估日上覆盖 1,267 rows，candidate rate 37.96%，policy ESS 642。support 与 overlap 通过，所以 failure 不是 propensity 崩溃或样本完全不足。</p>
-<h3 id="6-Development-结果与不确定性"><a href="#6-Development-结果与不确定性" class="headerlink" title="6. Development 结果与不确定性"></a>6. Development 结果与不确定性</h3><p>冻结历史报告给出的 conditional DR reward 为 -0.00742 USDC/decision，day-cluster 95% interval 为 $[-0.02657,+0.01304]$。campaign-cost avoidance、negative-terminal protection、Development-q10 protection 与 intervention-fill probability 的区间也都跨零；repair probability 仅有很小正点估计。</p>
+<p><span id="6-Development-结果与不确定性"></span></p>
+<h3 id="Development-结果与不确定性"><a href="#Development-结果与不确定性" class="headerlink" title="Development 结果与不确定性"></a>Development 结果与不确定性</h3><p>冻结历史报告给出的 conditional DR reward 为 -0.00742 USDC/decision，day-cluster 95% interval 为 $[-0.02657,+0.01304]$。campaign-cost avoidance、negative-terminal protection、Development-q10 protection 与 intervention-fill probability 的区间也都跨零；repair probability 仅有很小正点估计。</p>
 <p>对所有 nuisance-OOF rows 无条件 widen 的历史诊断点估计为 +0.01087 USDC，但区间 $[-0.01934,+0.04151]$。这说明“平均上或许不坏”没有转化成“过去学习的条件规则在未来稳定选对”。</p>
 <div class="table-container">
 <table>
@@ -834,21 +823,20 @@ Z_c\perp\{Y_c(a):a\in\mathcal A\}\mid X_c,</script><p>但不同campaign仍可能
 </table>
 </div>
 <p>旧 numeric estimates 因后续 data/replay repair 不再是当前 calibration authority；但所有 interval 原本就未过门，因此撤回数值不会把 family 变成候选。</p>
-<h3 id="7-为什么“树没学好”不是重开理由"><a href="#7-为什么“树没学好”不是重开理由" class="headerlink" title="7. 为什么“树没学好”不是重开理由"></a>7. 为什么“树没学好”不是重开理由</h3><p>depth-2 tree 很简单，这确实限制 interaction capacity。但 action、feature surface、tree depth、threshold 与 split 都是冻结身份的一部分。看到结果后换更深树、删弱特征或降低 candidate-rate gate，会在已消费 Development 上进行 post-selection。</p>
+<p><span id="7-为什么“树没学好”不是重开理由"></span></p>
+<h3 id="为什么“树没学好”不是重开理由"><a href="#为什么“树没学好”不是重开理由" class="headerlink" title="为什么“树没学好”不是重开理由"></a>为什么“树没学好”不是重开理由</h3><p>depth-2 tree 很简单，这确实限制 interaction capacity。但 action、feature surface、tree depth、threshold 与 split 都是冻结身份的一部分。看到结果后换更深树、删弱特征或降低 candidate-rate gate，会在已消费 Development 上进行 post-selection。</p>
 <p>若未来提出 interaction-capable 新机制，需要新 family identity、新 split 与新 score profile；它不能沿用 <code>buy_add_conditional_widen_causal_v4_v1</code> 名字，也不能打开旧 Validation 来验证新树。</p>
-<h4 id="7-1-Support-通过为什么仍不足以说明-leaf-可用"><a href="#7-1-Support-通过为什么仍不足以说明-leaf-可用" class="headerlink" title="7.1 Support 通过为什么仍不足以说明 leaf 可用"></a>7.1 Support 通过为什么仍不足以说明 leaf 可用</h4><p>policy ESS 642 衡量的是整个学得 policy 相对于日志行为的权重集中度。它没有保证某个 split 两侧跨足够日期，也没有保证 path-changing fills 足够。一个 leaf 可能有数百 assignment rows，却只有几条真正因一 tick移动而改变 terminal 的路径。</p>
+<p><span id="7-1-Support-通过为什么仍不足以说明-leaf-可用"></span></p>
+<h4 id="Support-通过为什么仍不足以说明-leaf-可用"><a href="#Support-通过为什么仍不足以说明-leaf-可用" class="headerlink" title="Support 通过为什么仍不足以说明 leaf 可用"></a>Support 通过为什么仍不足以说明 leaf 可用</h4><p>policy ESS 642 衡量的是整个学得 policy 相对于日志行为的权重集中度。它没有保证某个 split 两侧跨足够日期，也没有保证 path-changing fills 足够。一个 leaf 可能有数百 assignment rows，却只有几条真正因一 tick移动而改变 terminal 的路径。</p>
 <p>因此 leaf audit 还需要支持日数、两臂 assignment、path-change count、positive/negative terminal delta 与最大单日权重。只报告全局 ESS 会把大量 zero-delta rows 当成精确的 treatment information。</p>
-<h4 id="7-2-什么结果会真正反驳这次关闭"><a href="#7-2-什么结果会真正反驳这次关闭" class="headerlink" title="7.2 什么结果会真正反驳这次关闭"></a>7.2 什么结果会真正反驳这次关闭</h4><p>不是在相同 100 日上找到更深树，而是在新的、未参与当前假设形成的日期上，事先注册一个不同 state representation 或 intervention，建立稳定的 path-change support，并让 decision-to-terminal reward 的日期聚类下界为正，同时 campaign cost、tail、fills 与 inventory consistency 不恶化。</p>
+<p><span id="7-2-什么结果会真正反驳这次关闭"></span></p>
+<h4 id="什么结果会真正反驳这次关闭"><a href="#什么结果会真正反驳这次关闭" class="headerlink" title="什么结果会真正反驳这次关闭"></a>什么结果会真正反驳这次关闭</h4><p>不是在相同 100 日上找到更深树，而是在新的、未参与当前假设形成的日期上，事先注册一个不同 state representation 或 intervention，建立稳定的 path-change support，并让 decision-to-terminal reward 的日期聚类下界为正，同时 campaign cost、tail、fills 与 inventory consistency 不恶化。</p>
 <p>如果新项目仍然是 exact BUY add one-tick widen、相同 features 与相同 Development，只改算法名字，它只是对已消费噪声的再次搜索。反之，若动作变为连续 inventory price penalty 或 active-order KEEP/CANCEL，则 treatment 与生命周期已经不同，应独立研究，不能说是“修复这棵树”。</p>
-<h3 id="8-关闭与支持边界"><a href="#8-关闭与支持边界" class="headerlink" title="8. 关闭与支持边界"></a>8. 关闭与支持边界</h3><p>关闭的是 BUY exposure-add 上“baseline vs widen exactly one tick”、35-feature local surface 与冻结 CATE contract。它不关闭 BUY selection research，不证明所有 quote-distance action 无效，也不把 SELL 纳入结论。</p>
+<p><span id="8-关闭与支持边界"></span></p>
+<h3 id="关闭与支持边界"><a href="#关闭与支持边界" class="headerlink" title="关闭与支持边界"></a>关闭与支持边界</h3><p>关闭的是 BUY exposure-add 上“baseline vs widen exactly one tick”、35-feature local surface 与冻结 CATE contract。它不关闭 BUY selection research，不证明所有 quote-distance action 无效，也不把 SELL 纳入结论。</p>
 <p>这个 family 的合理后续不是“再 widen 0.5 tick”或“等更多日期”，而是寻找真正不同的经济杠杆，例如 active-order keep/cancel、inventory-conditioned price 或可识别外部 fair center，并从 outcome-blind identity 重新开始。</p>
 <p>这里的支持结论也有明确范围：99.988% fill retention 证明随机化行为路径没有整体停摆，policy ESS 642 证明 0.5/0.5 logging overlap 可用；它们不证明任何特定 tree leaf 有足够 treatment-effect information。leaf-level 仍受未来日数量、candidate count 与日内相关性限制，所以不能用全局 ESS 为某个小 leaf 背书。</p>
-<h3 id="9-没有获得的权限-1"><a href="#9-没有获得的权限-1" class="headerlink" title="9. 没有获得的权限"></a>9. 没有获得的权限</h3><ul>
-<li>Validation 9 日与 holdout 10 日均未读；</li>
-<li>没有 action、shadow、C++ policy 或 live 权限；</li>
-<li>没有换 tree、threshold、feature subset 后复用锁定面板的权限；</li>
-<li>没有把无条件正点估计称为 conditional action alpha 的权限。</li>
-</ul>
+<p>Validation 的 9 日与封存测试的 10 日未读。这里的负结果只约束冻结的 BUY 条件加宽实验，不给实盘动作提供依据。</p>
 <h3 id="条件策略面对的是-policy-learning，不是-subgroup-reporting"><a href="#条件策略面对的是-policy-learning，不是-subgroup-reporting" class="headerlink" title="条件策略面对的是 policy learning，不是 subgroup reporting"></a>条件策略面对的是 policy learning，不是 subgroup reporting</h3><p>在Development上先找“widen表现好的rows”，再报告这些rows的收益，会把outcome同时用于定义subgroup和评价subgroup。合法policy learning必须nested：外层fold只评价由更早inner data训练、选择threshold并冻结的policy。每个外层row的action在看到该row outcome前已经确定。</p>
 <p>policy value可写为</p>
 <script type="math/tex; mode=display">
@@ -857,25 +845,23 @@ V(\pi)=E[Y(\pi(X))],
 \Delta V=V(\pi)-V(a_0).</script><p>它与$E[Y(widen)-Y(keep)]$的无条件平均不同。即使平均widen略正，learner若在错误state触发，$\Delta V$也可以为负；反过来，平均action为负也可能存在一个稳定正subgroup。关键证据是chronological OOF policy value与support，而不是某棵树的in-sample leaf means。</p>
 <h3 id="一-tick分叉的-overlap-该怎样检查"><a href="#一-tick分叉的-overlap-该怎样检查" class="headerlink" title="一 tick分叉的 overlap 该怎样检查"></a>一 tick分叉的 overlap 该怎样检查</h3><p>对每个decision row，keep与widen都必须是合法maker quotes，并且queue/lifecycle outcome可由paired replay或随机assignment识别。若widen后价格落到未被市场路径覆盖的深度，candidate outcome更多依赖queue模型；若keep会cross或被risk guard替换，两arms不再是预注册的一tick比较。</p>
 <p>支持报告至少应包含：报价确实不同的fraction、两arms都激活的共同机会、fill路径分叉率、distinct days、每个leaf的effective sample、最大单日贡献与inventory-role composition。全局ESS通过不能补救一个被policy频繁选中的稀疏leaf。</p>
-<h3 id="什么样的后继不是重复搜索"><a href="#什么样的后继不是重复搜索" class="headerlink" title="什么样的后继不是重复搜索"></a>什么样的后继不是重复搜索</h3><p>“换一棵树”“多加几个features”或在同一35维面板上调depth，仍是当前family内的outcome-informed rescue。真正的新假说应来自独立机制，例如只用预先指定的inventory level与queue pressure构造两三个可解释states，或用后来的multiscale Boolean state形成固定selector。</p>
-<p>随后在新chronological rows上先做outcome-blind support，冻结policy，再估计paired terminal value。若selector仍不能超过无条件widen，它说明异质性不稳定；若通过，也只能授权该精确定义的BUY add动作，不能扩展到SELL、reducing或live。</p>
 <h3 id="Policy-regret-比-leaf-命中率更接近目标"><a href="#Policy-regret-比-leaf-命中率更接近目标" class="headerlink" title="Policy regret 比 leaf 命中率更接近目标"></a>Policy regret 比 leaf 命中率更接近目标</h3><p>一个selector可能在大多数rows预测action符号正确，却在少数大损失campaign上选错，terminal value仍差。策略学习真正关心相对最好可行动作的regret：</p>
 <script type="math/tex; mode=display">
 R(\pi)=E\left[Y(a^*(X))-Y(\pi(X))\right].</script><p>$a^*$在现实中不可观测，只能通过随机化/paired outcomes和可信模型近似。因此报告应同时给policy value、action frequency、worst-day/tail与fallback；classification accuracy不是替代。</p>
 <h3 id="Hierarchical-state-可以减少无边界搜索"><a href="#Hierarchical-state-可以减少无边界搜索" class="headerlink" title="Hierarchical state 可以减少无边界搜索"></a>Hierarchical state 可以减少无边界搜索</h3><p>BUY add先按campaign level、inventory magnitude与quote distance形成少量机制层，再在层内用有限features排序，比35维树直接切叶更可审计。层级必须在旧outcomes之外定义，并保证每层有多个日期与两动作support。</p>
 <p>若粗层没有任何稳定异质性，增加细粒度feature大概率只提高过拟合自由度；若某粗层稳定，再在新数据上细化。这种先机制、后模型的顺序能把“树没学好”的无限借口变成可停止的研究程序。</p>
-<h3 id="日级-transport-的直观检查"><a href="#日级-transport-的直观检查" class="headerlink" title="日级 transport 的直观检查"></a>日级 transport 的直观检查</h3><p>逐日画出policy action rate与paired value，检查正收益是否只来自高触发日、某个spread regime或单一极端campaign。leave-one-day-out policy若不断改写阈值/叶子，说明时间稳定性不足。</p>
-<p>当前条件策略在时间外未找到稳定正区域，意味着不能从无条件略正推导“只差更好模型”。新的证据需要新的days和更窄hypothesis，而不是同一面板更多复杂度。</p>
-<h3 id="10-公共证据-1"><a href="#10-公共证据-1" class="headerlink" title="10. 公共证据"></a>10. 公共证据</h3><ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/buy_add_conditional_widen_causal_v4_v1_20260718.md"><code>buy_add_conditional_widen_causal_v4_v1_20260718.md</code></a></li>
+<h2 id="结论：报价变化为何未形成稳定收益"><a href="#结论：报价变化为何未形成稳定收益" class="headerlink" title="结论：报价变化为何未形成稳定收益"></a>结论：报价变化为何未形成稳定收益</h2><p>固定 grid 的 winner 只是选择机制的输出，不能说明离开原样本后仍成立；随机化局部动作解决了 counterfactual，却暴露出不同日期与不同 side 的异质性；条件模型试图利用这种异质性，又败在 chronological OOF 的稳定性与终局下界。研究不是没有产生信息，而是把“参数有效”逐步缩窄为“动作必须在可执行支持上改善完整路径”。</p>
+<p>这些结果限制的是各自已测试的配置、动作与条件规则，不是所有固定参数或报价控制。新问题可以继续比较，但应记录已使用样本，并预先确定候选、执行假设与评价范围。新 Tardis 的有限固定参数比较和后续离线研究参照见<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/README.zh-CN.md">公开 F01 主报告</a>；历史 g 是联动实验轴标签，不是当前配置键。研究参照的选择也不等于实盘参数或独立样本外确认。</p>
+<h2 id="公开方法与实验报告"><a href="#公开方法与实验报告" class="headerlink" title="公开方法与实验报告"></a>公开方法与实验报告</h2><p>各报告分别保留自己的数据、动作、日期和撤回范围。</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/README.md">F01 Fixed Parameter Racing README</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/docs/fixed_parameter_strategy_family_closed.md">固定参数策略研究族关闭报告</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/docs/paired_screen_v2_architecture_20260727.md">Paired Screen v2 Architecture</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/side_specific_action_uplift_existing_split_20260718.md"><code>side_specific_action_uplift_existing_split_20260718.md</code></a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/README.md"><code>F09 README</code></a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/historical_backtest_evidence_revalidation_20260720.md"><code>historical_backtest_evidence_revalidation_20260720.md</code></a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/buy_add_conditional_widen_causal_v4_v1_20260718.md"><code>buy_add_conditional_widen_causal_v4_v1_20260718.md</code></a></li>
 </ul>
-<h3 id="结语-1"><a href="#结语-1" class="headerlink" title="结语"></a>结语</h3><p>一 tick 是很小的动作，却足以改变完整 inventory path。这个实验没有失败在“动作没有发生”，而是失败在条件规则没有把一个弱平均线索变成稳定的未来价值。这样的阴性结果应当关闭，而不是靠更复杂的树补票。</p>
-<p><img src="/images/narrowgate/fixed-parameter-research-synthesis.svg" srcset="/img/loading.gif" lazyload alt="固定参数研究从历史 winner 到随机化动作与条件策略的结果收敛"></p>
-<p><em>图：三阶段的结果不能互相借权限。固定 winner 只保留 screening 身份，随机化局部动作与 BUY 条件加宽均没有形成稳定的 action uplift。</em></p>
-<h2 id="6-合并后的结论：从“找参数”到“估动作”是一条不可跳级的链"><a href="#6-合并后的结论：从“找参数”到“估动作”是一条不可跳级的链" class="headerlink" title="6. 合并后的结论：从“找参数”到“估动作”是一条不可跳级的链"></a>6. 合并后的结论：从“找参数”到“估动作”是一条不可跳级的链</h2><p>把三阶段放回同一篇文章后，结论比任何单一 PnL 排名都清楚。固定 grid 的 winner 只是选择机制的输出，不能说明离开原样本后仍成立；随机化局部动作解决了 counterfactual，却暴露出不同日期与不同 side 的异质性；条件模型试图利用这种异质性，又败在 chronological OOF 的稳定性与终局下界。研究不是没有产生信息，而是把“参数有效”逐步缩窄为“动作必须在可执行支持上改善完整路径”。</p>
-<p>这条主线关闭的是已经消费过 Development 的精确固定动作与条件规则，不是所有报价控制。后继若仍研究 quote distance，必须提出新的 decision surface 或 action semantics，并重新冻结 day universe、propensity、queue/lifecycle contract 与 assignment-to-terminal reward；不能把旧 winner 改名、换阈值或在相同 panel 上重新挑一个看起来更好的 leaf。</p>
 
                 
               </div>
@@ -1046,7 +1032,6 @@ R(\pi)=E\left[Y(a^*(X))-Y(\pi(X))\right].</script><p>$a^*$在现实中不可观�
 
   
   
-
 
 
 
@@ -1324,41 +1309,49 @@ R(\pi)=E\left[Y(a^*(X))-Y(\pi(X))\right].</script><p>$a^*$在现实中不可观�
       <script>
         if (!window.MathJax) {
           window.MathJax = {
-            tex    : {
-              inlineMath: { '[+]': [['$', '$']] }
-            },
-            loader : {
-              load: ['ui/lazy']
-            },
+            tex: { inlineMath: { '[+]': [['$', '$']] } },
+            loader: { load: ['ui/lazy'] },
             options: {
               renderActions: {
-                insertedScript: [200, () => {
-                  document.querySelectorAll('mjx-container').forEach(node => {
-                    let target = node.parentNode;
-                    if (target.nodeName.toLowerCase() === 'li') {
-                      target.parentNode.classList.add('has-jax');
-                    }
+                // Kramed emits v2 script nodes. Keep v3's default delimiter find.
+                // https://docs.mathjax.org/en/v3.2/upgrading/v2.html
+                findScript: [10, function (doc) {
+                  for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                    if (node.closest('pre, code')) continue;
+                    const display = /;\s*mode=display/.test(node.type);
+                    const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                    const text = document.createTextNode('');
+                    node.parentNode.replaceChild(text, node);
+                    math.start = {node: text, delim: '', n: 0};
+                    math.end = {node: text, delim: '', n: 0};
+                    doc.math.push(math);
+                  }
+                }, ''],
+                insertedScript: [200, function () {
+                  document.querySelectorAll('mjx-container').forEach(function (node) {
+                    const target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') target.parentNode.classList.add('has-jax');
                   });
                 }, '', false]
               }
             }
           };
-        } else {
-          MathJax.startup.document.state(0);
-          MathJax.texReset();
-          MathJax.typeset();
-          MathJax.typesetPromise();
         }
-
-        Fluid.events.registerRefreshCallback(function() {
-          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+        // Serialize refreshes after startup. Consumed scripts cannot register twice.
+        function refreshMath() {
+          if (!window.MathJax || !MathJax.startup) return;
+          MathJax.startup.promise = MathJax.startup.promise.then(function () {
             MathJax.startup.document.state(0);
             MathJax.texReset();
-            MathJax.typeset();
-            MathJax.typesetPromise();
-          }
-        });
+            return MathJax.typesetPromise();
+          }).catch(function (error) { console.error('MathJax typesetting failed', error); });
+        }
+        Fluid.events.registerRefreshCallback(refreshMath);
+        if (window.MathJax.startup) refreshMath();
       </script>
+      <style>
+        .markdown-body mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; padding: 0.15em 0; }
+      </style>
     
 
   <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>

@@ -19,12 +19,12 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Last materially modified: 2026-08-30 1. P3 研究真正经历了什么P3 的主问题不是“能不能拟合一条好看的概率曲线”，而是：在决策时刻、给定 side、报价距离与当时市场状态，未来价格何时会主动触达该坐标；这个 first-passage 概率能否经过策略可见时钟、queue&#x2F;lifecycle 与终局价值，最终支持一个报价动作？归一化 100ms 复现、so">
+    <meta name="description" content="1. P3 研究真正经历了什么P3 的主问题不是“能不能拟合一条好看的概率曲线”，而是：在决策时刻、给定 side、报价距离与当时市场状态，未来价格何时会主动触达该坐标；这个 first-passage 概率能否经过策略可见时钟、queue&#x2F;lifecycle 与终局价值，最终支持一个报价动作？归一化 100ms 复现、source-aware 扩样本、波动率条件面、标量报价 adapter、po">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate Empirical P3：从十秒触达曲线到 Reach-Time Hazard 与报价价值">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-P3-Aggressive-Reach-Time-Hazard-Research/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="Last materially modified: 2026-08-30 1. P3 研究真正经历了什么P3 的主问题不是“能不能拟合一条好看的概率曲线”，而是：在决策时刻、给定 side、报价距离与当时市场状态，未来价格何时会主动触达该坐标；这个 first-passage 概率能否经过策略可见时钟、queue&#x2F;lifecycle 与终局价值，最终支持一个报价动作？归一化 100ms 复现、so">
+<meta property="og:description" content="1. P3 研究真正经历了什么P3 的主问题不是“能不能拟合一条好看的概率曲线”，而是：在决策时刻、给定 side、报价距离与当时市场状态，未来价格何时会主动触达该坐标；这个 first-passage 概率能否经过策略可见时钟、queue&#x2F;lifecycle 与终局价值，最终支持一个报价动作？归一化 100ms 复现、source-aware 扩样本、波动率条件面、标量报价 adapter、po">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/p3-normalized-100ms-recalibration-curves.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f02-p3-estimand-ladder.svg">
@@ -42,7 +42,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f02-p3-estimand-ladder.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/p3-research-synthesis.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-08-29T18:02:00.000Z">
+<meta property="article:modified_time" content="2026-09-27T02:45:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="Quote EV">
@@ -403,13 +403,12 @@
             
               <div class="markdown-body">
                 
-                <p>Last materially modified: 2026-08-30</p>
-<h2 id="1-P3-研究真正经历了什么"><a href="#1-P3-研究真正经历了什么" class="headerlink" title="1. P3 研究真正经历了什么"></a>1. P3 研究真正经历了什么</h2><p>P3 的主问题不是“能不能拟合一条好看的概率曲线”，而是：在决策时刻、给定 side、报价距离与当时市场状态，未来价格何时会主动触达该坐标；这个 first-passage 概率能否经过策略可见时钟、queue/lifecycle 与终局价值，最终支持一个报价动作？归一化 100ms 复现、source-aware 扩样本、波动率条件面、标量报价 adapter、policy-visible transport、joint quote value 和 reach-time hazard 都是这一个问题的连续阶段。</p>
+                <h2 id="1-P3-研究真正经历了什么"><a href="#1-P3-研究真正经历了什么" class="headerlink" title="1. P3 研究真正经历了什么"></a>1. P3 研究真正经历了什么</h2><p>P3 的主问题不是“能不能拟合一条好看的概率曲线”，而是：在决策时刻、给定 side、报价距离与当时市场状态，未来价格何时会主动触达该坐标；这个 first-passage 概率能否经过策略可见时钟、queue/lifecycle 与终局价值，最终支持一个报价动作？归一化 100ms 复现、source-aware 扩样本、波动率条件面、标量报价 adapter、policy-visible transport、joint quote value 和 reach-time hazard 都是这一个问题的连续阶段。</p>
 <p>统一 estimand 从固定期限的</p>
 <script type="math/tex; mode=display">
 P_{\mathrm{touch},s}(H,d\mid X_t)=P(T_{\mathrm{reach},s}(d)\le H\mid X_t)</script><p>扩展为完整的条件到达面</p>
 <script type="math/tex; mode=display">
-F_{\mathrm{reach},s}(u,d\mid X_t)=P(T_{\mathrm{reach},s}(d)\le u\mid X_t),</script><p>但它始终不是 $P(\mathrm{fill})$，也不是 GLFT 的 execution-intensity slope $\kappa$。touch/reach 之后还隔着订单是否提交、是否激活、队列位置、撤改、竞争风险、成交后 selection 和库存终局。此前把整条研究拆成六篇，反而遮蔽了最重要的结论：预测层确有进步，两个报价映射却都没有获得动作价值。</p>
+F_{\mathrm{reach},s}(u,d\mid X_t)=P(T_{\mathrm{reach},s}(d)\le u\mid X_t),</script><p>但它始终不是 $P(\mathrm{fill})$，也不是 GLFT 的 execution-intensity slope $\kappa$。touch/reach 之后还隔着订单是否提交、是否激活、队列位置、撤改、竞争风险、成交后 selection 和库存终局。这解释了为什么预测层确有进步，两个报价映射却都没有获得动作价值。</p>
 <h2 id="2-研究阶段与证据状态"><a href="#2-研究阶段与证据状态" class="headerlink" title="2. 研究阶段与证据状态"></a>2. 研究阶段与证据状态</h2><div class="table-container">
 <table>
 <thead>
@@ -724,7 +723,7 @@ d_1<d_2\Rightarrow \hat P_{touch}(d_1\mid x)\ge \hat P_{touch}(d_2\mid x).</scri
 <p>然而三天 context coverage 分别只有 <code>97.5330%</code>、<code>96.8497%</code> 与 <code>97.7415%</code>，低于预注册的 98%。缺口是约 11 分钟的真实连续 BBO interruption，不是 cache bug。原 v4 的 canonical decision 因而是 <code>conditional_v4_prediction_gate_failed_development</code>。</p>
 <h3 id="5-v4-1：为什么它是同一篇文章里的新合同，而不是“修复版”"><a href="#5-v4-1：为什么它是同一篇文章里的新合同，而不是“修复版”" class="headerlink" title="5. v4.1：为什么它是同一篇文章里的新合同，而不是“修复版”"></a>5. v4.1：为什么它是同一篇文章里的新合同，而不是“修复版”</h3><p>owner 在读取 v4 结果后，把唯一一个字段 <code>minimum_fraction</code> 从 0.98 改为 0.95。v4.1 没有重训模型、删除日期、重算 probability 或修改其他 gate；minimum observed coverage <code>96.849664%</code> 因而通过。</p>
 <p>v4.1 的正确权限是 <code>historical_development_prediction_supported_owner_coverage_override</code>。它证明同一 conditional surface 在一个明确披露、较宽松的 coverage contract 下通过；它不洗掉 v4 的原始失败，也不是 prospective 或 independent confirmation。</p>
-<p>把 v4 与 v4.1 拆成两篇“成功/失败新闻”会掩盖最关键的治理事实。它们应当作为同一研究演进中的两个统计身份：原门槛结果与事后覆写结果并列展示。</p>
+<p>v4 与 v4.1 使用不同统计判断，需区分原门槛结果与事后覆写结果并列展示。</p>
 <p>可以用一个简单的门函数说明：</p>
 <script type="math/tex; mode=display">
 G_c=\mathbf 1\left\{\min_d coverage_d\ge c\right\}.</script><p>同一组 predictions 在 $c=0.98$ 时 $G_c=0$，在 $c=0.95$ 时 $G_c=1$。变的是统计合同，不是市场事实。因为 $c$ 在看到 minimum coverage 后才改变，v4.1 的 pass 必须带着 <code>owner coverage override</code> 标签，不能被宣传成预注册成功。</p>
@@ -1415,7 +1414,7 @@ I_d=IBS_{0,d}-IBS_{1,d}.</script><p>正值表示新模型在该日改善。BUY �
 <p>30 秒 censor boundary 只是报告与支持上限。它不是当前订单的真实 lifetime，也不能直接成为 cancel timer。</p>
 <h3 id="5-研究演进：design、spec-与-execution-都属于一个项目"><a href="#5-研究演进：design、spec-与-execution-都属于一个项目" class="headerlink" title="5. 研究演进：design、spec 与 execution 都属于一个项目"></a>5. 研究演进：design、spec 与 execution 都属于一个项目</h3><p>设计阶段先定义 cumulative maximum reached distance cache。一个 source-day 只存每个时间点已达到的最大 tick 距离，多个 $(t,d)$ labels 从同一缓存派生，避免为每个 horizon 复制市场状态。</p>
 <p>冻结 Spec 随后确定 source panels、four-fold chronology、constraints、proper score、coverage、transport 与权限。模型训练和 report 只是执行这份研究合同，不产生新的项目。</p>
-<p>固定 10 秒 v2、volatility-conditioned v4 与 reach-time hazard 是不同 estimands，所以它们各自成文；而 <code>surface design</code>、JSON Spec、cache manifest 与训练 report 是本项目的不同章节，不应拆成“设计文章”“实现文章”“结果文章”。</p>
+<p>固定 10 秒 v2、波动率条件面 v4 与 reach-time hazard 估计不同对象；曲面设计、输入定义和训练报告分别用于确定目标、来源与拟合过程，不能互相替代结果验证。</p>
 <h3 id="6-结果"><a href="#6-结果" class="headerlink" title="6. 结果"></a>6. 结果</h3><p>BUY integrated-Brier improvement 为 <code>+0.004463</code>，95% day-clustered interval <code>[+0.002155,+0.007202]</code>，positive-day rate <code>60.71%</code>。</p>
 <p>SELL improvement 为 <code>+0.004428</code>，interval <code>[+0.002829,+0.006285]</code>，positive-day rate <code>75.00%</code>。四个 expanding folds 在两侧都独立通过。</p>
 <p>overall context coverage 为 <code>99.835%</code>，高于冻结的 98% gate。distance-CDF、distance-hazard 与 time-CDF monotonicity violations 均为零，最大 probability-mass error 只有 <code>2.554e-15</code>。</p>
@@ -1470,7 +1469,7 @@ V(L,\delta)
 <p>模型文件、cache 与逐行 OOF reports 不随公共仓库分发；公开文档提供可复核的身份、聚合结果和权限。</p>
 <p><img src="/images/narrowgate/p3-research-synthesis.svg" srcset="/img/loading.gif" lazyload alt="P3 从十秒触达曲线到 reach-time hazard 的阶段结果与权限边界"></p>
 <p><em>图：P3 的概率层多次得到支持，但标量 adapter 给出了关键经济反例；joint quote selector 也没有找到优于 baseline 的 OOF 动作。</em></p>
-<h2 id="10-合并后的结论：P3-成功回答了概率问题，却没有跨过报价价值的桥"><a href="#10-合并后的结论：P3-成功回答了概率问题，却没有跨过报价价值的桥" class="headerlink" title="10. 合并后的结论：P3 成功回答了概率问题，却没有跨过报价价值的桥"></a>10. 合并后的结论：P3 成功回答了概率问题，却没有跨过报价价值的桥</h2><p>这条研究链留下了一个可复用的 first-passage probability 基础设施，也留下了一个实质性反例：更好的概率模型通过错误 adapter 接入旧报价 ABI，可以让报价更激进、成交更多，却让 terminal MTM 更差。失败的不是概率建模本身，而是把不同 estimand 压成相似标量的工程捷径。</p>
+<h2 id="10-结论：P3-成功回答了概率问题，却没有跨过报价价值的桥"><a href="#10-结论：P3-成功回答了概率问题，却没有跨过报价价值的桥" class="headerlink" title="10. 结论：P3 成功回答了概率问题，却没有跨过报价价值的桥"></a>10. 结论：P3 成功回答了概率问题，却没有跨过报价价值的桥</h2><p>这条研究链留下了一个可复用的 first-passage probability 基础设施，也留下了一个实质性反例：更好的概率模型通过错误 adapter 接入旧报价 ABI，可以让报价更激进、成交更多，却让 terminal MTM 更差。失败的不是概率建模本身，而是把不同 estimand 压成相似标量的工程捷径。</p>
 <p>未来若再次从 P3 走向动作，必须直接评价候选 joint quote 的完整价值，而不是先构造一个貌似 GLFT 的 $\kappa_{eff}$。最低合同包括 side-specific exact-distance surface、policy-visible feature-ready clock、submit/activation/queue/cancel/fill path、assignment 后的 campaign terminal USDC，以及足够日期和 chronological folds。达到这些条件之前，P3 是 prediction evidence，不是 fill probability、Quote EV 或 live authority。</p>
 
                 
@@ -1642,7 +1641,6 @@ V(L,\delta)
 
   
   
-
 
 
 
@@ -1920,41 +1918,49 @@ V(L,\delta)
       <script>
         if (!window.MathJax) {
           window.MathJax = {
-            tex    : {
-              inlineMath: { '[+]': [['$', '$']] }
-            },
-            loader : {
-              load: ['ui/lazy']
-            },
+            tex: { inlineMath: { '[+]': [['$', '$']] } },
+            loader: { load: ['ui/lazy'] },
             options: {
               renderActions: {
-                insertedScript: [200, () => {
-                  document.querySelectorAll('mjx-container').forEach(node => {
-                    let target = node.parentNode;
-                    if (target.nodeName.toLowerCase() === 'li') {
-                      target.parentNode.classList.add('has-jax');
-                    }
+                // Kramed emits v2 script nodes. Keep v3's default delimiter find.
+                // https://docs.mathjax.org/en/v3.2/upgrading/v2.html
+                findScript: [10, function (doc) {
+                  for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                    if (node.closest('pre, code')) continue;
+                    const display = /;\s*mode=display/.test(node.type);
+                    const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                    const text = document.createTextNode('');
+                    node.parentNode.replaceChild(text, node);
+                    math.start = {node: text, delim: '', n: 0};
+                    math.end = {node: text, delim: '', n: 0};
+                    doc.math.push(math);
+                  }
+                }, ''],
+                insertedScript: [200, function () {
+                  document.querySelectorAll('mjx-container').forEach(function (node) {
+                    const target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') target.parentNode.classList.add('has-jax');
                   });
                 }, '', false]
               }
             }
           };
-        } else {
-          MathJax.startup.document.state(0);
-          MathJax.texReset();
-          MathJax.typeset();
-          MathJax.typesetPromise();
         }
-
-        Fluid.events.registerRefreshCallback(function() {
-          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+        // Serialize refreshes after startup. Consumed scripts cannot register twice.
+        function refreshMath() {
+          if (!window.MathJax || !MathJax.startup) return;
+          MathJax.startup.promise = MathJax.startup.promise.then(function () {
             MathJax.startup.document.state(0);
             MathJax.texReset();
-            MathJax.typeset();
-            MathJax.typesetPromise();
-          }
-        });
+            return MathJax.typesetPromise();
+          }).catch(function (error) { console.error('MathJax typesetting failed', error); });
+        }
+        Fluid.events.registerRefreshCallback(refreshMath);
+        if (window.MathJax.startup) refreshMath();
       </script>
+      <style>
+        .markdown-body mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; padding: 0.15em 0; }
+      </style>
     
 
   <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>

@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate Full-Multiscale：从多尺度 EMA 到 Boolean Cooldown 的一次阴性研究'
 date: 2026-08-29 14:25:53
-updated: 2026-08-29 21:10:00
+updated: 2026-09-27 10:45:00
 categories:
 - Market Making
 tags:
@@ -13,7 +13,6 @@ tags:
 math: true
 ---
 
-Last materially modified: 2026-08-29
 
 ## TL;DR：这是一个有正信号、但没有通过研究门槛的实验
 
@@ -33,7 +32,7 @@ NarrowGate 的 Full-Multiscale 研究问了一个很具体的问题：**在一�
 
 本文只讨论研究方法和历史 Development 证据，不讨论或建议任何真实交易行为。文中的 PnL、value、fill 和 uplift 都是特定 replay identity 下的研究量，不是收益承诺。
 
-本文把原先容易被误读为十项独立研究的方法切面统一收回一条叙事：先定义动作反事实与证据时钟，再解释多尺度状态和三值规则，随后说明 nested chronological OOF、one-shot 与 repeated replay、BUY/SELL 分侧、feature hierarchy 与 action-matched control，最后给出冻结结果、执行身份和权限边界。它们是同一研究身份的组成部分，不是十篇相互独立的实验。
+
 
 ## 1. 问题不是“EMA 能不能预测价格”，而是“状态能不能改变动作价值”
 

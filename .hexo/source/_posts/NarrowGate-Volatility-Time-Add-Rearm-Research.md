@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate Cooldown Temporal-Permission：从 One-Cycle Skip 到 State、Recovery 与 Variance-Time Rearm'
 date: 2026-08-29 13:30:00
-updated: 2026-08-30 02:08:00
+updated: 2026-09-27 10:45:00
 categories:
 - Market Making
 tags:
@@ -14,12 +14,11 @@ math: true
 ---
 
 
-Last materially modified: 2026-08-30
 
 
 ## 1. 五种动作其实在搜索同一个控制轴
 
-SELL one-cycle skip、stop-add-until-flat、85 秒后的 state-conditioned rearm、recovery-event rearm 与 variance-time rearm 都在改变同一个对象：exposure-increasing add 何时重新获得 permission。它们只是控制强度从一个周期、整段 campaign、离散状态阈值、恢复事件到累计方差时钟逐步变化。拆成五篇会看不见最关键的 leverage frontier：弱动作几乎 no-op，强动作接近关机，中间候选虽有支持却没有稳定终局价值。
+SELL one-cycle skip、stop-add-until-flat、85 秒后的 state-conditioned rearm、recovery-event rearm 与 variance-time rearm 都在改变同一个对象：exposure-increasing add 何时重新获得 permission。它们只是控制强度从一个周期、整段 campaign、离散状态阈值、恢复事件到累计方差时钟逐步变化。这些动作构成一条控制强度序列：弱动作几乎 no-op，强动作接近关机，中间候选虽有支持却没有稳定终局价值。
 
 统一状态机可写成
 
@@ -875,7 +874,7 @@ $$
 
 ### 8. 研究演进与关闭边界
 
-从稀疏四条件 conjunction 到连续几何 score，经济机制发生了足够变化，因此这是新 research identity；但 support selector、正式 SELL run 与 scorecard 都只是同一 identity 的阶段，不应拆文。
+从稀疏四条件 conjunction 到连续几何 score，经济机制发生了足够变化，因此这是新 research identity；其中支持检查、SELL 执行和评价使用同一实验定义，不能被当成独立确认。
 
 后续 denominator 修复使旧 exact reward/fill/campaign/duration 数值不再用于当前标定；原始 interval 已明确为负，修复也不会自动授予重调 weights、threshold 或 aggregation 的权限。要尝试 arithmetic mean、不同组件或 active-order cancel，必须新注册 action 与面板。
 
@@ -945,7 +944,7 @@ support通过且reward显著更差时，应关闭当前score/threshold/action三
 
 固定 85 秒把平静市场与剧烈市场视为同样长。本研究把 exposure-increasing add 的 rearm clock 改为累计 realized variance：每个 same-side cooldown lineage 在起点获得一个 side-specific 波动预算，完成的一秒 BBO bucket 按 ready clock 逐步累加；累计 variance 达预算时 rearm。control 仍是 $85\text{s}\times$ consecutive same-side fill units。
 
-研究演进经历 feasibility v1 的错误 trade-close clock、v2.1 的 causal completed-bucket 修复、full-path blocker preflight、C++ BUY-q90 lockstep，最后才注册随机化 action。它们不是五篇研究，而是同一问题从时钟可计算到动作可评价的证据链。
+研究演进经历 feasibility v1 的错误 trade-close clock、v2.1 的 causal completed-bucket 修复、full-path blocker preflight、C++ BUY-q90 lockstep，最后才注册随机化 action。这些修复确定了状态何时可计算，随后才能检验动作价值。
 
 正式 Development 覆盖 40 日（24 Grade A、16 Grade B）、17,460 条 lineages；BUY/SELL 为 9,140/8,320。candidate 的 final-action change 达 37.02%/24.41%，fill retention 104.80%/99.41%，所以既非 no-op 也非 participation shutdown。可是 primary lineage reward 为 BUY +0.000738 USDC，95% UTC-day interval $[-0.002000,+0.003577]$；SELL +0.001875，区间 $[-0.002303,+0.006242]$。两侧 hard gates 均失败，Validation 与 sealed holdout 未读。
 
@@ -1155,7 +1154,7 @@ variance time 是漂亮且因果可实现的时钟：它有 two-sided action var
 
 *图：动作强度从近似 no-op 一直覆盖到 participation shutdown；中间的 state、recovery 与 variance-time 路径仍没有同时取得支持和正 reward 下界。*
 
-## 8. 合并后的结论：已测试 temporal-permission frontier，没有出现“既有杠杆又有价值”的区域
+## 8. 结论：已测试 temporal-permission frontier，没有出现“既有杠杆又有价值”的区域
 
 五个动作排成一条强度轴后，阴性结果具有结构。One-cycle 触达路径太少；stop-until-flat 改得太多并牺牲活动；state/recovery 试图寻找中间区域，却分别败在支持和负 reward；variance-time 最接近完整可执行实验，仍未让 BUY 或 SELL 的主下界越过零。由此关闭的是这组冻结 temporal-permission action subspace，而不是所有 state-to-duration 函数。
 

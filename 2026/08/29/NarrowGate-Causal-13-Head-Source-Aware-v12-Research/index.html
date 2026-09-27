@@ -19,12 +19,12 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Last materially modified: 2026-09-26 历史前言：为什么重建整条链路？v4 因未来 metrics 泄漏而撤回对应 test 和经济结论：这是无效证据，不是有效负结果。修正后的 v5、v9 保留了预测诊断价值，但没有建立稳定的 maker 经济增益。Source-aware v12 及其一秒后继说明，特征语义更清晰、推理更快，不等于订单路径更好：换单可能丢失队列优">
+    <meta name="description" content="历史前言：为什么重建整条链路？v4 因未来 metrics 泄漏而撤回对应 test 和经济结论：这是无效证据，不是有效负结果。修正后的 v5、v9 保留了预测诊断价值，但没有建立稳定的 maker 经济增益。Source-aware v12 及其一秒后继说明，特征语义更清晰、推理更快，不等于订单路径更好：换单可能丢失队列优先级、减少成交并延长库存暴露。这些结论只属于原样本和执行假设，不是对未来机">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate 新 13-Head：Tardis 因果特征、时间加权选型与负收益结果">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Causal-13-Head-Source-Aware-v12-Research/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="Last materially modified: 2026-09-26 历史前言：为什么重建整条链路？v4 因未来 metrics 泄漏而撤回对应 test 和经济结论：这是无效证据，不是有效负结果。修正后的 v5、v9 保留了预测诊断价值，但没有建立稳定的 maker 经济增益。Source-aware v12 及其一秒后继说明，特征语义更清晰、推理更快，不等于订单路径更好：换单可能丢失队列优">
+<meta property="og:description" content="历史前言：为什么重建整条链路？v4 因未来 metrics 泄漏而撤回对应 test 和经济结论：这是无效证据，不是有效负结果。修正后的 v5、v9 保留了预测诊断价值，但没有建立稳定的 maker 经济增益。Source-aware v12 及其一秒后继说明，特征语义更清晰、推理更快，不等于订单路径更好：换单可能丢失队列优先级、减少成交并延长库存暴露。这些结论只属于原样本和执行假设，不是对未来机">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/causal-v4-clock-lineage.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f03-thirteen-head-evidence-pipeline.svg">
@@ -38,7 +38,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f03-thirteen-head-evidence-pipeline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/causal-13-head-research-synthesis.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-09-26T12:52:00.000Z">
+<meta property="article:modified_time" content="2026-09-27T02:45:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="机器学习">
@@ -355,7 +355,7 @@
         
         
           <!-- compatible with older versions-->
-          398 分钟
+          397 分钟
         
       </span>
     
@@ -399,8 +399,7 @@
             
               <div class="markdown-body">
                 
-                <p>Last materially modified: 2026-09-26</p>
-<h2 id="历史前言：为什么重建整条链路？"><a href="#历史前言：为什么重建整条链路？" class="headerlink" title="历史前言：为什么重建整条链路？"></a>历史前言：为什么重建整条链路？</h2><p>v4 因未来 metrics 泄漏而撤回对应 test 和经济结论：这是无效证据，不是有效负结果。修正后的 v5、v9 保留了预测诊断价值，但没有建立稳定的 maker 经济增益。Source-aware v12 及其一秒后继说明，特征语义更清晰、推理更快，不等于订单路径更好：换单可能丢失队列优先级、减少成交并延长库存暴露。这些结论只属于原样本和执行假设，不是对未来机器学习永久无效的判断。</p>
+                <h2 id="历史前言：为什么重建整条链路？"><a href="#历史前言：为什么重建整条链路？" class="headerlink" title="历史前言：为什么重建整条链路？"></a>历史前言：为什么重建整条链路？</h2><p>v4 因未来 metrics 泄漏而撤回对应 test 和经济结论：这是无效证据，不是有效负结果。修正后的 v5、v9 保留了预测诊断价值，但没有建立稳定的 maker 经济增益。Source-aware v12 及其一秒后继说明，特征语义更清晰、推理更快，不等于订单路径更好：换单可能丢失队列优先级、减少成交并延长库存暴露。这些结论只属于原样本和执行假设，不是对未来机器学习永久无效的判断。</p>
 <p>可继承的是方法：预测损失、实际动作、完整净权益是三种不同测量。新行情需要新的校准、标签和模型身份，不能把旧目录改名当迁移。旧研究作为本文前言，不再是当前模型默认值。</p>
 <h2 id="新特征与标签合同"><a href="#新特征与标签合同" class="headerlink" title="新特征与标签合同"></a>新特征与标签合同</h2><p>本轮 F03 在规定的 407 日源日历中只使用 BTCUSDC。BTCUSDT 处理和镜像独立进行，不向本模型提供参考市场特征。模型从共同执行协议的 30 项中使用 29 项，排除不可得的原生包数量，保留未知值和有效性掩码。历史个体成交计数在 live 中也必须使用个体成交，不能把聚合包拆成虚构子成交。</p>
 <p>源时间、模型化交付、特征就绪时间分开；决策只消费已经就绪的观察。独立 outcome Bars 只服务离线标签，不能把未来送进特征。源时间代理和采样延迟仍是建模假设，不是原生时间或队列一致性。</p>
@@ -451,7 +450,7 @@
 <script type="math/tex; mode=display">
 \Delta L_h=L_h(f_{\mathrm{ML}})-L_h(f_{\mathrm{baseline}}),</script><p>经济层则比较同一日、同一初始状态与同一 replay identity 下的完整路径：</p>
 <script type="math/tex; mode=display">
-\Delta Y_d=Y_d(\pi_{\mathrm{ML}})-Y_d(\pi_0).</script><p>$\Delta L_h<0$ 不能替代 $\Delta Y>0$；五个阶段合并后，读者才能看见该研究一再出现的模式：局部 ranking 或少数 heads 通过，但 side、tail、fill retention 与 terminal value 没有同时闭合。</p>
+\Delta Y_d=Y_d(\pi_{\mathrm{ML}})-Y_d(\pi_0).</script><p>$\Delta L_h<0$ 不能替代 $\Delta Y>0$；旧 v4–v12 与 cadence 实验中反复出现的情况是：局部 ranking 或少数 heads 通过，但 side、tail、fill retention 与 terminal value 没有同时闭合。</p>
 <h2 id="2-研究阶段与证据状态"><a href="#2-研究阶段与证据状态" class="headerlink" title="2. 研究阶段与证据状态"></a>2. 研究阶段与证据状态</h2><div class="table-container">
 <table>
 <thead>
@@ -563,7 +562,7 @@ R=\sqrt{\sigma^2H}\,|q|.</script><p>它不应再乘一次 mid，否则会重复�
 <p>仍可保留的定性结果包括：same-input Python/C++ parity gate 可以成立；较大 queue-ahead sensitivity 会显著改变 fills 与参与；单看 aggregate PnL 可能把 participation reduction 当作改善；q0.70 不能由 replay PnL winner 替换。</p>
 <p>报告还指出 q1.00 相对 q0.70 少约 10.3% fills，并在当时的 test raw PnL 上更差、增加五个 tails。这个历史机制说明 queue arm 的 winner 解释脆弱，但精确表格不具有当前 causal authority。</p>
 <p>由于正式 test/economic evidence 被撤回，本项目没有一个可以诚实报告的 current confidence interval。把“没有有效 interval”写成结论，比从 invalid panel 计算一个很窄的区间更科学。</p>
-<h3 id="7-研究演进为何合并成一篇"><a href="#7-研究演进为何合并成一篇" class="headerlink" title="7. 研究演进为何合并成一篇"></a>7. 研究演进为何合并成一篇</h3><p><code>model/runtime cleanup</code>、feature timing 修复、empirical-P3 retrain、scorer rebuild、strict replay 与后续 correction 都服务同一个 v4 问题。它们改变的是同一 research identity 的实现准备与证据可用性，不应拆成“清理文章”“重训文章”“修复文章”。</p>
+<h3 id="7-研究演进为何合并成一篇"><a href="#7-研究演进为何合并成一篇" class="headerlink" title="7. 研究演进为何合并成一篇"></a>7. 研究演进为何合并成一篇</h3><p><code>model/runtime cleanup</code>、feature timing 修复、empirical-P3 retrain、scorer rebuild、strict replay 与后续 correction 都服务同一个 v4 问题。这些改动影响实现准备与证据可用性，本身不增加独立经济检验。</p>
 <p>当 normalized L2、trade-side universe 或 time/calendar/unit contract 改变后，才出现新的 v5/v7 research identity。v4 的后继不能沿用旧 test numbers，也不能把普通 implementation repair 编成 <code>v4.1/v4.2</code> 来制造似乎更多的研究。</p>
 <h3 id="8-关闭与支持边界"><a href="#8-关闭与支持边界" class="headerlink" title="8. 关闭与支持边界"></a>8. 关闭与支持边界</h3><p>保留：empirical P3 研究方向、completed-bucket causal timing、merged clock、dimensionally closed risk/accounting，以及 artifact validation/parity discipline。</p>
 <p>撤回：v4 test prediction metrics、test/all ML A/B、BUY scorer bucket values 和任何基于它们的 promotion claim。</p>
@@ -610,7 +609,7 @@ A_t=\pi(X_{\le t},X_{t:t+5m}),</script><p>而可执行策略必须满足 $A<em>t
 <h2 id="4-v5：Normalized-100ms-重建"><a href="#4-v5：Normalized-100ms-重建" class="headerlink" title="4. v5：Normalized-100ms 重建"></a>4. v5：Normalized-100ms 重建</h2><h3 id="TL-DR：13-head-有预测排序，ML-ON-没有稳定经济晋级；baseline-又确实优于随机生命周期"><a href="#TL-DR：13-head-有预测排序，ML-ON-没有稳定经济晋级；baseline-又确实优于随机生命周期" class="headerlink" title="TL;DR：13-head 有预测排序，ML-ON 没有稳定经济晋级；baseline 又确实优于随机生命周期"></a>TL;DR：13-head 有预测排序，ML-ON 没有稳定经济晋级；baseline 又确实优于随机生命周期</h3><p>Causal-v5 把 normalized 100ms L2、修复后的 taker-side、经验 P3、queue q0.70、固定 latency 和 fresh-start replay 绑定成一个新身份，重建 128 个 daily feature files、220 个 features 与 13 个 labels。它同时回答了三个问题：13-head 是否还有 held-panel ranking；ML-ON 相对 ML-OFF 是否改善完整 maker path；当前 baseline 相对一个真正可执行、但随机化 cadence/side geometry 的 passive null 是否有价值。</p>
 <p>结果不是一句“模型失败”可以概括。clean ML A/B 在 Validation20 和 Test17 上的 raw/InvAdj point estimates 有些为正，但 paired daily raw 与 terminal intervals 都跨零，fills 只保留约 91%–93%，absolute inventory time 上升。四个 BUY fill-selection scorers 又没有一个同时改善 fill quality、campaign terminal 和 tail。</p>
 <p>另一边，随机 passive null 在 Development33 的 raw/terminal point estimate看似略优，却在 Validation9 的 raw PnL 和 InvAdj 显著更差；32 个 seeds 中只有 1 个在 Validation raw PnL 上为正，没有 seed 在任一 panel 的 InvAdj 上胜过 baseline。因此 baseline 相对这个 executable null 有稳定结构价值，但 baseline 本身 PnL 仍为负，不能把“优于随机”写成“已经盈利”。</p>
-<p>v5 的正式统计 promotion 没有通过，sealed holdout9 保持未读；随后 time/calendar/unit repairs 又建立 causal-v7 identity。v5 报告中的 random-null、scorer、queue 与 parity 都应作为同一重建项目的章节，而不是十几篇碎文章。</p>
+<p>v5 的正式统计 promotion 没有通过，sealed holdout9 保持未读；随后 time/calendar/unit repairs 又建立 causal-v7 identity。v5 报告中的随机空模型、评分、队列与一致性检查分别回答实现和统计问题，不是独立的收益证据。</p>
 <p><img src="/images/narrowgate/causal-v5-three-arm-kline.svg" srcset="/img/loading.gif" lazyload alt="Causal-v5 的 ML OFF、ML ON 与随机被动策略路径"></p>
 <p><em>图 1：机制示意。同一 market path 上，ML-ON 改变 quote geometry；random-passive null 随机化 cadence 与 flat-state side geometry，但保留 queue、latency、cooldown、inventory 和 accounting。图不是实盘 K 线。</em></p>
 <p>本文只讨论历史研究证据，不建议任何真实交易行为。</p>
@@ -805,7 +804,7 @@ V(B_0)>V(\pi_{random})\not\Rightarrow V(\pi_{ML})>V(B_0).</script><p>它排除�
 SELL maker &lt;- aggressive BUY taker</code></pre></div>
 <p>若把 raw BUY-taker flow 直接当作 BUY maker adverse input，就会把经济方向翻转。v8 sidecar corruption 更严重：部分日期所有 trades 只有一个 taker side，模型能够学到文件缺陷而不是市场结构。</p>
 <p>aggregate trade message 还可能包含一组 child trade IDs。单个 child 的 exchange timestamp 可用于历史 matching truth，却不能让 live policy 在 parent message ready 之前看见整组内部次序。v9 的历史 feature contract虽纠正 sidecar 来源，仍然只赋予其自身 10 秒 aggregate causal semantics，不把它升级为 exact subsecond receive-time truth。</p>
-<h3 id="4-v8-为什么不是一篇失败研究"><a href="#4-v8-为什么不是一篇失败研究" class="headerlink" title="4. v8 为什么不是一篇失败研究"></a>4. v8 为什么不是一篇失败研究</h3><p>v8 从 mutable root 解析数据，训练前没有冻结正确 source lineage。它不具备有效的 sample/feature identity，因此没有资格产生经济 inference。项目将 artifacts 标记 invalid，明确禁止引用任何 v8 prediction 或 PnL。</p>
+<h3 id="4-v8-修复了什么"><a href="#4-v8-修复了什么" class="headerlink" title="4. v8 修复了什么"></a>4. v8 修复了什么</h3><p>v8 从 mutable root 解析数据，训练前没有冻结正确 source lineage。它不具备有效的 sample/feature identity，因此没有资格产生经济 inference。项目将 artifacts 标记 invalid，明确禁止引用任何 v8 prediction 或 PnL。</p>
 <p>这与“候选在有效 Development 上得分为负”不同。前者是证据身份失败，后者才是科学阴性结果。v8 应作为 v9 的 lineage 章节，说明为什么新 manifest 必要，而不是独立包装成一次实验。</p>
 <p>v9 在拟合前冻结 133-day manifest 与 corrected tempo hash，避免在看到 v8 outcomes 后只替换几天并继续沿用模型。</p>
 <h3 id="5-Chronological-split-与-formal-amendment"><a href="#5-Chronological-split-与-formal-amendment" class="headerlink" title="5. Chronological split 与 formal amendment"></a>5. Chronological split 与 formal amendment</h3><div class="table-container">
@@ -1327,7 +1326,7 @@ A_k=\pi(X_{t_k},S_k;\Delta t),</script><p>其中$\Delta t$显式进入policy ide
 <p>完整 report、model bundles 与逐日 paths 不随公共仓库分发；公开文档提供冻结 comparison、aggregates 与 Development closure。</p>
 <p><img src="/images/narrowgate/causal-13-head-research-synthesis.svg" srcset="/img/loading.gif" lazyload alt="Causal 13-Head 从 v4 到一秒 cadence 的阶段结果收敛"></p>
 <p><em>图：五个阶段分别暴露 timing、transport、support 与 economics 问题；没有一阶段同时通过预测、实现、动作路径和终局经济门。</em></p>
-<h2 id="8-合并后的结论：模型复杂度增加了，证据门没有因此降低"><a href="#8-合并后的结论：模型复杂度增加了，证据门没有因此降低" class="headerlink" title="8. 合并后的结论：模型复杂度增加了，证据门没有因此降低"></a>8. 合并后的结论：模型复杂度增加了，证据门没有因此降低</h2><p>13‑Head 的价值不在于产生过某个正 PnL 点估计，而在于把失败定位到不同层：有时是 feature/label 时间污染，有时是 source transport，有时是 denominator 太小，有时是 prediction gate 只通过少数 heads，最后一次则是 cadence 真正改变了路径却朝坏方向变化。把这些阶段拆开容易让读者只看到某个版本的局部亮点；合并后可以明确看到没有一个阶段同时满足 prediction、implementation、action-path 与 terminal economics。</p>
+<h2 id="8-结论：模型复杂度增加了，证据门没有因此降低"><a href="#8-结论：模型复杂度增加了，证据门没有因此降低" class="headerlink" title="8. 结论：模型复杂度增加了，证据门没有因此降低"></a>8. 结论：模型复杂度增加了，证据门没有因此降低</h2><p>13‑Head 的价值不在于产生过某个正 PnL 点估计，而在于把失败定位到不同层：有时是 feature/label 时间污染，有时是 source transport，有时是 denominator 太小，有时是 prediction gate 只通过少数 heads，最后一次则是 cadence 真正改变了路径却朝坏方向变化。这些旧阶段没有同时满足预测、实现、动作路径与终局收益要求；这段结论不替代前文新 Tardis 实验的独立结果。</p>
 <p>因此该主线关闭的是这些冻结模型/频率/映射 identity，而不是“机器学习永远不能做市”。未来 successor 必须先声明新的输入状态、模型类、输出动作与 reward，再用 nested chronological OOF 和 paired full-path replay 检验；不能用更高 AUC、更低某个 head loss 或 Python/C++ parity 替代动作价值。</p>
 
                 
@@ -1499,7 +1498,6 @@ A_k=\pi(X_{t_k},S_k;\Delta t),</script><p>其中$\Delta t$显式进入policy ide
 
   
   
-
 
 
 
@@ -1777,41 +1775,49 @@ A_k=\pi(X_{t_k},S_k;\Delta t),</script><p>其中$\Delta t$显式进入policy ide
       <script>
         if (!window.MathJax) {
           window.MathJax = {
-            tex    : {
-              inlineMath: { '[+]': [['$', '$']] }
-            },
-            loader : {
-              load: ['ui/lazy']
-            },
+            tex: { inlineMath: { '[+]': [['$', '$']] } },
+            loader: { load: ['ui/lazy'] },
             options: {
               renderActions: {
-                insertedScript: [200, () => {
-                  document.querySelectorAll('mjx-container').forEach(node => {
-                    let target = node.parentNode;
-                    if (target.nodeName.toLowerCase() === 'li') {
-                      target.parentNode.classList.add('has-jax');
-                    }
+                // Kramed emits v2 script nodes. Keep v3's default delimiter find.
+                // https://docs.mathjax.org/en/v3.2/upgrading/v2.html
+                findScript: [10, function (doc) {
+                  for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                    if (node.closest('pre, code')) continue;
+                    const display = /;\s*mode=display/.test(node.type);
+                    const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                    const text = document.createTextNode('');
+                    node.parentNode.replaceChild(text, node);
+                    math.start = {node: text, delim: '', n: 0};
+                    math.end = {node: text, delim: '', n: 0};
+                    doc.math.push(math);
+                  }
+                }, ''],
+                insertedScript: [200, function () {
+                  document.querySelectorAll('mjx-container').forEach(function (node) {
+                    const target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') target.parentNode.classList.add('has-jax');
                   });
                 }, '', false]
               }
             }
           };
-        } else {
-          MathJax.startup.document.state(0);
-          MathJax.texReset();
-          MathJax.typeset();
-          MathJax.typesetPromise();
         }
-
-        Fluid.events.registerRefreshCallback(function() {
-          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+        // Serialize refreshes after startup. Consumed scripts cannot register twice.
+        function refreshMath() {
+          if (!window.MathJax || !MathJax.startup) return;
+          MathJax.startup.promise = MathJax.startup.promise.then(function () {
             MathJax.startup.document.state(0);
             MathJax.texReset();
-            MathJax.typeset();
-            MathJax.typesetPromise();
-          }
-        });
+            return MathJax.typesetPromise();
+          }).catch(function (error) { console.error('MathJax typesetting failed', error); });
+        }
+        Fluid.events.registerRefreshCallback(refreshMath);
+        if (window.MathJax.startup) refreshMath();
       </script>
+      <style>
+        .markdown-body mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; padding: 0.15em 0; }
+      </style>
     
 
   <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>

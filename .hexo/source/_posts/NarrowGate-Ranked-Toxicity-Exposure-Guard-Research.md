@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate Exposure Guards：BER Proxy、BUY q90、Ranked Toxicity 与跨 Campaign 订单所有权'
 date: 2026-08-29 13:30:00
-updated: 2026-08-30 02:10:00
+updated: 2026-09-27 10:45:00
 categories:
 - Market Making
 tags:
@@ -14,14 +14,13 @@ math: true
 ---
 
 
-Last materially modified: 2026-08-30
 
 
 ## 1. 三类 Guard 研究的是同一条从风险分数到终局价值的链
 
 历史上以 `BER` 命名的机制实际是 trade-intensity acceleration proxy，并非论文中的 Book Exhaustion Rate；BUY q90 使用 active-order hazard 的高分位过滤；ranked-toxicity guard 则用 causal-v12 toxicity rank 触发持久 permission state。三个机制虽然 score 来源不同，却都必须回答同一问题：风险分数何时可见、它控制哪张订单、订单离开 exchange risk set 后 permission 如何延续，以及改变路径后 portfolio terminal value 是否改善。
 
-Role-safe BER 能改变 exposure 路径，却使 terminal value 恶化。q90 审计发现 mixed clock 与 post-cancel-ACK terminal hold，portfolio attribution 又只支持 fill imbalance 的第一条边。Ranked-toxicity preflight 进一步发现订单可以跨 inventory campaign 改变 role，迫使 assignment unit 升级为 carryover-safe episode。把这三条 guard 链合并后，可以看出最大的难点从来不是选 `1.2`、q90 或 p90，而是 causal visibility、risk-set termination 和 action ownership。
+Role-safe BER 能改变 exposure 路径，却使 terminal value 恶化。q90 审计发现 mixed clock 与 post-cancel-ACK terminal hold，portfolio attribution 又只支持 fill imbalance 的第一条边。Ranked-toxicity preflight 进一步发现订单可以跨 inventory campaign 改变 role，迫使 assignment unit 升级为 carryover-safe episode。三种 guard 共同面临的难点，是信号何时可见、风险集何时结束，以及动作属于哪张订单；仅改变 `1.2`、q90 或 p90 这样的阈值，无法解决这些身份问题。
 
 统一状态需要同时追踪
 
@@ -349,7 +348,7 @@ $$
 
 根因不是浮点 tolerance，而是连续 input semantics：Python 的 visible_state_age_ms 从 last feature-ready timestamp 计算，C++ active-order path age仍从 provider source timestamp 计算。若 source 与 ready 相差两秒，策略在 ready 后 100ms 的可见 age 应是 100ms，而不是 2,100ms。
 
-修复没有改旧失败报告。它创建新 implementation identity，并加入 source/ready separation regression。这样 failure receipt 保留了“哪个合同被暴露”，successor 才证明“如何修复”。两次 execution attempt 仍属于同一 causal-clock/lifecycle 项目，不应拆成两篇 alpha。
+修复没有改旧失败报告。它创建新 implementation identity，并加入 source/ready separation regression。这样 failure receipt 保留了“哪个合同被暴露”，successor 才证明“如何修复”。修复证明了新的时钟与生命周期实现，不构成两次独立的收益验证。
 
 ### 5. v1.1：kernel 锁步通过，same-date parity 仍失败
 
@@ -968,7 +967,7 @@ $$
 
 *图：经济失败、证据身份失效、描述性归因和仅完成 plumbing 是四种不同状态，不能组合成一条虚假的 live 授权链。*
 
-## 8. 合并后的结论：一个 guard 经济关闭，一个 guard 身份失效，一个 guard 只完成 plumbing
+## 8. 结论：一个 guard 经济关闭，一个 guard 身份失效，一个 guard 只完成 plumbing
 
 三个阶段不能互相借权限。Role-safe add-only 的完整 replay 已显示经济伤害；BUY q90 的旧 clock/risk-set identity 失效，历史 portfolio 诊断也没有闭合完整中介链；ranked-toxicity successor 修复的是阈值可比性、persistent state、cancel ACK 与 carryover ownership，目前只有 outcome-blind smoke。后者更严谨，不代表前两者的结果消失，也不代表新动作已经有 prediction 或 economic support。
 

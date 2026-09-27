@@ -19,12 +19,12 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Last materially modified: 2026-08-30 1. 一张订单的价值从 placement 开始，在 continuation 中结束F06 研究订单提交前应该离 touch 多远，F07 研究订单激活后遇到 adverse state 应该 KEEP 还是 CANCEL&#x2F;RE-ENTER。它们在仓库中分属 placement 与 continuation 两个 fami">
+    <meta name="description" content="1. 一张订单的价值从 placement 开始，在 continuation 中结束F06 研究订单提交前应该离 touch 多远，F07 研究订单激活后遇到 adverse state 应该 KEEP 还是 CANCEL&#x2F;RE-ENTER。它们在仓库中分属 placement 与 continuation 两个 family，却共同构成一张订单的完整决策问题：placement 决定初始价格与">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate Order-Level Quote Value：Placement Distance、Queue Value 与 Active-Order Continuation">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Active-Order-Queue-Value-Keep-Cancel-Research/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="Last materially modified: 2026-08-30 1. 一张订单的价值从 placement 开始，在 continuation 中结束F06 研究订单提交前应该离 touch 多远，F07 研究订单激活后遇到 adverse state 应该 KEEP 还是 CANCEL&#x2F;RE-ENTER。它们在仓库中分属 placement 与 continuation 两个 fami">
+<meta property="og:description" content="1. 一张订单的价值从 placement 开始，在 continuation 中结束F06 研究订单提交前应该离 touch 多远，F07 研究订单激活后遇到 adverse state 应该 KEEP 还是 CANCEL&#x2F;RE-ENTER。它们在仓库中分属 placement 与 continuation 两个 family，却共同构成一张订单的完整决策问题：placement 决定初始价格与">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/placement-distance-paired-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f06-placement-counterfactual-bridge.svg">
@@ -35,7 +35,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f07-active-order-competing-risks-path.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/order-level-research-synthesis.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-08-29T18:06:00.000Z">
+<meta property="article:modified_time" content="2026-09-27T02:45:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="Placement">
@@ -352,7 +352,7 @@
         
         
           <!-- compatible with older versions-->
-          32 分钟
+          31 分钟
         
       </span>
     
@@ -396,8 +396,7 @@
             
               <div class="markdown-body">
                 
-                <p>Last materially modified: 2026-08-30</p>
-<h2 id="1-一张订单的价值从-placement-开始，在-continuation-中结束"><a href="#1-一张订单的价值从-placement-开始，在-continuation-中结束" class="headerlink" title="1. 一张订单的价值从 placement 开始，在 continuation 中结束"></a>1. 一张订单的价值从 placement 开始，在 continuation 中结束</h2><p>F06 研究订单提交前应该离 touch 多远，F07 研究订单激活后遇到 adverse state 应该 KEEP 还是 CANCEL/RE-ENTER。它们在仓库中分属 placement 与 continuation 两个 family，却共同构成一张订单的完整决策问题：placement 决定初始价格与 queue position，continuation 决定是否保留已经获得的 queue option。把二者拆成三篇文章，会误以为 fill-CIF 校准、placement action value 与 active-order queue value 可以分别得出动作结论。</p>
+                <h2 id="1-一张订单的价值从-placement-开始，在-continuation-中结束"><a href="#1-一张订单的价值从-placement-开始，在-continuation-中结束" class="headerlink" title="1. 一张订单的价值从 placement 开始，在 continuation 中结束"></a>1. 一张订单的价值从 placement 开始，在 continuation 中结束</h2><p>F06 研究订单提交前应该离 touch 多远，F07 研究订单激活后遇到 adverse state 应该 KEEP 还是 CANCEL/RE-ENTER。它们在仓库中分属 placement 与 continuation 两个 family，却共同构成一张订单的完整决策问题：placement 决定初始价格与 queue position，continuation 决定是否保留已经获得的 queue option。成交概率校准只是估值输入；下单和续单是否值得，仍要分别比较完整路径收益。</p>
 <p>提交时的 placement action $a_0$ 与存续期 action $a_t$ 共同生成终局：</p>
 <script type="math/tex; mode=display">
 Y_T=Y_T(a_0,a_{t_1},a_{t_2},\ldots;M_{0:T}),</script><p>其中 $M_{0:T}$ 是同一市场事件路径。订单进入 adverse state 后，KEEP 保留队列位置但继续暴露于有毒成交，CANCEL/RE-ENTER 删除风险也放弃 queue priority。在时刻 $t$ 的订单状态 $H_t$ 下，continuation 真正需要比较的是</p>
@@ -812,7 +811,7 @@ p_m\cdot\mathbb E[V_{marginal}].</script><p>第一项容易精确计算，第二
 <li><strong>K0 KEEP</strong>：保留 active order 与当前 queue position；</li>
 <li><strong>K1 CANCEL/RE-ENTER</strong>：请求撤单，等待真实 cancel ACK 与冻结的状态退出条件，再把第一个 baseline-authorized re-entry order 绑定回同一次 intervention。</li>
 </ul>
-<p>整个项目经历了 top-20 queue approximation、deep-book audit、strategy-independent native scheduler、native keep/cancel、explicit net-hazard value 与 corrected dynamic fill risk set。它们都是同一个 KEEP/CANCEL 项目的证据链，不是六篇独立文章。</p>
+<p>整个项目经历了 top-20 queue approximation、deep-book audit、strategy-independent native scheduler、native keep/cancel、explicit net-hazard value 与 corrected dynamic fill risk set。这些变化分别修正了队列近似、事件调度和动态风险集；结果仍需按对应实现范围解释。</p>
 <p>结论很一致。旧 top-20 结果不能解释 exact active-price queue；native queue identity 修复后，严格 support 又低于冻结门，方向性 ITT 区间跨零；最后的 net-hazard action 在 17 个 Development 日上只保留 7.67% intervention fills，却以几乎相同比例删除 toxic fills，pooled reward 为 $-0.01448$ USDC/intervention，95% 日期区间 $[-0.02577,-0.00239]$。BUY 显著有害，SELL 没有正证据。</p>
 <p>后续 dynamic-fill M0 修正了风险集，adverse-fill heads 表现很好，但 favorable-fill heads 没有相对基线获得正 Brier skill。没有 favorable queue option value，就不能只拿 adverse head 注册另一个撤单动作。</p>
 <p>所以项目证明的是：<strong>state prediction quality 不等于 action uplift；广泛减少成交也不等于有选择地避开毒性。</strong> Validation、sealed holdout、live action 与 baseline 变更都没有得到授权。</p>
@@ -1479,7 +1478,7 @@ F_k(u\mid x_{0:u})
 <p>公共仓库提供合同、实现入口、聚合数字与权限边界；原始 lifecycle rows、机器 artifacts、prospective telemetry 与 owner-side evidence 不随仓库分发。</p>
 <p><img src="/images/narrowgate/order-level-research-synthesis.svg" srcset="/img/loading.gif" lazyload alt="Order-Level Quote Value 从 placement 到 KEEP CANCEL 与动态 CIF 的结果收敛"></p>
 <p><em>图：placement probability、KEEP/CANCEL action value 与 lifecycle CIF 是三层证据；更准确的动态风险集没有把已失败的 continuation 动作改写成通过。</em></p>
-<h2 id="6-合并后的结论：更准确的生命周期模型不会自动复活失败动作"><a href="#6-合并后的结论：更准确的生命周期模型不会自动复活失败动作" class="headerlink" title="6. 合并后的结论：更准确的生命周期模型不会自动复活失败动作"></a>6. 合并后的结论：更准确的生命周期模型不会自动复活失败动作</h2><p>Placement 研究证明二、四 tick 的 raw fill difference 可以被识别，但 marginal fills 太稀、campaign attribution 不完整、terminal interval 全部跨零；KEEP/CANCEL 的随机化证据又显示，候选大量删除 intervention fills，却几乎按同比例保留 toxic fills，选择效率接近零，pooled ITT 为负。后续 100ms CIF 把 activation、fill、cancel、jump、repair 与持续生存放回合法风险集，并完成 Python/C++ lockstep；这提升了机制建模质量，却没有把旧动作结果倒写成通过。</p>
+<h2 id="6-结论：更准确的生命周期模型不会自动复活失败动作"><a href="#6-结论：更准确的生命周期模型不会自动复活失败动作" class="headerlink" title="6. 结论：更准确的生命周期模型不会自动复活失败动作"></a>6. 结论：更准确的生命周期模型不会自动复活失败动作</h2><p>Placement 研究证明二、四 tick 的 raw fill difference 可以被识别，但 marginal fills 太稀、campaign attribution 不完整、terminal interval 全部跨零；KEEP/CANCEL 的随机化证据又显示，候选大量删除 intervention fills，却几乎按同比例保留 toxic fills，选择效率接近零，pooled ITT 为负。后续 100ms CIF 把 activation、fill、cancel、jump、repair 与持续生存放回合法风险集，并完成 Python/C++ lockstep；这提升了机制建模质量，却没有把旧动作结果倒写成通过。</p>
 <p>下一次 order-level action 必须基于新的、预注册的 decision surface，并直接评价 placement 与 continuation 的完整路径。CIF calibration、距离单调性、推断 parity 或较低 adverse-fill probability 都只构成前置证据。</p>
 
                 
@@ -1651,7 +1650,6 @@ F_k(u\mid x_{0:u})
 
   
   
-
 
 
 
@@ -1929,41 +1927,49 @@ F_k(u\mid x_{0:u})
       <script>
         if (!window.MathJax) {
           window.MathJax = {
-            tex    : {
-              inlineMath: { '[+]': [['$', '$']] }
-            },
-            loader : {
-              load: ['ui/lazy']
-            },
+            tex: { inlineMath: { '[+]': [['$', '$']] } },
+            loader: { load: ['ui/lazy'] },
             options: {
               renderActions: {
-                insertedScript: [200, () => {
-                  document.querySelectorAll('mjx-container').forEach(node => {
-                    let target = node.parentNode;
-                    if (target.nodeName.toLowerCase() === 'li') {
-                      target.parentNode.classList.add('has-jax');
-                    }
+                // Kramed emits v2 script nodes. Keep v3's default delimiter find.
+                // https://docs.mathjax.org/en/v3.2/upgrading/v2.html
+                findScript: [10, function (doc) {
+                  for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                    if (node.closest('pre, code')) continue;
+                    const display = /;\s*mode=display/.test(node.type);
+                    const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                    const text = document.createTextNode('');
+                    node.parentNode.replaceChild(text, node);
+                    math.start = {node: text, delim: '', n: 0};
+                    math.end = {node: text, delim: '', n: 0};
+                    doc.math.push(math);
+                  }
+                }, ''],
+                insertedScript: [200, function () {
+                  document.querySelectorAll('mjx-container').forEach(function (node) {
+                    const target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') target.parentNode.classList.add('has-jax');
                   });
                 }, '', false]
               }
             }
           };
-        } else {
-          MathJax.startup.document.state(0);
-          MathJax.texReset();
-          MathJax.typeset();
-          MathJax.typesetPromise();
         }
-
-        Fluid.events.registerRefreshCallback(function() {
-          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+        // Serialize refreshes after startup. Consumed scripts cannot register twice.
+        function refreshMath() {
+          if (!window.MathJax || !MathJax.startup) return;
+          MathJax.startup.promise = MathJax.startup.promise.then(function () {
             MathJax.startup.document.state(0);
             MathJax.texReset();
-            MathJax.typeset();
-            MathJax.typesetPromise();
-          }
-        });
+            return MathJax.typesetPromise();
+          }).catch(function (error) { console.error('MathJax typesetting failed', error); });
+        }
+        Fluid.events.registerRefreshCallback(refreshMath);
+        if (window.MathJax.startup) refreshMath();
       </script>
+      <style>
+        .markdown-body mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; padding: 0.15em 0; }
+      </style>
     
 
   <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>

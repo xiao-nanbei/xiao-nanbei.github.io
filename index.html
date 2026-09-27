@@ -341,7 +341,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2026/08/29/NarrowGate-Full-Multiscale-Boolean-Cooldown-Research/" target="_self">
         <div>
-          Last materially modified: 2026-08-29 TL;DR：这是一个有正信号、但没有通过研究门槛的实验NarrowGate 的 Full-Multiscale 研究问了一个很具体的问题：在一次 maker 成交增加库存以后，能否根据从 0.5 秒到 256 秒的多尺度市场状态，动态决定下一次允许继续加仓前要等待多久，并且比实验冻结时的精确 owner baseline 获
+          TL;DR：这是一个有正信号、但没有通过研究门槛的实验NarrowGate 的 Full-Multiscale 研究问了一个很具体的问题：在一次 maker 成交增加库存以后，能否根据从 0.5 秒到 256 秒的多尺度市场状态，动态决定下一次允许继续加仓前要等待多久，并且比实验冻结时的精确 owner baseline 获得更好的 campaign-terminal USDC value？ 把它
         </div>
       </a>
 
@@ -410,7 +410,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2026/08/29/NarrowGate-Active-Order-Queue-Value-Keep-Cancel-Research/" target="_self">
         <div>
-          Last materially modified: 2026-08-30 1. 一张订单的价值从 placement 开始，在 continuation 中结束F06 研究订单提交前应该离 touch 多远，F07 研究订单激活后遇到 adverse state 应该 KEEP 还是 CANCEL/RE-ENTER。它们在仓库中分属 placement 与 continuation 两个 fami
+          1. 一张订单的价值从 placement 开始，在 continuation 中结束F06 研究订单提交前应该离 touch 多远，F07 研究订单激活后遇到 adverse state 应该 KEEP 还是 CANCEL/RE-ENTER。它们在仓库中分属 placement 与 continuation 两个 family，却共同构成一张订单的完整决策问题：placement 决定初始价格与
         </div>
       </a>
 
@@ -479,7 +479,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/" target="_self">
         <div>
-          Last materially modified: 2026-09-26 2026-09-26 新 Tardis 有限批次后续已完成合法训练绑定、双侧十头的真实多日拟合和独立加载，以及一个冻结 F05RiskWidenPolicy 消费者的完整开发账户评价；净结果比匹配参照更差，负结果保留，不追调阈值。该 risk-to-widen 消费者不是直接净动作价值估计器，也不同于下文历史 BUY sof
+          做市商需要判断的不只是订单能否成交，还包括成交后增加的库存是否值得持有。短期 markout 衡量成交后的价格变化，却不能直接告诉我们：跳过这次交易、把报价挂得更远，或者继续等待，最终是否会让账户赚得更多。 原因在于，动作会改变后续路径。少一笔成交，可能少承担一段不利库存，也可能失去正常价差、改变减仓机会或延长已有仓位的持有时间。要从“这笔成交后来亏了”走到“当时应该采取另一种动作”，需要依次区分
         </div>
       </a>
 
@@ -548,7 +548,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2026/08/29/NarrowGate-Fixed-Parameter-Racing-Research/" target="_self">
         <div>
-          Last materially modified: 2026-09-26 2026-09-26 范围说明下文阶段表、DR 公式、随机化比例和负结果属于各自历史合同，不关闭整个 F01。新 Tardis 已有有限固定参数比较；后续用户选定的离线研究参照与原首批风险门结论分别保留，见当前 F01 主报告。g 是历史联动轴标签，不是恢复旧配置键；新 g/asym 问题须有明确共同输入、支持与预算。本文不
+          参数搜索比较的是：在指定历史范围内，哪一套完整配置表现更好。局部报价动作进一步追问：在某个决策时可见的状态下，改变这一次报价，是否比保持原报价带来更高的后续净收益？两者都需要回放订单与库存，但比较的对象不同。 Widen 将增加风险暴露的一侧报价向外移动，Recenter 将报价向合理中心收回，Prevent-Over-Widen 则阻止额外的外移。它们先改变订单价格和排队位置，再通过成交与库存影
         </div>
       </a>
 
@@ -617,7 +617,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2026/08/29/NarrowGate-Causal-13-Head-Source-Aware-v12-Research/" target="_self">
         <div>
-          Last materially modified: 2026-09-26 历史前言：为什么重建整条链路？v4 因未来 metrics 泄漏而撤回对应 test 和经济结论：这是无效证据，不是有效负结果。修正后的 v5、v9 保留了预测诊断价值，但没有建立稳定的 maker 经济增益。Source-aware v12 及其一秒后继说明，特征语义更清晰、推理更快，不等于订单路径更好：换单可能丢失队列优
+          历史前言：为什么重建整条链路？v4 因未来 metrics 泄漏而撤回对应 test 和经济结论：这是无效证据，不是有效负结果。修正后的 v5、v9 保留了预测诊断价值，但没有建立稳定的 maker 经济增益。Source-aware v12 及其一秒后继说明，特征语义更清晰、推理更快，不等于订单路径更好：换单可能丢失队列优先级、减少成交并延长库存暴露。这些结论只属于原样本和执行假设，不是对未来机
         </div>
       </a>
 
@@ -686,7 +686,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2026/08/29/NarrowGate-Ranked-Toxicity-Exposure-Guard-Research/" target="_self">
         <div>
-          Last materially modified: 2026-08-30 1. 三类 Guard 研究的是同一条从风险分数到终局价值的链历史上以 BER 命名的机制实际是 trade-intensity acceleration proxy，并非论文中的 Book Exhaustion Rate；BUY q90 使用 active-order hazard 的高分位过滤；ranked-toxici
+          1. 三类 Guard 研究的是同一条从风险分数到终局价值的链历史上以 BER 命名的机制实际是 trade-intensity acceleration proxy，并非论文中的 Book Exhaustion Rate；BUY q90 使用 active-order hazard 的高分位过滤；ranked-toxicity guard 则用 causal-v12 toxicity rank
         </div>
       </a>
 
@@ -755,7 +755,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2026/08/29/NarrowGate-P3-Aggressive-Reach-Time-Hazard-Research/" target="_self">
         <div>
-          Last materially modified: 2026-08-30 1. P3 研究真正经历了什么P3 的主问题不是“能不能拟合一条好看的概率曲线”，而是：在决策时刻、给定 side、报价距离与当时市场状态，未来价格何时会主动触达该坐标；这个 first-passage 概率能否经过策略可见时钟、queue/lifecycle 与终局价值，最终支持一个报价动作？归一化 100ms 复现、so
+          1. P3 研究真正经历了什么P3 的主问题不是“能不能拟合一条好看的概率曲线”，而是：在决策时刻、给定 side、报价距离与当时市场状态，未来价格何时会主动触达该坐标；这个 first-passage 概率能否经过策略可见时钟、queue/lifecycle 与终局价值，最终支持一个报价动作？归一化 100ms 复现、source-aware 扩样本、波动率条件面、标量报价 adapter、po
         </div>
       </a>
 
@@ -893,7 +893,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2026/08/29/NarrowGate-Side-Taker-Flow-Research/" target="_self">
         <div>
-          Last materially modified: 2026-08-30 1. 同一笔成交同时属于两种时间真相Side-taker 研究最初想检验主动买卖流能否预示 maker fill quality，但很快发现输入事件、策略可见时间和订单风险集没有闭合。individual trades 提供 exchange-time 的撮合顺序；aggTrade parent 才接近 live 策略能整体
+          1. 同一笔成交同时属于两种时间真相Side-taker 研究最初想检验主动买卖流能否预示 maker fill quality，但很快发现输入事件、策略可见时间和订单风险集没有闭合。individual trades 提供 exchange-time 的撮合顺序；aggTrade parent 才接近 live 策略能整体看到的消息；订单自身又经历 submit、activation、parti
         </div>
       </a>
 
@@ -962,7 +962,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2026/08/29/NarrowGate-Time-Unit-Causality-Repair-Research/" target="_self">
         <div>
-          Last materially modified: 2026-09-05 2026-09-05 更新：延迟也是策略环境，下一轮先检验承担风险的价值本节是复验计划与实现状态，不是新一轮收益报告。 下文保留各历史研究自己的日期、样本与结论；它们不代表当前运行环境。当前修复后的 B0（不增加候选动作的对照策略）与候选尚未完成新的完整配对经济回测，不能发布新的 winner、PnL 改善或实盘收益预测。
+          回测中的时间与量纲不是显示细节。它们决定策略何时看见信息、订单何时生效，以及哪笔成交进入账户。修复这些定义以后，旧结果需要按受影响的执行路径重新判断；保留历史研究过程，不等于保留已经失效的精确收益。 延迟怎样进入策略比较以下讨论源于 2026-09-05 的环境复验设计，描述当时的方法与证据范围，不是今天的运行进度。 当时的 B0（不增加候选动作的对照策略）与候选尚无该环境下的完整配对经济结果。下
         </div>
       </a>
 

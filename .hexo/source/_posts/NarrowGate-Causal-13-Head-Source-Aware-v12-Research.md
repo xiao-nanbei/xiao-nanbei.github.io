@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate 新 13-Head：Tardis 因果特征、时间加权选型与负收益结果'
 date: 2026-08-29 13:30:00
-updated: 2026-09-26 20:52:00
+updated: 2026-09-27 10:45:00
 categories:
 - Market Making
 tags:
@@ -13,7 +13,6 @@ tags:
 math: true
 ---
 
-Last materially modified: 2026-09-26
 
 
 ## 历史前言：为什么重建整条链路？
@@ -110,7 +109,7 @@ $$
 \Delta Y_d=Y_d(\pi_{\mathrm{ML}})-Y_d(\pi_0).
 $$
 
-$\Delta L_h<0$ 不能替代 $\Delta Y>0$；五个阶段合并后，读者才能看见该研究一再出现的模式：局部 ranking 或少数 heads 通过，但 side、tail、fill retention 与 terminal value 没有同时闭合。
+$\Delta L_h<0$ 不能替代 $\Delta Y>0$；旧 v4–v12 与 cadence 实验中反复出现的情况是：局部 ranking 或少数 heads 通过，但 side、tail、fill retention 与 terminal value 没有同时闭合。
 
 ## 2. 研究阶段与证据状态
 
@@ -225,7 +224,7 @@ v4 report 曾给出 13-head、BUY scorer、strict ML A/B 和 queue sensitivity �
 
 ### 7. 研究演进为何合并成一篇
 
-`model/runtime cleanup`、feature timing 修复、empirical-P3 retrain、scorer rebuild、strict replay 与后续 correction 都服务同一个 v4 问题。它们改变的是同一 research identity 的实现准备与证据可用性，不应拆成“清理文章”“重训文章”“修复文章”。
+`model/runtime cleanup`、feature timing 修复、empirical-P3 retrain、scorer rebuild、strict replay 与后续 correction 都服务同一个 v4 问题。这些改动影响实现准备与证据可用性，本身不增加独立经济检验。
 
 当 normalized L2、trade-side universe 或 time/calendar/unit contract 改变后，才出现新的 v5/v7 research identity。v4 的后继不能沿用旧 test numbers，也不能把普通 implementation repair 编成 `v4.1/v4.2` 来制造似乎更多的研究。
 
@@ -335,7 +334,7 @@ Causal-v5 把 normalized 100ms L2、修复后的 taker-side、经验 P3、queue 
 
 另一边，随机 passive null 在 Development33 的 raw/terminal point estimate看似略优，却在 Validation9 的 raw PnL 和 InvAdj 显著更差；32 个 seeds 中只有 1 个在 Validation raw PnL 上为正，没有 seed 在任一 panel 的 InvAdj 上胜过 baseline。因此 baseline 相对这个 executable null 有稳定结构价值，但 baseline 本身 PnL 仍为负，不能把“优于随机”写成“已经盈利”。
 
-v5 的正式统计 promotion 没有通过，sealed holdout9 保持未读；随后 time/calendar/unit repairs 又建立 causal-v7 identity。v5 报告中的 random-null、scorer、queue 与 parity 都应作为同一重建项目的章节，而不是十几篇碎文章。
+v5 的正式统计 promotion 没有通过，sealed holdout9 保持未读；随后 time/calendar/unit repairs 又建立 causal-v7 identity。v5 报告中的随机空模型、评分、队列与一致性检查分别回答实现和统计问题，不是独立的收益证据。
 
 ![Causal-v5 的 ML OFF、ML ON 与随机被动策略路径](/images/narrowgate/causal-v5-three-arm-kline.svg)
 
@@ -612,7 +611,7 @@ SELL maker <- aggressive BUY taker
 
 aggregate trade message 还可能包含一组 child trade IDs。单个 child 的 exchange timestamp 可用于历史 matching truth，却不能让 live policy 在 parent message ready 之前看见整组内部次序。v9 的历史 feature contract虽纠正 sidecar 来源，仍然只赋予其自身 10 秒 aggregate causal semantics，不把它升级为 exact subsecond receive-time truth。
 
-### 4. v8 为什么不是一篇失败研究
+### 4. v8 修复了什么
 
 v8 从 mutable root 解析数据，训练前没有冻结正确 source lineage。它不具备有效的 sample/feature identity，因此没有资格产生经济 inference。项目将 artifacts 标记 invalid，明确禁止引用任何 v8 prediction 或 PnL。
 
@@ -1201,8 +1200,8 @@ $$
 
 *图：五个阶段分别暴露 timing、transport、support 与 economics 问题；没有一阶段同时通过预测、实现、动作路径和终局经济门。*
 
-## 8. 合并后的结论：模型复杂度增加了，证据门没有因此降低
+## 8. 结论：模型复杂度增加了，证据门没有因此降低
 
-13‑Head 的价值不在于产生过某个正 PnL 点估计，而在于把失败定位到不同层：有时是 feature/label 时间污染，有时是 source transport，有时是 denominator 太小，有时是 prediction gate 只通过少数 heads，最后一次则是 cadence 真正改变了路径却朝坏方向变化。把这些阶段拆开容易让读者只看到某个版本的局部亮点；合并后可以明确看到没有一个阶段同时满足 prediction、implementation、action-path 与 terminal economics。
+13‑Head 的价值不在于产生过某个正 PnL 点估计，而在于把失败定位到不同层：有时是 feature/label 时间污染，有时是 source transport，有时是 denominator 太小，有时是 prediction gate 只通过少数 heads，最后一次则是 cadence 真正改变了路径却朝坏方向变化。这些旧阶段没有同时满足预测、实现、动作路径与终局收益要求；这段结论不替代前文新 Tardis 实验的独立结果。
 
 因此该主线关闭的是这些冻结模型/频率/映射 identity，而不是“机器学习永远不能做市”。未来 successor 必须先声明新的输入状态、模型类、输出动作与 reward，再用 nested chronological OOF 和 paired full-path replay 检验；不能用更高 AUC、更低某个 head loss 或 Python/C++ parity 替代动作价值。

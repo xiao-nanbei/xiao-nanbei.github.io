@@ -17,6 +17,10 @@ Review the generated diff before an explicitly authorized ordinary Git commit/pu
 
 ## 中文说明
 
+Block mathematics emitted by Kramed is handled in `.hexo/templates/math.ejs`, registered through Hexo's view API by `.hexo/scripts/mathjax-view.js`. Its MathJax 3 `findScript` action complements the default inline-delimiter finder. Keep startup and Fluid refresh handling together in this shared partial; do not patch generated pages or `node_modules`.
+
 这里是唯一的本地博客工作目录。只编辑 `.hexo/source/_posts/` 中的源稿，使用上述既有 Hexo 构建命令生成站点；根目录 HTML 不再手工维护成另一份文章。原永久链接与有日期的历史结果保留。
+
+块公式由共享的 `.hexo/templates/math.ejs` 适配 Kramed 与 MathJax 3，保留默认行内识别；启动与 Fluid 刷新逻辑在同一处维护。修改后检查长文滚动、重复刷新和窄屏，不逐页修补生成 HTML。
 
 审阅生成差异后，按本轮明确授权普通提交并推送本仓库，不使用保留的 `.hexo/.deploy_git` 缓存另行发布。构建成功或推送成功不等于已验证线上部署及 CDN。依赖、构建缓存与本地诊断文件不进入发布内容。

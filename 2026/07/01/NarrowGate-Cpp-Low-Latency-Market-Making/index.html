@@ -19,17 +19,17 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Last materially modified: 2026-09-26 2026-09-26：旧 v12 与 execution_v1 分流下文 9 月 6 日及更早快照、测试计数和 benchmark 保留原日期，不能读作今天的测量。当前 strategy.live_public_signal.LivePublicSignalEngine 的 execution_v1 路径消费 individ">
+    <meta name="description" content="做市系统的工程目标不只是更快地算出报价，还要让行情可见性、订单生效和账户记账在回放与实际运行中各有清楚定义。本文讨论共享计算内核、事件调度和尾延迟测量；接口测试、有限组装与完整经济评价分别说明，不互相替代。 执行协议与工程证据范围下文 9 月 6 日及更早快照、测试计数和 benchmark 保留原日期，不能读作今天的测量。当前 strategy.live_public_signal.LivePu">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate：回测吞吐与 Live 尾延迟工程">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="Last materially modified: 2026-09-26 2026-09-26：旧 v12 与 execution_v1 分流下文 9 月 6 日及更早快照、测试计数和 benchmark 保留原日期，不能读作今天的测量。当前 strategy.live_public_signal.LivePublicSignalEngine 的 execution_v1 路径消费 individ">
+<meta property="og:description" content="做市系统的工程目标不只是更快地算出报价，还要让行情可见性、订单生效和账户记账在回放与实际运行中各有清楚定义。本文讨论共享计算内核、事件调度和尾延迟测量；接口测试、有限组装与完整经济评价分别说明，不互相替代。 执行协议与工程证据范围下文 9 月 6 日及更早快照、测试计数和 benchmark 保留原日期，不能读作今天的测量。当前 strategy.live_public_signal.LivePu">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/python-cpp-parity-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/dual-clock-order-lifecycle-kline.svg">
 <meta property="article:published_time" content="2026-07-01T00:03:00.000Z">
-<meta property="article:modified_time" content="2026-09-26T12:52:00.000Z">
+<meta property="article:modified_time" content="2026-09-27T02:45:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="C++">
@@ -346,7 +346,7 @@
         
         
           <!-- compatible with older versions-->
-          944 分钟
+          945 分钟
         
       </span>
     
@@ -390,17 +390,17 @@
             
               <div class="markdown-body">
                 
-                <p>Last materially modified: 2026-09-26</p>
-<h2 id="2026-09-26：旧-v12-与-execution-v1-分流"><a href="#2026-09-26：旧-v12-与-execution-v1-分流" class="headerlink" title="2026-09-26：旧 v12 与 execution_v1 分流"></a>2026-09-26：旧 v12 与 execution_v1 分流</h2><p>下文 9 月 6 日及更早快照、测试计数和 benchmark 保留原日期，不能读作今天的测量。当前 <code>strategy.live_public_signal.LivePublicSignalEngine</code> 的 execution_v1 路径消费 individual <code>@trade</code> 与 depth，通过共享特征生成已就绪 FeatureFrame，加载当前 13 头及后处理；该入口拒绝 aggTrade，关闭旧 native feature/inference 路径。它不是旧 causal-v12 固定 10000ms 桶说明的直接延续，也不表示所有 live 入口都已改用 individual 或全部 C++ 已停用：native 报价与 native 模型推理是不同能力，部署状态仍由具体运行证据确定。</p>
+                <p>做市系统的工程目标不只是更快地算出报价，还要让行情可见性、订单生效和账户记账在回放与实际运行中各有清楚定义。本文讨论共享计算内核、事件调度和尾延迟测量；接口测试、有限组装与完整经济评价分别说明，不互相替代。</p>
+<h2 id="执行协议与工程证据范围"><a href="#执行协议与工程证据范围" class="headerlink" title="执行协议与工程证据范围"></a>执行协议与工程证据范围</h2><p>下文 9 月 6 日及更早快照、测试计数和 benchmark 保留原日期，不能读作今天的测量。当前 <code>strategy.live_public_signal.LivePublicSignalEngine</code> 的 execution_v1 路径消费 individual <code>@trade</code> 与 depth，通过共享特征生成已就绪 FeatureFrame，加载当前 13 头及后处理；该入口拒绝 aggTrade，关闭旧 native feature/inference 路径。它不是旧 causal-v12 固定 10000ms 桶说明的直接延续，也不表示所有 live 入口都已改用 individual 或全部 C++ 已停用：native 报价与 native 模型推理是不同能力，部署状态仍由具体运行证据确定。</p>
 <p>维护中的 Python ConsumerBundle 回放已有绑定输入／配置／源码的完整状态恢复；F06/F07 规则状态测试和一个原生 BUY/SELL 冷却启用的完整开发账户恢复已在声明范围内验收。这不是任意跨版本／主机、完整 C++ 主循环恢复或 CIF/hazard 科学研究完成。隔离 Linux 候选的有限真实观察→13 头→P3→native 报价→无交易能力记录意图组装已验收，但不代表已激活或当前 live 身份。详见<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/docs/architecture.zh-CN.md">维护架构及验收范围</a>。</p>
-<h2 id="TL-DR：读者收益摘要"><a href="#TL-DR：读者收益摘要" class="headerlink" title="TL;DR：读者收益摘要"></a>TL;DR：读者收益摘要</h2><p>这篇文章是 NarrowGate 的工程篇，接在算法篇 <a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/">《NarrowGate：Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift》</a> 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。</p>
+<h2 id="从计算内核到完整运行路径"><a href="#从计算内核到完整运行路径" class="headerlink" title="从计算内核到完整运行路径"></a>从计算内核到完整运行路径</h2><p>这篇文章是 NarrowGate 的工程篇，接在算法篇 <a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/">《NarrowGate：Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift》</a> 后面。算法篇回答“maker quote 应该验证什么”；本文回答“这些验证如何被工程化成可重复的 replay、可审计的 live hot path，以及可解释的延迟预算”。</p>
 <blockquote>
 <p><strong>版本边界（2026-09-06）</strong>：本文保留工程结构、parity 方法与历史 benchmark，但所有数值必须按小节日期阅读。9 月 2 日 terminal-continuation 的匿名化聚合观测不是今天的实测值、长期 SLA 或 PnL 证据。公开代码不包含私有当前 release manifest、精确 live config 或进程状态，不能据此推断现役开关。最新源码已整合进 main，但完整日执行器的分源交付与计算耗时接入尚未完成，也尚未产生这一环境下完成的 B0 或候选经济结果。历史 F05 失败结论与 owner 风险试验分别保留，代码修复不将它们改写成研究通过。</p>
 </blockquote>
-<h3 id="2026-09-06：执行修复已合并，性能与经济验证分开"><a href="#2026-09-06：执行修复已合并，性能与经济验证分开" class="headerlink" title="2026-09-06：执行修复已合并，性能与经济验证分开"></a>2026-09-06：执行修复已合并，性能与经济验证分开</h3><p>本轮已经公开的 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/commit/13d44967">native 接口精简</a> 把内部 C++ Bar 和配置字段当成明确接口：缺字段不再补零或跳过，已选 native 后的计算异常直接暴露；测试 fixture 补齐正式依赖，私有流 generation 未绑定时不再假定安全。为日志重复验证模型包的工作也改为复用已验证 metadata。<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/commit/db0122cd">部署环境元数据读取修复</a> 则处理 root-private 文件的受限检查。这些是维护性和正确性修复，不是新的实盘延迟测量。</p>
+<h3 id="历史执行修复与性能测量（2026-09-06）"><a href="#历史执行修复与性能测量（2026-09-06）" class="headerlink" title="历史执行修复与性能测量（2026-09-06）"></a>历史执行修复与性能测量（2026-09-06）</h3><p>本轮已经公开的 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/commit/13d44967">native 接口精简</a> 把内部 C++ Bar 和配置字段当成明确接口：缺字段不再补零或跳过，已选 native 后的计算异常直接暴露；测试 fixture 补齐正式依赖，私有流 generation 未绑定时不再假定安全。为日志重复验证模型包的工作也改为复用已验证 metadata。<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/commit/db0122cd">部署环境元数据读取修复</a> 则处理 root-private 文件的受限检查。这些是维护性和正确性修复，不是新的实盘延迟测量。</p>
 <p>新的 REST 异步响应路径与 7 月已经关闭的 per-side latest-wins 实验不同：普通报撤仍使用一个 GLOBAL FIFO，同一时刻不增加网络请求并发，只将等待 response 与决策执行分离。队列中尚未发出的请求也占有订单生命周期；私有终态提前可见不能令尚未返回的 HTTP 请求凭空结束。协议比较必须另外进行，不能把异步化、双侧并发和 REST→WebSocket 同时改变后，把结果归因于某一项。是否在特定 live 进程启用仍需私有运行记录确认。</p>
 <p>Replay 必须分别推进行情产生、各源消息到达、特征完成、决策计算、FIFO 等待、请求发出、订单 exchange-effective、HTTP 返回和私有回调可见这些时钟。多个阶段重叠时，不能重复叠加；同一次请求的 effective/return 样本要成对保留，不能把 RTT 一律除以二。IOC 尤其需要区分“交易所已经减仓”和“本地账本还未收到可见成交证明”：前者限制真实剩余可成交量，后者决定策略何时更新库存、费用和冷却。<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/commit/5672e838">本轮合并</a> 已在 Python replay 中实现这项分离：交易所激活时扫盘一次，HTTP 返回释放串行 worker，本地账本等到成交可见才推进；同步 close 调用者仍按其真实调用语义等待响应和成交证明。C++ IOC trace 也改用交易所激活时间，而不是下一笔历史 trade 的时间。</p>
-<p>2026-09-26 补充：当前策略可见现金／库存按本地通知推进；经济成交事实在撮合处独立记录，并用于完整经济结算，含账户终点前已撮合但尚未通知的成交。本地通知日志不是全账户物理撮合顺序，两套账户在通知未到齐时不必相等。旧通知日志不能靠排序变成新撮合事实。</p>
+<p>撮合与通知分离后，策略可见现金／库存按本地通知推进；经济成交事实在撮合处独立记录，并用于完整经济结算，含账户终点前已撮合但尚未通知的成交。本地通知日志不是全账户物理撮合顺序，两套账户在通知未到齐时不必相等。旧通知日志不能靠排序变成新撮合事实。</p>
 <p>另一个值得做的减法是 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/commit/249a2549">复用 lifecycle 持久化实现</a>：strict-native writer 不再维护一份近乎相同的持久化代码，正常回调采用增量提交，不再每次扫描全部历史 part；启动、失败恢复和最终完整性检查保留。恢复必须先于读取 cursor 和准备新 batch，这样减少的是重复工作，不是崩溃恢复保障。</p>
 <p>合并后的默认全套测试为 <strong>4,853 passed、18 skipped、15 deselected</strong>，本机重新编译的 C++ 也参与回归。这证明所覆盖的接口与状态机没有回归，不是 x86 性能测量，也不代表完整 C++ 异步 scheduler 已经可替代 Python。当前缺口是把逐源消息交付和 cached/new-bucket/catch-up 计算耗时接到完整日 runner；已接通的 gateway-only diagnostic 不能换个名称就当作当前 B0。本轮没有新部署，也没有新的实盘 p99 或经济结果。</p>
 <p>完成执行路径后，下一轮先建立当前 B0，再比较新增风险前的 quote/wait、挂单中的 keep/cancel、恢复后的 add/continue-wait。两臂保留相同事后保护和外部延迟抽样规则，但分别形成自己的订单、FIFO 等待、成交和库存路径。不能因为 native 更快，就用缺少这些时钟的旧 C++ 路径代替；也不能用旧 50 日或 71 日金额填充新的 baseline。详细研究边界见 <a href="/2026/08/29/NarrowGate-Time-Unit-Causality-Repair-Research/">时间尺度与因果复验</a> 和 <a href="/2026/08/29/NarrowGate-Research-Project-Map/">研究项目地图</a>。</p>
@@ -3266,7 +3266,6 @@ buy_q90_visibility_lifecycle_path_score.v3
 
 
 
-
   <script>
   Fluid.utils.createScript('https://unpkg.com/mermaid@9.0.1/dist/mermaid.min.js', function() {
     mermaid.initialize({"theme":"default"});
@@ -3540,41 +3539,49 @@ buy_q90_visibility_lifecycle_path_score.v3
       <script>
         if (!window.MathJax) {
           window.MathJax = {
-            tex    : {
-              inlineMath: { '[+]': [['$', '$']] }
-            },
-            loader : {
-              load: ['ui/lazy']
-            },
+            tex: { inlineMath: { '[+]': [['$', '$']] } },
+            loader: { load: ['ui/lazy'] },
             options: {
               renderActions: {
-                insertedScript: [200, () => {
-                  document.querySelectorAll('mjx-container').forEach(node => {
-                    let target = node.parentNode;
-                    if (target.nodeName.toLowerCase() === 'li') {
-                      target.parentNode.classList.add('has-jax');
-                    }
+                // Kramed emits v2 script nodes. Keep v3's default delimiter find.
+                // https://docs.mathjax.org/en/v3.2/upgrading/v2.html
+                findScript: [10, function (doc) {
+                  for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                    if (node.closest('pre, code')) continue;
+                    const display = /;\s*mode=display/.test(node.type);
+                    const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                    const text = document.createTextNode('');
+                    node.parentNode.replaceChild(text, node);
+                    math.start = {node: text, delim: '', n: 0};
+                    math.end = {node: text, delim: '', n: 0};
+                    doc.math.push(math);
+                  }
+                }, ''],
+                insertedScript: [200, function () {
+                  document.querySelectorAll('mjx-container').forEach(function (node) {
+                    const target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') target.parentNode.classList.add('has-jax');
                   });
                 }, '', false]
               }
             }
           };
-        } else {
-          MathJax.startup.document.state(0);
-          MathJax.texReset();
-          MathJax.typeset();
-          MathJax.typesetPromise();
         }
-
-        Fluid.events.registerRefreshCallback(function() {
-          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+        // Serialize refreshes after startup. Consumed scripts cannot register twice.
+        function refreshMath() {
+          if (!window.MathJax || !MathJax.startup) return;
+          MathJax.startup.promise = MathJax.startup.promise.then(function () {
             MathJax.startup.document.state(0);
             MathJax.texReset();
-            MathJax.typeset();
-            MathJax.typesetPromise();
-          }
-        });
+            return MathJax.typesetPromise();
+          }).catch(function (error) { console.error('MathJax typesetting failed', error); });
+        }
+        Fluid.events.registerRefreshCallback(refreshMath);
+        if (window.MathJax.startup) refreshMath();
       </script>
+      <style>
+        .markdown-body mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; padding: 0.15em 0; }
+      </style>
     
 
   <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>

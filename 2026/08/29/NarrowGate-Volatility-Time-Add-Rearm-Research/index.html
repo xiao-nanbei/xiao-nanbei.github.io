@@ -19,12 +19,12 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Last materially modified: 2026-08-30 1. 五种动作其实在搜索同一个控制轴SELL one-cycle skip、stop-add-until-flat、85 秒后的 state-conditioned rearm、recovery-event rearm 与 variance-time rearm 都在改变同一个对象：exposure-increasing a">
+    <meta name="description" content="1. 五种动作其实在搜索同一个控制轴SELL one-cycle skip、stop-add-until-flat、85 秒后的 state-conditioned rearm、recovery-event rearm 与 variance-time rearm 都在改变同一个对象：exposure-increasing add 何时重新获得 permission。它们只是控制强度从一个周期、整段">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate Cooldown Temporal-Permission：从 One-Cycle Skip 到 State、Recovery 与 Variance-Time Rearm">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Volatility-Time-Add-Rearm-Research/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="Last materially modified: 2026-08-30 1. 五种动作其实在搜索同一个控制轴SELL one-cycle skip、stop-add-until-flat、85 秒后的 state-conditioned rearm、recovery-event rearm 与 variance-time rearm 都在改变同一个对象：exposure-increasing a">
+<meta property="og:description" content="1. 五种动作其实在搜索同一个控制轴SELL one-cycle skip、stop-add-until-flat、85 秒后的 state-conditioned rearm、recovery-event rearm 与 variance-time rearm 都在改变同一个对象：exposure-increasing add 何时重新获得 permission。它们只是控制强度从一个周期、整段">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/sell-one-cycle-skip-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f09-campaign-action-causal-path.svg">
@@ -38,7 +38,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f09-campaign-action-causal-path.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/temporal-permission-research-synthesis.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-08-29T18:08:00.000Z">
+<meta property="article:modified_time" content="2026-09-27T02:45:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="Campaign">
@@ -399,8 +399,7 @@
             
               <div class="markdown-body">
                 
-                <p>Last materially modified: 2026-08-30</p>
-<h2 id="1-五种动作其实在搜索同一个控制轴"><a href="#1-五种动作其实在搜索同一个控制轴" class="headerlink" title="1. 五种动作其实在搜索同一个控制轴"></a>1. 五种动作其实在搜索同一个控制轴</h2><p>SELL one-cycle skip、stop-add-until-flat、85 秒后的 state-conditioned rearm、recovery-event rearm 与 variance-time rearm 都在改变同一个对象：exposure-increasing add 何时重新获得 permission。它们只是控制强度从一个周期、整段 campaign、离散状态阈值、恢复事件到累计方差时钟逐步变化。拆成五篇会看不见最关键的 leverage frontier：弱动作几乎 no-op，强动作接近关机，中间候选虽有支持却没有稳定终局价值。</p>
+                <h2 id="1-五种动作其实在搜索同一个控制轴"><a href="#1-五种动作其实在搜索同一个控制轴" class="headerlink" title="1. 五种动作其实在搜索同一个控制轴"></a>1. 五种动作其实在搜索同一个控制轴</h2><p>SELL one-cycle skip、stop-add-until-flat、85 秒后的 state-conditioned rearm、recovery-event rearm 与 variance-time rearm 都在改变同一个对象：exposure-increasing add 何时重新获得 permission。它们只是控制强度从一个周期、整段 campaign、离散状态阈值、恢复事件到累计方差时钟逐步变化。这些动作构成一条控制强度序列：弱动作几乎 no-op，强动作接近关机，中间候选虽有支持却没有稳定终局价值。</p>
 <p>统一状态机可写成</p>
 <script type="math/tex; mode=display">
 G_{t+1}=\Phi(G_t,E_t,X_t;\theta),\qquad
@@ -1184,7 +1183,7 @@ E[Y(1)-Y(0)\mid Z]<0.</script><p>第一式说 $Z$ 预测坏 campaign；第二式
 <p>这条路径里低 score 对“市场刚受冲击”的描述完全正确，错误发生在把描述映射为“继续禁止加空”。对某些 inventory state，adverse market state 也可能提供更好的 passive entry price；动作效应取决于库存与未来路径，不由风险标签单独决定。</p>
 <h4 id="7-2-明确阴性比-support-failure-提供了更多信息"><a href="#7-2-明确阴性比-support-failure-提供了更多信息" class="headerlink" title="7.2 明确阴性比 support failure 提供了更多信息"></a>7.2 明确阴性比 support failure 提供了更多信息</h4><p>上一项 conjunction 因 active rows 不足，无法区分 rule 真无效还是估计太宽。本项目 support、activity、overlap 都通过，reward、campaign cost、negative terminal 与 MAE 却有负下界。这缩小了替代解释：不是 no-op、不是 shutdown、不是 propensity 崩溃，也不是只差一点样本。</p>
 <p>因此不能用“再收集更多相同日期类型”作为默认重开理由。真正新项目需要不同 economic mapping，例如价格调整而非 permission、不同 inventory role 或新的 decision-visible evidence；仅重调几何权重是在已观察负结果上找逃生门。</p>
-<h3 id="8-研究演进与关闭边界"><a href="#8-研究演进与关闭边界" class="headerlink" title="8. 研究演进与关闭边界"></a>8. 研究演进与关闭边界</h3><p>从稀疏四条件 conjunction 到连续几何 score，经济机制发生了足够变化，因此这是新 research identity；但 support selector、正式 SELL run 与 scorecard 都只是同一 identity 的阶段，不应拆文。</p>
+<h3 id="8-研究演进与关闭边界"><a href="#8-研究演进与关闭边界" class="headerlink" title="8. 研究演进与关闭边界"></a>8. 研究演进与关闭边界</h3><p>从稀疏四条件 conjunction 到连续几何 score，经济机制发生了足够变化，因此这是新 research identity；其中支持检查、SELL 执行和评价使用同一实验定义，不能被当成独立确认。</p>
 <p>后续 denominator 修复使旧 exact reward/fill/campaign/duration 数值不再用于当前标定；原始 interval 已明确为负，修复也不会自动授予重调 weights、threshold 或 aggregation 的权限。要尝试 arithmetic mean、不同组件或 active-order cancel，必须新注册 action 与面板。</p>
 <p>关闭的是这个四组件几何 score 下的 post-85 delayed rearm，尤其是 SELL outcome action。BUY 仅有 support 结论，不能说 BUY value 正或负；它同样没有 outcome 晋级权限。</p>
 <h3 id="9-没有获得的权限-1"><a href="#9-没有获得的权限-1" class="headerlink" title="9. 没有获得的权限"></a>9. 没有获得的权限</h3><ul>
@@ -1214,7 +1213,7 @@ E[Y(1)-Y(0)\mid Z]<0.</script><p>第一式说 $Z$ 预测坏 campaign；第二式
 </ul>
 <h3 id="结语-3"><a href="#结语-3" class="headerlink" title="结语"></a>结语</h3><p>这项研究的价值在于失败得足够明确：阈值是 outcome-blind 的，支持与活动都通过，完整路径却更差。它提醒我们，描述“市场尚未恢复”的分数，不天然回答“此刻少挂一笔是否更好”的动作问题。</p>
 <h2 id="7-Variance-time-rearm"><a href="#7-Variance-time-rearm" class="headerlink" title="7. Variance-time rearm"></a>7. Variance-time rearm</h2><h3 id="TL-DR：机制强、路径完整、支持充分，但-BUY-与-SELL-的主-reward-下界都没过零"><a href="#TL-DR：机制强、路径完整、支持充分，但-BUY-与-SELL-的主-reward-下界都没过零" class="headerlink" title="TL;DR：机制强、路径完整、支持充分，但 BUY 与 SELL 的主 reward 下界都没过零"></a>TL;DR：机制强、路径完整、支持充分，但 BUY 与 SELL 的主 reward 下界都没过零</h3><p>固定 85 秒把平静市场与剧烈市场视为同样长。本研究把 exposure-increasing add 的 rearm clock 改为累计 realized variance：每个 same-side cooldown lineage 在起点获得一个 side-specific 波动预算，完成的一秒 BBO bucket 按 ready clock 逐步累加；累计 variance 达预算时 rearm。control 仍是 $85\text{s}\times$ consecutive same-side fill units。</p>
-<p>研究演进经历 feasibility v1 的错误 trade-close clock、v2.1 的 causal completed-bucket 修复、full-path blocker preflight、C++ BUY-q90 lockstep，最后才注册随机化 action。它们不是五篇研究，而是同一问题从时钟可计算到动作可评价的证据链。</p>
+<p>研究演进经历 feasibility v1 的错误 trade-close clock、v2.1 的 causal completed-bucket 修复、full-path blocker preflight、C++ BUY-q90 lockstep，最后才注册随机化 action。这些修复确定了状态何时可计算，随后才能检验动作价值。</p>
 <p>正式 Development 覆盖 40 日（24 Grade A、16 Grade B）、17,460 条 lineages；BUY/SELL 为 9,140/8,320。candidate 的 final-action change 达 37.02%/24.41%，fill retention 104.80%/99.41%，所以既非 no-op 也非 participation shutdown。可是 primary lineage reward 为 BUY +0.000738 USDC，95% UTC-day interval $[-0.002000,+0.003577]$；SELL +0.001875，区间 $[-0.002303,+0.006242]$。两侧 hard gates 均失败，Validation 与 sealed holdout 未读。</p>
 <p><img src="/images/narrowgate/variance-time-add-rearm.svg" srcset="/img/loading.gif" lazyload alt="Variance-time add rearm 双时钟机制"></p>
 <p><em>图 1：机制示意。同一价格路径上，wall time 均匀走动，variance time 只在已完成且已 ready 的一秒 bucket 上累积；高波动时可能更早释放，低波动时更晚。</em></p>
@@ -1415,7 +1414,7 @@ B(t)=\sum_{j:t_j\le t}\hat\sigma_j^2\Delta t_j.</script><p>达到阈值$B^*$时r
 <h3 id="结语-4"><a href="#结语-4" class="headerlink" title="结语"></a>结语</h3><p>variance time 是漂亮且因果可实现的时钟：它有 two-sided action variation、完整路径与跨语言 parity。正因机制证据如此充分，经济阴性才更有解释力——不是“代码没动”，而是这个更聪明的 elapsed-time measure 没有给主 reward 一个稳定正下界。</p>
 <p><img src="/images/narrowgate/temporal-permission-research-synthesis.svg" srcset="/img/loading.gif" lazyload alt="五种 cooldown 与 rearm 动作在 temporal permission frontier 上的结果"></p>
 <p><em>图：动作强度从近似 no-op 一直覆盖到 participation shutdown；中间的 state、recovery 与 variance-time 路径仍没有同时取得支持和正 reward 下界。</em></p>
-<h2 id="8-合并后的结论：已测试-temporal-permission-frontier，没有出现“既有杠杆又有价值”的区域"><a href="#8-合并后的结论：已测试-temporal-permission-frontier，没有出现“既有杠杆又有价值”的区域" class="headerlink" title="8. 合并后的结论：已测试 temporal-permission frontier，没有出现“既有杠杆又有价值”的区域"></a>8. 合并后的结论：已测试 temporal-permission frontier，没有出现“既有杠杆又有价值”的区域</h2><p>五个动作排成一条强度轴后，阴性结果具有结构。One-cycle 触达路径太少；stop-until-flat 改得太多并牺牲活动；state/recovery 试图寻找中间区域，却分别败在支持和负 reward；variance-time 最接近完整可执行实验，仍未让 BUY 或 SELL 的主下界越过零。由此关闭的是这组冻结 temporal-permission action subspace，而不是所有 state-to-duration 函数。</p>
+<h2 id="8-结论：已测试-temporal-permission-frontier，没有出现“既有杠杆又有价值”的区域"><a href="#8-结论：已测试-temporal-permission-frontier，没有出现“既有杠杆又有价值”的区域" class="headerlink" title="8. 结论：已测试 temporal-permission frontier，没有出现“既有杠杆又有价值”的区域"></a>8. 结论：已测试 temporal-permission frontier，没有出现“既有杠杆又有价值”的区域</h2><p>五个动作排成一条强度轴后，阴性结果具有结构。One-cycle 触达路径太少；stop-until-flat 改得太多并牺牲活动；state/recovery 试图寻找中间区域，却分别败在支持和负 reward；variance-time 最接近完整可执行实验，仍未让 BUY 或 SELL 的主下界越过零。由此关闭的是这组冻结 temporal-permission action subspace，而不是所有 state-to-duration 函数。</p>
 <p>Full‑Multiscale Boolean cooldown 是另一条更高维、nested OOF 的状态到时长研究，已经在独立主文中处理。不能因为本篇五个手工/低维动作失败就把 Full‑Multiscale 当成已验证 successor，也不能反过来用 Full‑Multiscale 的点信号重写本篇 consumed panels。</p>
 
                 
@@ -1515,9 +1514,9 @@ B(t)=\sum_{j:t_j\le t}\hat\sigma_j^2\Delta t_j.</script><p>达到阈值$B^*$时r
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Research-Project-Map/" title="NarrowGate 研究地图：十个研究族如何收敛为 12 篇主研究长文">
+                      <a href="/2026/08/29/NarrowGate-Research-Project-Map/" title="NarrowGate 研究地图：从市场预测、订单决策到完整账户收益">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">NarrowGate 研究地图：十个研究族如何收敛为 12 篇主研究长文</span>
+                        <span class="hidden-mobile">NarrowGate 研究地图：从市场预测、订单决策到完整账户收益</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -1587,7 +1586,6 @@ B(t)=\sum_{j:t_j\le t}\hat\sigma_j^2\Delta t_j.</script><p>达到阈值$B^*$时r
 
   
   
-
 
 
 
@@ -1865,41 +1863,49 @@ B(t)=\sum_{j:t_j\le t}\hat\sigma_j^2\Delta t_j.</script><p>达到阈值$B^*$时r
       <script>
         if (!window.MathJax) {
           window.MathJax = {
-            tex    : {
-              inlineMath: { '[+]': [['$', '$']] }
-            },
-            loader : {
-              load: ['ui/lazy']
-            },
+            tex: { inlineMath: { '[+]': [['$', '$']] } },
+            loader: { load: ['ui/lazy'] },
             options: {
               renderActions: {
-                insertedScript: [200, () => {
-                  document.querySelectorAll('mjx-container').forEach(node => {
-                    let target = node.parentNode;
-                    if (target.nodeName.toLowerCase() === 'li') {
-                      target.parentNode.classList.add('has-jax');
-                    }
+                // Kramed emits v2 script nodes. Keep v3's default delimiter find.
+                // https://docs.mathjax.org/en/v3.2/upgrading/v2.html
+                findScript: [10, function (doc) {
+                  for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                    if (node.closest('pre, code')) continue;
+                    const display = /;\s*mode=display/.test(node.type);
+                    const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                    const text = document.createTextNode('');
+                    node.parentNode.replaceChild(text, node);
+                    math.start = {node: text, delim: '', n: 0};
+                    math.end = {node: text, delim: '', n: 0};
+                    doc.math.push(math);
+                  }
+                }, ''],
+                insertedScript: [200, function () {
+                  document.querySelectorAll('mjx-container').forEach(function (node) {
+                    const target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') target.parentNode.classList.add('has-jax');
                   });
                 }, '', false]
               }
             }
           };
-        } else {
-          MathJax.startup.document.state(0);
-          MathJax.texReset();
-          MathJax.typeset();
-          MathJax.typesetPromise();
         }
-
-        Fluid.events.registerRefreshCallback(function() {
-          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+        // Serialize refreshes after startup. Consumed scripts cannot register twice.
+        function refreshMath() {
+          if (!window.MathJax || !MathJax.startup) return;
+          MathJax.startup.promise = MathJax.startup.promise.then(function () {
             MathJax.startup.document.state(0);
             MathJax.texReset();
-            MathJax.typeset();
-            MathJax.typesetPromise();
-          }
-        });
+            return MathJax.typesetPromise();
+          }).catch(function (error) { console.error('MathJax typesetting failed', error); });
+        }
+        Fluid.events.registerRefreshCallback(refreshMath);
+        if (window.MathJax.startup) refreshMath();
       </script>
+      <style>
+        .markdown-body mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; padding: 0.15em 0; }
+      </style>
     
 
   <script  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" ></script>
