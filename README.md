@@ -13,7 +13,7 @@ rsync -rc .hexo/public/ ./
 git diff --check
 ```
 
-Review the generated diff before an explicitly authorized ordinary Git commit/push. Do not use the retained `.hexo/.deploy_git` cache as another working repository or run `hexo deploy`; publication uses this repository's `origin`. A local build or push does not by itself verify the deployed site or CDN. `.hexo/node_modules`, build cache and generated `.hexo/public` are ignored; retained local diagnostic/cache files are not publication inputs.
+Review the generated diff, commit task-owned changes and push to `origin` under the owner's standing instruction of 2026-09-27, unless a later task explicitly forbids pushing. Do not manually dispatch, rerun or enable hosted CI; use `[skip ci]` for ordinary commits where supported. Automatic Pages publication is separate from test CI. Do not use the retained `.hexo/.deploy_git` cache as another working repository or run `hexo deploy`. A local build or push does not by itself verify the deployed site or CDN. `.hexo/node_modules`, build cache and generated `.hexo/public` are ignored; retained local diagnostic/cache files are not publication inputs.
 
 ## 中文说明
 
@@ -23,4 +23,4 @@ Block mathematics emitted by Kramed is handled in `.hexo/templates/math.ejs`, re
 
 块公式由共享的 `.hexo/templates/math.ejs` 适配 Kramed 与 MathJax 3，保留默认行内识别；启动与 Fluid 刷新逻辑在同一处维护。修改后检查长文滚动、重复刷新和窄屏，不逐页修补生成 HTML。
 
-审阅生成差异后，按本轮明确授权普通提交并推送本仓库，不使用保留的 `.hexo/.deploy_git` 缓存另行发布。构建成功或推送成功不等于已验证线上部署及 CDN。依赖、构建缓存与本地诊断文件不进入发布内容。
+按用户 2026-09-27 的持续约定，审阅生成差异后正常提交并推送 origin；后续任务明确禁止推送时以新指令为准。不主动启动、重跑或启用云端 CI，普通提交在支持时使用 `[skip ci]`；Pages 自动发布与测试 CI 分开报告。不使用保留的 `.hexo/.deploy_git` 缓存另行发布。构建成功或推送成功不等于已验证线上部署及 CDN。依赖、构建缓存与本地诊断文件不进入发布内容。
