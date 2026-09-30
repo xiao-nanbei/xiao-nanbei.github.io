@@ -1,7 +1,7 @@
 ---
-title: 'NarrowGate Fill Quality 与 First-Add Quote EV：从 Markout、Campaign Loss 到 Soft-Widen 动作'
+title: 'NarrowGate Fill Quality 与 First-Add Quote EV：从 Markout、库存生命周期 Loss 到 Soft-Widen 动作'
 date: 2026-08-29 13:30:00
-updated: 2026-09-27 10:45:00
+updated: 2026-10-01 03:20:00
 categories:
 - Market Making
 tags:
@@ -13,8 +13,7 @@ tags:
 math: true
 ---
 
-
-做市商需要判断的不只是订单能否成交，还包括成交后增加的库存是否值得持有。短期 markout 衡量成交后的价格变化，却不能直接告诉我们：跳过这次交易、把报价挂得更远，或者继续等待，最终是否会让账户赚得更多。
+做市商需要判断的不只是订单能否成交，还包括成交后增加的库存是否值得持有。从成交价起算的短期 markout 衡量未来估值相对成交价的价格优势，却不能直接告诉我们：跳过这次交易、把报价挂得更远，或者继续等待，最终是否会让账户赚得更多。
 
 原因在于，动作会改变后续路径。少一笔成交，可能少承担一段不利库存，也可能失去正常价差、改变减仓机会或延长已有仓位的持有时间。要从“这笔成交后来亏了”走到“当时应该采取另一种动作”，需要依次区分成交质量、库存归因与相对基线的完整路径收益。
 
@@ -26,7 +25,7 @@ $$
 M_h=\operatorname{side}\,(m_{t+h}-p_{fill})-fee,
 $$
 
-而完整决策价值必须继续走到库存 campaign 终点：
+而完整决策价值必须继续走到库存生命周期 终点：
 
 $$
 Y_T=\sum_{i\in\text{post-decision fills}}\!\operatorname{signedCashflow}_i
@@ -39,8 +38,8 @@ $$
 
 | 实验 | 比较对象 | 结果的适用范围 |
 |---|---|---|
-| Fill-to-inventory lifecycle | 30 秒 markout 与 campaign PnL 的关系是什么？ | 保留 estimand；旧绝对数值撤回 |
-| Dynamic campaign attribution | add toxicity、repair failure 如何累积为库存尾部？ | 描述机制；不能当动作因果结论 |
+| Fill-to-inventory lifecycle | 30 秒 markout 与 库存生命周期 PnL 的关系是什么？ | 保留 estimand；旧绝对数值撤回 |
+| Dynamic 库存生命周期 attribution | add toxicity、repair failure 如何累积为库存尾部？ | 描述机制；不能当动作因果结论 |
 | First-add terminal loss | 负价值从哪个决策时刻开始？ | 两侧均值稳定为负；没有稳定可执行 subgroup |
 | Decision-visible fill value | 当时可见状态能否提前筛出负价值路径？ | chronological prediction branches 关闭 |
 | BUY soft-widen action | 解除一次放宽是否创造直接 assignment-to-terminal value？ | 动作真实发生；两种 role 均负，关闭 |
@@ -51,23 +50,23 @@ $$
 
 成交后的价格变化、单份库存何时被抵消、净库存何时归零，是三个不同终点。这里先定义它们，再说明为什么历史时长统计失效后，方法上的区别仍然成立。
 
-![Fill、30 秒 markout、inventory lot 与 campaign terminal 的生命周期](/images/narrowgate/fill-inventory-lifecycle.svg)
+![Fill、30 秒 markout、inventory lot 与 库存生命周期 terminal 的生命周期](/images/narrowgate/fill-inventory-lifecycle.svg)
 
-*图 1：同一 opening fill 同时启动短期 markout clock、库存 lot 和更长的 campaign path。30 秒价格标签先结束，不代表库存已经修复；replay boundary 到来时仍未关闭的 lot 只能 censor。*
+*图 1：同一 opening fill 同时启动短期 markout clock、库存 lot 和更长的 库存生命周期 path。30 秒价格标签先结束，不代表库存已经修复；replay boundary 到来时仍未关闭的 lot 只能 censor。*
 
 ![从 markout 到 action uplift 的归因阶梯](/images/narrowgate/f10-attribution-evidence-ladder.svg)
 
-*图 2：fill markout、lot、campaign、portfolio mechanism 与 action uplift 是五层不同证据。左侧可以定位毒性与持有风险，只有最右侧完整反事实才回答“改变报价是否值得”。*
+*图 2：fill markout、lot、库存生命周期、portfolio mechanism 与 action uplift 是五层不同证据。左侧可以定位毒性与持有风险，只有最右侧完整反事实才回答“改变报价是否值得”。*
 
 <span id="1-一个-fill-同时启动了三只时钟"></span>
 
 ### 一个 fill 同时启动了三只时钟
 
-假设 maker BUY 在 $t_f$ 以价格 $P_f$ 成交，创建正库存。第一只时钟是 micro markout clock：在预先冻结的 $h=1,5,20,30$ 秒读取因果可见的 mid-price，测量成交后的短期价格方向。第二只时钟是 lot lifecycle：等待未来 reducing SELL fills 按某种归因规则抵消该 opening quantity。第三只时钟是 campaign lifecycle：从库存离开零开始，直到整个策略库存重新回到 flat。
+假设 maker BUY 在 $t_f$ 以价格 $P_f$ 成交，创建正库存。第一只时钟是 micro markout clock：在预先冻结的 $h=1,5,20,30$ 秒读取因果可见的 mid-price，测量相对成交价的短期价格优势，并另行分解成交后的中价变化。第二只时钟是 lot lifecycle：等待未来 reducing SELL fills 按某种归因规则抵消该 opening quantity。第三只时钟是库存生命周期：从库存离开零开始，直到整个策略库存重新回到 flat。
 
 三只时钟的终点通常不同。价格可能在 30 秒内向上，使 BUY markout 为正，但该库存随后长时间占用风险预算；也可能 30 秒 markout 为负，却在后续 reducing fill 与 spread capture 中修复。只读取任意一个终点都会遗漏其它机制。
 
-因此“fill PnL”不是一个天然字段。研究必须先说明分母是一笔 fill、一个 attributed lot、一次 campaign，还是一个随机化 intervention；再说明终点是固定 horizon、lot close、campaign flat 或 replay terminal MTM。
+因此“fill PnL”不是一个天然字段。研究必须先说明分母是一笔 fill、一个 attributed lot、一次 库存生命周期，还是一个随机化 intervention；再说明终点是固定 horizon、lot close、库存生命周期 flat 或 replay terminal MTM。
 
 <span id="2-Micro-markout：它回答的是早期-adverse-selection"></span>
 
@@ -92,7 +91,7 @@ s\frac{P_{mid}(t_f+h)-P_f}{P_f}\times10^4
 \quad\text{bps}.
 $$
 
-$M_h>0$ 表示价格随后向 maker 有利方向移动，$M_h<0$ 表示早期 adverse selection。这个标签适合回答“刚成交的流是否有毒”，但它没有包含订单在 fill 前的 queue cost、后续 inventory holding risk、reducing execution、commission 或 campaign tail。
+$M_h>0$ 表示未来估值相对成交价仍有正价格优势，不保证成交后的中价向有利方向移动。绝对价格差可拆成 $s(P_{mid}(t_f)-P_f)+s(P_{mid}(t_f+h)-P_{mid}(t_f))$；判断不利选择时，应分别分析成交时价格优势与成交后中价变化。例如合成买入价99.90、成交时中价100.00、未来中价99.95：完整价格 markout 为+0.05，后续中价变化却为−0.05；这只是定义示例，不是实际成交。上式 bps 以成交价归一化；货币价值还需匹配数量，费用只能扣一次。该标签没有包含订单在 fill 前的 queue cost、后续库存持有风险、减仓执行、手续费或库存生命周期尾部，不是完整净 PnL。
 
 实际观测还需要区分 target time 与 observation time。若目标是 $t_f+30s$，却只在更晚一次 quote decision 才读取 markout，那么名义 30 秒可能变成 10–20 秒额外延迟。后续 time/unit repair 因此要求用频繁 wall-clock tick 解析 pending markout，并记录 target、actual observation、source age 与 censoring。
 
@@ -150,13 +149,13 @@ $$
 
 即使 $I$ 较小，PnL也未必更好：更激进修复可以缩短库存时间却牺牲价格；F09 reducing-BUY实验就是实际反例。inventory-time是risk mechanism，不是价值函数。
 
-<span id="4-Campaign：真正的库存终局通常比-30-秒晚得多"></span>
+<span id="4-库存生命周期：真正的库存终局通常比-30-秒晚得多"></span>
 
-### Campaign：真正的库存终局通常比 30 秒晚得多
+### 库存生命周期：真正的库存终局通常比 30 秒晚得多
 
-inventory campaign 从净库存离开零开始，到再次回到零结束。一次 campaign 可以包含 opener、多个 exposure-increasing adds、部分 reducing fills、quote pauses、cancel/re-entry 与其它反馈。一个 early fill 的价值会通过整条路径传递。
+库存生命周期 从净库存离开零开始，到再次回到零结束。一次 库存生命周期 可以包含 opener、多个 exposure-increasing adds、部分 reducing fills、quote pauses、cancel/re-entry 与其它反馈。一个 early fill 的价值会通过整条路径传递。
 
-对第 $c$ 个 campaign，终局变化可写为
+对第 $c$ 个 库存生命周期，终局变化可写为
 
 $$
 Y_c
@@ -164,15 +163,15 @@ Y_c
 E_c(T_{flat})-E_c(T_{birth}),
 $$
 
-并与 maximum adverse excursion、absolute inventory time、repair latency、duration 和 tail indicator 一起报告。若 campaign 到 replay boundary 仍未 flat，同样必须 censor 或使用冻结 terminal-MTM 规则。
+并与 maximum adverse excursion、absolute inventory time、repair latency、duration 和 tail indicator 一起报告。若 库存生命周期 到 replay boundary 仍未 flat，同样必须 censor 或使用冻结 terminal-MTM 规则。
 
-动作研究尤其不能把同一个 $Y_c$ 复制给 campaign 内每个 decision。那会把一次终局损失重复计入多行，产生伪精度。正确做法是每个 intervention identity 只拥有一次 campaign-level attribution，或使用明确的 incremental contribution contract。
+动作研究尤其不能把同一个 $Y_c$ 复制给 库存生命周期 内每个 decision。那会把一次终局损失重复计入多行，产生伪精度。正确做法是每个 intervention identity 只拥有一次 库存生命周期-level attribution，或使用明确的 incremental contribution contract。
 
 <span id="5-生存视角：平均-duration-会被长尾支配"></span>
 
 ### 生存视角：平均 duration 会被长尾支配
 
-令 $T$ 是 lot close 或 campaign flat time，$C$ 是 replay censor time，观察到的是
+令 $T$ 是 lot close 或 库存生命周期 flat time，$C$ 是 replay censor time，观察到的是
 
 $$
 \widetilde T=\min(T,C),
@@ -186,9 +185,9 @@ $$
 S(u)=\Pr(T>u)
 $$
 
-回答在 $u$ 时刻仍未修复的比例。仅报告 closed rows 的平均 duration 会丢掉所有长寿 censor，并倾向于把修复速度说得过快。仅报告均值又会被极少数长 campaign 拉高，所以 median、P75、P90、Kaplan–Meier median 与固定 horizon survival 应共同出现。
+回答在 $u$ 时刻仍未修复的比例。仅报告 closed rows 的平均 duration 会丢掉所有长寿 censor，并倾向于把修复速度说得过快。仅报告均值又会被极少数长 库存生命周期 拉高，所以 median、P75、P90、Kaplan–Meier median 与固定 horizon survival 应共同出现。
 
-若 fill、cancel ACK、campaign flat 等结局竞争，还需要 competing-risk 方法，而不是把每个 horizon 当作彼此独立的 binary label。Lifecycle research 的贡献就在于先定义风险集和终局，再谈预测。
+若 fill、cancel ACK、库存生命周期 flat 等结局竞争，还需要 competing-risk 方法，而不是把每个 horizon 当作彼此独立的 binary label。Lifecycle research 的贡献就在于先定义风险集和终局，再谈预测。
 
 <span id="5-1-Closed-only-mean-的方向性偏差"></span>
 
@@ -202,7 +201,7 @@ Kaplan–Meier把第十笔作为right censor：它贡献“至少活到60分钟�
 
 #### 固定30秒与随机terminal为何不能直接比较均值
 
-30秒markout对每笔fill使用相同horizon；campaign terminal时间随path变化。前者接近横截面早期价格反应，后者混合不同持有时长与后续action。把两者做相关并不能证明30秒“解释了多少PnL”，因为terminal duration本身可能由markout与策略共同决定。
+30秒markout对每笔fill使用相同horizon；库存生命周期 terminal时间随path变化。前者接近横截面早期价格反应，后者混合不同持有时长与后续action。把两者做相关并不能证明30秒“解释了多少PnL”，因为terminal duration本身可能由markout与策略共同决定。
 
 更有用的分解是把 $M_{30s}$ 当predefined mechanism slice，再单独报告post-30s continuation：
 
@@ -226,25 +225,25 @@ $$
 | KM median | 6.3 minutes | 2.5 minutes |
 | Alive at 30s | 92.1% | 79.8% |
 
-旧 denominator 还报告 closed campaign fill-to-flat median 11.2 分钟、P90 251.4 分钟。它们曾直观展示“30 秒以后仍有大量库存风险”，但后来 mixed-L2、queue identity、trade-side、merged clock 与 cross-day warmup 修复改变了订单和成交路径，因此这些 exact durations 必须重建。
+旧 denominator 还报告 closed 库存生命周期 fill-to-flat median 11.2 分钟、P90 251.4 分钟。它们曾直观展示“30 秒以后仍有大量库存风险”，但后来 mixed-L2、queue identity、trade-side、merged clock 与 cross-day warmup 修复改变了订单和成交路径，因此这些 exact durations 必须重建。
 
-这里有一个重要的证据治理原则：方法语义可以在数据身份失效后保留，数值却不能。FIFO/LIFO、censoring、lot versus campaign 与 terminal MTM 的区分不依赖某个具体 replay；43,183 fills 或 92.1% survival 则依赖完整 denominator，身份改变后必须撤回。
+这里有一个重要的证据治理原则：方法语义可以在数据身份失效后保留，数值却不能。FIFO/LIFO、censoring、lot versus 库存生命周期 与 terminal MTM 的区分不依赖某个具体 replay；43,183 fills 或 92.1% survival 则依赖完整 denominator，身份改变后必须撤回。
 
 <span id="7-数据与因果边界"></span>
 
 ### 数据与因果边界
 
-一个可用的 lifecycle panel 至少要绑定：exact order/fill identity、maker side、fill quantity、campaign identity、execution price、commission unit、因果可见 mid、reducing fills、terminal inventory/mark、replay boundary，以及 queue、L2、trade 与 clock identities。
+一个可用的 lifecycle panel 至少要绑定：exact order/fill identity、maker side、fill quantity、库存生命周期 identity、execution price、commission unit、因果可见 mid、reducing fills、terminal inventory/mark、replay boundary，以及 queue、L2、trade 与 clock identities。
 
 固定 horizon markout 只能使用目标时刻已经存在的 historical book；不能用未来第一笔 trade 代替 midpoint。若精确目标没有 book observation，应记录 actual observation 和 age，按冻结规则 censor，而不是向未来搜索一条方便的价格。
 
-lot attribution 可以读取后续 reducing fills来构造 outcome，但这些未来字段绝不能进入 $t_f$ 前的预测 feature。campaign terminal 也只能作为标签。预测 score 与动作触发必须停在 feature-ready cutoff 左侧。
+lot attribution 可以读取后续 reducing fills来构造 outcome，但这些未来字段绝不能进入 $t_f$ 前的预测 feature。库存生命周期 terminal 也只能作为标签。预测 score 与动作触发必须停在 feature-ready cutoff 左侧。
 
 <span id="8-从描述性标签到动作-estimand"></span>
 
 ### 从描述性标签到动作 estimand
 
-观察到 $M_{30s}<0$ 或 $Y_c<0$，不等于已经证明取消 opening order 会改善结果。一个 action 会同时改变 fill probability、queue position、inventory birth、后续 adds、reducing path 与 campaign terminal。
+观察到 $M_{30s}<0$ 或 $Y_c<0$，不等于已经证明取消 opening order 会改善结果。一个 action 会同时改变 fill probability、queue position、inventory birth、后续 adds、reducing path 与 库存生命周期 terminal。
 
 动作 $a$ 的完整价值应更接近
 
@@ -253,7 +252,7 @@ V(a)
 =
 \mathbb E[
 \text{fill value}
--\text{incremental campaign cost}
+-\text{incremental 库存生命周期 cost}
 -\text{queue reset cost}
 \mid a],
 $$
@@ -272,15 +271,15 @@ BUY fill后30秒mid下跌，$M_{30s}<0$。若candidate在fill前widen，可能�
 
 ### 三种时间权重会给出不同的“典型持有期”
 
-按fill等权，每个成交贡献一次；按lot quantity加权，大额fill更重要；按inventory-time抽样，长寿campaign占据更多权重。它们分别回答“随机一笔fill”“随机一BTC lot”“随机一个持仓时刻”的持续时间，不能共用一个平均数。
+按fill等权，每个成交贡献一次；按lot quantity加权，大额fill更重要；按inventory-time抽样，长寿库存生命周期占据更多权重。它们分别回答“随机一笔fill”“随机一BTC lot”“随机一个持仓时刻”的持续时间，不能共用一个平均数。
 
 例如一个1秒小lot与一个1000秒大lot，fill等权中各占50%；在inventory-time风险里后者几乎支配全部暴露。报告应同时给median/quantiles、survival curve与BTC-hours，而不是只给closed lots mean。
 
-### Campaign terminal mark 的选择
+### 库存生命周期 terminal mark 的选择
 
-自然flat是最清楚的terminal；窗口末端仍有inventory时，需要用当时可见mark进行MTM并标right censor，不能虚构taker close。若campaign跨日，daily PnL rollover不能切断经济身份；但按日统计不确定性时又要保留共同shock。
+自然flat是最清楚的terminal；窗口末端仍有inventory时，需要用当时可见mark进行MTM并标right censor，不能虚构taker close。若库存生命周期跨日，daily PnL rollover不能切断经济身份；但按日统计不确定性时又要保留共同shock。
 
-campaign value可写为
+库存生命周期 value可写为
 
 $$
 Y_c=\Delta cash_c+q_{c,T}m_T-fees_c,
@@ -288,33 +287,33 @@ $$
 
 其中$q_{c,T}=0$时退化为closed value。mark source、timestamp与age必须记录，否则terminal difference可能来自不同价格观测而非策略。
 
-<span id="4-Dynamic-campaign-attribution"></span>
+<span id="4-Dynamic-库存生命周期-attribution"></span>
 
-## Dynamic campaign attribution
+## Dynamic 库存生命周期 attribution
 
 库存损失不仅取决于最初的成交质量，还取决于后续能否减仓，以及报价控制器是否真正改变了订单。历史机制审计因此分别考察短期不利成交、修复延迟和 floor/cap 等约束的实际作用。它是描述性归因，不是“跳过加仓”的两臂实验。
 
-![Dynamic campaign 中 add toxicity、repair failure 与控制器传导](/images/narrowgate/dynamic-campaign-mechanism-attribution.svg)
+![Dynamic 库存生命周期 中 add toxicity、repair failure 与控制器传导](/images/narrowgate/dynamic-inventory_lifecycle-mechanism-attribution.svg)
 
-*图 1：一个 add fill 可以先产生短期 adverse markout，再通过更长的库存修复路径进入 campaign terminal。Regime、P3、cap、cooldown 与 reducing defense 影响报价，却不等于已经构造出“跳过 add”的反事实。*
+*图 1：一个 add fill 可以先产生短期 adverse markout，再通过更长的库存修复路径进入 库存生命周期 terminal。Regime、P3、cap、cooldown 与 reducing defense 影响报价，却不等于已经构造出“跳过 add”的反事实。*
 
 ![从历史归因到动作价值的证据阶梯](/images/narrowgate/f10-attribution-evidence-ladder.svg)
 
-*图 2：add/no-add campaign差异位于portfolio mechanism层。它能定位损失，但只有新的随机或配对action path才能到达uplift层；30秒markout、库存时长或controller状态都不能单独跨级。*
+*图 2：add/no-add 库存生命周期差异位于portfolio mechanism层。它能定位损失，但只有新的随机或配对action path才能到达uplift层；30秒markout、库存时长或controller状态都不能单独跨级。*
 
 <span id="1-研究问题：损失集中在哪里，机制是否真的在动"></span>
 
 ### 研究问题：损失集中在哪里，机制是否真的在动
 
-这项审计问两个描述性问题。第一，terminal loss 更集中在没有 add、发生 add、immediate toxic add、repair failure 还是二者混合的 campaigns？第二，配置中宣称的动态控制器在实际路径上是否有足够 variation，还是多数时间被 floor、cap、离散阶梯或其它 overlay 固定住？
+这项审计问两个描述性问题。第一，terminal loss 更集中在没有 add、发生 add、immediate toxic add、repair failure 还是二者混合的 库存生命周期？第二，配置中宣称的动态控制器在实际路径上是否有足够 variation，还是多数时间被 floor、cap、离散阶梯或其它 overlay 固定住？
 
-对 campaign $c$，可观察 terminal outcome 为
+对 库存生命周期 $c$，可观察 terminal outcome 为
 
 $$
 Y_c=E_c(T_{flat})-E_c(T_{birth}).
 $$
 
-令 $A_c=1$ 表示该 campaign 至少发生一次 exposure-increasing add，则描述性差异为
+令 $A_c=1$ 表示该 库存生命周期 至少发生一次 exposure-increasing add，则描述性差异为
 
 $$
 \Delta_{obs}
@@ -338,7 +337,7 @@ $$
 
 #### Add/no-add 对比中的选择路径
 
-发生add需要：campaign已存在、baseline permission开放、quote激活、市场触达并完成fill。市场趋势与库存状态同时影响是否add以及terminal outcome。一个简化因果图是：
+发生add需要：库存生命周期已存在、baseline permission开放、quote激活、市场触达并完成fill。市场趋势与库存状态同时影响是否add以及terminal outcome。一个简化因果图是：
 
 $$
 MarketState\rightarrow AddFill\leftarrow Quote/Queue,
@@ -348,21 +347,21 @@ $$
 MarketState\rightarrow Terminal,\qquad InventoryState\rightarrow AddFill,Terminal.
 $$
 
-条件于 $AddFill=1$ 会选择出更容易触达、更长或更困难的campaign。即使add本身没有因果伤害，add group也可能更差；反之，add也可能真增加风险。观察性差异无法区分。
+条件于 $AddFill=1$ 会选择出更容易触达、更长或更困难的库存生命周期。即使add本身没有因果伤害，add group也可能更差；反之，add也可能真增加风险。观察性差异无法区分。
 
-因此100个add campaigns与408个no-add campaigns不是两臂实验。它们最适合回答“哪里集中损失、下一步动作面在哪”，不适合回答“删除100个add会省9.37 USDC”。
+因此100个add 库存生命周期与408个no-add 库存生命周期不是两臂实验。它们最适合回答“哪里集中损失、下一步动作面在哪”，不适合回答“删除100个add会省9.37 USDC”。
 
 <span id="1-2-48小时窗口为何只能做机制定位"></span>
 
 #### 48小时窗口为何只能做机制定位
 
-两天容易被单一趋势、周内时段与少数worst campaigns主导。worst 20承担大部分loss本身就说明重尾；按campaign row做普通区间会低估共同市场冲击。
+两天容易被单一趋势、周内时段与少数worst 库存生命周期主导。worst 20承担大部分loss本身就说明重尾；按库存生命周期 row做普通区间会低估共同市场冲击。
 
 这个窗口仍有价值，因为它揭示controller是否binding、cooldown staircase与add/repair路径，可用于注册新问题。但稳定side ranking、参数最优值或长期loss share需要更多独立日期和修复后的denominator。
 
-<span id="2-Campaign-分类：toxicity-与-repair-是两条不同路径"></span>
+<span id="2-库存生命周期-分类：toxicity-与-repair-是两条不同路径"></span>
 
-### Campaign 分类：toxicity 与 repair 是两条不同路径
+### 库存生命周期 分类：toxicity 与 repair 是两条不同路径
 
 历史审计预先定义 immediate add toxicity 为 first-add 30s maker-signed markout 不高于 $-0.5$ bps，repair failure 为 first add 到 first reducing fill 超过 300 秒。它们是 diagnostic thresholds，不是 treatment rules。
 
@@ -381,30 +380,30 @@ $$
 
 公开的历史窗口结果为：
 
-| Group | Closed campaigns | Aggregate terminal PnL | Mean PnL | Median duration |
+| Group | Closed 库存生命周期 | Aggregate terminal PnL | Mean PnL | Median duration |
 |---|---:|---:|---:|---:|
 | No add | 408 | +0.3122 | +0.0008 | 89.8s |
 | At least one add | 100 | -9.3668 | -0.0937 | 509.4s |
 | Worst 20 | 20 | -8.7043 | -0.4352 | 689.8s |
 
-标签 no_add_net_positive 与 add_net_negative 只描述 aggregate sign，不表示每个 member 同号。100 个 add campaigns 的细分为：
+标签 no_add_net_positive 与 add_net_negative 只描述 aggregate sign，不表示每个 member 同号。100 个 add 库存生命周期 的细分为：
 
-| Add class | Campaigns | Aggregate terminal PnL |
+| Add class | 库存生命周期 | Aggregate terminal PnL |
 |---|---:|---:|
 | Immediate toxicity only | 43 | -4.0939 |
 | Repair failure only | 11 | -1.6059 |
 | Mixed | 5 | -2.0747 |
 | Other add | 41 | -1.5923 |
 
-immediate-toxicity 与 mixed 虽只占一部分 campaigns，却承担较大损失；repair-only 也明显为负。first-add 30s markout 平均约 $-0.82$ bps，说明早期 adverse selection 是机制的一部分，但 other-add 仍为负，说明 30 秒标签没有解释完整 terminal path。
+immediate-toxicity 与 mixed 虽只占一部分 库存生命周期，却承担较大损失；repair-only 也明显为负。first-add 30s markout 平均约 $-0.82$ bps，说明早期 adverse selection 是机制的一部分，但 other-add 仍为负，说明 30 秒标签没有解释完整 terminal path。
 
-历史窗口中 SHORT add campaigns 的 early markout 与 terminal aggregate 看起来比 LONG 更差，但窗口只有两天。这是 unstable side diagnostic，不能建立 SELL-side action，更不能把短窗口 side ranking 外推为永久市场结构。
+历史窗口中 SHORT add 库存生命周期 的 early markout 与 terminal aggregate 看起来比 LONG 更差，但窗口只有两天。这是 unstable side diagnostic，不能建立 SELL-side action，更不能把短窗口 side ranking 外推为永久市场结构。
 
 <span id="4-Regime-与-P3：缩放真的发生，floor-也确实介入"></span>
 
 ### Regime 与 P3：缩放真的发生，floor 也确实介入
 
-regime scale 的历史 campaign mean 约为 1.53x，说明它不是配置中的空变量。P3 pair-spread floor 在 sampled campaigns 中约 28.9% binding，意味着 low-volatility tightening 经常被触达概率约束截断，但也没有永久把报价钉死。
+regime scale 的历史 库存生命周期 mean 约为 1.53x，说明它不是配置中的空变量。P3 pair-spread floor 在 sampled 库存生命周期 中约 28.9% binding，意味着 low-volatility tightening 经常被触达概率约束截断，但也没有永久把报价钉死。
 
 可以把最终 pair spread 抽象为
 
@@ -445,9 +444,9 @@ $$
 
 ### Kappa 与 cap：参数在变化，不代表报价受它控制
 
-审计发现 effective depth kappa 与 empirical P3 kappa 在普通状态非常接近。rare states 会移动它，但大多数 campaigns 中可用的连续动作范围很小。一个看似精细的 depth controller 若长期贴着外部 calibrated surface，就不应被当作主要 campaign adaptation lever。
+该实验中，深度缩放后的距离斜率在普通状态下接近 P3 触达概率的距离斜率，仅少量状态出现明显变化；多数库存生命周期的动作变化范围很小。这说明该实验中的深度缩放并未提供足够大的独立动作变化，不表示触达斜率已经成为成交强度估计。
 
-dynamic cap 的 level 确实变化，历史窗口 mean 约 24.52 bps；但 sampled cap-hit rate 为 0%。因此 cap 是 safety ceiling，而不是当时损失路径中的 active treatment。调一个从未 binding 的 cap，不会自动改变 fill 或 campaign。
+dynamic cap 的 level 确实变化，历史窗口 mean 约 24.52 bps；但 sampled cap-hit rate 为 0%。因此 cap 是 safety ceiling，而不是当时损失路径中的 active treatment。调一个从未 binding 的 cap，不会自动改变 fill 或 库存生命周期。
 
 这个例子揭示了 mechanism attribution 的必要性：配置文件里有参数，不等于数据里存在 treatment strength。研究动作前必须先证明 candidate 会改变最终 quote、fill 或 lifecycle，而不是只改变一个中间变量。
 
@@ -455,7 +454,7 @@ dynamic cap 的 level 确实变化，历史窗口 mean 约 24.52 bps；但 sampl
 
 ### Cooldown：所谓 dynamic 可能只是离散 staircase
 
-历史 sampled campaigns 的 maximum cooldown 呈现清楚的 85 秒整数倍：85s 有 3 个、170s 有 61 个、255s 有 30 个、340s 有 8 个、425s 有 2 个。它是状态触发的 staircase，不是连续平滑控制器。
+历史 sampled 库存生命周期 的 maximum cooldown 呈现清楚的 85 秒整数倍：85s 有 3 个、170s 有 61 个、255s 有 30 个、340s 有 8 个、425s 有 2 个。它是状态触发的 staircase，不是连续平滑控制器。
 
 离散阶梯会产生两个后果。第一，两个略有不同的 states 可能落到同一 cooldown bucket，动作实际上相同。第二，跨过一个台阶会一次改变 85 秒 permission，远比 score 的微小变化更强。任何 cooldown action study 都必须冻结具体 transition，而不能把 score slope 当作 treatment size。
 
@@ -465,7 +464,7 @@ dynamic cap 的 level 确实变化，历史窗口 mean 约 24.52 bps；但 sampl
 
 如果连续score只在跨过阈值时把cooldown从85变170秒，那么绝大多数score小变化没有action difference，少数边界变化却一次改变85秒。模型若回归score与PnL，估计的是状态关联，不是这条离散jump的效果。
 
-真正action estimand应比较同一个boundary opportunity上是否跨级，并追踪后续permission与campaign。后来的state/recovery/variance-time项目正把不同release规则独立注册；它们不能由本篇staircase统计直接授权。
+真正action estimand应比较同一个boundary opportunity上是否跨级，并追踪后续permission与库存生命周期。后来的state/recovery/variance-time项目正把不同release规则独立注册；它们不能由本篇staircase统计直接授权。
 
 <span id="7-Reducing-side-defense：想修复库存，先确认机制有-support"></span>
 
@@ -473,7 +472,7 @@ dynamic cap 的 level 确实变化，历史窗口 mean 约 24.52 bps；但 sampl
 
 减少风险的 reducing quote 也会受到 common overlays、distance 与 pause 影响。历史审计中实际 defense pause 很稀少，inventory emergency quantity threshold 没有在冻结窗口触发；loss-based emergency 与 quantity emergency 又是两条不同机制，不能混成一个“防御开关”。
 
-研究曾为 reducing repair release 预注册每侧最低 campaign、active-day、strict-through interval 与 affected-negative-add rate。支持门未同时满足，因此该动作在读 action economics 前就关闭。touch 或 strict trade-through 也不能当作真实 queue fill counterfactual；一个更激进 reducing quote 是否成交仍需要 queue、latency 和 exact execution path。
+研究曾为 reducing repair release 预注册每侧最低 库存生命周期、active-day、strict-through interval 与 affected-negative-add rate。支持门未同时满足，因此该动作在读 action economics 前就关闭。touch 或 strict trade-through 也不能当作真实 queue fill counterfactual；一个更激进 reducing quote 是否成交仍需要 queue、latency 和 exact execution path。
 
 后续应该转向 first baseline-eligible exposure-increasing add opportunity，因为这个决策点在 add fill 发生前、具有明确 baseline action，也更接近可识别的预防动作。
 
@@ -481,26 +480,26 @@ dynamic cap 的 level 确实变化，历史窗口 mean 约 24.52 bps；但 sampl
 
 ### 数据、时钟与撤回边界
 
-historical live aggregate 描述当时实际系统发生过的 closed campaigns；旧 Development replay 则依赖当时的 top-20 queue、q0.70 calibration、book/model identity。二者来源、transport 与 treatment 都不同，不能把 live association 与 replay counterfactual 拼成一个 causal estimate。
+historical live aggregate 描述当时实际系统发生过的 closed 库存生命周期；旧 Development replay 则依赖当时的 top-20 queue、q0.70 calibration、book/model identity。二者来源、transport 与 treatment 都不同，不能把 live association 与 replay counterfactual 拼成一个 causal estimate。
 
-后来 normalized 100ms L2、trade-side、calendar、merged clock 与 queue identity 修复改变了 replay denominator。于是旧 Development add-toxicity、repair-delay、distance、cap-hit、campaign 和 PnL exact values 被撤回。本文不复活这些数字，只保留公开状态仍允许的历史 actual-campaign aggregate 和 mechanism semantics。
+后来 normalized 100ms L2、trade-side、calendar、merged clock 与 queue identity 修复改变了 replay denominator。于是旧 Development add-toxicity、repair-delay、distance、cap-hit、库存生命周期 和 PnL exact values 被撤回。本文不复活这些数字，只保留公开状态仍允许的历史 actual-库存生命周期 aggregate 和 mechanism semantics。
 
-features 必须在 quote decision 前 ready；first-add markout 与 campaign terminal 只能作 outcome。一个 fill 后才知道的 toxicity class 不能用来决定该 fill 前的动作。
+features 必须在 quote decision 前 ready；first-add markout 与 库存生命周期 terminal 只能作 outcome。一个 fill 后才知道的 toxicity class 不能用来决定该 fill 前的动作。
 
 <span id="9-从机制审计到-action-research"></span>
 
 ### 从机制审计到 action research
 
-一个可识别的下一步动作需要在 campaign 第一个 baseline-eligible add decision 上冻结：
+一个可识别的下一步动作需要在 库存生命周期 第一个 baseline-eligible add decision 上冻结：
 
 - $A0$：执行 baseline add quote cycle；
 - $A1$：只跳过一个 add quote cycle；
 - BUY 与 SELL 分开；
-- 每个 campaign 至多一次 50/50 assignment；
+- 每个 库存生命周期 至多一次 50/50 assignment；
 - reducing quote、size、inventory limit 与 taker behavior 不变；
-- replay 完整 queue、latency、fill 与后续 campaign path。
+- replay 完整 queue、latency、fill 与后续 库存生命周期 path。
 
-reward 应从 decision 到 terminal，报告 campaign cost、repair time、tail 与 activity。这个动作后来属于 F09 action-uplift 研究，而不是本篇 descriptive audit 的结果。
+reward 应从 decision 到 terminal，报告 库存生命周期 cost、repair time、tail 与 activity。这个动作后来属于 F09 action-uplift 研究，而不是本篇 descriptive audit 的结果。
 
 <span id="9-1-后续action结果如何反过来校正机制直觉"></span>
 
@@ -520,7 +519,7 @@ $$
 S\rightarrow A,\qquad S\rightarrow Y,\qquad A\rightarrow F\rightarrow Y.
 $$
 
-观察到$E[Y\mid A=1]<E[Y\mid A=0]$同时包含动作效应与state selection。进一步按已fill、已closed或某个post-action campaign type分层，还可能打开collider路径。机制审计可以定位损失集中在哪，却不能把条件均值直接翻译为skip uplift。
+观察到$E[Y\mid A=1]<E[Y\mid A=0]$同时包含动作效应与state selection。进一步按已fill、已closed或某个post-action 库存生命周期 type分层，还可能打开collider路径。机制审计可以定位损失集中在哪，却不能把条件均值直接翻译为skip uplift。
 
 ### Binding rate 是 control authority 的局部地图
 
@@ -534,9 +533,9 @@ $$
 
 为了把损失定位到决策时刻，first-add 分析从每个库存生命周期中选取第一条后来确实产生加仓成交的订单决策，追踪决策、订单、成交和终局的完整身份链。与上一节的加仓/非加仓分组相比，它明确了收益归因的起点，但仍以基线后来成交为条件。
 
-![First-add decision 到 order、fill 与 campaign terminal 的精确身份链](/images/narrowgate/first-add-decision-terminal-loss.svg)
+![First-add decision 到 order、fill 与 库存生命周期 terminal 的精确身份链](/images/narrowgate/first-add-decision-terminal-loss.svg)
 
-*图 1：特征在 decision cutoff 左侧冻结；order activation、add fill、库存路径和 terminal equity 位于右侧，只用于定义 eligibility 与 outcome。每个 campaign 最多贡献一行。*
+*图 1：特征在 decision cutoff 左侧冻结；order activation、add fill、库存路径和 terminal equity 位于右侧，只用于定义 eligibility 与 outcome。每个 库存生命周期 最多贡献一行。*
 
 ![First-add loss 在归因与动作阶梯中的位置](/images/narrowgate/f10-attribution-evidence-ladder.svg)
 
@@ -546,7 +545,7 @@ $$
 
 ### 为什么从 realized fill 倒推 decision 会出错
 
-如果只在 fill tape 上找到第一笔 add，再向附近搜索最近 quote decision，很容易出现 nearest-time misjoin：同一时刻可能有 BUY/SELL、opener/add/reducing 多个 decision，order 还可能经历 replace、cancel、partial fill。错误 join 会把一个 campaign 的 terminal loss贴到另一个 order state 上。
+如果只在 fill tape 上找到第一笔 add，再向附近搜索最近 quote decision，很容易出现 nearest-time misjoin：同一时刻可能有 BUY/SELL、opener/add/reducing 多个 decision，order 还可能经历 replace、cancel、partial fill。错误 join 会把一个 库存生命周期 的 terminal loss贴到另一个 order state 上。
 
 旧 exploratory subset 曾只能匹配一小部分 rows。正式 producer 禁止修补那个 subset，要求 exact native identity：
 
@@ -557,45 +556,45 @@ order\_id
 \rightarrow
 fill\_id
 \rightarrow
-campaign\_id.
+库存生命周期\_id.
 $$
 
-每个 eligible campaign 只取第一条完整链，不能因为后续还有更多 adds 就复制 terminal outcome。producer 必须输出 100% eligible rows；open records、identity breaks、native sequence failures 或 q90 parity failures均显式失败。
+每个 eligible 库存生命周期 只取第一条完整链，不能因为后续还有更多 adds 就复制 terminal outcome。producer 必须输出 100% eligible rows；open records、identity breaks、native sequence failures 或 q90 parity failures均显式失败。
 
 <span id="1-1-Nearest-time-join-会制造怎样的假特征"></span>
 
 #### Nearest-time join 会制造怎样的假特征
 
-假设同一毫秒策略同时更新BUY add与SELL reducing，随后只有BUY order在几毫秒后成交。若fill按最近timestamp连接，tie-break可能贴到SELL decision；模型看到的side、queue、role与inventory effect全部错位，但campaign terminal仍来自BUY路径。
+假设同一毫秒策略同时更新BUY add与SELL reducing，随后只有BUY order在几毫秒后成交。若fill按最近timestamp连接，tie-break可能贴到SELL decision；模型看到的side、queue、role与inventory effect全部错位，但库存生命周期 terminal仍来自BUY路径。
 
 更隐蔽的是replace：fill order id可能对应三次更早decision中的最后一次activation，而不是最接近fill的quote callback。exact chain要求每个transition有明确parent，不允许用时间距离猜测。
 
-错误率即使很低，也可能集中在高频/高波动时段，恰好是loss较大的rows。仅检查总体match rate不能保证无偏；必须逐链验证role、side、quantity与campaign ownership。
+错误率即使很低，也可能集中在高频/高波动时段，恰好是loss较大的rows。仅检查总体match rate不能保证无偏；必须逐链验证role、side、quantity与库存生命周期 ownership。
 
-<span id="1-2-每campaign一行如何防止伪精度"></span>
+<span id="1-2-每库存生命周期一行如何防止伪精度"></span>
 
-#### 每campaign一行如何防止伪精度
+#### 每库存生命周期一行如何防止伪精度
 
-一个长campaign可能有十次adds，terminal loss只有一次。若把相同 $Y_c$ 复制十行，长且差的campaign自动获得十倍权重，标准误又把十行当近似独立。first-add identity把每个campaign最多保留一次，使cluster unit与经济终局更一致。
+一个长库存生命周期可能有十次adds，terminal loss只有一次。若把相同 $Y_c$ 复制十行，长且差的库存生命周期自动获得十倍权重，标准误又把十行当近似独立。first-add identity把每个库存生命周期最多保留一次，使cluster unit与经济终局更一致。
 
 这并不表示后续adds无关；它们仍作为first-add之后的路径进入 $Y_i$。研究只是把预测/归因起点固定在第一次add decision，避免重复claim同一terminal。
 
-<span id="2-Observational-estimand：从-decision-前权益到-campaign-terminal"></span>
+<span id="2-Observational-estimand：从-decision-前权益到-库存生命周期-terminal"></span>
 
-### Observational estimand：从 decision 前权益到 campaign terminal
+### Observational estimand：从 decision 前权益到 库存生命周期 terminal
 
 对第 $i$ 个 first-add decision，主目标为
 
 $$
 Y_i
 =
-V(T_{campaign,i})
+V(T_{库存生命周期,i})
 -
 V(t_{decision,i}^{-})
 \quad\text{USDC/decision}.
 $$
 
-$V(t_{decision}^{-})$ 是动作形成之前的策略权益，$V(T_{campaign})$ 是同一 inventory campaign 按冻结终局规则结束时的权益。这个 target 将 add fill 后的后续 adds、reducing fills、inventory duration、fees 与 terminal mark 全部保留在路径里，比 30 秒 markout 更接近风险问题。
+$V(t_{decision}^{-})$ 是动作形成之前的策略权益，$V(T_{库存生命周期})$ 是同一 库存生命周期 按冻结终局规则结束时的权益。这个 target 将 add fill 后的后续 adds、reducing fills、inventory duration、fees 与 terminal mark 全部保留在路径里，比 30 秒 markout 更接近风险问题。
 
 但它仍是 prognostic attribution。面板只包含“baseline decision 后来确实生成 add fill”的 rows，因此
 
@@ -640,9 +639,9 @@ $$
 
 individual trades 可以用于 exchange-time fill reconciliation，却不能伪装成 decision-visible taker flow。可交易的 flow feature 必须服从其 parent aggregate message 的 receive/feature-ready clock；child trade exchange timestamp 只属于 outcome/matching truth。
 
-campaign terminal、first reducing fill、repair duration、future markout 与 terminal inventory 都在 decision 以后，只能用于 target 或 mechanism audit。producer 的职责是保留未来身份，不是把未来状态回填进 feature row。
+库存生命周期 terminal、first reducing fill、repair duration、future markout 与 terminal inventory 都在 decision 以后，只能用于 target 或 mechanism audit。producer 的职责是保留未来身份，不是把未来状态回填进 feature row。
 
-100ms book resolution也不能被误解成 100ms action horizon。decision-to-terminal value 的终点由 campaign lifecycle 决定，可能远晚于 first-add fill。
+100ms book resolution也不能被误解成 100ms action horizon。decision-to-terminal value 的终点由 库存生命周期 lifecycle 决定，可能远晚于 first-add fill。
 
 <span id="5-主结果：两侧-primary-mean-都稳定低于零"></span>
 
@@ -657,7 +656,7 @@ campaign terminal、first reducing fill、repair duration、future markout 与 t
 
 四个 interval 全部低于零，说明 negative mean 不是只由一个 side、一个 panel 或少数日期符号造成。Grade B 不能晋级 primary，却为“first-add denominator 平均负”提供方向性 replication。
 
-这个结果比旧 add/no-add aggregate 更精确：它把起点放在 first-add decision 前，避免把 campaign birth 到该 decision 之前的权益变化算进 add attribution；同时仍保留 decision 之后完整 terminal path。
+这个结果比旧 add/no-add aggregate 更精确：它把起点放在 first-add decision 前，避免把 库存生命周期 birth 到该 decision 之前的权益变化算进 add attribution；同时仍保留 decision 之后完整 terminal path。
 
 <span id="5-1-用规模感理解均值，但不能倒推被删除收益"></span>
 
@@ -665,7 +664,7 @@ campaign terminal、first reducing fill、repair duration、future markout 与 t
 
 Grade-A BUY/SELL均值约 -0.043/-0.056 USDC，说明在该baseline-filled分母里，每个first-add decision后的完整路径平均为负。将均值乘rows可得到该面板的描述性总量级，却不能说skip所有first adds会省下相同总额。
 
-因为skip改变哪些campaign继续、是否fill与terminal，candidate outcomes不是 $-Y_i$。甚至control下一笔add为负时，skip也可能让原有inventory更难repair。均值的用途是证明研究问题有经济尺度，不是直接构造action PnL。
+因为skip改变哪些库存生命周期继续、是否fill与terminal，candidate outcomes不是 $-Y_i$。甚至control下一笔add为负时，skip也可能让原有inventory更难repair。均值的用途是证明研究问题有经济尺度，不是直接构造action PnL。
 
 <span id="5-2-日期聚类区间为什么比逐row-t检验更可信"></span>
 
@@ -691,13 +690,13 @@ $$
 
 且差异在 future chronological folds、side-specific support 与 clustered uncertainty 下稳定。全体平均为负不会自动保证某个 feature ranking 有这种 selectivity。
 
-因此 F10 只把证据送入 F05 predictive identity：campaign-state baseline 与 local microstructure model 做 chronological OOF 比较。后续 F05 的结果是局部增量没有稳定成立；两篇属于不同问题，不能因为 target 相同就把 provenance 混在一起。
+因此 F10 只把证据送入 F05 predictive identity：库存生命周期-state baseline 与 local microstructure model 做 chronological OOF 比较。后续 F05 的结果是局部增量没有稳定成立；两篇属于不同问题，不能因为 target 相同就把 provenance 混在一起。
 
 <span id="6-1-Mean、selector-与-action-是三道门"></span>
 
 #### Mean、selector 与 action 是三道门
 
-第一道门检验 $\mathbb E[Y]<0$；第二道检验decision-visible $g(X)$是否挑出更负subgroup并超过campaign-state baseline；第三道检验对该subgroup执行action的 $\mathbb E[Y(a)-Y(a_0)]>0$。逻辑关系不是蕴含链：
+第一道门检验 $\mathbb E[Y]<0$；第二道检验decision-visible $g(X)$是否挑出更负subgroup并超过库存生命周期-state baseline；第三道检验对该subgroup执行action的 $\mathbb E[Y(a)-Y(a_0)]>0$。逻辑关系不是蕴含链：
 
 $$
 Mean<0\centernot\Rightarrow Selector\centernot\Rightarrow Action.
@@ -717,9 +716,9 @@ Grade A中queue ahead与更差value相关，Grade B未复制。可能是source c
 
 ### 为什么“直接跳过所有 first add”也不成立
 
-看到 BUY $-0.04272$、SELL $-0.05564$，最直觉的动作是禁止所有 first adds。但这是一个强 campaign policy，不是这项 diagnostic 的小修正。
+看到 BUY $-0.04272$、SELL $-0.05564$，最直觉的动作是禁止所有 first adds。但这是一个强 库存生命周期 policy，不是这项 diagnostic 的小修正。
 
-全禁 first add 会改变 fill activity、库存上限利用、spread capture、campaign birth/death 与后续 reducing opportunity。它可能少亏，也可能通过丢失 favorable fills、延长已有库存或改变 side balance 产生新的成本。必须用明确 assignment 与完整 paired path评估：
+全禁 first add 会改变 fill activity、库存上限利用、spread capture、库存生命周期 birth/death 与后续 reducing opportunity。它可能少亏，也可能通过丢失 favorable fills、延长已有库存或改变 side balance 产生新的成本。必须用明确 assignment 与完整 paired path评估：
 
 $$
 \Delta_{action}
@@ -731,19 +730,19 @@ $$
 
 First-add diagnostic 没有 behavior propensity，也没有 replay candidate arm，因此 $\Delta_{action}$ 未识别。
 
-<span id="7-1-全禁动作还会改变campaign定义本身"></span>
+<span id="7-1-全禁动作还会改变库存生命周期定义本身"></span>
 
-#### 全禁动作还会改变campaign定义本身
+#### 全禁动作还会改变库存生命周期定义本身
 
-first-add有时使inventory从一层变两层；删除它后campaign可能更早flat，也可能持续原库存更久。后续哪些fills叫add/reducing、何时birth/terminal都会变化。不能在candidate路径上沿用control campaign id与flat time。
+first-add有时使inventory从一层变两层；删除它后库存生命周期可能更早flat，也可能持续原库存更久。后续哪些fills叫add/reducing、何时birth/terminal都会变化。不能在candidate路径上沿用control 库存生命周期 id与flat time。
 
-一个合格full-path实验应在untreated first-add opportunity随机化，给candidate独立order/campaign state，并从assignment前equity计到各自terminal。activity、fills、inventory-time与tail同时报告，防止动作退化为停止参与。
+一个合格full-path实验应在untreated first-add opportunity随机化，给candidate独立order/inventory_lifecycle state，并从assignment前equity计到各自terminal。activity、fills、inventory-time与tail同时报告，防止动作退化为停止参与。
 
 <span id="7-2-为什么-first-add-是好决策面，却未必是好action-lever"></span>
 
 #### 为什么 first-add 是好决策面，却未必是好action lever
 
-它发生在进一步增加暴露之前、每campaign最多一次，因果起点清楚，适合预测与随机化。但一笔quote是否最终fill仍受queue与未来flow影响；one-cycle skip后来显示这种短动作常有低fill leverage。
+它发生在进一步增加暴露之前、每库存生命周期最多一次，因果起点清楚，适合预测与随机化。但一笔quote是否最终fill仍受queue与未来flow影响；one-cycle skip后来显示这种短动作常有低fill leverage。
 
 “决策面清楚”解决身份问题，不保证treatment strength。任何successor都应先在outcome-blind mechanics中报告从decision change到fill/path change的漏斗，再决定是否打开economics。
 
@@ -761,11 +760,11 @@ $$
 
 即使对$X$建模，也需要positivity：相似状态下add与skip都要有支持。历史策略若几乎总add，skip outcome只能靠强模型外推；最安全方式是随机化或paired replay。
 
-### 每 campaign 一行牺牲了什么，又保护了什么
+### 每 库存生命周期 一行牺牲了什么，又保护了什么
 
-只取first-add row会丢掉campaign内部许多时序细节，但避免把同一terminal value复制到几十个decision/fill rows造成伪精度。后续fills与状态仍可作为mediator diagnostics，在campaign内汇总；它们不能被当作独立outcomes。
+只取first-add row会丢掉库存生命周期内部许多时序细节，但避免把同一terminal value复制到几十个decision/fill rows造成伪精度。后续fills与状态仍可作为mediator diagnostics，在库存生命周期内汇总；它们不能被当作独立outcomes。
 
-日期cluster再处理同日多个campaign的共同shock。有效统计单位因此远少于原始ticks或fills，这会让interval变宽，却更接近真正可迁移的不确定性。稳定负mean仍有描述价值；局部selector未通过说明现有features没有把负值进一步分成可执行、跨日稳定的action region。
+日期cluster再处理同日多个库存生命周期的共同shock。有效统计单位因此远少于原始ticks或fills，这会让interval变宽，却更接近真正可迁移的不确定性。稳定负mean仍有描述价值；局部selector未通过说明现有features没有把负值进一步分成可执行、跨日稳定的action region。
 
 <span id="6-Decision-visible-fill-value"></span>
 
@@ -773,15 +772,15 @@ $$
 
 平均后续价值为负，不代表决策时能挑出其中最差的机会。预测实验将只使用库存生命周期状态的 M0，与加入局部盘口信息的 M1 比较；first-add 与 first-opener 是分开定义、训练和评价的两个角色。
 
-![决策时可见状态与 campaign-terminal 目标的因果边界](/images/narrowgate/decision-visible-negative-fill-value-kline.svg)
+![决策时可见状态与 库存生命周期-terminal 目标的因果边界](/images/narrowgate/decision-visible-negative-fill-value-kline.svg)
 
-*图 1：模型只能读取决策线左侧已经 feature-ready 的状态；右侧成交、库存路径与 campaign terminal 只用于构造标签。观察到负标签不等于已经识别出一个可执行动作。*
+*图 1：模型只能读取决策线左侧已经 feature-ready 的状态；右侧成交、库存路径与 库存生命周期 terminal 只用于构造标签。观察到负标签不等于已经识别出一个可执行动作。*
 
 <span id="1-为什么“平均坏”与“能避开坏”是两回事"></span>
 
 ### 为什么“平均坏”与“能避开坏”是两回事
 
-设第 $i$ 个决策发生在 $t_i$，当时的策略权益为 $E_i^{decision}$，同一 campaign 最终终止或按冻结规则记账时的权益为 $E_i^{terminal}$。主目标是直接的 USDC 值：
+设第 $i$ 个决策发生在 $t_i$，当时的策略权益为 $E_i^{decision}$，同一 库存生命周期 最终终止或按冻结规则记账时的权益为 $E_i^{terminal}$。主目标是直接的 USDC 值：
 
 $$
 Y_i
@@ -796,13 +795,13 @@ $$
 $$
 \widehat Y_i^{M0}
 =
-f_0(\text{campaign state at }t_i),
+f_0(\text{库存生命周期 state at }t_i),
 $$
 
 $$
 \widehat Y_i^{M1}
 =
-f_1(\text{campaign state},\text{local microstructure at }t_i).
+f_1(\text{库存生命周期 state},\text{local microstructure at }t_i).
 $$
 
 真正的增量问题不是 $M1$ 能否在样本内给出漂亮排序，而是：
@@ -816,7 +815,7 @@ $$
 
 是否能在严格向前的 chronological OOF 中获得正的同时置信下界。高风险阈值也只能由每个 outer-train 的过去预测分布产生，不能看见 outer-test 的实际价值后再移动。
 
-这套设计刻意不把 maker-signed 30 秒 markout 当成 USDC 动作价值。markout 可以描述成交后的局部价格方向，但它没有自动包含成交数量、费用、后续库存、减仓、campaign 持续时间与终局记账。
+这套设计刻意不把 maker-signed 30 秒 markout 当成 USDC 动作价值。markout 可以描述成交后的局部价格方向，但它没有自动包含成交数量、费用、后续库存、减仓、库存生命周期 持续时间与终局记账。
 
 ### 两种决策角色与各自特征
 
@@ -826,14 +825,14 @@ $$
 
 #### First-add：已经有暴露以后，第一次继续增加库存
 
-first-add 分支以每个 campaign 的首个实际 exposure-increasing ADD 成交生成决策为单位。opener 与 reducing 行被排除；BUY 和 SELL 独立训练与报告。
+first-add 分支以每个 库存生命周期 的首个实际 exposure-increasing ADD 成交生成决策为单位。opener 与 reducing 行被排除；BUY 和 SELL 独立训练与报告。
 
-它的 campaign-state baseline 使用：
+它的 库存生命周期-state baseline 使用：
 
 - 决策前库存；
-- campaign age；
-- campaign 已实现或记账价值；
-- campaign MAE；
+- 库存生命周期 age；
+- 库存生命周期 已实现或记账价值；
+- 库存生命周期 MAE；
 - 已发生的 exposure-increasing fill 数；
 - 已发生的 reducing fill 数。
 
@@ -841,16 +840,16 @@ first-add 分支以每个 campaign 的首个实际 exposure-increasing ADD 成�
 
 - 报价到参考价的 tick 距离；
 - 可用时的 exact queue ahead，以及 queue 是否可用的显式指示；
-- microprice shift；
+- 盘口数量加权中价偏移；
 - L2 refresh 与 cancel ratio；
 - local toxicity；
 - policy-visible parent aggTrade flow imbalance。
 
 队列缺失不能被解释为“观测到零队列”。模型矩阵可以使用确定性占位值，但必须同时携带 unavailable 指示；否则结构性缺失会伪装成有利的空队列状态。
 
-<span id="2-2-First-opener：从空仓进入一段新-campaign-的第一次成交"></span>
+<span id="2-2-First-opener：从空仓进入一段新-库存生命周期-的第一次成交"></span>
 
-#### First-opener：从空仓进入一段新 campaign 的第一次成交
+#### First-opener：从空仓进入一段新 库存生命周期 的第一次成交
 
 first-opener 分支观察 exact native lifecycle 中的第一笔 opener fill。SELL 是冻结的主侧，BUY 只作描述性运输检查。
 
@@ -859,7 +858,7 @@ first-opener 分支观察 exact native lifecycle 中的第一笔 opener fill。S
 $$
 Y_i^{opener}
 =
-E_i^{campaign\ terminal}-E_i^{submit}.
+E_i^{库存生命周期\ terminal}-E_i^{submit}.
 $$
 
 但它是一个 **fill-conditioned observational estimand**：
@@ -884,11 +883,11 @@ $$
 
 ### 数据、时钟与因果边界
 
-两条分支都使用 exact lifecycle，而不是靠最近时间戳拼接订单与 campaign。其公共证据边界包括：
+两条分支都使用 exact lifecycle，而不是靠最近时间戳拼接订单与 库存生命周期。其公共证据边界包括：
 
 1. 决策特征必须在 decision 或 submit clock 前完成：$\text{feature-ready timestamp}\le t_i$。
 2. native 100ms L2 目标日要求完整的 previous-natural-day warmup；缺失 warmup 的目标日不能用更早日期悄悄补种。
-3. terminal target 来自同一订单与 campaign 身份，不允许 nearest-time join，也不允许用 fallback mid 填补缺失的终局权益。
+3. terminal target 来自同一订单与 库存生命周期 身份，不允许 nearest-time join，也不允许用 fallback mid 填补缺失的终局权益。
 4. Grade A 是主 Development 证据，Grade B 只作预注册 sensitivity；两者不能池化成更漂亮的样本量。
 5. 每个 outer fold 只用更早日期拟合、标准化、确定高风险分位数；test 日不反向参与阈值选择。
 6. Validation 与 family-specific sealed holdout 保持未读。
@@ -903,9 +902,9 @@ first-add 的冻结面板来自 24 个 Grade-A 与 16 个 Grade-B Development �
 
 完整链路是：
 
-> exact order/campaign identity → decision-time causal feature snapshot → direct decision-to-terminal USDC label → past-only campaign-state M0 → campaign + local-microstructure M1 → chronological OOF loss and high-risk group → day/campaign clustered simultaneous intervals → prediction gate，而不是 action gate。
+> exact order/inventory_lifecycle identity → decision-time causal feature snapshot → direct decision-to-terminal USDC label → past-only 库存生命周期-state M0 → 库存生命周期 + local-microstructure M1 → chronological OOF loss and high-risk group → day/inventory_lifecycle clustered simultaneous intervals → prediction gate，而不是 action gate。
 
-这个顺序很重要。如果连 direct terminal label 都不能精确绑定，后面的模型再复杂也只是拟合错位标签。如果局部模型没有超过 campaign-state baseline，就不能因为某些成交平均为负而跳过预测证据，直接注册“阻止这些成交”的动作。
+这个顺序很重要。如果连 direct terminal label 都不能精确绑定，后面的模型再复杂也只是拟合错位标签。如果局部模型没有超过 库存生命周期-state baseline，就不能因为某些成交平均为负而跳过预测证据，直接注册“阻止这些成交”的动作。
 
 ![从负价值标签到动作价值的证据阶梯](/images/narrowgate/f05-fill-value-action-ladder.svg)
 
@@ -947,7 +946,7 @@ $m(x)$ 的分母已经经过 $F=1$ 选择，而 $Q$ 与 $\tau$ 必须同时容�
 
 #### 一条完整的合成路径：同一个坏标签可以对应相反动作价值
 
-考虑一个纯示意的 BUY first-add 决策。决策前策略已经持有 $0.001$ BTC 多仓，当前 BUY add 报价为 100.00，SELL reducing 报价为 100.04。随后 BUY add 在 100.00 成交，十秒后中价跌到 99.96，30 秒 maker-signed markout 为负；campaign 最终在 100.02 附近减仓，计入费用后该次 decision-to-terminal 标签为 $-0.01$ USDC。
+考虑一个纯示意的 BUY first-add 决策。决策前策略已经持有 $0.001$ BTC 多仓，当前 BUY add 报价为 100.00，SELL reducing 报价为 100.04。随后 BUY add 在 100.00 成交，十秒后中价跌到 99.96，30 秒 maker-signed markout 为负；库存生命周期 最终在 100.02 附近减仓，计入费用后该次 decision-to-terminal 标签为 $-0.01$ USDC。
 
 从 realized label 看，它当然是一笔“坏成交”。但若反事实动作是取消这张 BUY add，未来可能至少有两条路径：
 
@@ -958,13 +957,13 @@ $m(x)$ 的分母已经经过 $F=1$ 选择，而 $Q$ 与 $\tau$ 必须同时容�
 
 历史只实现其中一条。仅凭 baseline 下观察到的 $Y_i^{fill}<0$，无法同时知道取消后的路径。模型若只学习“跌前的盘口长什么样”，仍然没有识别取消会怎样改变后续订单、队列和库存。
 
-再看 first-opener。空仓时一个 SELL opener 成交后市场上涨，标签为负；抑制 opener 看似自然。然而 opener 也创建了后续 reducing BUY 的角色与 permission。删除 opener 不只是删除一笔坏 SELL fill，它会删除整个 campaign，连同后面所有可能的修复 fill。动作对比必须重放这棵路径树，而不是从历史 PnL 里减掉 opener 那一行。
+再看 first-opener。空仓时一个 SELL opener 成交后市场上涨，标签为负；抑制 opener 看似自然。然而 opener 也创建了后续 reducing BUY 的角色与 permission。删除 opener 不只是删除一笔坏 SELL fill，它会删除整个 库存生命周期，连同后面所有可能的修复 fill。动作对比必须重放这棵路径树，而不是从历史 PnL 里减掉 opener 那一行。
 
-<span id="4-3-为什么-campaign-state-baseline-是一道必要的科学门"></span>
+<span id="4-3-为什么-库存生命周期-state-baseline-是一道必要的科学门"></span>
 
-#### 为什么 campaign-state baseline 是一道必要的科学门
+#### 为什么 库存生命周期-state baseline 是一道必要的科学门
 
-库存方向、campaign age、此前 add/reducing 次数和已有 MAE，本身就能解释大量 terminal value 差异。一个已经持续很久、库存很深、历史 MAE 很大的 campaign，其下一笔 add 更容易落入负终局，并不需要盘口特征提供任何新信息。
+库存方向、库存生命周期 age、此前 add/reducing 次数和已有 MAE，本身就能解释大量 terminal value 差异。一个已经持续很久、库存很深、历史 MAE 很大的 库存生命周期，其下一笔 add 更容易落入负终局，并不需要盘口特征提供任何新信息。
 
 因此 $M0$ 不是“故意做弱的 baseline”，而是对已有风险状态的最小调整。局部盘口模型只有在同样 inventory burden 下仍能区分价值，才可能回答“现在这张订单是否格外危险”。如果直接拿 $M1$ 与常数均值比较，模型很可能只是重新发现：库存越深，终局越差。
 
@@ -974,7 +973,7 @@ $$
 R_i=Y_i-\widehat f_0(C_i),
 $$
 
-其中 $C_i$ 是 campaign state。局部状态 $Z_i$ 必须对 $R_i$ 提供稳定的未来日期解释力。F05 的结果说明，冻结 $Z_i$ 没有做到这一点；这比“模型总体 MSE 不错”更接近动作研究所需的问题。
+其中 $C_i$ 是 库存生命周期 state。局部状态 $Z_i$ 必须对 $R_i$ 提供稳定的未来日期解释力。F05 的结果说明，冻结 $Z_i$ 没有做到这一点；这比“模型总体 MSE 不错”更接近动作研究所需的问题。
 
 <span id="4-4-日期聚类为什么会推翻逐成交显著性"></span>
 
@@ -982,7 +981,7 @@ $$
 
 同一天的许多 first-add 并不独立。它们共享波动 regime、行情趋势、撮合负载、库存初态和同一套策略参数。一场单边行情可能同时制造几十个负标签。如果把每笔 fill 当独立样本，标准误大约按 $1/\sqrt n$ 缩小，却没有承认真正的独立冲击单位更接近“日”。
 
-因此本文中的区间以日期或 campaign cluster 为基本重采样单位，并对两侧、多个指标和高风险选择同时修正。这个设计牺牲了表面上的显著性，却避免把“一天里重复发生的同一个市场故事”冒充成几十次独立确认。
+因此本文中的区间以日期或 库存生命周期 cluster 为基本重采样单位，并对两侧、多个指标和高风险选择同时修正。这个设计牺牲了表面上的显著性，却避免把“一天里重复发生的同一个市场故事”冒充成几十次独立确认。
 
 <span id="4-5-什么结果才会推翻这次阴性结论"></span>
 
@@ -990,20 +989,20 @@ $$
 
 重开研究不能只换树模型或移动分位数。至少应出现一种新的、事先可陈述的识别增量：例如 exact queue-ahead 的更高覆盖、可因果对齐的跨 venue 冲击、订单角色更细的状态转移，或直接成对生成 suppress/keep 两条完整 replay 路径。
 
-一个合格 successor 应在结果未读前冻结：决策单位、可见特征、M0、候选动作、终局、日期切分、最小支持与同时区间。然后它需要同时证明三件事：局部信息超过 campaign baseline；选择集合在未来日期仍有方向；动作 replay 的 $\tau$ 而不是 realized label 获得正经济下界。只满足第一件，仍然只是预测研究。
+一个合格 successor 应在结果未读前冻结：决策单位、可见特征、M0、候选动作、终局、日期切分、最小支持与同时区间。然后它需要同时证明三件事：局部信息超过 库存生命周期 baseline；选择集合在未来日期仍有方向；动作 replay 的 $\tau$ 而不是 realized label 获得正经济下界。只满足第一件，仍然只是预测研究。
 
 <span id="5-First-add-结果：负平均值存在，局部增量不存在"></span>
 
 ### First-add 结果：负平均值存在，局部增量不存在
 
-Grade-A 主 OOF 包含 327 个 BUY 与 346 个 SELL campaign；Grade-B sensitivity 包含 172 个 BUY 与 154 个 SELL campaign。
+Grade-A 主 OOF 包含 327 个 BUY 与 346 个 SELL 库存生命周期；Grade-B sensitivity 包含 172 个 BUY 与 154 个 SELL 库存生命周期。
 
 | Side | MSE improvement，M0 minus local | 预测高风险组平均 USDC | familywise interval | 支持 |
 |---|---:|---:|---:|---:|
 | BUY | -0.70865 | -0.04115 | [-0.11369, 0.03795] | 否 |
 | SELL | -0.000986 | -0.05798 | [-0.14776, 0.01086] | 否 |
 
-两侧预测高风险组的点估计都为负，但同时区间跨过零。更关键的是，局部模型没有以正下界改进 campaign-state baseline；BUY 的冻结损失比较甚至明显更差。
+两侧预测高风险组的点估计都为负，但同时区间跨过零。更关键的是，局部模型没有以正下界改进 库存生命周期-state baseline；BUY 的冻结损失比较甚至明显更差。
 
 因此，这个分支支持“first-add 平均存在负 downstream value”，但不支持“这些局部字段能可靠定位可避免的负价值子集”。
 
@@ -1040,7 +1039,7 @@ $$
 E[Y(a)-Y(a_0)\mid X].
 $$
 
-$F$同时受quote distance、queue、market path与原策略影响，是动作后的变量。一个feature可以很好地排序已成交样本中的$Y$，却无法告诉我们取消后哪个fill消失、哪个campaign改道，也无法给未成交路径赋值。若候选动作改变$F$，训练和部署面对的条件总体已经不同。
+$F$同时受quote distance、queue、market path与原策略影响，是动作后的变量。一个feature可以很好地排序已成交样本中的$Y$，却无法告诉我们取消后哪个fill消失、哪个库存生命周期改道，也无法给未成交路径赋值。若候选动作改变$F$，训练和部署面对的条件总体已经不同。
 
 这也解释“负平均fill value”为什么不直接支持skip。删掉一次负fill可能避免adverse selection，也可能留下更久的库存、错过repair或让下一张单失去queue。动作收益包含被删fill之外的完整路径差：
 
@@ -1088,7 +1087,7 @@ $$
 - 何时进入 queue；
 - 是否 fill、partial fill 或 cancel；
 - 后续 inventory 与 cooldown；
-- campaign 是否提前出现或延后结束；
+- 库存生命周期 是否提前出现或延后结束；
 - 当日终点的 remaining inventory 与 MTM。
 
 因此动作所需的目标是：
@@ -1137,9 +1136,9 @@ $$
 - action duration 只有一个 quote decision；
 - 下一次决策起恢复当前 baseline；
 - order size、inventory limit 与其它安全边界不改变；
-- queue、fill、inventory、cooldown、campaign 和日终路径都在两个 forks 中重新生成。
+- queue、fill、inventory、cooldown、库存生命周期 和日终路径都在两个 forks 中重新生成。
 
-“单次”很关键。若 candidate 在后续每个决策持续解除 soft-widen，它会成为 repeated policy，改变 action rate、campaign birth/death 与库存分布，不能继承 one-shot 结果。
+“单次”很关键。若 candidate 在后续每个决策持续解除 soft-widen，它会成为 repeated policy，改变 action rate、库存生命周期 birth/death 与库存分布，不能继承 one-shot 结果。
 
 <span id="3-数据、抽样与-chronological-OOF"></span>
 
@@ -1157,7 +1156,7 @@ Development panel 含 40 个冻结历史日。outcome-blind census 找到 142,89
 
 稳定 hash 只使用日期、decision timestamp、side 与 role，不能看未来 value。
 
-直接价值模型是固定 Ridge，$\alpha=10$，不做 hyperparameter search。它读取冻结的 causal features，包括 toxicity、direction/return/volatility heads、inventory units、baseline quote distance、已有 spread multiplier、BBO spread、microprice、L2 imbalance/refresh/cancel、短期价格变化、taker imbalance 与 VPIN。
+直接价值模型是固定 Ridge，$\alpha=10$，不做 hyperparameter search。它读取冻结的 causal features，包括 toxicity、direction/return/volatility heads、inventory units、baseline quote distance、已有 spread multiplier、BBO spread、盘口数量加权中价、L2 imbalance/refresh/cancel、短期价格变化、taker imbalance 与 VPIN。
 
 chronological OOF 使用 16 个初始 train 日，随后四个各 6 日的未来 test block。每一折只用过去拟合 scaler 与 Ridge。候选阈值冻结为：
 
@@ -1202,7 +1201,7 @@ $$
 a_u^{(k)}=\pi_0(S_u^{(k)}),\qquad u>t.
 $$
 
-注意“恢复同一函数”不等于“恢复同一动作”。如果目标报价制造了不同 fill，$S_{t+1}^{(1)}\ne S_{t+1}^{(0)}$，同一个 $\pi_0$ 也会输出不同后续订单。正是这条状态递归，使 full-path delta 同时包含直接成交价、未来库存角色和 campaign 终点。
+注意“恢复同一函数”不等于“恢复同一动作”。如果目标报价制造了不同 fill，$S_{t+1}^{(1)}\ne S_{t+1}^{(0)}$，同一个 $\pi_0$ 也会输出不同后续订单。正是这条状态递归，使 full-path delta 同时包含直接成交价、未来库存角色和 库存生命周期 终点。
 
 <span id="4-2-一条从-K-线到终局的合成算例"></span>
 
@@ -1234,7 +1233,7 @@ $$
 
 总体价值是 $p_D(x)m_D(x)$。一个模型若只会预测“行情是否会触及 inward quote”，可能提高 $p_D$ 排序，却不能判断分叉后 $m_D$ 的符号；一个只在非零样本上训练的模型又会丢失行动分母，产生选择偏差。冻结 Ridge 直接学习 unconditional delta，虽然保守，却忠实于 action value。
 
-样本中正路径更少：opener 的非零路径为 5 正、15 负，add 为 4 正、11 负。任何复杂模型都很容易围绕这 9 条正路径形成脆弱规则。chronological OOF 的意义就是要求规则先在过去形成，再面对尚未见过的日期；不能让同一条正 campaign 同时参与特征选择和效果展示。
+样本中正路径更少：opener 的非零路径为 5 正、15 负，add 为 4 正、11 负。任何复杂模型都很容易围绕这 9 条正路径形成脆弱规则。chronological OOF 的意义就是要求规则先在过去形成，再面对尚未见过的日期；不能让同一条正 库存生命周期 同时参与特征选择和效果展示。
 
 <span id="5-机械验证：不是-no-op"></span>
 
@@ -1269,7 +1268,7 @@ $$
 | opener | 20 / 480 | 4.17% | 5 | 15 |
 | add | 15 / 480 | 3.13% | 4 | 11 |
 
-所有 960 个 forks 的总 fill count 都与 baseline 相同。这并不意味着 action 没有效果：同样的 fill count 可能对应不同成交时点、价格、订单身份与后续 campaign path。但它说明绝大多数 one-decision quote change 没有改变最终可见的顺序路径。
+所有 960 个 forks 的总 fill count 都与 baseline 相同。这并不意味着 action 没有效果：同样的 fill count 可能对应不同成交时点、价格、订单身份与后续 库存生命周期 path。但它说明绝大多数 one-decision quote change 没有改变最终可见的顺序路径。
 
 如果记 $D_i=1$ 表示 candidate 与 baseline 的 terminal path 不同，则估计对象可以分解为：
 
@@ -1367,7 +1366,7 @@ $$
 
 ### 为什么报价移动很多、有效路径仍然少
 
-quote-changed只说明理论或提交价格不同。要改变terminal outcome，还需订单实际激活、在撤换前走到有差异的queue/fill状态，并让这次差异影响campaign。若两价位同处一个tick、都未触达、都在ACK前撤销或后续迅速被相同repair覆盖，最终path不变。
+quote-changed只说明理论或提交价格不同。要改变terminal outcome，还需订单实际激活、在撤换前走到有差异的queue/fill状态，并让这次差异影响库存生命周期。若两价位同处一个tick、都未触达、都在ACK前撤销或后续迅速被相同repair覆盖，最终path不变。
 
 可以把effective leverage写成漏斗：
 
@@ -1381,9 +1380,9 @@ $$
 
 ## 结论：损失可被描述，不代表已找到有收益的动作
 
-这些实验区分了三个问题。第一，30 秒 markout 只能描述早期 adverse selection，不能替代 campaign terminal。第二，first-add 在历史上平均为负，但 decision-visible state 没有识别出稳定、跨日可执行的负价值 subset。第三，历史单次解除 soft-widen 虽然改变了报价，时间外选择器仍选中了平均负价值动作；独立的新 Tardis risk-to-widen 开发账户比较也为负。由此不能跳到“所有 first-add 都应该关闭”，更不能把 filled-only classifier 当作 policy。
+这些实验区分了三个问题。第一，30 秒 markout 只能描述早期 adverse selection，不能替代 库存生命周期 terminal。第二，first-add 在历史上平均为负，但 decision-visible state 没有识别出稳定、跨日可执行的负价值 subset。第三，历史单次解除 soft-widen 虽然改变了报价，时间外选择器仍选中了平均负价值动作；独立的新 Tardis risk-to-widen 开发账户比较也为负。由此不能跳到“所有 first-add 都应该关闭”，更不能把 filled-only classifier 当作 policy。
 
-未来研究若要继续，必须从 assignment 前定义 intervention，保留未成交与取消路径，并让 action-specific activation、fill、inventory continuation 和 terminal value 共同进入评估。只有预测谁会成交、谁的 markout 较差或哪些历史 campaign 较亏，都不足以授权 quote action。
+未来研究若要继续，必须从 assignment 前定义 intervention，保留未成交与取消路径，并让 action-specific activation、fill、inventory continuation 和 terminal value 共同进入评估。只有预测谁会成交、谁的 markout 较差或哪些历史 库存生命周期 较亏，都不足以授权 quote action。
 
 ## 公开方法与实验报告
 
@@ -1393,7 +1392,7 @@ $$
 - [Fill Inventory Lifecycle Audit](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/fill_inventory_lifecycle_retained111_20260713.md)
 - [Replay Time, Unit, and Causality Repair](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/system_engineering/docs/replay_time_unit_causality_repair_20260715.md)
 - [Time and Unit Contract Repair](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/system_engineering/docs/time_unit_contract_repair_20260726.md)
-- [Dynamic Mechanism Campaign Audit v1](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/dynamic_mechanism_campaign_audit_20260722.md)
+- [Dynamic Mechanism 库存生命周期 Audit v1](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/dynamic_mechanism_inventory_lifecycle_audit_20260722.md)
 - [Historical Backtest Evidence Revalidation](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/historical_backtest_evidence_revalidation_20260720.md)
 - [First-Add Diagnostic Preregistration](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/first_add_decision_to_terminal_loss_diagnostic_v1_preregistration_20260729.md)
 - [First-Add Decision-To-Terminal Development Result](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/first_add_decision_to_terminal_loss_diagnostic_v1_development_20260729.md)

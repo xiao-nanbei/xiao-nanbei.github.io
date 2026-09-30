@@ -8,17 +8,14 @@ tags:
 - Market Making
 - Cooldown
 - State Machine
-- Campaign
+- 库存生命周期
 - Action Uplift
 math: true
 ---
 
-
-
-
 ## 1. 五种动作其实在搜索同一个控制轴
 
-SELL one-cycle skip、stop-add-until-flat、85 秒后的 state-conditioned rearm、recovery-event rearm 与 variance-time rearm 都在改变同一个对象：exposure-increasing add 何时重新获得 permission。它们只是控制强度从一个周期、整段 campaign、离散状态阈值、恢复事件到累计方差时钟逐步变化。这些动作构成一条控制强度序列：弱动作几乎 no-op，强动作接近关机，中间候选虽有支持却没有稳定终局价值。
+SELL one-cycle skip、stop-add-until-flat、85 秒后的 state-conditioned rearm、recovery-event rearm 与 variance-time rearm 都在改变同一个对象：exposure-increasing add 何时重新获得 permission。它们只是控制强度从一个周期、整段 库存生命周期、离散状态阈值、恢复事件到累计方差时钟逐步变化。这些动作构成一条控制强度序列：弱动作几乎 no-op，强动作接近关机，中间候选虽有支持却没有稳定终局价值。
 
 统一状态机可写成
 
@@ -27,7 +24,7 @@ G_{t+1}=\Phi(G_t,E_t,X_t;\theta),\qquad
 A_t=\mathbf 1\{G_t=\text{released}\}\,A_t^{baseline},
 $$
 
-其中 $G_t$ 是 permission state，$E_t$ 是 fill/cancel/repair 等事件，$X_t$ 是当时可见状态。不同研究只是在改变 $\Phi$ 与 release condition；reward 始终必须从 assignment 走到 campaign terminal。
+其中 $G_t$ 是 permission state，$E_t$ 是 fill/cancel/repair 等事件，$X_t$ 是当时可见状态。不同研究只是在改变 $\Phi$ 与 release condition；reward 始终必须从 assignment 走到 库存生命周期 terminal。
 
 ## 2. 研究阶段与证据状态
 
@@ -43,31 +40,31 @@ $$
 
 ### TL;DR：一次跳过看起来是动作，落到成交路径上却接近 no-op
 
-这项研究只改一个瞬间：SHORT inventory campaign 已经存在、策略原本准备再挂一笔 exposure-increasing SELL add 时，以 50% 概率照常报价，以 50% 概率跳过**恰好一个** eligible cycle；下一周期起重新服从原基线。BUY、reducing、size、inventory limit、queue、latency 与 taker 行为都不变。
+这项研究只改一个瞬间：SHORT 库存生命周期 已经存在、策略原本准备再挂一笔 exposure-increasing SELL add 时，以 50% 概率照常报价，以 50% 概率跳过**恰好一个** eligible cycle；下一周期起重新服从原基线。BUY、reducing、size、inventory limit、queue、latency 与 taker 行为都不变。
 
-冻结 Development 回放得到 2,961 个独立 short campaigns，baseline/skip 为 1,506/1,455。动作分配没有问题，但 baseline 被选中的那一个 SELL quote 只有 53 次成交，即 3.52%。时间外 policy layer 的 766 行里，模型只在 4 行选择 skip，candidate rate 0.52%，低于预注册的 3% 下限；reward lower bound、repair-first、trend-through avoidance 与联合 competing-risk utility 都没有通过。9 日 Validation 与 10 日 sealed holdout 均未读。
+冻结 Development 回放得到 2,961 个独立 short 库存生命周期，baseline/skip 为 1,506/1,455。动作分配没有问题，但 baseline 被选中的那一个 SELL quote 只有 53 次成交，即 3.52%。时间外 policy layer 的 766 行里，模型只在 4 行选择 skip，candidate rate 0.52%，低于预注册的 3% 下限；reward lower bound、repair-first、trend-through avoidance 与联合 competing-risk utility 都没有通过。9 日 Validation 与 10 日 sealed holdout 均未读。
 
-随后用当前 replay stack 对相同经济动作做的 40 日机制复核并不是新研究：BUY 2,403 次最终动作机会中成交 172 次，SELL 2,348 次中成交 147 次，对应 7.16% 与 6.26%；两侧 Wilson 95% 上界仍低于预先定义的 10% near-noop 线。它改变了约 99% 的报单决策，却只改变约 6%–7% 的成交路径。结论不是“跳过永远无效”，而是**这个单周期杠杆太短，不能稳定改变 campaign 的经济终点**。
+随后用当前 replay stack 对相同经济动作做的 40 日机制复核并不是新研究：BUY 2,403 次最终动作机会中成交 172 次，SELL 2,348 次中成交 147 次，对应 7.16% 与 6.26%；两侧 Wilson 95% 上界仍低于预先定义的 10% near-noop 线。它改变了约 99% 的报单决策，却只改变约 6%–7% 的成交路径。结论不是“跳过永远无效”，而是**这个单周期杠杆太短，不能稳定改变 库存生命周期 的经济终点**。
 
 ![SELL 单周期跳过与竞争风险机制](/images/narrowgate/sell-one-cycle-skip-kline.svg)
 
 *图 1：机制示意。随机化只发生在一个 SELL add cycle；之后两臂回到相同基线。真正 estimand 必须追踪到 repair、trend-through 或终止，而不是把被跳过的报单直接当作收益。*
 
-![单周期 permission action 的因果漏斗](/images/narrowgate/f09-campaign-action-causal-path.svg)
+![单周期 permission action 的因果漏斗](/images/narrowgate/f09-inventory_lifecycle-action-causal-path.svg)
 
-*图 2：assignment 能改变 quote decision，不代表会改变 fill，更不代表 campaign terminal 分叉。one-cycle action 的关键发现是从 mechanics 到经济路径的杠杆快速衰减。*
+*图 2：assignment 能改变 quote decision，不代表会改变 fill，更不代表 库存生命周期 terminal 分叉。one-cycle action 的关键发现是从 mechanics 到经济路径的杠杆快速衰减。*
 
 ### 1. 研究问题：少挂一次，究竟避开毒性还是错过修复？
 
-SHORT campaign 中的 exposure-increasing SELL add 有两种相反解释。若价格继续上涨，它会以较低价格卖出并增加不利空头，是 trend-through 风险；若价格回落，它又可能改善平均开仓价并更快由 reducing BUY 修复。仅看下一笔 markout 无法区分这两条完整路径。
+SHORT 库存生命周期 中的 exposure-increasing SELL add 有两种相反解释。若价格继续上涨，它会以较低价格卖出并增加不利空头，是 trend-through 风险；若价格回落，它又可能改善平均开仓价并更快由 reducing BUY 修复。仅看下一笔 markout 无法区分这两条完整路径。
 
-项目把问题写成 campaign-level intervention：
+项目把问题写成 库存生命周期-level intervention：
 
 $$
 \tau(x)=E\left[Y(\text{skip one cycle})-Y(\text{baseline})\mid X=x\right],
 $$
 
-其中 $X$ 只含 decision-ready 的本地 shock、refill、recovery、queue、inventory 与 campaign state；$Y$ 是从该 decision 到 terminal 的净值变化。候选不是暂停 85 秒，也不是直到 flat 都禁止 SELL，更不是改变价格；它只令一个本应提交的 add 不提交一次。
+其中 $X$ 只含 decision-ready 的本地 shock、refill、recovery、queue、inventory 与 库存生命周期 state；$Y$ 是从该 decision 到 terminal 的净值变化。候选不是暂停 85 秒，也不是直到 flat 都禁止 SELL，更不是改变价格；它只令一个本应提交的 add 不提交一次。
 
 ### 2. 输入、动作、结果与竞争风险 estimand
 
@@ -83,7 +80,7 @@ $$
 | 路径结果 | 30 分钟内 repair-first、trend-through-first、censor |
 | 不变量 | BUY、reducing、size、inventory ceiling、市场路径、P3、queue、latency |
 
-repair 事件定义为 campaign 在 trend-through 前回到 flat；trend-through 定义为 execution trade 先触达 baseline SELL quote 上方一 tick。两个事件互相竞争，不能分别跑两个普通二分类模型后把概率相加。对事件类型 $k$ 的 cumulative incidence 是：
+repair 事件定义为 库存生命周期 在 trend-through 前回到 flat；trend-through 定义为 execution trade 先触达 baseline SELL quote 上方一 tick。两个事件互相竞争，不能分别跑两个普通二分类模型后把概率相加。对事件类型 $k$ 的 cumulative incidence 是：
 
 $$
 F_k(t)=P(T\le t,J=k),\qquad k\in\{repair,trend\}.
@@ -95,15 +92,15 @@ $$
 
 Development 使用截至 2026-06-23 的 100 个既有 good days；2026-06-24 embargo；之后 9 日 Validation 锁定，再隔一日，另有 10 个 good days 的 family-specific sealed holdout。Development 的 nuisance warmup 为过去 50 日，policy OOF 只在后续 28 个 UTC 日评价。
 
-一行 intervention 的时钟顺序是：market event exchange time 到达 replay，feature 在 receive/ready clock 完成，baseline eligibility 成立，campaign-keyed randomization 产生 $A$，candidate 根据 $A$ 提交或跳过，未来订单与 fills 全路径重放，最后在 flat、day end 或路径终止时登记一次 $Y$。任何发生在 assignment 后的 trade、ACK、repair 状态都不能回流到 $X$。
+一行 intervention 的时钟顺序是：market event exchange time 到达 replay，feature 在 receive/ready clock 完成，baseline eligibility 成立，库存生命周期-keyed randomization 产生 $A$，candidate 根据 $A$ 提交或跳过，未来订单与 fills 全路径重放，最后在 flat、day end 或路径终止时登记一次 $Y$。任何发生在 assignment 后的 trade、ACK、repair 状态都不能回流到 $X$。
 
 一个具体例子：SHORT 为 $-0.002$ BTC，baseline 决定在 100,000.1 再挂 0.001 BTC SELL。若候选跳过，而市场下一跳到 100,000.2，候选没有 fill；但若随后迅速跌到 99,999.6，baseline 那笔 SELL 可能盈利并由 BUY 修复。把“跳过后没被上穿”记为收益会遗漏后一段反转。反过来，若市场持续涨到 100,003，baseline 的额外 short 会扩大 terminal loss。只有 replay 两条自洽路径才识别动作价值。
 
 ### 4. 随机化与完整性检查
 
-Development 有 2,961 个独立 short campaigns；baseline/skip 1,506/1,455，每个 propensity 都是 0.5，每 campaign 恰好一次 intervention。30 分钟竞争风险计数为 repair 1,073、trend-through 1,887、censored 1；terminal censor 仅 8。reward identity 最大误差 $6.94\times10^{-18}$ USDC。
+Development 有 2,961 个独立 short 库存生命周期；baseline/skip 1,506/1,455，每个 propensity 都是 0.5，每 库存生命周期 恰好一次 intervention。30 分钟竞争风险计数为 repair 1,073、trend-through 1,887、censored 1；terminal censor 仅 8。reward identity 最大误差 $6.94\times10^{-18}$ USDC。
 
-行为 mixture 相对 control 保留 99.94% fills，campaign 数量为 1.0009 倍，absolute inventory time 为 1.0007 倍。这些数字说明随机化没有把策略变成另一套系统。另一方面，1,506 个 baseline assignments 中只有 53 个 selected-cycle fills：
+行为 mixture 相对 control 保留 99.94% fills，库存生命周期 数量为 1.0009 倍，absolute inventory time 为 1.0007 倍。这些数字说明随机化没有把策略变成另一套系统。另一方面，1,506 个 baseline assignments 中只有 53 个 selected-cycle fills：
 
 $$
 \widehat p_{fill}=\frac{53}{1506}=3.52\%.
@@ -123,7 +120,7 @@ $$
 \Pr(D=1\mid F,Q,E).
 $$
 
-在 candidate assignment 下，$\Pr(Q=1\mid E)$ 接近一；但历史 selected-cycle fill 只有 3.52%，当前栈复核也只有约 6%–7%。最后一项还可能小于一，因为跳过目标订单后，稍后的 baseline quote 仍会在相似价格成交，使两条 campaign 再次汇合。
+在 candidate assignment 下，$\Pr(Q=1\mid E)$ 接近一；但历史 selected-cycle fill 只有 3.52%，当前栈复核也只有约 6%–7%。最后一项还可能小于一，因为跳过目标订单后，稍后的 baseline quote 仍会在相似价格成交，使两条 库存生命周期 再次汇合。
 
 这解释了为何“99% episodes 能改变下一个动作”和“经济上 near-noop”可以同时为真。代码路径很活跃，处理对最终状态却很弱。任何用 quote-change count 代替 fill/path-change count 的报告都会高估 treatment strength。
 
@@ -152,7 +149,7 @@ policy OOF 有 766 行、28 个未来日，logged baseline/skip 为 393/373，po
 | 越高越好的结果 | DR uplift/decision | UTC-day 95% interval |
 |---|---:|---:|
 | terminal reward | +0.000175 | [-0.000327, +0.000995] |
-| campaign-cost avoidance | +0.000177 | [-0.000432, +0.000914] |
+| 库存生命周期-cost avoidance | +0.000177 | [-0.000432, +0.000914] |
 | negative-terminal protection | -0.000022 | [-0.000586, +0.000487] |
 | repair-first | -0.003671 | [-0.013285, +0.001602] |
 | trend-through avoidance | -0.003689 | [-0.013020, +0.001558] |
@@ -187,7 +184,7 @@ policy OOF 有 766 行、28 个未来日，logged baseline/skip 为 393/373，po
 
 #### 7.2 为什么不能把 action duration 偷偷延长
 
-把 one-cycle 改成三 cycles、85 秒或 until-flat，会提高 fill leverage，但也改变 treatment。持续 action 会影响更多 quote decisions、库存深度、repair 机会和 campaign duration；它的潜在结果不再是 $Y(skip\ one)$。
+把 one-cycle 改成三 cycles、85 秒或 until-flat，会提高 fill leverage，但也改变 treatment。持续 action 会影响更多 quote decisions、库存深度、repair 机会和 库存生命周期 duration；它的潜在结果不再是 $Y(skip\ one)$。
 
 F09 后续确实单独研究了更长 permission actions，并发现从低 leverage 到 participation shutdown 的另一端问题。它们共同勾勒 action frontier，却不能互相当作参数敏感性。每个 duration 都需要自己的 eligibility、assignment、activity gate 和 terminal outcome。
 
@@ -207,13 +204,13 @@ F09 后续确实单独研究了更长 permission actions，并发现从低 lever
 
 ### Action dilution 可以在看收益前量化
 
-从eligible decisions到真正改变terminal path要经过多个漏斗：被随机分到skip、baseline原本会提交、订单会激活、在一个cycle内存在fill/touch机会、该机会又会影响inventory campaign。设每层retention为$r_j$，最终有效分叉率约为
+从eligible decisions到真正改变terminal path要经过多个漏斗：被随机分到skip、baseline原本会提交、订单会激活、在一个cycle内存在fill/touch机会、该机会又会影响库存生命周期。设每层retention为$r_j$，最终有效分叉率约为
 
 $$
 r_{path}=\prod_j r_j.
 $$
 
-即使每层有80%保留，五层后只剩32.8%。当$r_{path}$很低，百万decision rows也可能只有很少有信息的campaign。研究应先用outcome-blind mechanics估计可检测效应，再决定是否允许读PnL。
+即使每层有80%保留，五层后只剩32.8%。当$r_{path}$很低，百万decision rows也可能只有很少有信息的库存生命周期。研究应先用outcome-blind mechanics估计可检测效应，再决定是否允许读PnL。
 
 ### Skip 的反事实不是“没有这张单”这么简单
 
@@ -230,7 +227,7 @@ $$
 +\Delta V_{inventory\ path},
 $$
 
-其中避免坏fill是正贡献、错过好fill是负贡献，后二项取决于re-entry和campaign。Competing-risk报告的意义就在于保留这些互斥路径，而不是把bad-fill概率单独当reward。
+其中避免坏fill是正贡献、错过好fill是负贡献，后二项取决于re-entry和库存生命周期。Competing-risk报告的意义就在于保留这些互斥路径，而不是把bad-fill概率单独当reward。
 
 ### 从 one-cycle 到 persistent skip 是新治疗
 
@@ -240,7 +237,7 @@ $$
 
 ### MDE 为什么应在 outcome 前计算
 
-给定有效campaign数、日级方差、assignment比例与action leverage，可以估计研究对业务最小效应的分辨率。若95% interval必然宽于可接受收益，即使点估计略正也不值得开启outcome。
+给定有效库存生命周期数、日级方差、assignment比例与action leverage，可以估计研究对业务最小效应的分辨率。若95% interval必然宽于可接受收益，即使点估计略正也不值得开启outcome。
 
 MDE不是失败后说“样本不够”的借口；它应写进preflight。action dilution使有效样本远少于eligible rows，必须按真正path-diverged units和day clusters估计。
 
@@ -258,9 +255,9 @@ shadow可以验证skip signal、permission duration、quote suppression和fallba
 
 ### 9. 公共证据
 
-- [`sell_add_repair_trend_skip_causal_v4_v1_20260718.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/sell_add_repair_trend_skip_causal_v4_v1_20260718.md)
-- [`cooldown_release_one_cycle_mechanics_reaudit_v1_development_20260730.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/cooldown_release_one_cycle_mechanics_reaudit_v1_development_20260730.md)
-- [`F09 README`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/README.md)
+- [`sell_add_repair_trend_skip_causal_v4_v1_20260718.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/sell_add_repair_trend_skip_causal_v4_v1_20260718.md)
+- [`cooldown_release_one_cycle_mechanics_reaudit_v1_development_20260730.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/cooldown_release_one_cycle_mechanics_reaudit_v1_development_20260730.md)
+- [`F09 README`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/README.md)
 
 ### 结语
 
@@ -270,9 +267,9 @@ shadow可以验证skip signal、permission duration、quote suppression和fallba
 
 ### TL;DR：风险尾部改善了，但代价是移除近九成 SELL add fills
 
-单周期 skip 太弱，于是本项目研究更强的 permission action：SHORT campaign 的首个 eligible SELL add decision 到来时，以 50% 概率保持 baseline，以 50% 概率禁止此后所有 exposure-increasing SELL quotes，直到 inventory 回到 flat。BUY、reducing、size、max inventory 与 taker 不动。
+单周期 skip 太弱，于是本项目研究更强的 permission action：SHORT 库存生命周期 的首个 eligible SELL add decision 到来时，以 50% 概率保持 baseline，以 50% 概率禁止此后所有 exposure-increasing SELL quotes，直到 inventory 回到 flat。BUY、reducing、size、max inventory 与 taker 不动。
 
-56 个 Development 日产生 1,734 个独立 campaigns，baseline/candidate 883/851；OOF 有 764 个 campaigns、25 个未来日，ESS 383。candidate 确实显著降低 negative terminal、q10 shortfall 与 MAE，但 learned policy 在 85.7% rows 上启用它，预计 SELL add-fill retention 只剩 10.8%，远低于冻结的 85% 门槛。decision-to-terminal reward 的历史点估计为 +0.00815 USDC，UTC-day 95% interval $[-0.02160,+0.03711]$，并无稳定正下界。
+56 个 Development 日产生 1,734 个独立 库存生命周期，baseline/candidate 883/851；OOF 有 764 个 库存生命周期、25 个未来日，ESS 383。candidate 确实显著降低 negative terminal、q10 shortfall 与 MAE，但 learned policy 在 85.7% rows 上启用它，预计 SELL add-fill retention 只剩 10.8%，远低于冻结的 85% 门槛。decision-to-terminal reward 的历史点估计为 +0.00815 USDC，UTC-day 95% interval $[-0.02160,+0.03711]$，并无稳定正下界。
 
 所以这个动作被判为 **overbroad risk control**，而不是 selection alpha。它让风险变小的方法近似“停止做这部分业务”，不能以更漂亮的尾部统计绕过活动性要求。Validation 与 sealed holdout 未读，baseline 未改。
 
@@ -280,13 +277,13 @@ shadow可以验证skip signal、permission duration、quote suppression和fallba
 
 *图 1：机制示意。candidate 从首个 add decision 起锁住所有后续 SELL adds，只有 flat 才释放；reducing BUY 仍运行。尾部收缩必须与消失的参与度一起解释。*
 
-![持久 permission 从分配到 campaign terminal](/images/narrowgate/f09-campaign-action-causal-path.svg)
+![持久 permission 从分配到 库存生命周期 terminal](/images/narrowgate/f09-inventory_lifecycle-action-causal-path.svg)
 
 *图 2：until-flat 不是在一行数据上打 mask，而是改变此后整段 submit、fill、库存与修复递归。风险门通过时，还必须同时查看 participation 与 terminal economics。*
 
 ### 1. 从太弱到太强：研究问题的由来
 
-前一个 one-cycle action 只影响一个报单，selected-cycle fill 率约 3.52%，经济杠杆接近 no-op。自然的反方向实验是把阻断延长到 campaign 结束：如果危险 SHORT campaign 的问题来自反复加仓，停止所有后续 SELL adds 是否能保护 terminal value？
+前一个 one-cycle action 只影响一个报单，selected-cycle fill 率约 3.52%，经济杠杆接近 no-op。自然的反方向实验是把阻断延长到 库存生命周期 结束：如果危险 SHORT 库存生命周期 的问题来自反复加仓，停止所有后续 SELL adds 是否能保护 terminal value？
 
 冻结问题为：
 
@@ -304,23 +301,23 @@ $$
 
 ### 2. 输入、动作与 estimand
 
-随机化单位是 campaign，而非每个 quote。第一次 baseline-eligible SELL add 到来时生成一次 assignment，并保持到 flat。这避免同一 campaign 的连续随机数互相污染，也使 potential outcomes 清楚。
+随机化单位是 库存生命周期，而非每个 quote。第一次 baseline-eligible SELL add 到来时生成一次 assignment，并保持到 flat。这避免同一 库存生命周期 的连续随机数互相污染，也使 potential outcomes 清楚。
 
 | 合同 | 冻结内容 |
 |---|---|
-| Population | 已 SHORT 且出现第一笔 eligible SELL add 的 campaign |
+| Population | 已 SHORT 且出现第一笔 eligible SELL add 的 库存生命周期 |
 | Control $K_0$ | 允许本次及后续 SELL adds |
 | Candidate $K_1$ | 阻断本次及所有后续 SELL adds，直到 flat |
-| Propensity | campaign-level 0.5/0.5 |
+| Propensity | 库存生命周期-level 0.5/0.5 |
 | 主要 estimand | decision-to-terminal DR uplift |
-| Co-primary | campaign cost、negative terminal、q10、MAE、repair、activity |
+| Co-primary | 库存生命周期 cost、negative terminal、q10、MAE、repair、activity |
 | 冻结机制 | BUY、reducing、order size、limits、P3、queue、latency |
 
-外部参考被禁用，所有 state 是 local M0、campaign history、queue 与 shock/refill/recovery 的 decision-ready 表示。action-specific Ridge nuisance models 与 depth-2 honest tree 只能使用 past-only folds；unsupported leaf 自动回 baseline。
+外部参考被禁用，所有 state 是 local M0、库存生命周期 history、queue 与 shock/refill/recovery 的 decision-ready 表示。action-specific Ridge nuisance models 与 depth-2 honest tree 只能使用 past-only folds；unsupported leaf 自动回 baseline。
 
 ### 3. 因果时钟：permission 是持久状态，不是一行 mask
 
-动作顺序是：首个 eligible add 到达 ready clock，assignment 生成，若为 $K_1$ 则 permission state 转为 blocked；此后每个 exposure-increasing SELL decision 都被抑制，但 reducing BUY、cancel/ACK 与 terminal accounting 继续演化；flat 后 campaign 结束并登记一次 outcome。
+动作顺序是：首个 eligible add 到达 ready clock，assignment 生成，若为 $K_1$ 则 permission state 转为 blocked；此后每个 exposure-increasing SELL decision 都被抑制，但 reducing BUY、cancel/ACK 与 terminal accounting 继续演化；flat 后 库存生命周期 结束并登记一次 outcome。
 
 例如 inventory 为 $-0.001$ BTC 时出现 add。baseline 随后可能在 100,001、100,002 再成交两次，达到 $-0.003$；candidate 保持 $-0.001$，并靠 BUY quote 修复。若市场一路上涨，candidate 的 terminal loss 较小；若市场回落，baseline 的额外 SELL fills 可能贡献 spread 与 repair PnL。动作必须承担这两类 counterfactual，而不能只统计减少的最大库存。
 
@@ -343,15 +340,15 @@ $$
 
 #### 3.2 一个 tail 改善但净值不改善的合成例子
 
-假设十个 campaigns 中，baseline 的八个普通 campaign 各靠后续 SELL add 多赚 0.01 USDC；另两个趋势 campaign 各因额外 short 多亏 0.04。stop-until-flat 删除所有 later adds 后，两个坏尾部各改善 0.04，却也丢掉八个普通收益 0.01，总净变化恰为零。
+假设十个 库存生命周期 中，baseline 的八个普通 库存生命周期 各靠后续 SELL add 多赚 0.01 USDC；另两个趋势 库存生命周期 各因额外 short 多亏 0.04。stop-until-flat 删除所有 later adds 后，两个坏尾部各改善 0.04，却也丢掉八个普通收益 0.01，总净变化恰为零。
 
 此时 negative-terminal rate、q10 与 MAE 都可能显著改善，平均 reward 却无正下界。这个例子说明 risk metric 不是假的，只是它和机会成本处在不同加总位置。动作权限需要二者共同闭合。
 
 ### 4. 数据与支持
 
-Development 固定 56 日。behavior panel 有 1,734 个独立 campaigns，baseline/candidate 883/851，propensity 恰为 0.5；baseline later SELL add fills 为 986，candidate 为 0，duplicate decisions 为 0，每 campaign 只有一次 intervention。
+Development 固定 56 日。behavior panel 有 1,734 个独立 库存生命周期，baseline/candidate 883/851，propensity 恰为 0.5；baseline later SELL add fills 为 986，candidate 为 0，duplicate decisions 为 0，每 库存生命周期 只有一次 intervention。
 
-外层 chronological schedule 是 30 train + 1 embargo + 7 test；OOF 汇总 764 campaigns、25 个未来 UTC 日。policy ESS 为 383。因此失败不是 arms 没重叠，而是候选的经济形状与门槛冲突。
+外层 chronological schedule 是 30 train + 1 embargo + 7 test；OOF 汇总 764 库存生命周期、25 个未来 UTC 日。policy ESS 为 383。因此失败不是 arms 没重叠，而是候选的经济形状与门槛冲突。
 
 活动效应非常直观：candidate arm 按定义没有 subsequent SELL add fill。learned policy 又在 85.7% OOF rows 上选它，于是估计 fill retention 只有 10.8%。这不是微小的 safety adjustment，而是对主要 participation surface 的广泛关闭。
 
@@ -362,15 +359,15 @@ Development 固定 56 日。behavior panel 有 1,734 个独立 campaigns，basel
 | 越高越好的 outcome | DR uplift | UTC-day 95% interval | 正日 |
 |---|---:|---:|---:|
 | terminal reward | +0.00815 | [-0.02160, +0.03711] | 14/25 |
-| campaign-cost avoidance | -0.00025 | [-0.02848, +0.02859] | 12/25 |
+| 库存生命周期-cost avoidance | -0.00025 | [-0.02848, +0.02859] | 12/25 |
 | negative-terminal protection | +0.03133 | [+0.00584, +0.06077] | 18/25 |
 | Development-q10 protection | +0.02959 | [+0.00896, +0.05594] | 21/25 |
-| campaign-MAE avoidance | +0.08434 | [+0.04916, +0.12728] | 23/25 |
+| 库存生命周期-MAE avoidance | +0.08434 | [+0.04916, +0.12728] | 23/25 |
 | subsequent SELL add fills | -1.09156 | [-1.37413, -0.82771] | 1/25 |
 
-尾部、q10 与 MAE 的方向并非假象：阻止加空确实让 campaign 的库存暴露更小。但 reward lower bound 跨零，campaign-cost、repair 与 censoring 也不过关；更致命的是 10.8% fill retention。scorecard 因此把它标为 `overbroad_risk_control`，而非可部署 policy。
+尾部、q10 与 MAE 的方向并非假象：阻止加空确实让 库存生命周期 的库存暴露更小。但 reward lower bound 跨零，库存生命周期-cost、repair 与 censoring 也不过关；更致命的是 10.8% fill retention。scorecard 因此把它标为 `overbroad_risk_control`，而非可部署 policy。
 
-没有 Development campaign 达到 terminal $\le-5$ USDC 的极端事件。零事件只说明面板不支持该 estimand，不能声称 candidate 消除了极端尾部。
+没有 Development 库存生命周期 达到 terminal $\le-5$ USDC 的极端事件。零事件只说明面板不支持该 estimand，不能声称 candidate 消除了极端尾部。
 
 ### 6. 为什么 downside 改善不等于 action uplift
 
@@ -382,7 +379,7 @@ $$
 
 本实验明确识别了第一项，却没有证明其大于后两项。活动门不是额外装饰，而是防止“通过不交易获得安全”的可证伪约束。
 
-同时，BUY 与 reducing 没有被干预，所以结果不能推到 bilateral pause。candidate 的正 tail effect 只适用于 SHORT campaign 后续 SELL add permission。
+同时，BUY 与 reducing 没有被干预，所以结果不能推到 bilateral pause。candidate 的正 tail effect 只适用于 SHORT 库存生命周期 后续 SELL add permission。
 
 #### 6.1 Activity gate 是 estimand 约束，不是商业偏好
 
@@ -412,7 +409,7 @@ $$
 
 这一身份承接 one-cycle near-noop，探索动作强度的另一端。后来 `action_defense_v1` scorecard 回看同一冻结输出，得到 total score -0.2681、mechanism score -1.0 和 `overbroad_risk_control` 分类；scorecard 当时尚未预注册，所以仅作诊断，不创造新研究版本。
 
-后续 denominator 与 replay 修复撤回了旧精确 PnL、fill、campaign 与 tail 的当前校准权限，但并不撤回“不晋级”。修复不能让已经看过 Development 的相同 stop-until-flat action 获得一次免费重跑，也不能把版本、执行修正或 scorecard 分拆成新文章。
+后续 denominator 与 replay 修复撤回了旧精确 PnL、fill、库存生命周期 与 tail 的当前校准权限，但并不撤回“不晋级”。修复不能让已经看过 Development 的相同 stop-until-flat action 获得一次免费重跑，也不能把版本、执行修正或 scorecard 分拆成新文章。
 
 动作强度的已知边界因此是：one-cycle 太弱，until-flat 太强。这个边界启发 recovery-event rearm 等新经济动作，但那些项目必须用新 identity 独立评价。
 
@@ -460,31 +457,31 @@ SELL add permission为$1-H_t$。这不是逐row classifier；同一trigger可能
 
 ### Dynamic regime 的 off-policy 估计为何困难
 
-until-flat action改变未来是否还能add、何时flat和下一campaign何时开始。历史baseline下很少出现的长hold路径，在candidate下可能常见；逐decision importance weights会连乘并迅速退化：
+until-flat action改变未来是否还能add、何时flat和下一库存生命周期何时开始。历史baseline下很少出现的长hold路径，在candidate下可能常见；逐decision importance weights会连乘并迅速退化：
 
 $$
 W_T=\prod_{t\le T}\frac{\pi(A_t\mid H_t)}{e(A_t\mid H_t)}.
 $$
 
-只要某一步propensity接近零，整条trajectory失去overlap。因此本类强persistent action更适合paired full-path replay或campaign-level randomized policy，而不是把观察性rows交给通用OPE。
+只要某一步propensity接近零，整条trajectory失去overlap。因此本类强persistent action更适合paired full-path replay或库存生命周期-level randomized policy，而不是把观察性rows交给通用OPE。
 
-### Campaign terminal 与日终都要报告
+### 库存生命周期 terminal 与日终都要报告
 
-until-flat可能把campaign推到回放窗口外。只看closed campaigns会选择性删除最长、风险最大的路径；只看日终MTM又可能受terminal mark和initial state影响。二者应并列：campaign terminal/MTM处理路径，daily terminal equity提供共同市场分母。
+until-flat可能把库存生命周期推到回放窗口外。只看closed 库存生命周期会选择性删除最长、风险最大的路径；只看日终MTM又可能受terminal mark和initial state影响。二者应并列：库存生命周期 terminal/MTM处理路径，daily terminal equity提供共同市场分母。
 
-若candidate减少campaign births，per-campaign均值与per-day总价值还会方向不同。activity gate正是为了避免通过删除业务把per-campaign表做漂亮。
+若candidate减少库存生命周期 births，per-库存生命周期均值与per-day总价值还会方向不同。activity gate正是为了避免通过删除业务把per-库存生命周期表做漂亮。
 
 ### 未来 frontier 的 outcome-blind 预筛
 
-候选release rules先只看mechanics：retained SELL add fills、hold duration、reducing fills、terminal-open campaigns和distinct days。选择落在预注册活动区间的两三个规则，才允许开启经济结果。
+候选release rules先只看mechanics：retained SELL add fills、hold duration、reducing fills、terminal-open 库存生命周期和distinct days。选择落在预注册活动区间的两三个规则，才允许开启经济结果。
 
 这种预筛不能看PnL或markout，否则仍会挑winner。它保证后继既不是one-cycle no-op，也不是until-flat过强，为真正可辨识的中间动作创造空间。
 
 ### 10. 公共证据
 
-- [`sell_campaign_add_permission_v1_20260722.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/sell_campaign_add_permission_v1_20260722.md)
-- [`sell_add_repair_trend_skip_causal_v4_v1_20260718.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/sell_add_repair_trend_skip_causal_v4_v1_20260718.md)
-- [`F09 README`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/README.md)
+- [`sell_inventory_lifecycle_add_permission_v1_20260722.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/sell_inventory_lifecycle_add_permission_v1_20260722.md)
+- [`sell_add_repair_trend_skip_causal_v4_v1_20260718.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/sell_add_repair_trend_skip_causal_v4_v1_20260718.md)
+- [`F09 README`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/README.md)
 
 ### 结语
 
@@ -496,17 +493,17 @@ until-flat可能把campaign推到回放窗口外。只看closed campaigns会选�
 
 NarrowGate 的基线会在 exposure-increasing fill 后阻断同侧 add，实际冷却长度为 $85\text{s}\times$ 连续同侧 fill units。本项目没有搜索另一个固定秒数，而是在基线冷却真正到期后问：若 adverse move、adverse flow persistence、weak refill 与 weak recovery 四项仍同时成立，是否应继续跳过 add quote cycles，直到恢复 hysteresis 退出？
 
-BUY 与 SELL 是两个独立 side-specific identity，却共享一篇主文章，因为研究问题、动作、split 与统计合同相同。56 日 Development 中，SELL/BUY 分别有 1,646/2,396 个 campaign rows，但真正 entry-active 仅 81/82 行；active baseline/effective candidate 为 SELL 42/39、BUY 35/47，都没有达到每臂至少 50 行的冻结 support gate。
+BUY 与 SELL 是两个独立 side-specific identity，却共享一篇主文章，因为研究问题、动作、split 与统计合同相同。56 日 Development 中，SELL/BUY 分别有 1,646/2,396 个 库存生命周期 rows，但真正 entry-active 仅 81/82 行；active baseline/effective candidate 为 SELL 42/39、BUY 35/47，都没有达到每臂至少 50 行的冻结 support gate。
 
-时间外 25 日里，SELL reward 历史 DR uplift 为 -0.00504 USDC，95% day-cluster interval $[-0.01314,+0.00226]$；BUY 为 +0.00493，区间 $[-0.00166,+0.01275]$。BUY 的 repair 为负，duration avoidance 更是 $[-0.01204,-0.00025]$，说明弱正 reward 线索伴随更长 campaign。两侧 Development 均关闭，Validation 与 sealed holdout 未读。旧精确经济数值后因 denominator 修复撤回当前校准权限，但 support failure 与无晋级结论不变。
+时间外 25 日里，SELL reward 历史 DR uplift 为 -0.00504 USDC，95% day-cluster interval $[-0.01314,+0.00226]$；BUY 为 +0.00493，区间 $[-0.00166,+0.01275]$。BUY 的 repair 为负，duration avoidance 更是 $[-0.01204,-0.00025]$，说明弱正 reward 线索伴随更长 库存生命周期。两侧 Development 均关闭，Validation 与 sealed holdout 未读。旧精确经济数值后因 denominator 修复撤回当前校准权限，但 support failure 与无晋级结论不变。
 
 ![85秒后状态条件 rearm 的双时钟状态机](/images/narrowgate/state-conditioned-rearm-after85.svg)
 
 *图 1：机制示意。baseline cooldown 到期不是 candidate 的结束，而是随机化入口；只有四项 adverse conjunction 为真才继续 block，recovery hysteresis 退出。*
 
-![状态型 rearm 的完整 campaign action 路径](/images/narrowgate/f09-campaign-action-causal-path.svg)
+![状态型 rearm 的完整 库存生命周期 action 路径](/images/narrowgate/f09-inventory_lifecycle-action-causal-path.svg)
 
-*图 2：entry 必须由 untreated baseline opportunity 决定；assignment 后 candidate 自己生成阻断、释放、fills 与 terminal。总 campaign 数、active treatment support 和经济结果是三个不同分母。*
+*图 2：entry 必须由 untreated baseline opportunity 决定；assignment 后 candidate 自己生成阻断、释放、fills 与 terminal。总 库存生命周期 数、active treatment support 和经济结果是三个不同分母。*
 
 ### 1. 研究问题：固定时钟到期后，状态还危险怎么办？
 
@@ -518,7 +515,7 @@ $$
 \tau_s=E\left[Y_s(\text{continue block until recovery})-Y_s(\text{baseline rearm})\right].
 $$
 
-BUY add 增加 LONG，SELL add 增加 SHORT，所以 adverse flow 与 move 都要用 side-signed 表示，不能 pooled 后假设对称。结果 $Y_s$ 从首个 post-cooldown eligible decision 计到 campaign terminal。
+BUY add 增加 LONG，SELL add 增加 SHORT，所以 adverse flow 与 move 都要用 side-signed 表示，不能 pooled 后假设对称。结果 $Y_s$ 从首个 post-cooldown eligible decision 计到 库存生命周期 terminal。
 
 ### 2. 动作合同与输入
 
@@ -526,11 +523,11 @@ BUY add 增加 LONG，SELL add 增加 SHORT，所以 adverse flow 与 move 都�
 |---|---|
 | Control | actual baseline cooldown 到期后恢复 add |
 | Candidate | adverse conjunction 存续时继续跳过 add cycles |
-| Assignment | 每 day/campaign 恰好一次，0.5/0.5 |
-| Entry | adverse move、persistent adverse flow、weak refill、weak price/microprice recovery 全成立 |
+| Assignment | 每 day/inventory_lifecycle 恰好一次，0.5/0.5 |
+| Entry | 不利价格变化、持续不利成交流、补单弱、价格及盘口数量加权中价恢复弱，四项同时成立 |
 | Exit | separately frozen recovery hysteresis |
 | 保持不变 | reducing、size、inventory limit、BUY/SELL 对侧、P3、queue、latency |
-| Reward | fill value - incremental campaign cost - queue/reset cost |
+| Reward | fill value - incremental 库存生命周期 cost - queue/reset cost |
 
 四项 conjunction 可以写成：
 
@@ -550,7 +547,7 @@ $$
 
 其中 $n_{same-side}$ 按当前 operational contract 计数。market exchange time 决定价格与 L2 事件顺序，receive/ready time 决定状态何时可被策略使用。四个 entry components 必须在 $t_{decision}^{ready}$ 之前完成。
 
-具体例子：BUY campaign 有两个连续 exposure fills，基线不是 85 秒后而是相应 multiplier 到期后重新 eligible。到达 release 时，若价格仍向下、SELL taker flow 持续、bid refill 弱且 microprice 未恢复，candidate 继续 block；若下一 snapshot 恢复条件成立，则从下一 causal decision 起退出。不能用未来 5 秒的最低价判断“当时仍危险”。
+具体例子：BUY 库存生命周期 有两个连续 exposure fills，基线不是 85 秒后而是相应 multiplier 到期后重新 eligible。到达 release 时，若价格仍向下、SELL taker flow 持续、bid refill 弱且 盘口数量加权中价未恢复，candidate 继续 block；若下一 snapshot 恢复条件成立，则从下一 causal decision 起退出。不能用未来 5 秒的最低价判断“当时仍危险”。
 
 #### 3.1 Hysteresis 为什么是 treatment contract，而非防抖细节
 
@@ -571,7 +568,7 @@ $$
 
 #### 3.2 四项 conjunction 的稀疏性是乘法问题
 
-即使每个 adverse condition 单独在 30% opportunities 上成立，若近似独立，四项同时成立只有 $0.3^4=0.81\%$。现实中它们相关，但 conjunction 仍会快速收缩 support。总 campaign rows 很多，并不能改变只有 81/82 active rows 的事实。
+即使每个 adverse condition 单独在 30% opportunities 上成立，若近似独立，四项同时成立只有 $0.3^4=0.81\%$。现实中它们相关，但 conjunction 仍会快速收缩 support。总 库存生命周期 rows 很多，并不能改变只有 81/82 active rows 的事实。
 
 这个设计刻意寻找非常明确的坏状态，换来的代价是难以估计 action value。放宽为“三项满足两项”或改连续 score 会增加支持，但也定义新 treatment surface；recovery-event successor 正是以新身份完成这种改变，而不是给本项目补样本。
 
@@ -581,7 +578,7 @@ $$
 
 | Integrity / support | SELL | BUY |
 |---|---:|---:|
-| Development rows/campaigns | 1,646 | 2,396 |
+| Development rows/inventory_lifecycles | 1,646 | 2,396 |
 | baseline / candidate assignments | 829 / 817 | 1,180 / 1,216 |
 | entry-active rows | 81 | 82 |
 | active baseline / effective candidate | 42 / 39 | 35 / 47 |
@@ -589,7 +586,7 @@ $$
 | multi-cycle candidate rate | 53.85% | 53.19% |
 | total blocked add cycles | 174 | 150 |
 
-所有行 propensity 为 0.5、每 campaign 唯一 assignment、role 为 add、size 不变且没有 external reference。最大 reward-identity error 为 SELL $1.11\times10^{-16}$、BUY $5.55\times10^{-17}$。
+所有行 propensity 为 0.5、每 库存生命周期 唯一 assignment、role 为 add、size 不变且没有 external reference。最大 reward-identity error 为 SELL $1.11\times10^{-16}$、BUY $5.55\times10^{-17}$。
 
 预注册 support 要求 active baseline 与 candidate 每臂至少 50 行、覆盖至少 10 日。日期覆盖足够，但两侧每臂行数都不足。candidate 确实多周期生效，所以它不是 one-cycle near-noop；失败来自 conjunction 太稀疏。
 
@@ -600,12 +597,12 @@ $$
 | Outcome | SELL uplift [95% day CI] | BUY uplift [95% day CI] |
 |---|---:|---:|
 | terminal reward, USDC/decision | -0.00504 [-0.01314,+0.00226] | +0.00493 [-0.00166,+0.01275] |
-| campaign-cost avoidance | -0.00467 [-0.01250,+0.00189] | +0.00443 [-0.00189,+0.01195] |
+| 库存生命周期-cost avoidance | -0.00467 [-0.01250,+0.00189] | +0.00443 [-0.00189,+0.01195] |
 | negative-terminal protection | -0.00425 [-0.01141,+0.00240] | +0.00314 [-0.00168,+0.00927] |
 | repair within 30m | -0.00658 [-0.01718,+0.00337] | -0.00251 [-0.00810,+0.00363] |
 | duration avoidance beyond 30m | -0.00737 [-0.01479,+0.00037] | -0.00603 [-0.01204,-0.00025] |
 
-SELL 只有 7/25 正 reward 日，BUY 8/25。SELL 几乎所有路径指标都偏负。BUY 的 reward 点估计略正，却缺少正 LCB；repair 负、duration 显著变差。如果只展示 BUY reward，会把“更久地持有未修复 campaign”遗漏掉。
+SELL 只有 7/25 正 reward 日，BUY 8/25。SELL 几乎所有路径指标都偏负。BUY 的 reward 点估计略正，却缺少正 LCB；repair 负、duration 显著变差。如果只展示 BUY reward，会把“更久地持有未修复 库存生命周期”遗漏掉。
 
 两 logged arms 都没有 terminal $\le-5$ USDC 事件。这里的零 contrast 是 tail information missing，不是安全证据。
 
@@ -617,15 +614,15 @@ $$
 n_{eff}\lesssim 4\left(\frac1{n_0}+\frac1{n_1}\right)^{-1},
 $$
 
-SELL 由 42/39、BUY 由 35/47 决定，而不是由 1,646/2,396 的总 campaign 数决定。
+SELL 由 42/39、BUY 由 35/47 决定，而不是由 1,646/2,396 的总 库存生命周期 数决定。
 
 看到稀疏后松动四项 conjunction、移动阈值或降低每臂 50 行的门槛，会在已读 outcomes 上改变 treatment definition。那是新 family，不是 v1 修补。
 
 #### 6.1 名义样本、active sample 与有效样本
 
-1,646/2,396 campaign rows 是名义分母；81/82 entry-active rows 才是 treatment 能产生差异的样本；按 arm 与日期聚类后的 $n_{eff}$ 更小。大量 $G_t=0$ rows 中两臂行为相同，能够验证 replay identity，却几乎不提供 $Y(1)-Y(0)$ 信息。
+1,646/2,396 库存生命周期 rows 是名义分母；81/82 entry-active rows 才是 treatment 能产生差异的样本；按 arm 与日期聚类后的 $n_{eff}$ 更小。大量 $G_t=0$ rows 中两臂行为相同，能够验证 replay identity，却几乎不提供 $Y(1)-Y(0)$ 信息。
 
-因此正确 funnel 是：campaign eligible → cooldown actually releases non-flat → four-way conjunction active → both randomized arms represented → future terminal observed。报告只给第一层会让 action 看似有数千样本，掩盖真正 positivity 失败。
+因此正确 funnel 是：库存生命周期 eligible → cooldown actually releases non-flat → four-way conjunction active → both randomized arms represented → future terminal observed。报告只给第一层会让 action 看似有数千样本，掩盖真正 positivity 失败。
 
 #### 6.2 BUY 弱正点估计为什么不能成为 side-specific loophole
 
@@ -635,7 +632,7 @@ BUY 的 reward 点估计为正，但区间跨零、正日只有 8/25，repair �
 
 #### 6.3 一个合格的状态型 successor 需要什么
 
-首先应在 outcome-blind state census 上证明 entry rate、duration、action-change 和 fill retention落在预注册区间；其次明确 invalid feature 时是继续 block、回 baseline 还是 censor；最后才做 campaign-level assignment-to-terminal评价。
+首先应在 outcome-blind state census 上证明 entry rate、duration、action-change 和 fill retention落在预注册区间；其次明确 invalid feature 时是继续 block、回 baseline 还是 censor；最后才做 库存生命周期-level assignment-to-terminal评价。
 
 如果使用连续 recovery score，还必须冻结 component scale 与 aggregation，因为 arithmetic mean、geometric mean 和 min operator 对“有一项没有恢复”给出完全不同的动作。模型形式不是装饰，它决定哪些 opportunities 进入 treatment。
 
@@ -661,7 +658,7 @@ BUY 与 SELL 因 action side 不同各自拥有身份，但写在一起是因为
 
 若四个条件各自在40%的active rows成立，在近似独立时四项同时成立只剩$0.4^4=2.56\%$。现实中条件相关可能提高或降低比例，但再叠加side、inventory role、valid feature、candidate price与hysteresis，最终action region往往集中在少数日期。
 
-这类稀疏不能靠增加row频率解决。同一订单每100ms贡献上百rows，独立信息仍主要由order、campaign与day决定。支持应看distinct lineages与date concentration；若一个condition region只有三天，即使有十万rows，chronological transport仍不可识别。
+这类稀疏不能靠增加row频率解决。同一订单每100ms贡献上百rows，独立信息仍主要由order、库存生命周期与day决定。支持应看distinct lineages与date concentration；若一个condition region只有三天，即使有十万rows，chronological transport仍不可识别。
 
 ### Hysteresis 的两道阈值怎样改变估计量
 
@@ -689,7 +686,7 @@ BUY弱正点估计与SELL偏负提示side可能需要分开，但不能从失败
 
 ### Rearm 触发后的 lineage
 
-一旦允许add，后续order、fill与campaign必须携带触发该permission的assignment id；不能在每个decision根据当前条件重新标记。否则成功fill可能被归给最后一次“条件仍成立”，而不是最初release动作。
+一旦允许add，后续order、fill与库存生命周期必须携带触发该permission的assignment id；不能在每个decision根据当前条件重新标记。否则成功fill可能被归给最后一次“条件仍成立”，而不是最初release动作。
 
 lineage至少持续到action effect自然终止：该cycle结束、inventory flat或预注册窗口。若不同定义给出不同reward，duration就是treatment的一部分，不能当report细节。
 
@@ -701,9 +698,9 @@ lineage至少持续到action effect自然终止：该cycle结束、inventory fla
 
 ### 9. 公共证据
 
-- [`state_conditioned_rearm_after85_v1_20260722.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/state_conditioned_rearm_after85_v1_20260722.md)
-- [`dynamic_mechanism_campaign_audit_20260722.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/dynamic_mechanism_campaign_audit_20260722.md)
-- [`F09 README`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/README.md)
+- [`state_conditioned_rearm_after85_v1_20260722.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/state_conditioned_rearm_after85_v1_20260722.md)
+- [`dynamic_mechanism_inventory_lifecycle_audit_20260722.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/docs/dynamic_mechanism_inventory_lifecycle_audit_20260722.md)
+- [`F09 README`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/README.md)
 
 ### 结语
 
@@ -713,23 +710,23 @@ lineage至少持续到action effect自然终止：该cycle结束、inventory fla
 
 ### TL;DR：这次不是样本不足，也不是停止交易；候选在有支持时仍显著更差
 
-上一项四条件 conjunction 太稀疏。本项目把恢复状态改写为连续几何分数：shock decay、refill recovery、microprice recovery 与 queue recovery 各映射到 $[0,1]$，用等权几何均值合成。baseline 在实际 85 秒冷却到期后恢复 add；candidate 在 score 未达到 side-specific threshold 时继续 block，看到 causal recovery event 后释放。
+上一项四条件 conjunction 太稀疏。本项目把恢复状态改写为连续几何分数：shock decay、refill recovery、盘口数量加权中价恢复 与 queue recovery 各映射到 $[0,1]$，用等权几何均值合成。baseline 在实际 85 秒冷却到期后恢复 add；candidate 在 score 未达到 side-specific threshold 时继续 block，看到 causal recovery event 后释放。
 
 阈值选择严格 outcome-blind，只读取 causal state、assignment 与 intervention fill count，在 5%–30% quantile grid 中目标 15% candidate rate，并要求 fills retention 至少 85%。SELL 冻结阈值 0.01600795，candidate rate 约 11%，conservative retention 87.04%；BUY 阈值 0.02147895，candidate rate 15.03%，retention 87.49%。
 
-SELL 是预声明的 first side。56 日 Development 产生 1,644 campaign rows、180 active entry rows、712 OOF rows，support、overlap 和 activity 全部通过；但 reward DR uplift 为 -0.01560 USDC/campaign，UTC-day 95% interval $[-0.02996,-0.00377]$，campaign cost、negative terminal 与 MAE 也显著更差。这是一项干净的 action failure：动作发生了、没有活动崩塌、却降低价值。BUY 只完成 support freeze，outcome panel 未开。Validation 与 sealed holdout 均未读。
+SELL 是预声明的 first side。56 日 Development 产生 1,644 库存生命周期 rows、180 active entry rows、712 OOF rows，support、overlap 和 activity 全部通过；但 reward DR uplift 为 -0.01560 USDC/inventory_lifecycle，UTC-day 95% interval $[-0.02996,-0.00377]$，库存生命周期 cost、negative terminal 与 MAE 也显著更差。这是一项干净的 action failure：动作发生了、没有活动崩塌、却降低价值。BUY 只完成 support freeze，outcome panel 未开。Validation 与 sealed holdout 均未读。
 
 ![Recovery-event rearm 几何分数状态机](/images/narrowgate/recovery-event-rearm.svg)
 
 *图 1：机制示意。四个 causal components 合成为 recovery score；低于阈值时 candidate block，高于阈值时 rearm。invalid state 不能被当成“恢复”。*
 
-![Recovery-event action 的完整因果路径](/images/narrowgate/f09-campaign-action-causal-path.svg)
+![Recovery-event action 的完整因果路径](/images/narrowgate/f09-inventory_lifecycle-action-causal-path.svg)
 
 *图 2：score 只决定 permission，不能替代终局。支持选择不读 outcome；正式 arm 则从 assignment 重新生成订单与库存，并同时经过 activity、lifecycle 与 economics 门。*
 
 ### 1. 研究问题：描述恢复是否等于识别有价值的动作？
 
-盘口恢复可以从多个角度观察：adverse flow 是否衰减、被抽走的深度是否补回、microprice 是否向有利方向移动、当前 queue 是否恢复到 shock 前水平。把这些量组合成 score 很容易；难点是证明“低 score 时多等一会”优于立即恢复报价。
+盘口恢复可以从多个角度观察：adverse flow 是否衰减、被抽走的深度是否补回、盘口数量加权中价是否向有利方向移动、当前 queue 是否恢复到 shock 前水平。把这些量组合成 score 很容易；难点是证明“低 score 时多等一会”优于立即恢复报价。
 
 目标 estimand 是：
 
@@ -737,7 +734,7 @@ $$
 \tau_s=E[Y_s(\text{block until }S_t\ge c_s)-Y_s(\text{baseline rearm})],
 $$
 
-其中 $c_s$ 在读 outcome 前冻结，$Y_s$ 是 decision-to-terminal campaign value。预测坏状态与识别阻断动作的收益不同：低 recovery score 可能只说明 campaign 已经糟糕，却不意味着不挂下一笔 add 能修复它。
+其中 $c_s$ 在读 outcome 前冻结，$Y_s$ 是 decision-to-terminal 库存生命周期 value。预测坏状态与识别阻断动作的收益不同：低 recovery score 可能只说明 库存生命周期 已经糟糕，却不意味着不挂下一笔 add 能修复它。
 
 ### 2. 四个输入与关键公式
 
@@ -749,7 +746,7 @@ $$
 
 $$
 r=\operatorname{clip}(\text{refill recovery ratio},0,1),\quad
-m=\operatorname{clip}(\text{microprice recovery ratio},0,1),
+m=\operatorname{clip}(\text{weighted-mid recovery ratio},0,1),
 $$
 
 $$
@@ -790,18 +787,18 @@ entry 时数据无效就回 baseline，避免用缺失状态创建 treatment；e
 |---|---|
 | Control | baseline cooldown 到期即 rearm |
 | Candidate | $S_t<c_s$ 时 block，首次 valid $S_t\ge c_s$ 时 rearm |
-| Unit | side-specific campaign，最多一次 assignment |
+| Unit | side-specific 库存生命周期，最多一次 assignment |
 | Propensity | 0.5/0.5 |
 | Unchanged | reducing、size、max inventory、taker、external reference off |
-| Primary | terminal reward；campaign cost、MAE、repair/time 为共同门 |
+| Primary | terminal reward；库存生命周期 cost、MAE、repair/time 为共同门 |
 
-例如 SELL campaign 的 cooldown 到期时，$d=0.20,r=0.10,m=0.25,q=0.40$，则 $S\approx0.212$；实际是否低于阈值取决于冻结量纲与变换后的数值。若 score 低，candidate 跳过该 SELL add；几秒后 $r$ 与 $q$ 补回，score 过线，下一 causal decision 才 rearm。baseline 在第一时刻就挂单并可能成交，所以两臂后续 inventory、queue 与 repair 路径不同。
+例如 SELL 库存生命周期 的 cooldown 到期时，$d=0.20,r=0.10,m=0.25,q=0.40$，则 $S\approx0.212$；实际是否低于阈值取决于冻结量纲与变换后的数值。若 score 低，candidate 跳过该 SELL add；几秒后 $r$ 与 $q$ 补回，score 过线，下一 causal decision 才 rearm。baseline 在第一时刻就挂单并可能成交，所以两臂后续 inventory、queue 与 repair 路径不同。
 
-exchange clock 排列 trades/L2；ready clock 决定四组件可用时点。不能用本周期结束后的最低 mid、后来 refill 或终局 campaign PnL参与 $S_t$。一旦这样做，所谓 recovery event 就变成 outcome label。
+exchange clock 排列 trades/L2；ready clock 决定四组件可用时点。不能用本周期结束后的最低 mid、后来 refill 或终局 库存生命周期 PnL参与 $S_t$。一旦这样做，所谓 recovery event 就变成 outcome label。
 
 ### 4. Outcome-blind 支持选择
 
-threshold selector 没有读取 reward、PnL、markout、campaign cost、MAE 或 duration，只在 5%–30% quantiles 搜索，目标 candidate rate 15%，每侧 candidate 至少 50 rows/10 days，并保守假设所有与 blocked entry 绑定的 baseline fill 都会丢失。
+threshold selector 没有读取 reward、PnL、markout、库存生命周期 cost、MAE 或 duration，只在 5%–30% quantiles 搜索，目标 candidate rate 15%，每侧 candidate 至少 50 rows/10 days，并保守假设所有与 blocked entry 绑定的 baseline fill 都会丢失。
 
 | Side | score threshold | candidate rate | conservative fill retention | 结论 |
 |---|---:|---:|---:|---|
@@ -824,7 +821,7 @@ BUY 与 SELL 有独立 action identity，但共享方法。预先规定先打开
 
 ### 5. SELL Development 面板
 
-正式回放覆盖 56 个 Development 日，fresh-start daily state、exact 50/50 propensity 与每 campaign 一次 intervention。共有 1,644 campaign rows；180 个 active entry rows 分布于 51 日，其中 active baseline 97、effective candidate 83。实际 candidate rate 10.95%，conservative fills retention 87.19%。
+正式回放覆盖 56 个 Development 日，fresh-start daily state、exact 50/50 propensity 与每 库存生命周期 一次 intervention。共有 1,644 库存生命周期 rows；180 个 active entry rows 分布于 51 日，其中 active baseline 97、effective candidate 83。实际 candidate rate 10.95%，conservative fills retention 87.19%。
 
 chronological OOF 有 712 rows，policy ESS 343，unsupported mass 与 overlap violations 都是 0。21.7% effective candidate assignments 阻断超过一个 quote cycle，说明多数 episode 很快恢复，但动作并非纯 one-cycle mask。
 
@@ -832,15 +829,15 @@ chronological OOF 有 712 rows，policy ESS 343，unsupported mass 与 overlap v
 
 | 越高越好 | SELL DR uplift | UTC-day 95% interval | 正日率 |
 |---|---:|---:|---:|
-| reward, USDC/campaign | -0.01560 | [-0.02996,-0.00377] | 24% |
-| campaign-cost avoidance | -0.01362 | [-0.02844,-0.00181] | 32% |
+| reward, USDC/inventory_lifecycle | -0.01560 | [-0.02996,-0.00377] | 24% |
+| 库存生命周期-cost avoidance | -0.01362 | [-0.02844,-0.00181] | 32% |
 | negative-terminal protection | -0.01360 | [-0.02699,-0.00321] | 28% |
 | Development-q10 protection | -0.00886 | [-0.02166,+0.00004] | 36% |
-| campaign-MAE avoidance | -0.01913 | [-0.03798,-0.00335] | 32% |
+| 库存生命周期-MAE avoidance | -0.01913 | [-0.03798,-0.00335] | 32% |
 | repair within 30m | -0.00352 | [-0.01714,+0.00856] | 28% |
 | repair-time avoidance, seconds | -9.27 | [-33.71,+13.66] | 44% |
 
-主要 value、campaign cost、negative terminal 与 MAE 的整个 interval 都在零下。活动保留超过 85%，所以不能用“candidate 停止交易”解释失败；overlap 和 ESS 也足够。冻结 score 捕捉到了低恢复状态，却没有捕捉到“阻断下一个 add 能改善路径”的区域。
+主要 value、库存生命周期 cost、negative terminal 与 MAE 的整个 interval 都在零下。活动保留超过 85%，所以不能用“candidate 停止交易”解释失败；overlap 和 ESS 也足够。冻结 score 捕捉到了低恢复状态，却没有捕捉到“阻断下一个 add 能改善路径”的区域。
 
 没有 terminal $\le-5$ USDC 事件，因此 extreme-tail estimand unsupported。不能把零事件写成 tail safety pass。
 
@@ -858,17 +855,17 @@ $$
 E[Y(1)-Y(0)\mid Z]<0.
 $$
 
-第一式说 $Z$ 预测坏 campaign；第二式说在坏 campaign 中 block 更差。原因可能是被阻断的 SELL add 原本会改善平均开仓价，或者延后参与使 repair opportunity 消失。此实验识别的正是第二式。
+第一式说 $Z$ 预测坏 库存生命周期；第二式说在坏 库存生命周期 中 block 更差。原因可能是被阻断的 SELL add 原本会改善平均开仓价，或者延后参与使 repair opportunity 消失。此实验识别的正是第二式。
 
 #### 7.1 一条负 action path 的合成解释
 
-设 SHORT campaign 在价格上冲后 cooldown 到期，refill 与 queue 尚弱，score 很低。baseline 恢复 SELL add，在短暂高价成交；数秒后价格回落，新增 short 与 reducing BUY 共同贡献修复。candidate 等到 book 看似恢复才 rearm，此时价格已回落，错过更有利的 SELL execution，campaign 反而更久或以更差 value 结束。
+设 SHORT 库存生命周期 在价格上冲后 cooldown 到期，refill 与 queue 尚弱，score 很低。baseline 恢复 SELL add，在短暂高价成交；数秒后价格回落，新增 short 与 reducing BUY 共同贡献修复。candidate 等到 book 看似恢复才 rearm，此时价格已回落，错过更有利的 SELL execution，库存生命周期 反而更久或以更差 value 结束。
 
 这条路径里低 score 对“市场刚受冲击”的描述完全正确，错误发生在把描述映射为“继续禁止加空”。对某些 inventory state，adverse market state 也可能提供更好的 passive entry price；动作效应取决于库存与未来路径，不由风险标签单独决定。
 
 #### 7.2 明确阴性比 support failure 提供了更多信息
 
-上一项 conjunction 因 active rows 不足，无法区分 rule 真无效还是估计太宽。本项目 support、activity、overlap 都通过，reward、campaign cost、negative terminal 与 MAE 却有负下界。这缩小了替代解释：不是 no-op、不是 shutdown、不是 propensity 崩溃，也不是只差一点样本。
+上一项 conjunction 因 active rows 不足，无法区分 rule 真无效还是估计太宽。本项目 support、activity、overlap 都通过，reward、库存生命周期 cost、negative terminal 与 MAE 却有负下界。这缩小了替代解释：不是 no-op、不是 shutdown、不是 propensity 崩溃，也不是只差一点样本。
 
 因此不能用“再收集更多相同日期类型”作为默认重开理由。真正新项目需要不同 economic mapping，例如价格调整而非 permission、不同 inventory role 或新的 decision-visible evidence；仅重调几何权重是在已观察负结果上找逃生门。
 
@@ -876,7 +873,7 @@ $$
 
 从稀疏四条件 conjunction 到连续几何 score，经济机制发生了足够变化，因此这是新 research identity；其中支持检查、SELL 执行和评价使用同一实验定义，不能被当成独立确认。
 
-后续 denominator 修复使旧 exact reward/fill/campaign/duration 数值不再用于当前标定；原始 interval 已明确为负，修复也不会自动授予重调 weights、threshold 或 aggregation 的权限。要尝试 arithmetic mean、不同组件或 active-order cancel，必须新注册 action 与面板。
+后续 denominator 修复使旧 exact reward/fill/inventory_lifecycle/duration 数值不再用于当前标定；原始 interval 已明确为负，修复也不会自动授予重调 weights、threshold 或 aggregation 的权限。要尝试 arithmetic mean、不同组件或 active-order cancel，必须新注册 action 与面板。
 
 关闭的是这个四组件几何 score 下的 post-85 delayed rearm，尤其是 SELL outcome action。BUY 仅有 support 结论，不能说 BUY value 正或负；它同样没有 outcome 晋级权限。
 
@@ -902,7 +899,7 @@ $$
 
 ### 阴性结果如何缩小下一轮搜索空间
 
-本项目排除了“多个恢复指标的几何均值超过门槛即可安全rearm”这一简单规则。后续可以研究更接近动作价值的状态：active queue option、inventory role、冲击后first-passage time、external reference residual或明确的campaign repair机会。
+本项目排除了“多个恢复指标的几何均值超过门槛即可安全rearm”这一简单规则。后续可以研究更接近动作价值的状态：active queue option、inventory role、冲击后first-passage time、external reference residual或明确的库存生命周期 repair机会。
 
 新模型也应直接估计keep-hold与rearm的terminal contrast，而不是先预测一个无监督normality score再假设高分等于正value。若仍保留recovery features，它们作为$X$进入
 
@@ -930,9 +927,9 @@ support通过且reward显著更差时，应关闭当前score/threshold/action三
 
 ### 10. 公共证据
 
-- [`recovery_event_rearm_v1_20260722.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/recovery_event_rearm_v1_20260722.md)
-- [`state_conditioned_rearm_after85_v1_20260722.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/state_conditioned_rearm_after85_v1_20260722.md)
-- [`F09 README`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/README.md)
+- [`recovery_event_rearm_v1_20260722.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/recovery_event_rearm_v1_20260722.md)
+- [`state_conditioned_rearm_after85_v1_20260722.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/state_conditioned_rearm_after85_v1_20260722.md)
+- [`F09 README`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/README.md)
 
 ### 结语
 
@@ -952,7 +949,7 @@ support通过且reward显著更差时，应关闭当前score/threshold/action三
 
 *图 1：机制示意。同一价格路径上，wall time 均匀走动，variance time 只在已完成且已 ready 的一秒 bucket 上累积；高波动时可能更早释放，低波动时更晚。*
 
-![Variance-time action 的完整 campaign 因果路径](/images/narrowgate/f09-campaign-action-causal-path.svg)
+![Variance-time action 的完整 库存生命周期 因果路径](/images/narrowgate/f09-inventory_lifecycle-action-causal-path.svg)
 
 *图 2：clock difference 只是 mechanics 起点；它还要穿过 downstream blocker、quote action、fill、inventory 与 terminal。timing 改变而最终动作不变时，不会自动产生经济 treatment。*
 
@@ -1017,15 +1014,15 @@ completed bucket 还解决了一个时间问题：$[t,t+1s)$ 的方差只有到 
 | Candidate | frozen variance budget + liveness bounds |
 | Unchanged | reducing、size、limits、P3、queue、latency、blockers |
 | Primary | decision-to-lineage-terminal direct equity reward |
-| Secondary gates | campaign terminal、q10、MAE、repair、censor、inventory time |
+| Secondary gates | 库存生命周期 terminal、q10、MAE、repair、censor、inventory time |
 
 authoritative row reward 是 lineage decision 到 terminal 的直接 equity change。审计等式为：
 
 $$
-Y=V^{maker}_{30s}-R^{campaign}_{accounting}-C_{queue/reset}.
+Y=V^{maker}_{30s}-R^{库存生命周期}_{accounting}-C_{queue/reset}.
 $$
 
-$R^{campaign}_{accounting}$ 是路径会计残差，不是独立识别的 causal cost；queue reset 没有已识别的 USDC price，显式 cost 设为零，但 reset 导致的 missed/added fills 在路径中真实重放。maker-signed value 从 execution price 起算，不再重复加 half-spread。
+$R^{库存生命周期}_{accounting}$ 是路径会计残差，不是独立识别的 causal cost；queue reset 没有已识别的 USDC price，显式 cost 设为零，但 reset 导致的 missed/added fills 在路径中真实重放。maker-signed value 从 execution price 起算，不再重复加 half-spread。
 
 ### 4. 研究演进：为什么多个版本仍是一项研究
 
@@ -1071,17 +1068,17 @@ $$
 | Side | Metric | Point | 95% UTC-day interval | 正日 |
 |---|---|---:|---:|---:|
 | BUY | primary lineage reward | +0.000738 | [-0.002000,+0.003577] | 47.5% |
-| BUY | campaign terminal value | +0.007607 | [+0.003349,+0.012043] | 65.0% |
+| BUY | 库存生命周期 terminal value | +0.007607 | [+0.003349,+0.012043] | 65.0% |
 | BUY | inventory-time avoidance | +0.009843 BTC·s | [-0.001394,+0.023596] | 57.5% |
 | SELL | primary lineage reward | +0.001875 | [-0.002303,+0.006242] | 65.0% |
-| SELL | campaign terminal value | -0.000003 | [-0.010238,+0.008853] | 57.5% |
+| SELL | 库存生命周期 terminal value | -0.000003 | [-0.010238,+0.008853] | 57.5% |
 | SELL | inventory-time avoidance | +0.009464 BTC·s | [-0.002802,+0.024931] | 55.0% |
 
-BUY terminal campaign secondary metric 有正下界，却不能覆盖 primary reward、q10、MAE、repair、censor 与 inventory-time 的联合失败。SELL reward 点估计及正日率看起来更好，但 interval 仍跨零，其 terminal 与 tail gates 也失败。BUY/SELL 不允许 pooled rescue，两个 scorecards 均 `ranking_score=null`。
+BUY terminal 库存生命周期 secondary metric 有正下界，却不能覆盖 primary reward、q10、MAE、repair、censor 与 inventory-time 的联合失败。SELL reward 点估计及正日率看起来更好，但 interval 仍跨零，其 terminal 与 tail gates 也失败。BUY/SELL 不允许 pooled rescue，两个 scorecards 均 `ranking_score=null`。
 
-#### 6.1 BUY primary 与 campaign terminal 为什么会给出不同方向强度
+#### 6.1 BUY primary 与 库存生命周期 terminal 为什么会给出不同方向强度
 
-primary lineage reward 从 assignment 开始，以 lineage terminal 的直接权益变化为准；campaign terminal 可能包含 assignment 前已经积累的 campaign PnL，或 assignment 后但不完全属于 lineage treatment 的 continuation。若 candidate/control 在进入 assignment 时历史状态稍有不平衡，campaign-level secondary 容易吸收 pre-assignment value。
+primary lineage reward 从 assignment 开始，以 lineage terminal 的直接权益变化为准；库存生命周期 terminal 可能包含 assignment 前已经积累的 库存生命周期 PnL，或 assignment 后但不完全属于 lineage treatment 的 continuation。若 candidate/control 在进入 assignment 时历史状态稍有不平衡，库存生命周期-level secondary 容易吸收 pre-assignment value。
 
 正确归因要求：
 
@@ -1091,7 +1088,7 @@ Y_{decision\to terminal}
 R_{lineage}+C_{post-lineage},
 $$
 
-而 pre-assignment campaign PnL只能作 covariate/balance diagnostic。后续 negative-result attribution 正发现 BUY 的漂亮 campaign terminal下界含有这类上游成分；因此 primary failure 不能由 secondary 覆盖。
+而 pre-assignment 库存生命周期 PnL只能作 covariate/balance diagnostic。后续 negative-result attribution 正发现 BUY 的漂亮 库存生命周期 terminal下界含有这类上游成分；因此 primary failure 不能由 secondary 覆盖。
 
 #### 6.2 机械证据越强，经济阴性越不能归咎于实现
 
@@ -1101,7 +1098,7 @@ $$
 
 ### 7. 结果边界与剩余不确定性
 
-daily fresh-start replay 不等价于连续 live carry。历史 40 日没有出现真实 q90 cancel-request 到 ACK 之间的 fill branch；该分支只有 synthetic contract coverage，不能声称有历史市场覆盖。AWS receive-time transport 也没有获得支持，exchange-time BBO clock 不能直接转成 live authority。
+daily fresh-start replay 不等价于连续 live carry。历史 40 日没有出现真实 q90 cancel-request 到 ACK 之间的 fill branch；该分支只有 synthetic contract coverage，不能声称有历史市场覆盖。AWS receive-time transport 也没有获得支持，exchange-time BBO clock 不能直接转成 实盘有效性证据。
 
 Development q10 threshold 曾从 pooled control rows 计算，这是 nuisance limitation；它不能用作 side-specific tail artifact。但两侧已分别失败 primary reward 与额外 hard gates，所以该问题不会把关闭反转成晋级。
 
@@ -1137,14 +1134,14 @@ $$
 
 causal variance clock仍是可复用primitive。它可以用于duration标准化、risk reporting或其它预注册动作，但不能因为工程完整就默认rearm有利。未来若与inventory budget或external recovery结合，组合rule属于新treatment，需要新support；不允许把本篇阴性主效应和另一个弱信号事后相乘寻找winner。
 
-一个更小的后继可以只研究固定秒钟与variance clock在明确campaign role上的one-shot release，并把风险utility预先写明。若目标是降低库存时间而允许轻微mean成本，权重应在结果前冻结；否则“风险更好”与“价值更好”会继续被混用。
+一个更小的后继可以只研究固定秒钟与variance clock在明确库存生命周期 role上的one-shot release，并把风险utility预先写明。若目标是降低库存时间而允许轻微mean成本，权重应在结果前冻结；否则“风险更好”与“价值更好”会继续被混用。
 
 ### 9. 公共证据
 
-- [`volatility_time_add_rearm_randomized_replay_v1_development_20260729.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/volatility_time_add_rearm_randomized_replay_v1_development_20260729.md)
-- [`volatility_time_add_rearm_feasibility_v2_1_development_20260729.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/volatility_time_add_rearm_feasibility_v2_1_development_20260729.md)
-- [`volatility_time_add_rearm_full_path_preflight_v1_development_20260729.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/volatility_time_add_rearm_full_path_preflight_v1_development_20260729.md)
-- [`volatility_time_add_rearm_cpp_q90_parity_v1_development_20260729.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/volatility_time_add_rearm_cpp_q90_parity_v1_development_20260729.md)
+- [`volatility_time_add_rearm_randomized_replay_v1_development_20260729.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/volatility_time_add_rearm_randomized_replay_v1_development_20260729.md)
+- [`volatility_time_add_rearm_feasibility_v2_1_development_20260729.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/volatility_time_add_rearm_feasibility_v2_1_development_20260729.md)
+- [`volatility_time_add_rearm_full_path_preflight_v1_development_20260729.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/volatility_time_add_rearm_full_path_preflight_v1_development_20260729.md)
+- [`volatility_time_add_rearm_cpp_q90_parity_v1_development_20260729.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/volatility_time_add_rearm_cpp_q90_parity_v1_development_20260729.md)
 
 ### 结语
 

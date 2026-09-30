@@ -13,9 +13,6 @@ tags:
 math: true
 ---
 
-
-
-
 ## 1. 一张订单的价值从 placement 开始，在 continuation 中结束
 
 F06 研究订单提交前应该离 touch 多远，F07 研究订单激活后遇到 adverse state 应该 KEEP 还是 CANCEL/RE-ENTER。它们在仓库中分属 placement 与 continuation 两个 family，却共同构成一张订单的完整决策问题：placement 决定初始价格与 queue position，continuation 决定是否保留已经获得的 queue option。成交概率校准只是估值输入；下单和续单是否值得，仍要分别比较完整路径收益。
@@ -32,7 +29,7 @@ $$
 \Delta V(H_t)=V_{\mathrm{keep}}(H_t)-V_{\mathrm{cancel/ack/reenter}}(H_t).
 $$
 
-这个差值不能由单一 fill hazard 推出；同样，placement 上更浅的报价 fill 更多，也不能推出它更有价值。KEEP、CANCEL 与距离动作都会改变后续风险集、queue rank、成交 side、库存与 campaign 终局；cancel request 也不是 cancel ACK。生命周期 CIF 负责回答“在继续存活条件下各事件何时发生”，动作试验才回答“选择哪条路径更好”。
+这个差值不能由单一 fill hazard 推出；同样，placement 上更浅的报价 fill 更多，也不能推出它更有价值。KEEP、CANCEL 与距离动作都会改变后续风险集、queue rank、成交 side、库存与 库存生命周期 终局；cancel request 也不是 cancel ACK。生命周期 CIF 负责回答“在继续存活条件下各事件何时发生”，动作试验才回答“选择哪条路径更好”。
 
 ## 2. 研究阶段与证据状态
 
@@ -52,9 +49,9 @@ F06 Placement Fill CIF 研究从一个看似简单的问题出发：**同一个 
 
 1. **mechanics**：同一未来行情路径上，更深的被动报价不能成交而更浅的报价不成交；否则 matcher 或路径合同有问题。
 2. **probability**：需要估计 activation 后、cancel ACK 前的完整 fill cumulative incidence，而不是把 1s、5s、10s 当成三个互不相干的分类任务。
-3. **value**：即使两 tick 或四 tick 的 fill probability 差异显著，也必须证明多出来或少掉的边际 fills 有稳定、带符号的 campaign-terminal USDC value。
+3. **value**：即使两 tick 或四 tick 的 fill probability 差异显著，也必须证明多出来或少掉的边际 fills 有稳定、带符号的 库存生命周期-terminal USDC value。
 
-研究链最终得到一个很清楚的阴性结论。配对 replay 修复后，fill 曲线严格随报价距离单调；相邻一 tick 的差异在同时推断下不可识别，而单侧两 tick与四 tick 差异可识别。但在最终 24 个正式 side-role-contrast value cells 中，没有一个 terminal-value interval 单侧越过冻结的 $0.0001$ USDC/decision 经济预算，所有区间都跨零；campaign attribution coverage 也没有一个达到 95%。
+研究链最终得到一个很清楚的阴性结论。配对 replay 修复后，fill 曲线严格随报价距离单调；相邻一 tick 的差异在同时推断下不可识别，而单侧两 tick与四 tick 差异可识别。但在最终 24 个正式 side-role-contrast value cells 中，没有一个 terminal-value interval 单侧越过冻结的 $0.0001$ USDC/decision 经济预算，所有区间都跨零；库存生命周期 attribution coverage 也没有一个达到 95%。
 
 因此 F06 关闭的是 **placement-distance value path**，而不只是某一版 fill model。结论不是“距离不影响成交”，恰好相反：距离明确影响成交；但这份 Development 证据没有把成交差异转化成有方向的终局动作价值。
 
@@ -296,19 +293,19 @@ V_{\text{shared-fill price improvement}}
 -
 V_{\text{shallower-only marginal fills}}
 -
-\Delta C_{\text{campaign/pending}}.
+\Delta C_{\text{inventory_lifecycle/pending}}.
 $$
 
 shared fills 在 deeper 价位成交能获得确定性的 execution price improvement；shallower-only fills 则是靠近市场才多出来的边际成交，其后续 value 可能正也可能负。
 
 早期 conservative audit 用 100bps stress envelope 包围未知 marginal-fill value。即使最宽对比，deterministic shared-fill improvement 也只有约 $3.284\times10^{-5}$ USDC/decision，小于当时 pending uncertainty 的九分之一。54 个 economic cells 中 0 个区间单侧。
 
-最终 marginal-value identity 不再用粗 100bps absolute envelope，而是直接绑定同路径 marginal fills 的 quantity-weighted 1s、5s、30s 与 campaign-terminal overlay，并使用 paired pending differential。
+最终 marginal-value identity 不再用粗 100bps absolute envelope，而是直接绑定同路径 marginal fills 的 quantity-weighted 1s、5s、30s 与 库存生命周期-terminal overlay，并使用 paired pending differential。
 
 主指标是：
 
 $$
-\text{campaign-terminal overlay delta USDC/decision}.
+\text{库存生命周期-terminal overlay delta USDC/decision}.
 $$
 
 它仍是 no-policy-feedback feasibility estimand，不是完整 randomized strategy value；但比固定 markout 更接近真正问题。
@@ -361,7 +358,7 @@ $$
 
 #### 9.4 从 feasibility 到 full-path policy 还缺哪一座桥
 
-若某个 cell 的 overlay value 真正通过，下一步仍应重新运行完整两臂策略：target decision 之后让 fill 反馈库存、角色、cooldown、reprice 与 campaign birth/death，直到共同 terminal。此时 estimand 才是：
+若某个 cell 的 overlay value 真正通过，下一步仍应重新运行完整两臂策略：target decision 之后让 fill 反馈库存、角色、cooldown、reprice 与 库存生命周期 birth/death，直到共同 terminal。此时 estimand 才是：
 
 $$
 \tau^{policy}(a)
@@ -369,7 +366,7 @@ $$
 \mathbb E[E_T^{\pi(a)}-E_T^{\pi(a_0)}].
 $$
 
-full-path 还要报告 action rate、fills retained、inventory-time、campaign duration、terminal left tail 和跨日方向，而不能只报告每 decision 的平均值。F06 在更便宜的 feasibility 层已经 0/24，因此没有理由打开这项更昂贵的 successor；这是一种预先承诺的停止规则，不是因为没有能力继续算。
+full-path 还要报告 action rate、fills retained、inventory-time、库存生命周期 duration、terminal left tail 和跨日方向，而不能只报告每 decision 的平均值。F06 在更便宜的 feasibility 层已经 0/24，因此没有理由打开这项更昂贵的 successor；这是一种预先承诺的停止规则，不是因为没有能力继续算。
 
 ### 10. 最终 Development 结果
 
@@ -380,16 +377,16 @@ full-path 还要报告 action rate、fills retained、inventory-time、campaign 
 | Gate | 通过 |
 |---|---:|
 | terminal-value 单侧区间超过 0.0001 USDC/decision | 0/24 |
-| campaign attribution coverage 至少 95% | 0/24 |
+| 库存生命周期 attribution coverage 至少 95% | 0/24 |
 | 至少 30 支持日 | 24/24 |
 | daily direction stability | 0/24 |
 | differential pending uncertainty 小于 economic LCB | 0/24 |
-| campaign tail non-worsening | 0/24 |
+| 库存生命周期 tail non-worsening | 0/24 |
 | 完整 feasibility contract | 0/24 |
 
 一 tick negative control 也是 0/12。
 
-campaign-terminal point estimates 的范围是：
+库存生命周期-terminal point estimates 的范围是：
 
 $$
 -1.64994\times10^{-5}
@@ -402,7 +399,7 @@ $$
 
 paired pending analysis 把 uncertainty radius 收窄到约 $1.00191\times10^{-5}$ USDC/decision，证明旧 absolute pending envelope 不是唯一 blocker；primary terminal-value lower bound 本身仍然全部跨零。
 
-campaign attribution coverage 只有 71.40%–94.88%，没有 cell 达到冻结的 95%。即使假设 coverage 完美，0/24 terminal intervals 单侧的结果也不会因此变成 positive action evidence。
+库存生命周期 attribution coverage 只有 71.40%–94.88%，没有 cell 达到冻结的 95%。即使假设 coverage 完美，0/24 terminal intervals 单侧的结果也不会因此变成 positive action evidence。
 
 ### 11. 短 horizon hint 为什么不能救 terminal estimand
 
@@ -413,13 +410,13 @@ $$
 \ \text{USDC/decision}.
 $$
 
-但同一 cell 的 campaign-terminal interval 是：
+但同一 cell 的 库存生命周期-terminal interval 是：
 
 $$
 [-3.64\times10^{-5},+3.91\times10^{-5}].
 $$
 
-30s 是 mechanism slice，不是自然终点。更浅报价多接到的 fills 可能在 30 秒内看起来好，却通过后续 inventory 与 campaign continuation 抵消。读过 terminal 结果后把 primary estimand 改成 30s，会是 outcome-driven rescue。
+30s 是 mechanism slice，不是自然终点。更浅报价多接到的 fills 可能在 30 秒内看起来好，却通过后续 inventory 与 库存生命周期 continuation 抵消。读过 terminal 结果后把 primary estimand 改成 30s，会是 outcome-driven rescue。
 
 ### 12. 最终边界与没有获得的权限
 
@@ -481,7 +478,7 @@ F07 因此研究一个直接动作：
 
 ![Active-order KEEP 与 CANCEL/RE-ENTER 的 K 线生命周期双路径](/images/narrowgate/active-order-keep-cancel-kline.svg)
 
-*图 1：K0 保留 queue position，K1 经 cancel request、ACK、state exit 后 fresh re-entry。两条路径面对相同市场，但订单生命周期、fill 与后续 campaign 可能分叉。*
+*图 1：K0 保留 queue position，K1 经 cancel request、ACK、state exit 后 fresh re-entry。两条路径面对相同市场，但订单生命周期、fill 与后续 库存生命周期 可能分叉。*
 
 ### 1. 为什么 active order 不是 placement order
 
@@ -525,9 +522,9 @@ $$
 
 只预测“未来价格可能不利”不够。如果订单同时有很高的 favorable fill option，撤单会把两者一起删除。
 
-### 2. 冻结动作与 campaign attribution
+### 2. 冻结动作与 库存生命周期 attribution
 
-每个 inventory campaign 最多干预一次。eligibility 是第一个 baseline-eligible、active、exposure-increasing order 进入冻结 adverse 或 negative-value state 的时刻。
+每个 库存生命周期 最多干预一次。eligibility 是第一个 baseline-eligible、active、exposure-increasing order 进入冻结 adverse 或 negative-value state 的时刻。
 
 K0 不发送研究动作，继续 baseline lifecycle。K1 的完整状态机是：
 
@@ -536,7 +533,7 @@ K0 不发送研究动作，继续 baseline lifecycle。K1 的完整状态机是�
 3. 收到真实 cancel ACK 后，继续等待冻结 state exit；
 4. baseline eligibility 恢复后，第一个 re-entry submit 继承 intervention identity；
 5. re-entry activation、GTX、queue reset、fill 与后续 terminal 都归同一动作；
-6. 若 campaign 在 re-entry 前 flatten，intervention 自然结束。
+6. 若 库存生命周期 在 re-entry 前 flatten，intervention 自然结束。
 
 behavior probability 冻结为：
 
@@ -544,19 +541,19 @@ $$
 \Pr(K0)=\Pr(K1)=0.5.
 $$
 
-reward 使用 campaign-level accounting：
+reward 使用 库存生命周期-level accounting：
 
 $$
 R_i
 =
 \text{fill value}_i
 -
-\text{incremental campaign cost}_i
+\text{incremental 库存生命周期 cost}_i
 -
 \text{queue-reset cost}_i.
 $$
 
-terminal MTM、MAE、campaign duration、inventory time 与 tail 是并列报告项。不能把同一个 campaign terminal PnL 复制到多个 decision rows，也不能在 maker-signed fill value 已从 execution price 起算后再加一次 half-spread。
+terminal MTM、MAE、库存生命周期 duration、inventory time 与 tail 是并列报告项。不能把同一个 库存生命周期 terminal PnL 复制到多个 decision rows，也不能在 maker-signed fill value 已从 execution price 起算后再加一次 half-spread。
 
 ![KEEP 与 CANCEL/RE-ENTER 的竞争风险路径](/images/narrowgate/f07-active-order-competing-risks-path.svg)
 
@@ -635,9 +632,9 @@ exchange-time native queue 可以支持历史 mechanics，却不自动证明部�
 
 ### 4. 第一阶段：top-20 queue state 能预测，但动作没有正下界
 
-最初的 queue-value v1 用 100ms reconstructed L2、individual trades、queue/campaign state 与 empirical microprice。side-specific local hazard 与 first-hit direction models 相对 constant null 有改进。
+最初的 queue-value v1 用 100ms reconstructed L2、individual trades、queue/inventory_lifecycle state 与 empirical microprice。side-specific local hazard 与 first-hit direction models 相对 constant null 有改进。
 
-56 个 Development 日上，每个 campaign 最多一次 50/50 intervention，共 3,263 campaigns：
+56 个 Development 日上，每个 库存生命周期 最多一次 50/50 intervention，共 3,263 库存生命周期：
 
 | Side | K0 | K1 |
 |---|---:|---:|
@@ -663,9 +660,9 @@ SPIBB 对每个 state 要求 K0/K1 各至少 100 rows、K1 ESS 至少 100、dire
 
 后续 audit 发现旧 re-entry attribution 不完整：早期实现曾遗漏 re-entry fills、没有把 first re-entry order 绑定 intervention，并存在向过去日期应用未来 fit bundle 的风险。
 
-corrected action 等待真实 ACK，然后由 ordinary baseline eligibility 控制 re-entry。25 个 action Development 日形成 909 interventions：454 K0、455 K1。445 个 K1 campaign 成功 submit re-entry，另 10 个在 re-entry 前 flatten；没有 re-entry 早于原订单 cancel ACK。
+corrected action 等待真实 ACK，然后由 ordinary baseline eligibility 控制 re-entry。25 个 action Development 日形成 909 interventions：454 K0、455 K1。445 个 K1 库存生命周期 成功 submit re-entry，另 10 个在 re-entry 前 flatten；没有 re-entry 早于原订单 cancel ACK。
 
-raw means 看起来有改善：K1 的 mean terminal MTM 从 $-0.07755$ 到 $-0.06646$，median campaign duration 从 530.2s 降至 427.8s。但 chronological DR 才是正式 contrast：
+raw means 看起来有改善：K1 的 mean terminal MTM 从 $-0.07755$ 到 $-0.06646$，median 库存生命周期 duration 从 530.2s 降至 427.8s。但 chronological DR 才是正式 contrast：
 
 $$
 \widehat{\Delta R}=+0.00443
@@ -688,11 +685,11 @@ active quote 常常远离 BBO，top-20 container 不包含该价位。旧 replay
 |---|---:|---:|
 | active-order rows | 19,378 | 19,042 |
 | fills | 1,595 | 2,062 |
-| campaigns | 669 | 895 |
+| 库存生命周期 | 669 | 895 |
 | median initialized queue | 0.116182 BTC | 0 BTC |
 | zero initialized queue | 0.083% | 54.732% |
 
-只有两个 decision IDs 在两条策略轨迹中重合。queue seed 一变，fill、inventory、campaign 与后续 decision 全部改变；这不是“queue feature 稍有漂移”。
+只有两个 decision IDs 在两条策略轨迹中重合。queue seed 一变，fill、inventory、库存生命周期 与后续 decision 全部改变；这不是“queue feature 稍有漂移”。
 
 旧 panel 的 52 个 BUY-add entries 中，48 个 active prices 落在 deep range；其中 19 个有正 public quantity，29 个是 valid known-zero，只有 4 个 outside range。把 known-zero 当作 fitted positive queue 会系统性夸大 queue ahead。
 
@@ -719,7 +716,7 @@ watch-specific sparse tape 随策略轨迹变化，也没有达到 fixed point�
 
 native family 使用 12 个 state-fit 日、1 日 embargo、5 个 calibration 日、1 日 transition embargo、17 个 action Development 日；后续 Validation 与 holdout 保持锁定。
 
-17 日 randomized replay 有 1,448 campaigns：741 K0、707 K1。所有 K1 都收到 cancel ACK，328 个达到 state exit 并 submit 一个 linked re-entry，其中 18 个 fill。
+17 日 randomized replay 有 1,448 库存生命周期：741 K0、707 K1。所有 K1 都收到 cancel ACK，328 个达到 state exit 并 submit 一个 linked re-entry，其中 18 个 fill。
 
 严格 support gate 失败：
 
@@ -755,7 +752,7 @@ BUY 点估计为负，SELL 为正，但两侧区间都跨零。K1 把 interventi
 - adverse fill；
 - cancel；
 - adverse price jump；
-- campaign repair；
+- 库存生命周期 repair；
 - queue recovery transition。
 
 entry state 由显式差值决定：
@@ -768,7 +765,7 @@ $$
 
 阈值来自 calibration quantiles，目标 candidate rate 为 15%，允许预算 5%–30%。BUY 与 SELL 分开；reducing quotes、size、inventory limit 与 external state 不变。
 
-17 个 Development 日形成 1,101 interventions：563 keep、538 cancel；eligible campaign rate 17.10%，mechanics 触发充分。
+17 个 Development 日形成 1,101 interventions：563 keep、538 cancel；eligible 库存生命周期 rate 17.10%，mechanics 触发充分。
 
 ### 10. Selectivity：删除 92% 成交，却没有更快删除 toxic fills
 
@@ -812,7 +809,7 @@ toxic fills 反而比全部 fills 保留得稍多。这个 action 没有成为 s
 
 #### 10.2 为什么 BUY 与 SELL 必须分开
 
-同样的 CANCEL 动作对 BUY add 与 SELL add 会沿不同库存方向作用。BUY cancel 可能减少加多，也可能延迟对既有空头的修复；SELL cancel 则相反。市场趋势和当前 campaign role 会使 pooled mean 出现抵消。
+同样的 CANCEL 动作对 BUY add 与 SELL add 会沿不同库存方向作用。BUY cancel 可能减少加多，也可能延迟对既有空头的修复；SELL cancel 则相反。市场趋势和当前 库存生命周期 role 会使 pooled mean 出现抵消。
 
 F07 的 BUY 结果显著有害、SELL 不确定，因此 pooled 数值不能解释为“一半有效”。它意味着至少一个预注册主侧已经产生方向性反证，而另一侧没有建立正证据。除非新项目事先定义不同 side-specific action，否则不能在结果后只保留看起来较好的侧。
 
@@ -828,7 +825,7 @@ primary all-row ITT 为：
 
 BUY 的区间完全低于零；SELL 没有正支持。MAE 与 repair time 有所改善，但不能补偿负 action reward、失败的 selectivity 与缺失的严格 support。
 
-完整 randomized path 曾显示小幅 aggregate PnL 改善，但只有 7/17 日为正。whole-path aggregate 包含 campaign birth/death 与 interference；它不能覆盖 common eligible population 上的注册 action ITT。
+完整 randomized path 曾显示小幅 aggregate PnL 改善，但只有 7/17 日为正。whole-path aggregate 包含 库存生命周期 birth/death 与 interference；它不能覆盖 common eligible population 上的注册 action ITT。
 
 最终 scorecard 因 reward、selectivity、terminal protection 与 support failures 返回 diagnostic-only，ranking score 为空。
 
@@ -843,11 +840,11 @@ net-hazard 以后，F07 又纠正了预测 estimand：
 - fill 是 dynamic discrete-time start/stop risk set；
 - cancel request 是 policy action/censor，不是自然 terminal；
 - native price jump 是 non-absorbing transition；
-- campaign repair 在 inventory 非零且 reducing quote active 后 delayed entry；
+- 库存生命周期 repair 在 inventory 非零且 reducing quote active 后 delayed entry；
 - BUY/SELL 分开；
 - 历史不可 live-reproduce 的 child-count 特征排除。
 
-17 个 Development 日产生 3,057,751 fill-risk rows、291,695 orders；另有 1,469,566 repair rows 与 6,200 campaigns。四个 expanding folds 的结果：
+17 个 Development 日产生 3,057,751 fill-risk rows、291,695 orders；另有 1,469,566 repair rows 与 6,200 库存生命周期。四个 expanding folds 的结果：
 
 | Side / Cause | OOF rows | Events | AP lift | ROC AUC | Brier skill | Result |
 |---|---:|---:|---:|---:|---:|---|
@@ -1060,7 +1057,7 @@ $$
 
 其中 $T$ 是当前 spell 的终局时间，$J$ 是四个冻结 terminal causes 之一，$x_{0:u}$ 只包含沿 causal grid 已经可见的 time-varying state。
 
-它不输出 campaign-terminal USDC，不估计 KEEP 与 CANCEL 的 potential-outcome difference，也不把 q90 threshold 当作 estimand。经济字段在这条 mechanics 链中保持关闭。这样做不是缺少一步“顺手评估”，而是防止 probability mechanics 在尚未证明 transport、动作定义与共同 support 时偷渡成政策结论。
+它不输出 库存生命周期-terminal USDC，不估计 KEEP 与 CANCEL 的 potential-outcome difference，也不把 q90 threshold 当作 estimand。经济字段在这条 mechanics 链中保持关闭。这样做不是缺少一步“顺手评估”，而是防止 probability mechanics 在尚未证明 transport、动作定义与共同 support 时偷渡成政策结论。
 
 ### 6. 数据 admission：unknown 不能当作 zero
 
@@ -1145,11 +1142,11 @@ $$
 
 Mechanics completion 不等于 prediction calibration completion。公开聚合没有证明新 prospective epoch 的 CIF 仍与观察频率一致，也没有跨 epoch drift audit；40 日历史 exposure 不能替代新的可见性合同。
 
-Mechanics completion 更不等于 action value。CIF 不知道 CANCEL 丢失多少 favorable queue option、何时 re-entry 或怎样改变库存 campaign。KEEP/CANCEL 仍需要独立 treatment、共同 eligibility、完整路径与经济 estimand；adverse CIF 高不能直接翻译成“应该撤”。
+Mechanics completion 更不等于 action value。CIF 不知道 CANCEL 丢失多少 favorable queue option、何时 re-entry 或怎样改变库存生命周期。KEEP/CANCEL 仍需要独立 treatment、共同 eligibility、完整路径与经济 estimand；adverse CIF 高不能直接翻译成“应该撤”。
 
 这条研究链明确没有读取或获得：
 
-- PnL、reward、markout 或 campaign-terminal value；
+- PnL、reward、markout 或 库存生命周期-terminal value；
 - Validation 或 family-specific sealed holdout；
 - q90 action threshold 变更；
 - randomized KEEP/CANCEL action registration；
@@ -1164,7 +1161,7 @@ Mechanics completion 更不等于 action value。CIF 不知道 CANCEL 丢失多�
 
 下一阶段需要独立、完整绑定的 prospective epoch/session transport，而不是继续调历史 cell 或 q90 阈值。它必须保持 lossless batching、dual-clock、cross-midnight cursor 或明确 delayed entry、zero post-terminal reuse，并在新可见性环境中通过 calibration 与 parity audit。
 
-只有 transport 与 current calibration 独立通过后，才可以另行预注册经济研究。那项新研究需要明确 action、eligibility、randomization 或可识别的 counterfactual、campaign-terminal estimand、成本与不确定性门；它不会因为本文 mechanics 成功而自动继承权限。
+只有 transport 与 current calibration 独立通过后，才可以另行预注册经济研究。那项新研究需要明确 action、eligibility、randomization 或可识别的 counterfactual、库存生命周期-terminal estimand、成本与不确定性门；它不会因为本文 mechanics 成功而自动继承权限。
 
 ### 13. 最终结论
 
@@ -1204,6 +1201,6 @@ $$
 
 ## 6. 结论：更准确的生命周期模型不会自动复活失败动作
 
-Placement 研究证明二、四 tick 的 raw fill difference 可以被识别，但 marginal fills 太稀、campaign attribution 不完整、terminal interval 全部跨零；KEEP/CANCEL 的随机化证据又显示，候选大量删除 intervention fills，却几乎按同比例保留 toxic fills，选择效率接近零，pooled ITT 为负。后续 100ms CIF 把 activation、fill、cancel、jump、repair 与持续生存放回合法风险集，并完成 Python/C++ lockstep；这提升了机制建模质量，却没有把旧动作结果倒写成通过。
+Placement 研究证明二、四 tick 的 raw fill difference 可以被识别，但 marginal fills 太稀、库存生命周期 attribution 不完整、terminal interval 全部跨零；KEEP/CANCEL 的随机化证据又显示，候选大量删除 intervention fills，却几乎按同比例保留 toxic fills，选择效率接近零，pooled ITT 为负。后续 100ms CIF 把 activation、fill、cancel、jump、repair 与持续生存放回合法风险集，并完成 Python/C++ lockstep；这提升了机制建模质量，却没有把旧动作结果倒写成通过。
 
 下一次 order-level action 必须基于新的、预注册的 decision surface，并直接评价 placement 与 continuation 的完整路径。CIF calibration、距离单调性、推断 parity 或较低 adverse-fill probability 都只构成前置证据。

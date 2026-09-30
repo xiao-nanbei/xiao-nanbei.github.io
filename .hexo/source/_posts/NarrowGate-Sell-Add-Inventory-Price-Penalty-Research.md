@@ -7,15 +7,13 @@ categories:
 tags:
 - Market Making
 - 库存控制
-- Campaign
+- 库存生命周期
 - Quote Placement
 - Tail Risk
 math: true
 ---
 
-
 Last materially modified: 2026-08-30
-
 
 ## 1. 少持仓、快修复与赚更多钱是三个不同命题
 
@@ -43,7 +41,7 @@ $$
 
 ### TL;DR：候选网格退化为单点，未读任何 PnL 就关闭
 
-多层 SHORT campaign 曾承担较多 terminal loss，但“多层库存危险”不自动推出“post-cooldown 限制额外 fill units 有用”。本项目在第一次正常同侧 cooldown release 后，为每条非 flat lineage 设置额外 exposure fill-unit budget $B$；reducing quote 和 hard safety gate 全部保留。SELL 是 primary，BUY 是独立 negative control。
+多层 SHORT 库存生命周期 曾承担较多 terminal loss，但“多层库存危险”不自动推出“post-cooldown 限制额外 fill units 有用”。本项目在第一次正常同侧 cooldown release 后，为每条非 flat lineage 设置额外 exposure fill-unit budget $B$；reducing quote 和 hard safety gate 全部保留。SELL 是 primary，BUY 是独立 negative control。
 
 40 日 Development 的 Grade-A unlimited control 显示，SELL 1,753 条支持 lineages 中超过 1 个额外 unit 的仅 3.31%，超过 2 个仅 0.34%；BUY 为 4.64%/0.22%。whole-unit rounding 与 zero-budget exclusion 后，两侧 candidate grid 都只剩 $\{1\}$，未达到预注册的至少两个非零候选。因此根本不存在可以比较的 1/2/3-unit frontier。
 
@@ -53,7 +51,7 @@ $$
 
 *图 1：机制示意。$B=1$ 会阻断许多后续提交/替换，但绝大多数被阻断尝试本来不会成为第二个 fill unit，因而 order-layer 变化没有传到 inventory-layer。*
 
-![Inventory-budget action 的因果传导路径](/images/narrowgate/f09-campaign-action-causal-path.svg)
+![Inventory-budget action 的因果传导路径](/images/narrowgate/f09-inventory_lifecycle-action-causal-path.svg)
 
 *图 2：预算在正常 release 后进入状态递归。order mechanics 可以大幅变化，只有真正删掉 additional fill units 才改变库存；经济结果在这两道 mechanics 门通过前保持关闭。*
 
@@ -74,7 +72,7 @@ $$
 
 | 元素 | 冻结定义 |
 |---|---|
-| Entry | non-flat campaign 第一次正常 same-side cooldown release |
+| Entry | non-flat 库存生命周期 第一次正常 same-side cooldown release |
 | Control | unlimited additional exposure fill units |
 | Candidate | whole-unit budget $B$，用尽后阻断 exposure adds |
 | Primary side | SELL；BUY 为 negative control |
@@ -102,7 +100,7 @@ $$
 
 budget 只在 baseline cooldown 已真实释放后开始。fill event 必须先经过 exchange sequence、order activation 与 queue depletion 才消耗 unit；submitted quote 本身不消耗预算。opposite-side reducing fill 仍按 frozen lineage semantics 处理，不能把一次 cancel 或 quote replacement 当作 fill unit。
 
-例子：SHORT campaign 在 release 后 budget $B=1$。第一笔 SELL add 成交，budget 归零。之后 baseline 在五个 cycle 继续提交或替换 SELL quotes，candidate 全部阻断；但若这五笔 baseline orders 都没有触价，最终两臂 fill count 完全相同。此时 action change 可接近 100%，inventory path 却相同。若 baseline 只有第六笔成交，$B=1$ 才少一个 fill unit。
+例子：SHORT 库存生命周期 在 release 后 budget $B=1$。第一笔 SELL add 成交，budget 归零。之后 baseline 在五个 cycle 继续提交或替换 SELL quotes，candidate 全部阻断；但若这五笔 baseline orders 都没有触价，最终两臂 fill count 完全相同。此时 action change 可接近 100%，inventory path 却相同。若 baseline 只有第六笔成交，$B=1$ 才少一个 fill unit。
 
 这解释了为什么 order-layer parity 通过仍不代表有足够 economic lever，也解释了为什么不能用“阻断了 86% decisions”夸大动作强度。
 
@@ -180,7 +178,7 @@ unsupported mass 为零，但 mechanics pass 为 false：action-change 超过冻
 
 这是一项 feasibility study，estimand 是支持分辨率与机制传导，不是 value。没有 PnL 数字正是正确结果：当 candidate grid 退化且动作传导失衡时，打开经济 outcomes 只会消费证据、诱导 post-hoc budget 设计。
 
-3.31% 是 frozen Grade-A distribution 的描述，不是“多层 SHORT 无风险”。此前 attribution 说明 multi-level campaigns 与 loss 相关；本实验只说明 post-cooldown release surface 上的 whole-unit budget 无法形成可辨识 1/2/3 frontier。风险关联与动作可行性是两件事。
+3.31% 是 frozen Grade-A distribution 的描述，不是“多层 SHORT 无风险”。此前 attribution 说明 multi-level 库存生命周期 与 loss 相关；本实验只说明 post-cooldown release surface 上的 whole-unit budget 无法形成可辨识 1/2/3 frontier。风险关联与动作可行性是两件事。
 
 Grade-B sensitivity 方向一致，提高了 mechanics 结论的稳健性，却不能替代 primary 或授权 pooling。provider-normalized 日也不能补 exact-queue resolution，因为它们缺少相同 sequence contract。
 
@@ -192,7 +190,7 @@ Grade-B sensitivity 方向一致，提高了 mechanics 结论的稳健性，却�
 
 #### 7.2 一个合法 successor 应改变什么
 
-可能的新杠杆包括从 campaign 起点限制 cumulative notional、按价格连续惩罚 SELL add、或对 reducing BUY 加强修复。这些动作分别改变数量、价格或退出机制，必须重建单位、assignment 与 terminal contract。
+可能的新杠杆包括从 库存生命周期 起点限制 cumulative notional、按价格连续惩罚 SELL add、或对 reducing BUY 加强修复。这些动作分别改变数量、价格或退出机制，必须重建单位、assignment 与 terminal contract。
 
 successor 不能只把 whole-unit $B=1$ 改名为“风险预算”，也不能把 provider-normalized 更多日期混进 exact queue denominator。先在新的 untreated census 上证明至少两个有支持强度，再注册 economics，才不会重复本项目的退化网格。
 
@@ -206,7 +204,7 @@ successor 不能只把 whole-unit $B=1$ 改名为“风险预算”，也不能�
 
 v1 设计、v1.1 spec、execution errata 与 v1.2 Development 都属于一个 research identity。errata 修复执行合同，没有改变 sample、action、estimand 或统计 gate，因此不拆成文章。
 
-关闭的是 q90-OFF、post-cooldown、whole incremental fill-unit budget。它不关闭 cumulative notional limit、campaign-level permission、price penalty 或 current-live q90-aware action。任何 successor 都必须先定义新经济杠杆和独立 denominator，不能在未读 outcomes 的名义下对已见 distribution 继续搜索 $B$。
+关闭的是 q90-OFF、post-cooldown、whole incremental fill-unit budget。它不关闭 cumulative notional limit、库存生命周期-level permission、price penalty 或 current-live q90-aware action。任何 successor 都必须先定义新经济杠杆和独立 denominator，不能在未读 outcomes 的名义下对已见 distribution 继续搜索 $B$。
 
 ### 9. 没有获得的权限
 
@@ -237,15 +235,15 @@ $$
 
 ### 一个可识别的 successor 应怎样设计
 
-可以把预算挂在first-add后真实拥有后续add机会的campaign上，并用remaining inventory capacity或exposure-time定义单位；在读outcome前要求多个$B$产生预注册范围内的差异，同时保留足够baseline activity。若自然路径仍稀疏，可以使用已知propensity的随机budget assignment，而不是依靠观察性小样本。
+可以把预算挂在first-add后真实拥有后续add机会的库存生命周期上，并用remaining inventory capacity或exposure-time定义单位；在读outcome前要求多个$B$产生预注册范围内的差异，同时保留足够baseline activity。若自然路径仍稀疏，可以使用已知propensity的随机budget assignment，而不是依靠观察性小样本。
 
-successor还要明确budget到期/重置：按campaign flat、固定时间、recovery event还是daily reset。重置规则改变dynamic treatment，不能作为实现细节。只有这些mechanics闭合，terminal campaign value与tail才具有解释意义。
+successor还要明确budget到期/重置：按库存生命周期 flat、固定时间、recovery event还是daily reset。重置规则改变dynamic treatment，不能作为实现细节。只有这些mechanics闭合，terminal 库存生命周期 value与tail才具有解释意义。
 
 ### Partial identification 比强行给 PnL 更准确
 
 当候选grid在绝大多数episodes与control相同，数据只能识别“在极少数被截断路径上的可能效应”，无法稳定识别目标策略总体价值。此时可以报告action-rate上界和由单episode最大损失给出的宽bounds，但不应输出一个伪精确均值。
 
-若$M$个campaign中只有$m$个可能分叉，且单个terminal effect有保守范围$[L,U]$，总体日效应只能落在相应缩放区间；当$m$很小，bounds通常跨过所有有意义方向。它定量说明为什么停止是理性的。
+若$M$个库存生命周期中只有$m$个可能分叉，且单个terminal effect有保守范围$[L,U]$，总体日效应只能落在相应缩放区间；当$m$很小，bounds通常跨过所有有意义方向。它定量说明为什么停止是理性的。
 
 ### Grid degeneracy 的自动化 gate
 
@@ -255,9 +253,9 @@ preflight可要求每个相邻budget pair至少有预定action-distance、足够
 
 ### 10. 公共证据
 
-- [`post_cooldown_incremental_inventory_budget_feasibility_v1_2_development_20260801.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/post_cooldown_incremental_inventory_budget_feasibility_v1_2_development_20260801.md)
-- [`post_cooldown_incremental_inventory_budget_feasibility_v1_design.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/post_cooldown_incremental_inventory_budget_feasibility_v1_design.md)
-- [`F09 README`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/README.md)
+- [`post_cooldown_incremental_inventory_budget_feasibility_v1_2_development_20260801.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/post_cooldown_incremental_inventory_budget_feasibility_v1_2_development_20260801.md)
+- [`post_cooldown_incremental_inventory_budget_feasibility_v1_design.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/post_cooldown_incremental_inventory_budget_feasibility_v1_design.md)
+- [`F09 README`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/README.md)
 
 ### 结语
 
@@ -267,17 +265,17 @@ preflight可要求每个相邻budget pair至少有预定action-distance、足够
 
 ### TL;DR：库存风险变小了，但 candidate 更像压低参与，而不是挑出坏 fills
 
-本研究在 campaign 已经 SHORT 时，只把 exposure-increasing SELL ask 向外移动；惩罚随 short units 增大：一单位 0.5 bps、两单位 1.0 bps、三单位及以上 1.5 bps。flat opener、reducing BUY、size、inventory limit、cooldown 与其他 blockers 都不动。campaign 在第一条 final-eligible SELL-add 路径生成前以 0.5/0.5 随机化一次。
+本研究在 库存生命周期 已经 SHORT 时，只把 exposure-increasing SELL ask 向外移动；惩罚随 short units 增大：一单位 0.5 bps、两单位 1.0 bps、三单位及以上 1.5 bps。flat opener、reducing BUY、size、inventory limit、cooldown 与其他 blockers 都不动。库存生命周期 在第一条 final-eligible SELL-add 路径生成前以 0.5/0.5 随机化一次。
 
-40 日 Development 有 2,371 个 assignments、40,200 total fills；Grade-A primary 24 日中 candidate 对所有 assigned campaigns 都改变最终动作，但 SELL-add fill retention 仅 60.98%，activity retention 73.74%，分别低于 90% 和 75% 门。assignment-to-terminal reward uplift 为 -0.001339 USDC，95% UTC-day interval $[-0.011489,+0.009242]$，正日 12/24；full-policy value 也是负点估计。
+40 日 Development 有 2,371 个 assignments、40,200 total fills；Grade-A primary 24 日中 candidate 对所有 assigned 库存生命周期 都改变最终动作，但 SELL-add fill retention 仅 60.98%，activity retention 73.74%，分别低于 90% 和 75% 门。assignment-to-terminal reward uplift 为 -0.001339 USDC，95% UTC-day interval $[-0.011489,+0.009242]$，正日 12/24；full-policy value 也是负点估计。
 
-candidate 的确减少 max inventory、inventory time 与 campaign MAE，descriptive q10/CVaR 也改善；可是 randomized multi-level loss protection 没有正下界，剩余 multi-level paths 反而更 adverse。结论是 `risk_control_evidence_only`：这条固定 price curve 有机械效力，却未识别正价值。Validation 与 sealed holdout 未读。
+candidate 的确减少 max inventory、inventory time 与 库存生命周期 MAE，descriptive q10/CVaR 也改善；可是 randomized multi-level loss protection 没有正下界，剩余 multi-level paths 反而更 adverse。结论是 `risk_control_evidence_only`：这条固定 price curve 有机械效力，却未识别正价值。Validation 与 sealed holdout 未读。
 
 ![SELL inventory price penalty 的 K 线报价机制](/images/narrowgate/sell-inventory-price-penalty-kline.svg)
 
-*图 1：机制示意。库存越 short，candidate ask 越向外移；减少的 fills 同时包含 toxic fills 与本可盈利的 maker participation，所以必须追踪到 campaign terminal。*
+*图 1：机制示意。库存越 short，candidate ask 越向外移；减少的 fills 同时包含 toxic fills 与本可盈利的 maker participation，所以必须追踪到 库存生命周期 terminal。*
 
-![库存价格动作从报价到终局的完整路径](/images/narrowgate/f09-campaign-action-causal-path.svg)
+![库存价格动作从报价到终局的完整路径](/images/narrowgate/f09-inventory_lifecycle-action-causal-path.svg)
 
 *图 2：price penalty 每次都改变 quote，不代表它选择性删除坏 fills。报价外移经过 activation、queue 和 fill 后改变库存，最后必须同时通过 participation、tail 与 terminal value。*
 
@@ -307,7 +305,7 @@ candidate quote 以 baseline ask 为起点向外移动相应 basis points，并�
 | SHORT ≥3 units | baseline SELL add | ask 外移 1.5 bps |
 | reducing BUY | baseline | baseline |
 
-assignment unit 是 campaign，propensity 恰为 0.5。主要 estimand 为：
+assignment unit 是 库存生命周期，propensity 恰为 0.5。主要 estimand 为：
 
 $$
 \tau=E[V_{terminal}(A=1)-V_{decision}(A=1)]-E[V_{terminal}(A=0)-V_{decision}(A=0)].
@@ -317,9 +315,9 @@ $$
 
 ### 3. 因果时钟与订单例子
 
-randomization 在第一笔 final-eligible SELL add 路径生成之前，且同一 campaign assignment 固定。inventory、book、P3 与 blockers 必须在 decision-ready 时可见；outward price 产生新 activation 与 queue，不能继承 baseline queue position。
+randomization 在第一笔 final-eligible SELL add 路径生成之前，且同一 库存生命周期 assignment 固定。inventory、book、P3 与 blockers 必须在 decision-ready 时可见；outward price 产生新 activation 与 queue，不能继承 baseline queue position。
 
-例子：inventory 为 $-0.002$ BTC，baseline ask 100,000.0，candidate penalty 1.0 bps，理论上约移到 100,010.0，再按 tick/cap 得到有效 maker quote。若 aggressive BUY 只打到 100,005，baseline 可能成交而 candidate 不成交。若之后价格回落，baseline fill 可能贡献 repair；若继续上涨，它扩大 short loss。estimand 是两条 campaign 终局之差，而不是执行价差本身。
+例子：inventory 为 $-0.002$ BTC，baseline ask 100,000.0，candidate penalty 1.0 bps，理论上约移到 100,010.0，再按 tick/cap 得到有效 maker quote。若 aggressive BUY 只打到 100,005，baseline 可能成交而 candidate 不成交。若之后价格回落，baseline fill 可能贡献 repair；若继续上涨，它扩大 short loss。estimand 是两条 库存生命周期 终局之差，而不是执行价差本身。
 
 BUY q90 在两臂都关闭，所以这是 q90-OFF randomized reference，不能称为当前 live baseline 等价。full C++ tick replay authority 也为 false，Python native snapshot/delta full path 是权威路径。
 
@@ -362,7 +360,7 @@ Grade-A candidate assignment rate 48.90%，actual final-action change 100%，其
 | multi-level loss protection | -0.000351 [-0.010248,+0.010289] | LCB >0 | fail |
 | max-inventory avoidance | +0.000184 [+0.000121,+0.000247] BTC | LCB ≥0 | pass |
 | inventory-time avoidance | +0.1758 [+0.1013,+0.2612] BTC·s | diagnostic | positive |
-| campaign-MAE avoidance | +0.013006 [+0.001395,+0.025091] | LCB ≥0 | pass |
+| 库存生命周期-MAE avoidance | +0.013006 [+0.001395,+0.025091] | LCB ≥0 | pass |
 
 risk reduction 是真实的：进入 multi-level SHORT 的比例从 control 45.51% 降至 candidate 36.28%。但 remaining candidate multi-level paths 更 adverse，随机化 multi-level-loss contrast 没有改善。risk control 与 selection alpha 不能混写。
 
@@ -386,7 +384,7 @@ candidate 减少约 39% SELL-add fills，说明第二项规模很大。若这些
 
 #### 5.2 为什么 remaining multi-level subgroup 不能做因果解释
 
-candidate 会改变谁进入 multi-level SHORT，所以“candidate 下仍 multi-level 的 campaigns”与“control 下 multi-level 的 campaigns”不是同一前置人群。条件于 treatment 后的 inventory state，可能打开 selection path：
+candidate 会改变谁进入 multi-level SHORT，所以“candidate 下仍 multi-level 的 库存生命周期”与“control 下 multi-level 的 库存生命周期”不是同一前置人群。条件于 treatment 后的 inventory state，可能打开 selection path：
 
 $$
 A\rightarrow MultiLevel\leftarrow MarketPath.
@@ -410,7 +408,7 @@ $$
 
 Grade B 只检验方向稳健性，不能 pooled rescue。其 reward uplift -0.002904，interval $[-0.011452,+0.005987]$；正日 7/16，fill retention 59.79%，activity 74.83%，full-policy value -0.2225 USDC/day。方向与 primary 一致。
 
-不确定性按 UTC day 聚类，而非把 2,371 campaigns 当独立 regime。24 日里仅一半为正，说明 market-day variation 不是小噪声。与此同时 retention failure 是大效应，不依赖某个细小 PnL interval。
+不确定性按 UTC day 聚类，而非把 2,371 库存生命周期 当独立 regime。24 日里仅一半为正，说明 market-day variation 不是小噪声。与此同时 retention failure 是大效应，不依赖某个细小 PnL interval。
 
 ### 7. 研究演进与关闭边界
 
@@ -468,7 +466,7 @@ price penalty仍允许订单存在，只降低激活/成交概率；skip/stop-ad
 
 在同一日两arms从相同initial state开始，第一次candidate-only或baseline-only fill后inventory分叉。之后不能继续强行逐订单匹配；应保留day-levelterminal contrast，并用first divergence时间、side与role解释机制。
 
-对分叉前rows可以报告exact quote differences；分叉后只比较aggregate path measures。这样既利用paired设计降低共同shock，又不制造不存在的same-campaign对应。
+对分叉前rows可以报告exact quote differences；分叉后只比较aggregate path measures。这样既利用paired设计降低共同shock，又不制造不存在的same-库存生命周期对应。
 
 ### 一个新 penalty 研究需要怎样的独立理由
 
@@ -478,9 +476,9 @@ price penalty仍允许订单存在，只降低激活/成交概率；skip/stop-ad
 
 ### 9. 公共证据
 
-- [`sell_add_inventory_price_penalty_randomized_replay_v1_development_20260801.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/sell_add_inventory_price_penalty_randomized_replay_v1_development_20260801.md)
-- [`post_cooldown_incremental_inventory_budget_feasibility_v1_2_development_20260801.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/post_cooldown_incremental_inventory_budget_feasibility_v1_2_development_20260801.md)
-- [`F09 README`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/README.md)
+- [`sell_add_inventory_price_penalty_randomized_replay_v1_development_20260801.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/sell_add_inventory_price_penalty_randomized_replay_v1_development_20260801.md)
+- [`post_cooldown_incremental_inventory_budget_feasibility_v1_2_development_20260801.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/post_cooldown_incremental_inventory_budget_feasibility_v1_2_development_20260801.md)
+- [`F09 README`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/README.md)
 
 ### 结语
 
@@ -500,13 +498,13 @@ Grade-A 24 日有 627 个 assignments，final-action change 99.37%；total fill 
 
 *图 1：机制示意。candidate 在 multi-short 区间将 reducing BUY 推到最激进 maker tick；它能更快获得修复 fills，但更激进的被动价格也会牺牲 spread/selection value。*
 
-![被动修复动作从触发到 terminal 的完整路径](/images/narrowgate/f09-campaign-action-causal-path.svg)
+![被动修复动作从触发到 terminal 的完整路径](/images/narrowgate/f09-inventory_lifecycle-action-causal-path.svg)
 
 *图 2：更积极的 reducing BUY 同时改变 execution price、queue、repair speed 与后续 inventory。repair-time 是中介变量；assignment-to-terminal reward 才是随机化总效应。*
 
 ### 1. 研究问题：修复速度本身值多少钱？
 
-multi-level SHORT campaign 的损失归因提示库存持有时间可能重要。减少 exposure-add fills 会同时缩小业务；更积极的 reducing BUY 则保持 SELL exposure surface，不直接阻断新 campaign。问题是：缩短 SHORT duration 的收益，能否覆盖更激进报价带来的价格与 selection 成本？
+multi-level SHORT 库存生命周期 的损失归因提示库存持有时间可能重要。减少 exposure-add fills 会同时缩小业务；更积极的 reducing BUY 则保持 SELL exposure surface，不直接阻断新 库存生命周期。问题是：缩短 SHORT duration 的收益，能否覆盖更激进报价带来的价格与 selection 成本？
 
 在首个 $q\le-0.002$ BTC transition 处随机化，estimand 为：
 
@@ -514,7 +512,7 @@ $$
 \tau=E[Y(\text{aggressive maker repair})-Y(\text{baseline reducing BUY})],
 $$
 
-$Y$ 从 assignment 计到 campaign terminal。repair time、inventory time、MAE、q10 与 CVaR 是 co-primary/consistency gates，不能取代 terminal reward。
+$Y$ 从 assignment 计到 库存生命周期 terminal。repair time、inventory time、MAE、q10 与 CVaR 是 co-primary/consistency gates，不能取代 terminal reward。
 
 ### 2. 动作合同与关键价格公式
 
@@ -528,9 +526,9 @@ $$
 
 | 元素 | Control | Candidate |
 |---|---|---|
-| Trigger | 首次 $q\le-0.002$ | 同左，campaign-level 0.5/0.5 |
+| Trigger | 首次 $q\le-0.002$ | 同左，库存生命周期-level 0.5/0.5 |
 | Reducing BUY | 当前基线逻辑 | 最激进合法 maker price |
-| Release | campaign baseline | $q\ge-0.001$ |
+| Release | 库存生命周期 baseline | $q\ge-0.001$ |
 | Exposure SELL | baseline | baseline |
 | Order type | GTX maker | GTX maker；无 IOC/taker |
 | q90 | OFF | OFF |
@@ -549,7 +547,7 @@ $$
 
 #### 2.2 更快成交付出的三类价格
 
-candidate 可能付出：更差的直接 execution edge、更高的 adverse-selection probability、以及 queue reset/reprice成本；得到的是更早降低 short inventory 和可能更短 campaign。粗略价值平衡为：
+candidate 可能付出：更差的直接 execution edge、更高的 adverse-selection probability、以及 queue reset/reprice成本；得到的是更早降低 short inventory 和可能更短 库存生命周期。粗略价值平衡为：
 
 $$
 \Delta V
@@ -566,7 +564,7 @@ maker-only 只保证不支付 taker fee、不过 ask，并不让后三项为零�
 
 assignment 必须发生在 inventory 首次跨过 -0.002 的 ready state，之后固定到 release。candidate quote 的 activation、queue-ahead、cancel/replace、fill 与 inventory 都重新生成。若 baseline 与 candidate price 不同，不能共用 future fill。
 
-例子：bid1/ask1 为 99,999.9/100,000.0，tick 0.1，baseline reducing BUY 为 99,999.7。candidate 取 $\min(99,999.9,\max(99,999.7,99,999.9))=99,999.9$。它更靠近 taker flow，queue/成交概率更高，却也少了 0.2 price units 的 maker edge。若快速 fill 使 inventory 从 -0.002 回到 -0.001，action 释放；后续 campaign 仍走 baseline。
+例子：bid1/ask1 为 99,999.9/100,000.0，tick 0.1，baseline reducing BUY 为 99,999.7。candidate 取 $\min(99,999.9,\max(99,999.7,99,999.9))=99,999.9$。它更靠近 taker flow，queue/成交概率更高，却也少了 0.2 price units 的 maker edge。若快速 fill 使 inventory 从 -0.002 回到 -0.001，action 释放；后续 库存生命周期 仍走 baseline。
 
 这条路径中 repair-time 改善是 mediator。用它筛选“只有快速修复的 candidate rows”会产生 post-treatment selection；必须先看 randomized terminal contrast。
 
@@ -589,7 +587,7 @@ total fill retention 103.00%，reducing BUY 102.23%，SELL exposure 105.05%。�
 | inventory-time avoidance | +0.277339 BTC·s | LCB +0.100789 |
 | repair-time avoidance | +84.82 s | LCB +18.54 s |
 
-repair probability uplift +0.00336，但 interval 跨零；max inventory 与 campaign MAE intervals 也跨零。candidate 实现了直接 mechanics，却没有改善平均终局或左尾。更快并不等于更好，因为 aggressively resting bid 可能更早接住仍在下跌的 flow，或者牺牲原本可获得的 maker edge。
+repair probability uplift +0.00336，但 interval 跨零；max inventory 与 库存生命周期 MAE intervals 也跨零。candidate 实现了直接 mechanics，却没有改善平均终局或左尾。更快并不等于更好，因为 aggressively resting bid 可能更早接住仍在下跌的 flow，或者牺牲原本可获得的 maker edge。
 
 Grade B 同向偏负：reward -0.023007，interval $[-0.062423,+0.024066]$，16 日仅 5 日正。sensitivity 没有救援 primary。
 
@@ -661,9 +659,9 @@ price penalty从入口减少 multi-short，确实压低库存却损失参与；a
 
 ### Repair time 是 mediator，不是目标本身
 
-候选把reducing BUY挂得更激进后，更快回到flat是动作→结果路径中的中介。若只在“最终修复的campaign”里比较duration，会排除未修复或被新fill改变的路径；若按repair speed选择参数再报告PnL，又形成post-selection。
+候选把reducing BUY挂得更激进后，更快回到flat是动作→结果路径中的中介。若只在“最终修复的库存生命周期”里比较duration，会排除未修复或被新fill改变的路径；若按repair speed选择参数再报告PnL，又形成post-selection。
 
-总效应应直接比较terminal campaign value、inventory-time与tail；repair time用来解释机制。一个可能的路径是
+总效应应直接比较terminal 库存生命周期 value、inventory-time与tail；repair time用来解释机制。一个可能的路径是
 
 $$
 A\rightarrow\text{faster fill}\rightarrow\text{shorter inventory}
@@ -680,7 +678,7 @@ BUY reducing quote不能跨ask，否则变成taker；通常上界是best ask减�
 
 ### q10/CVaR 反例怎样约束“降低库存就是降风险”
 
-inventory duration下降常被当作风险必然下降，但更激进repair可能在最差时点付出高价，集中损失于少数campaign。q10/CVaR略差说明库存时间只是risk proxy，不是完整损失分布。持有更短与亏得更少没有逻辑等价。
+inventory duration下降常被当作风险必然下降，但更激进repair可能在最差时点付出高价，集中损失于少数库存生命周期。q10/CVaR略差说明库存时间只是risk proxy，不是完整损失分布。持有更短与亏得更少没有逻辑等价。
 
 未来若专门优化risk-adjusted repair，应预注册utility，例如terminal mean、CVaR与BTC-hours的固定组合，并在新面板检验。不能用本次未通过的PnL结果事后给inventory-time赋一个足以翻正的影子价格。
 
@@ -688,25 +686,25 @@ inventory duration下降常被当作风险必然下降，但更激进repair可�
 
 更激进BUY若成交，可能更快repair；若baseline本可在更低价成交，candidate提前成交就失去价格改善；若两者都未成交，candidate仍可能因cancel/replace失去queue。只分析successful repairs会遗漏后两类。
 
-one-shot paired replay应从同一decision开始，直到campaign terminal或统一censor，所有路径都计入$Y_T$。mechanism表再分为candidate-only fill、baseline-only fill、both fill with timing/price difference和neither。这样读者能看到84.82秒缩短来自哪类路径。
+one-shot paired replay应从同一decision开始，直到库存生命周期 terminal或统一censor，所有路径都计入$Y_T$。mechanism表再分为candidate-only fill、baseline-only fill、both fill with timing/price difference和neither。这样读者能看到84.82秒缩短来自哪类路径。
 
 ### Initial inventory level 改变同一动作的风险
 
-在轻微SHORT时，提高BUY price可能只是较小spread让步；在multi-level深SHORT时，repair urgency更高但size、queue和terminal exposure也不同。把所有levels混合会让少数深库存支配BTC-hours，却在campaign count中占比很小。
+在轻微SHORT时，提高BUY price可能只是较小spread让步；在multi-level深SHORT时，repair urgency更高但size、queue和terminal exposure也不同。把所有levels混合会让少数深库存支配BTC-hours，却在库存生命周期 count中占比很小。
 
-报告应按pre-action$|q|$、campaign age与remaining horizon分层，但这些分层只能解释预注册总效应；不能在已读结果上选一个好看的level授权动作。新level-specific policy需独立冻结。
+报告应按pre-action$|q|$、库存生命周期 age与remaining horizon分层，但这些分层只能解释预注册总效应；不能在已读结果上选一个好看的level授权动作。新level-specific policy需独立冻结。
 
 ### 什么结果才会支持 aggressive repair
 
-至少需要terminal mean下界为正或通过预注册risk utility，q10/CVaR不恶化，inventory-time确实下降且activity/fees可接受。仅repair-time通过不够；仅少数worst campaigns改善也不能覆盖总体成本，除非tail action从一开始就是primary。
+至少需要terminal mean下界为正或通过预注册risk utility，q10/CVaR不恶化，inventory-time确实下降且activity/fees可接受。仅repair-time通过不够；仅少数worst 库存生命周期改善也不能覆盖总体成本，除非tail action从一开始就是primary。
 
 当前结果提供了强mechanics、弱/负economics的反例，迫使未来设计把“快”与“值”分开。
 
 ### 9. 公共证据
 
-- [`multi_short_reducing_buy_aggression_v1_1_development_20260801.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/multi_short_reducing_buy_aggression_v1_1_development_20260801.md)
-- [`multi_short_reducing_buy_aggression_v1_implementation_failure_20260801.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/multi_short_reducing_buy_aggression_v1_implementation_failure_20260801.md)
-- [`F09 README`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/README.md)
+- [`multi_short_reducing_buy_aggression_v1_1_development_20260801.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/multi_short_reducing_buy_aggression_v1_1_development_20260801.md)
+- [`multi_short_reducing_buy_aggression_v1_implementation_failure_20260801.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/multi_short_reducing_buy_aggression_v1_implementation_failure_20260801.md)
+- [`F09 README`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/README.md)
 
 ### 结语
 

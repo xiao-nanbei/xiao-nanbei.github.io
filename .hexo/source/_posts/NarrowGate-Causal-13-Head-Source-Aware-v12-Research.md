@@ -13,14 +13,11 @@ tags:
 math: true
 ---
 
-
-
 ## 历史前言：为什么重建整条链路？
 
 v4 因未来 metrics 泄漏而撤回对应 test 和经济结论：这是无效证据，不是有效负结果。修正后的 v5、v9 保留了预测诊断价值，但没有建立稳定的 maker 经济增益。Source-aware v12 及其一秒后继说明，特征语义更清晰、推理更快，不等于订单路径更好：换单可能丢失队列优先级、减少成交并延长库存暴露。这些结论只属于原样本和执行假设，不是对未来机器学习永久无效的判断。
 
 可继承的是方法：预测损失、实际动作、完整净权益是三种不同测量。新行情需要新的校准、标签和模型身份，不能把旧目录改名当迁移。旧研究作为本文前言，不再是当前模型默认值。
-
 
 ## 新特征与标签合同
 
@@ -32,7 +29,6 @@ v4 因未来 metrics 泄漏而撤回对应 test 和经济结论：这是无效�
 
 P3 使用全部 100 个规定训练日统一拟合一次，在标签和训练前冻结。它是绝对价格距离下的触达概率，不是含排队的成交概率。H=inf/240/120/60 四套完整训练共 52 个 head，逐头绑定来源、标签、校准、划分与训练身份；冻结模型字节保持不变。
 
-
 ## 选型、对照与会计
 
 只有 B 的 100 日净收益参与四套完整模型选型，A/C/T 金额不参与；同分优先 inf，再优先较长半衰期。ML-OFF 是新链路对照，不是第五个候选或旧 B0。开发区每臂有 150 个独立两日账户；Final 只接受冻结胜者与 ML-OFF，末尾单日另算。
@@ -40,8 +36,6 @@ P3 使用全部 100 个规定训练日统一拟合一次，在标签和训练前
 每片内部账户连续，片间按相同初态重置；特征预热不等于账户延续。行情、P3、延迟、执行假设和会计固定。ML-OFF 不加载模型，使用行情 Bar 滚动方差。回放接口实际输出五个预测字段：10 秒方向、波动、收益和买卖 toxicity。训练 13 个 head 不等于证明每个 head 都有独立经济贡献。
 
 净权益包括成交现金流、手续费、带符号真实资金费和期末库存 MTM；估值不假定免费清仓。缺资金费或终点估值不能写成完整 all-in 收益。
-
-
 
 ## 本轮结果：相对少亏，不是盈利验证
 
@@ -55,13 +49,11 @@ P3 使用全部 100 个规定训练日统一拟合一次，在标签和训练前
 
 已经包含手续费、真实资金费和期末库存 MTM。两组都亏损；独立账户求和不是连续账户收益率，也不是线上盈利证明。共完成 858/858 次计划内策略分片，全部分片账本与日账绑定核验通过；407 日参考市场处理和全量镜像仍是独立未完工作。
 
-
 ## 补齐尾片与保留使用历史
 
 末尾单日账户最初缺少边界日资金费文件，现已补取真实 Binance 数据并完成两臂日账核验。最后一日 H=inf 为 −6.636594 USDC，ML-OFF 为 −7.103006 USDC。边界记录真实时间为 9 月 12 日 00:00:00.001 UTC，严格保留该时间，不将终点之后的资金费挪入账户；边界文件用于完整性验证。ML-OFF 在查看一个开发分片四套收益后追加，Final 日期保留 previous-use，不是新的未触碰 holdout；完整运行结束前已查看过部分 Final，这一使用历史不会因补完尾片而消失。
 
 这些数字是冻结执行假设下的描述结果；没有在这里报告统计显著性、年化收益或真实订单因果效果。公共成交资格、队列和延迟没有原生证据的部分仍属模型假设。
-
 
 ## 新模型与 live：历史状态与候选组装分开
 
@@ -71,7 +63,6 @@ P3 使用全部 100 个规定训练日统一拟合一次，在标签和训练前
 
 当前配置仍引用的旧模型必须等安全替代后再删除。本次没有修改冻结新模型，也没有把旧模型默认目录替换当成部署完成。
 
-
 2026-09-26 补充：后续已完成一个未激活候选的目标 Linux 环境及有限真实观察链路组装验收，覆盖共享特征、13 头与后处理、P3、native 报价及无交易能力的意图记录出口；两个预热完成决策、四条意图与本地参考一致。该次验收未连接交易通道、未切换 current、服务或生产配置，不等于完整收益回测、全面输入覆盖、原生接收／队列一致或已经开始实盘交易，也不证明今天的 live 版本。证据范围见[代码架构说明](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/docs/architecture.zh-CN.md)。
 
 ## 量纲与时钟：仍须逐消费者核查
@@ -80,22 +71,19 @@ P3 使用全部 100 个规定训练日统一拟合一次，在标签和训练前
 
 完整账本：H=inf 手续费 12.188537 USDC，资金费现金流 +0.041388 USDC；ML-OFF 手续费 10.601817 USDC，资金费现金流 +0.021085 USDC，均已计入净收益，不另加减一次。详细审查地图见[仓库量纲审查入口](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/units_review.zh-CN.md)，完整结果见[F03 主报告](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/README.zh-CN.md)。
 
-
 ## 证据与范围
 
 本页保留历史永久链接，当前摘要说明新链路研究，后附保留的旧阶段源稿并明确其历史范围。购买行情、冻结模型、选型回执和逐日账本保存在私有证据库，不随公共仓库分发。完整 F01–F10 兼容计划、407 日全量内容验收和其他研究族的新实验不能由本次 F03 结果代替。
 
 源代码中的 F03 文档记录输入、标签、选型与会计合同。本文是研究记录，不构成盈利承诺或投资建议。
 
-
 ## 历史源稿（2026-08-30）
 
 以下保留迁入写作工程的历史原稿，所有“当前”仅指当时的版本；它不是现行接口、当前结果或部署声明。
 
-
 ## 1. 五个版本其实是一场持续的可证伪实验
 
-Causal 13‑Head 研究用同一组做市相关标签检验 decision-visible state 能否改善预测，并进一步改变完整 maker 路径。v4、v5、v9、v12 和 1 秒 cadence 不是五个互不相关的模型项目：它们依次修复 P3、100ms 归一化、taker-tempo、跨源语义与决策频率，每次都在追问同一个核心问题——预测增量是否能穿过订单、库存和 campaign accounting 变成稳定经济增量。
+Causal 13‑Head 研究用同一组做市相关标签检验 decision-visible state 能否改善预测，并进一步改变完整 maker 路径。v4、v5、v9、v12 和 1 秒 cadence 不是五个互不相关的模型项目：它们依次修复 P3、100ms 归一化、taker-tempo、跨源语义与决策频率，每次都在追问同一个核心问题——预测增量是否能穿过订单、库存和 库存生命周期 accounting 变成稳定经济增量。
 
 对第 $h$ 个 head，预测层比较 proper loss：
 
@@ -144,7 +132,7 @@ Causal-v4 是 NarrowGate 在修复 10 秒 feature-ready、价格方差量纲、m
 研究问题可以分成三层：
 
 1. 修复后的 causal features 是否保留可用的 held-panel ranking；
-2. ML-ON 相对 ML-OFF 是否在相同 full replay 中改善 PnL、campaign terminal 与 tail；
+2. ML-ON 相对 ML-OFF 是否在相同 full replay 中改善 PnL、库存生命周期 terminal 与 tail；
 3. 这种改善是否在正确 test identity 上成立，并足以越过 promotion gates。
 
 预测层与动作层不能混用。设 13 个 heads 为 $f_h(x_t)$，每个 head 的 predictive score 只是：
@@ -234,7 +222,7 @@ v4 report 曾给出 13-head、BUY scorer、strict ML A/B 和 queue sensitivity �
 
 撤回：v4 test prediction metrics、test/all ML A/B、BUY scorer bucket values 和任何基于它们的 promotion claim。
 
-没有获得：model replacement、BUY scorer action、queue retuning、Validation/holdout 晋级、shadow 或 live authority。历史上某些 model bytes 曾作为 owner-directed operational trial，与统计 promotion 是两件事，也不描述当前 runtime。
+没有获得：model replacement、BUY scorer action、queue retuning、Validation/holdout 晋级、shadow 或 实盘有效性证据。历史上某些 model bytes 曾作为 owner-directed operational trial，与统计 promotion 是两件事，也不描述当前 runtime。
 
 ### 深入推导：一个泄漏 head 怎样污染共享模型
 
@@ -330,7 +318,7 @@ $$
 
 Causal-v5 把 normalized 100ms L2、修复后的 taker-side、经验 P3、queue q0.70、固定 latency 和 fresh-start replay 绑定成一个新身份，重建 128 个 daily feature files、220 个 features 与 13 个 labels。它同时回答了三个问题：13-head 是否还有 held-panel ranking；ML-ON 相对 ML-OFF 是否改善完整 maker path；当前 baseline 相对一个真正可执行、但随机化 cadence/side geometry 的 passive null 是否有价值。
 
-结果不是一句“模型失败”可以概括。clean ML A/B 在 Validation20 和 Test17 上的 raw/InvAdj point estimates 有些为正，但 paired daily raw 与 terminal intervals 都跨零，fills 只保留约 91%–93%，absolute inventory time 上升。四个 BUY fill-selection scorers 又没有一个同时改善 fill quality、campaign terminal 和 tail。
+结果不是一句“模型失败”可以概括。clean ML A/B 在 Validation20 和 Test17 上的 raw/InvAdj point estimates 有些为正，但 paired daily raw 与 terminal intervals 都跨零，fills 只保留约 91%–93%，absolute inventory time 上升。四个 BUY fill-selection scorers 又没有一个同时改善 fill quality、库存生命周期 terminal 和 tail。
 
 另一边，随机 passive null 在 Development33 的 raw/terminal point estimate看似略优，却在 Validation9 的 raw PnL 和 InvAdj 显著更差；32 个 seeds 中只有 1 个在 Validation raw PnL 上为正，没有 seed 在任一 panel 的 InvAdj 上胜过 baseline。因此 baseline 相对这个 executable null 有稳定结构价值，但 baseline 本身 PnL 仍为负，不能把“优于随机”写成“已经盈利”。
 
@@ -374,9 +362,9 @@ normalized L2、repaired taker-tempo、individual-trade quality、empirical P3�
 | Validation | 20 | 172,798 |
 | Test | 20 | 172,799 |
 
-formal order denominator 是另一套面向 order/campaign estimand 的冻结 split：Development33 有 610,915 placed orders，Validation9；合计 42 日、780,099 orders；sealed holdout9 的 order files 没有交给 scorer。
+formal order denominator 是另一套面向 order/inventory_lifecycle estimand 的冻结 split：Development33 有 610,915 placed orders，Validation9；合计 42 日、780,099 orders；sealed holdout9 的 order files 没有交给 scorer。
 
-模型 split 与 order split 不能只用“日期大致重合”合并。前者估计 multi-head prediction，后者估计 fill/campaign action 与 random-null full path；每个结果必须引用自己的 denominator。
+模型 split 与 order split 不能只用“日期大致重合”合并。前者估计 multi-head prediction，后者估计 fill/inventory_lifecycle action 与 random-null full path；每个结果必须引用自己的 denominator。
 
 ### 3. 因果时钟与订单生命周期
 
@@ -403,7 +391,7 @@ paired daily raw 与 terminal intervals 在两个 clean panels 上都跨零。In
 
 ### 5. Queue sensitivity：为什么不能从 PnL 挑 q
 
-q0.70 是两日 live-conditional calibration reference。sensitivity arms q0.55/q0.85/q1.00 改变 queue-ahead approximation，会系统性改变 fills、campaigns、inventory 与 PnL。
+q0.70 是两日 live-conditional calibration reference。sensitivity arms q0.55/q0.85/q1.00 改变 queue-ahead approximation，会系统性改变 fills、库存生命周期、inventory 与 PnL。
 
 Validation20 上，q0.55 相对 q0.70 增加 659 fills，却让 raw/terminal 分别下降 `10.278/12.072 USDC`；q1.00 少 986 fills，terminal point estimate仅 `+0.078`，InvAdj `-2.443`，tails 增加 8。Test17 的方向又不同。
 
@@ -425,9 +413,9 @@ Development33 中，baseline raw PnL `-127.3036`，random mean `-124.3251`，del
 
 ### 7. BUY scorers 与 action boundary
 
-四个 BUY exposure-increasing scorers 分别预测 `non_toxic`、`beats_opportunity`、`campaign_repair` 与联合目标。它们使用 expanding walk-forward Development fits、一日 embargo 与 frozen Validation9，threshold 只从 Development OOF 选择。
+四个 BUY exposure-increasing scorers 分别预测 `non_toxic`、`beats_opportunity`、`inventory_lifecycle_repair` 与联合目标。它们使用 expanding walk-forward Development fits、一日 embargo 与 frozen Validation9，threshold 只从 Development OOF 选择。
 
-部分 high-score buckets 改善 markout，部分改善 terminal point estimate，但没有一个同时改善 fill quality、campaign terminal 与 tail。hit/miss campaigns 还可能重叠，因此 bucket comparison 是描述性 ranking，不是动作 uplift。
+部分 high-score buckets 改善 markout，部分改善 terminal point estimate，但没有一个同时改善 fill quality、库存生命周期 terminal 与 tail。hit/miss 库存生命周期 还可能重叠，因此 bucket comparison 是描述性 ranking，不是动作 uplift。
 
 四个 scorer 的 direct action gate 全部失败；sealed holdout 仍未读。一个 prediction bucket 不因名称叫 `non_toxic` 就自动拥有 skip/keep 权限。
 
@@ -443,7 +431,7 @@ v5 report 内的 feature rebuild、replay parity、random null、queue sensitivi
 
 不支持：13-head ML unconditional economic uplift、四个 BUY scorer 的 direct action、通过 PnL 重新选 queue，或 baseline 绝对盈利。
 
-没有获得：model promotion、scorer action、Validation/holdout 重读、shadow 或 live authority。历史 owner-directed operational trial 不等于 statistical promotion，也不描述当前 runtime。
+没有获得：model promotion、scorer action、Validation/holdout 重读、shadow 或 实盘有效性证据。历史 owner-directed operational trial 不等于 statistical promotion，也不描述当前 runtime。
 
 ### 深入理解三种比较：prediction、策略 A/B 与 executable null
 
@@ -509,7 +497,7 @@ $$
 
 revalidation把两个常见借口分开了。模型没有完全失去预测排序，所以不能简单说“ML不行”；baseline优于random null，所以也不能说“所有报价生命周期都一样”。失败更集中在prediction-to-action接口、状态支持和full-path价值门。
 
-这使后续研究从“再训练一个更高AUC的bundle”转向更窄的action estimand：在明确inventory role、quote coordinate与counterfactual baseline下，预测哪些局部动作真正改善terminal campaign value。研究关闭的是当前clean A/B identity，不是继续建模的理由。
+这使后续研究从“再训练一个更高AUC的bundle”转向更窄的action estimand：在明确inventory role、quote coordinate与counterfactual baseline下，预测哪些局部动作真正改善terminal 库存生命周期 value。研究关闭的是当前clean A/B identity，不是继续建模的理由。
 
 ### 十三个输出为什么不是一个统一“市场方向分数”
 
@@ -545,13 +533,13 @@ Causal-v9 在一个容易被忽略的失败之后诞生。v8 曾从 mutable `tra
 
 v9 重新冻结 133 个 good days、corrected taker-tempo manifest、normalized 100ms L2、经验 P3、q0.70 queue reference、fixed latency 与 C++ daily-fresh-start replay。唯一经济 arm difference 是 `ml_enabled`；BUY selector 与 dynamic-hazard actions 在两 arms 都关闭。
 
-13-head 在 Test5 仍显示一些 ranking：10s direction AUC `0.5563`，10s return IC `0.0623`，10s volatility IC `0.5940`，bid/ask toxicity 也高于随机。但 formal replay 因 source coverage 只剩三天，ML-ON 相对 ML-OFF raw PnL `-2.2308 USDC`、terminal campaign `-2.6268 USDC`、tails `+3`，三天 raw delta 全为负；原 gate 要求至少四个 formal days。
+13-head 在 Test5 仍显示一些 ranking：10s direction AUC `0.5563`，10s return IC `0.0623`，10s volatility IC `0.5940`，bid/ask toxicity 也高于随机。但 formal replay 因 source coverage 只剩三天，ML-ON 相对 ML-OFF raw PnL `-2.2308 USDC`、terminal 库存生命周期 `-2.6268 USDC`、tails `+3`，三天 raw delta 全为负；原 gate 要求至少四个 formal days。
 
 候选减少 inventory time、保留 97.70% fills，却同时损失价值并增加 tails。这是一种风险/参与 tradeoff，不是 executable alpha。v9 不 promotion、不部署，ML-OFF corrected baseline 保持 reference。
 
 ![Taker tempo 从交易事件到 10 秒模型再到 maker path](/images/narrowgate/causal-v9-taker-tempo-kline.svg)
 
-*图 1：机制示意。aggressive trade tempo 只能在 parent/event ready 后进入 completed 10 秒 bucket；ML-ON 改变报价后，价值必须由完整 fill、inventory 与 campaign path 判断。*
+*图 1：机制示意。aggressive trade tempo 只能在 parent/event ready 后进入 completed 10 秒 bucket；ML-ON 改变报价后，价值必须由完整 fill、inventory 与 库存生命周期 path 判断。*
 
 本文只讨论历史研究 evidence，不建议任何真实交易行为。
 
@@ -564,7 +552,7 @@ taker tempo 包含同侧 aggressive run、count、notional、interarrival 与流
 $$
 \text{causal taker state}
 \rightarrow \text{13-head prediction}
-\rightarrow \text{quote path and campaign value}.
+\rightarrow \text{quote path and 库存生命周期 value}.
 $$
 
 v9 研究因此同时问：corrected tempo features 是否保留 held ranking；ML-ON 是否相对 ML-OFF 提高 raw/terminal PnL并不恶化 tails；formal denominator 是否足够支持 deployment inference。
@@ -596,7 +584,7 @@ $$
 \Delta_d^{terminal}=C_d^{ON}-C_d^{OFF}.
 $$
 
-同时检查 fill retention、absolute inventory time、tail campaigns 与 positive-day count。降低 inventory time 不能补偿 value/tail hard gate。
+同时检查 fill retention、absolute inventory time、tail 库存生命周期 与 positive-day count。降低 inventory time 不能补偿 value/tail hard gate。
 
 ### 3. Causal maker-side mapping
 
@@ -660,8 +648,8 @@ Python/C++ parity 在 07-21 完全一致：两者都是 332 fills，PnL differen
 | Metric | ML OFF | ML ON | Candidate delta/ratio |
 | --- | ---: | ---: | ---: |
 | Raw PnL | -0.6571 | -2.8879 | -2.2308 USDC |
-| Terminal campaign | +3.5311 | +0.9043 | -2.6268 USDC |
-| Tail campaigns | 2 | 5 | +3 |
+| Terminal 库存生命周期 | +3.5311 | +0.9043 | -2.6268 USDC |
+| Tail 库存生命周期 | 2 | 5 | +3 |
 | Fills | 999 | 976 | 97.70% retained |
 | Absolute inventory time | 499.71 | 454.03 | 90.86% |
 
@@ -683,7 +671,7 @@ formal denominator 3<4；raw/terminal deltas 均失败；tail +3 失败；positi
 
 关闭：causal-v9 13-head bundle 作为 ML-OFF baseline replacement。v8 artifacts 永久 invalid，不可通过更名复活。
 
-没有获得：model promotion、deployment、queue retuning、action、Validation/holdout、shadow 或 live authority。后继若继续 13-head，需要新的 fixed-forward/action-value estimand，而不是继续优化相同 AUC。
+没有获得：model promotion、deployment、queue retuning、action、Validation/holdout、shadow 或 实盘有效性证据。后继若继续 13-head，需要新的 fixed-forward/action-value estimand，而不是继续优化相同 AUC。
 
 ### 深入推导：tempo ranking 与 maker 动作之间隔着 treatment effect
 
@@ -781,7 +769,7 @@ diagnostic days可以帮助解释是某side、role或regime失效，却不能合
 
 Causal-v12 把 2025 provider-normalized source-aware features、semantics-v6 10 秒 causal cutoff、13-head model 与 2026 native lifecycle replay 连成一条研究链。模型先在 52 个 2025 fit 日和 13 个 chronological selection 日上确定 early stopping，再用 66 日 refit；随后在两组已读 22 日 native panels 做历史 transport，最后使用 2026-07-26 至 07-31 的五个 Grade-A days 做 family-specific post-fit OOS diagnostic。
 
-最后五日的 ML-ON terminal MTM 相对 ML-OFF 改善 `+6.0334 USDC`，平均 `+1.2067 USDC/day`，是一个看起来很有吸引力的点估计。但 day-clustered 95% interval 为 `[-0.2435,+2.5635]`；只有 5/13 heads 通过冻结 prediction transport gate；fills 只保留 `84.20%`，低于 90%；campaign q10/CVaR 恶化，SELL 30s maker value 也失败。
+最后五日的 ML-ON terminal MTM 相对 ML-OFF 改善 `+6.0334 USDC`，平均 `+1.2067 USDC/day`，是一个看起来很有吸引力的点估计。但 day-clustered 95% interval 为 `[-0.2435,+2.5635]`；只有 5/13 heads 通过冻结 prediction transport gate；fills 只保留 `84.20%`，低于 90%；库存生命周期 q10/CVaR 恶化，SELL 30s maker value 也失败。
 
 因此 canonical result 是 `close_causal_v12_economic_screen_on_historical_native_panels`，ranking score 为空。五日不是 globally unseen，也不是 sealed holdout；它们曾被 live/F10 diagnostics 使用，只能叫 family-specific post-fit OOS diagnostic。
 
@@ -797,7 +785,7 @@ Causal-v12 把 2025 provider-normalized source-aware features、semantics-v6 10 
 
 v9 使用 2026 训练与较小 formal test。v12 改变 source、feature semantics 与训练 chronology，希望回答：
 
-> 在不读取 2026 native outcomes 进行 model selection 的前提下，2025 source-aware 13-head 是否能 transport 到 2026，且 ML-ON 相对 ML-OFF 在完整 native maker path 上改善 terminal value、保持 activity 并保护 campaign tails？
+> 在不读取 2026 native outcomes 进行 model selection 的前提下，2025 source-aware 13-head 是否能 transport 到 2026，且 ML-ON 相对 ML-OFF 在完整 native maker path 上改善 terminal value、保持 activity 并保护 库存生命周期 tails？
 
 这包含 prediction 与 economic 两类 estimands。对 classification head，最低要求可概括为：
 
@@ -819,13 +807,13 @@ $$
 \Delta_d=TerminalMTM_d(ML\text{-}ON)-TerminalMTM_d(ML\text{-}OFF).
 $$
 
-day-cluster lower bound 必须大于零，同时满足 fill retention、inventory ratio、campaign q10/CVaR 与 side maker-value noninferiority。
+day-cluster lower bound 必须大于零，同时满足 fill retention、inventory ratio、库存生命周期 q10/CVaR 与 side maker-value noninferiority。
 
 ### 2. 输入、动作与模型身份
 
 features 使用 semantics v6 与 `live_10s_signal_cutoff.v1` DAG。13 heads 包含 10/30/60s direction、return、volatility，以及 bid/ask 5s/10s toxicity。
 
-source-aware 并不意味着“把外部来源当 live alpha”。source identity 和 transport diagnostics 被严格区分；model bundle 本身没有 action/live authority。
+source-aware 并不意味着“把外部来源当 live alpha”。source identity 和 transport diagnostics 被严格区分；model bundle 本身没有 动作收益或实盘有效性。
 
 full replay arms：
 
@@ -886,8 +874,8 @@ standardized feature shifts 中，`oi_log` 约 `+8.45`、`close` 约 `-4.02`、c
 | Positive days |  |  | 3/5 |
 | Fills | 1,468 | 1,236 | 84.20% retained |
 | Inventory-time ratio |  |  | 1.0270 |
-| Closed campaigns | 426 | 324 | diagnostic |
-| Campaign q10 | -0.16564 | -0.19310 | worse |
+| Closed 库存生命周期 | 426 | 324 | diagnostic |
+| 库存生命周期 q10 | -0.16564 | -0.19310 | worse |
 
 ML-ON 改善 pooled terminal point estimate，也减少 aggregate multi-level LONG/SHORT losses。但 lower bound 仍为负，说明五日 uncertainty 不能排除无改善；fills retention 又明显低于 90%，候选很大一部分“改善”可能来自减少参与。
 
@@ -897,7 +885,7 @@ inventory-time ratio 尚在 1.05 budget 内，却无法补偿 q10/CVaR 与 SELL 
 
 若只看 total delta，`+6.0334` 很容易被描述成成功。可是五日 mean 的 interval 跨零，3/5 positive-day rate 也说明结果依赖少数日期。
 
-更重要的是 activity 与 tail。候选少 232 fills、少 102 closed campaigns；如果 deleted fills 中既有 toxic fills也有 repair fills，仅看总 PnL 不能证明选择性。campaign q10 从 `-0.16564` 恶化到 `-0.19310`，说明较差尾部并未得到保护。
+更重要的是 activity 与 tail。候选少 232 fills、少 102 closed 库存生命周期；如果 deleted fills 中既有 toxic fills也有 repair fills，仅看总 PnL 不能证明选择性。库存生命周期 q10 从 `-0.16564` 恶化到 `-0.19310`，说明较差尾部并未得到保护。
 
 SELL 30s maker value failure 又阻止 pooled BUY improvement 掩盖另一 side。maker action 的权限必须 side-specific；一个 family-wide score 不能买穿失败 side。
 
@@ -909,11 +897,11 @@ training Spec、native transport Spec、full-path Spec、post-fit Spec 与 Devel
 
 ### 9. 关闭、支持与没有获得的权限
 
-支持：部分 heads 保留 ranking；ML-ON 在五日有正 terminal point estimate；native replay 能产生完整 campaign/economic diagnostics。
+支持：部分 heads 保留 ranking；ML-ON 在五日有正 terminal point estimate；native replay 能产生完整 inventory_lifecycle/economic diagnostics。
 
 关闭：当前 10 秒 source-aware causal-v12 historical economic screen。结果不支持把历史 canary 叙述成通过 prediction/economic gates。
 
-没有获得：prediction family pass、model/action promotion、Validation、sealed holdout、shadow 或 live authority。任何后继必须建立新 model/estimand，而不是在已读 panels 上调 calibrator、threshold 或 feature list。
+没有获得：prediction family pass、model/action promotion、Validation、sealed holdout、shadow 或 实盘有效性证据。任何后继必须建立新 model/estimand，而不是在已读 panels 上调 calibrator、threshold 或 feature list。
 
 ### 深入推导：十三个 heads 为什么必须使用 joint gate
 
@@ -941,7 +929,7 @@ $$
 
 任何单日都可能强烈影响均值；leave-one-day-out 旋转、side 反号或 tail harm 都不能被 pooled point estimate 掩盖。更何况 quote policy 是由多个 heads 联合驱动，正 PnL 无法告诉我们是哪一头贡献，也可能来自较低 participation。
 
-所以这组结果最多支持“source-aware bundle 具有后续研究价值”，不支持“v12 已验证 alpha”。若继续，必须先冻结 required heads 和 mapping，再用较长 chronological panel 检查 simultaneous lower bound、side/role、fill retention 与 campaign tail。
+所以这组结果最多支持“source-aware bundle 具有后续研究价值”，不支持“v12 已验证 alpha”。若继续，必须先冻结 required heads 和 mapping，再用较长 chronological panel 检查 simultaneous lower bound、side/role、fill retention 与 库存生命周期 tail。
 
 ### 从 prediction transport 到 inference contract
 
@@ -968,7 +956,7 @@ $$
 
 ### 五日经济结果的分辨率
 
-五个formal days的正点估计只说明在这五条市场路径上candidate总和更高。日级相关、campaign clustering与少数大尾部意味着row-level标准误毫无意义；即使五天全部同号，仍难区分持续效应与单一regime。日期bootstrap在$D=5$时也只有很粗的经验支持，interval的端点高度依赖有限日组合。
+五个formal days的正点估计只说明在这五条市场路径上candidate总和更高。日级相关、库存生命周期 clustering与少数大尾部意味着row-level标准误毫无意义；即使五天全部同号，仍难区分持续效应与单一regime。日期bootstrap在$D=5$时也只有很粗的经验支持，interval的端点高度依赖有限日组合。
 
 所以本项目同时要求prediction gates、full-path value、activity/inventory与tail，而不是让PnL点估计单独裁决。若模型通过5/13 heads、PnL正但区间和风险门不闭合，正确结论是“存在后继假说”，不是“差一点就该上线”。
 
@@ -1003,11 +991,11 @@ model bundles、native reports 与逐日 rows 不随公共仓库分发；公开�
 
 ## 7. 一秒 cadence successor
 
-### TL;DR：1 秒更新减少了 fills，却增加库存时间并恶化 campaign tails
+### TL;DR：1 秒更新减少了 fills，却增加库存时间并恶化 库存生命周期 tails
 
 把 13-head cadence 从 10 秒缩短到 1 秒，看起来应该更快吸收市场变化。NarrowGate 没有把这个直觉当作结论，而是冻结完整 1-second full-schema model/policy，与当时的 v9 10-second ML-ON control 在同一 40-day native Development panel 上运行 full-path A/B。
 
-候选没有通过。terminal MTM 从 `-161.935091` 变成 `-164.052065 USDC`，差 `-2.116974 USDC`；fills 从 `16,959` 降到 `14,758`，只保留 `87.0216%`；absolute inventory time 反而增加 `888.737 BTC*s`。campaign CVaR10、q10 shortfall、inventory-time avoidance 与 maximum-inventory avoidance 的 day-clustered intervals 全部显示显著恶化。
+候选没有通过。terminal MTM 从 `-161.935091` 变成 `-164.052065 USDC`，差 `-2.116974 USDC`；fills 从 `16,959` 降到 `14,758`，只保留 `87.0216%`；absolute inventory time 反而增加 `888.737 BTC*s`。库存生命周期 CVaR10、q10 shortfall、inventory-time avoidance 与 maximum-inventory avoidance 的 day-clustered intervals 全部显示显著恶化。
 
 这不是一个 near-pass。1 秒候选降低参与，却没有改善 value，库存暴露和 multi-level LONG tail 还更差。项目因此在 Development 关闭，没有打开 Validation，也没有运行原计划的 71-day continuous confirmation。
 
@@ -1025,7 +1013,7 @@ model bundles、native reports 与逐日 rows 不随公共仓库分发；公开�
 
 但更快并不只改变“响应速度”。它还会改变训练样本相关性、label horizon 与 decision cadence 的比例、模型输出 jitter、requote/cancel、queue position 和 inventory path。因此研究问题是：
 
-> 保持 quote/execution ABI、P3、queue、latency、cooldown、inventory 和 accounting 不变时，完整 1s full-schema ML policy 是否相对 10s ML-ON control 提高 terminal/campaign value，并满足 participation 与 tail gates？
+> 保持 quote/execution ABI、P3、queue、latency、cooldown、inventory 和 accounting 不变时，完整 1s full-schema ML policy 是否相对 10s ML-ON control 提高 terminal/inventory_lifecycle value，并满足 participation 与 tail gates？
 
 ### 2. 输入、动作与 estimand
 
@@ -1042,7 +1030,7 @@ $$
 同时报告：
 
 $$
-\Delta CampaignValue,quad FillRetention,quad
+\Delta 库存生命周期Value,quad FillRetention,quad
 \Delta InventoryTime,quad
 \Delta q10,quad \Delta CVaR10.
 $$
@@ -1067,7 +1055,7 @@ formal denominator 是冻结的 40-day native Development panel。每个日 fres
 
 ### 4. 为什么执行完整性不等于经济成功
 
-这项研究为 bound surfaces 建立了 173-field feature parity、zero Python/C++ feature mismatches、zero fill-path mismatches、identity/hash parity 与低于 `2.8e-13 USDC` 的 campaign accounting error。
+这项研究为 bound surfaces 建立了 173-field feature parity、zero Python/C++ feature mismatches、zero fill-path mismatches、identity/hash parity 与低于 `2.8e-13 USDC` 的 库存生命周期 accounting error。
 
 这些 gates 证明实现按声明运行，不能证明策略有价值。另一些 surfaces——prediction-output parity、tick/GTX/spread-cap parity——没有被该 runner 绑定，因此也不能从“总体 parity passed”外推为已证明。
 
@@ -1079,7 +1067,7 @@ formal denominator 是冻结的 40-day native Development panel。每个日 fres
 
 若这些短时变化主要是 microstructure noise，candidate 会更频繁 cancel/replace、丢失 queue，减少某些自然 fills；一旦仍发生 exposure-increasing fill，后续库存偏斜与 cooldown 又可能让 reducing path 更慢。
 
-因此 fills 下降和 inventory time 上升完全可以同时发生：交易次数少了，但留下的 campaign 更难修复、持仓更久。只有 full-path campaign accounting 能看见这一反馈。
+因此 fills 下降和 inventory time 上升完全可以同时发生：交易次数少了，但留下的 库存生命周期 更难修复、持仓更久。只有 full-path 库存生命周期 accounting 能看见这一反馈。
 
 ### 6. 冻结结果
 
@@ -1087,14 +1075,14 @@ formal denominator 是冻结的 40-day native Development panel。每个日 fres
 | --- | ---: | ---: | ---: |
 | Terminal MTM | -161.935091 | -164.052065 | -2.116974 USDC |
 | Terminal MTM/day | -4.048377 | -4.101302 | -0.052924 |
-| Closed-campaign value | -162.123791 | -163.690165 | -1.566374 USDC |
+| Closed-库存生命周期 value | -162.123791 | -163.690165 | -1.566374 USDC |
 | Fills | 16,959 | 14,758 | -2,201 |
 | Fill retention | 100% | 87.0216% | -12.9784 pp |
 | Inventory time | 5,327.642 | 6,216.379 | +888.737 BTC*s |
 
 terminal-MTM mean difference 的 95% day-cluster interval 是 `[-1.106631,+1.005055] USDC/day`，19/40 days positive。点估计与区间都不支持 value improvement。
 
-tail/lifecycle 更明确：campaign CVaR10 protection `-0.176559/day`，interval `[-0.294295,-0.066028]`；q10 shortfall protection `-0.059563/day`，interval `[-0.091067,-0.029543]`。
+tail/lifecycle 更明确：库存生命周期 CVaR10 protection `-0.176559/day`，interval `[-0.294295,-0.066028]`；q10 shortfall protection `-0.059563/day`，interval `[-0.091067,-0.029543]`。
 
 inventory-time avoidance `-22.218436 BTC*s/day`，interval `[-34.376329,-8.407483]`；maximum-inventory avoidance `-0.000975 BTC/day`，interval `[-0.001700,-0.000150]`。multi-level LONG terminal value 从 `-63.237078` 恶化到 `-93.231090 USDC`。
 
@@ -1118,7 +1106,7 @@ primary terminal interval 跨零本身已经不允许晋级；tail 和 inventory
 
 未关闭：具有不同 labels、regularization、state representation 或 action semantics 的未来 sub-10-second model。它必须解释自己怎样避免相邻样本、输出 jitter 与 lifecycle feedback，而不能沿用本项目 panels 调参。
 
-没有获得：Validation、sealed holdout、71-day confirmation、action、model replacement、shadow 或 live authority。10s baseline 保持不变。
+没有获得：Validation、sealed holdout、71-day confirmation、action、model replacement、shadow 或 实盘有效性证据。10s baseline 保持不变。
 
 ### 深入推导：更快 cadence 同时改变控制频率与订单年龄
 
@@ -1128,19 +1116,19 @@ $$
 a_t=\Gamma(u_t,O_{t^-},I_t,C_t),
 $$
 
-其中 $O_{t^-}$ 是当前 active order，$I_t$ 是库存，$C_t$ 是 cooldown/campaign state。增加 $u_t$ 的更新频率只有在 $\Gamma$ 真正改变订单且新增信息超过 queue reset 成本时才有价值。
+其中 $O_{t^-}$ 是当前 active order，$I_t$ 是库存，$C_t$ 是 cooldown/inventory_lifecycle state。增加 $u_t$ 的更新频率只有在 $\Gamma$ 真正改变订单且新增信息超过 queue reset 成本时才有价值。
 
 ![1 秒 inference 必须穿过冻结 mapping 与完整路径门](/images/narrowgate/f03-thirteen-head-evidence-pipeline.svg)
 
-*图 2：cadence 属于 inference identity；更快更新会改变 queue、fill、inventory 和 campaign，而不仅是 prediction rows。*
+*图 2：cadence 属于 inference identity；更快更新会改变 queue、fill、inventory 和 库存生命周期，而不仅是 prediction rows。*
 
 ### 一个路径例子：及时撤单为何可能延长库存
 
 假设 BUY add 刚成交，策略持有长库存，同时 SELL reducing quote 正在 queue 前部等待修复。新的一秒信号轻微恶化，快 cadence 触发 replace，把 reducing SELL 外移并失去原 queue position；市场随后小幅反弹，但新单来不及成交。十秒 baseline 没有在这次噪声上动作，旧 reducing order 反而完成 flat。
 
-在另一个单边下跌路径中，一秒 cadence 及时撤掉新的 BUY add，确实避免 adverse fill。两条路径展示典型 trade-off：更快控制降低某些 exposure-increasing fills，却也更频繁干扰 reducing queue。最终结果必须同时看 fills、库存时间、campaign duration 与 tail。
+在另一个单边下跌路径中，一秒 cadence 及时撤掉新的 BUY add，确实避免 adverse fill。两条路径展示典型 trade-off：更快控制降低某些 exposure-increasing fills，却也更频繁干扰 reducing queue。最终结果必须同时看 fills、库存时间、库存生命周期 duration 与 tail。
 
-这也是为什么“fills 更少”不能单独判为好或坏。若减少的是 toxic add fills，terminal value 应相对改善；若减少的是 repair fills，库存时间和 tail 可能恶化。冻结结果中 fills 下降而 inventory time 与 campaign tail 更差，说明至少在该 mapping 下，第二种机制不可忽略。
+这也是为什么“fills 更少”不能单独判为好或坏。若减少的是 toxic add fills，terminal value 应相对改善；若减少的是 repair fills，库存时间和 tail 可能恶化。冻结结果中 fills 下降而 inventory time 与 库存生命周期 tail 更差，说明至少在该 mapping 下，第二种机制不可忽略。
 
 ### Cadence 研究需要的三个对照
 
@@ -1164,7 +1152,7 @@ $$
 
 ### 需要同时观测的四个控制代价
 
-第一是staleness：行情变化到下一次合法决策的等待时间。第二是churn：每小时cancel、ACK、re-entry与queue reset。第三是exposure：active quantity-time与inventory-time。第四是terminal path：campaign value、tail与窗口末端库存。更快cadence通常降低第一项，却可能提高第二项，并通过失去queue priority或删掉repair fills恶化后三项。
+第一是staleness：行情变化到下一次合法决策的等待时间。第二是churn：每小时cancel、ACK、re-entry与queue reset。第三是exposure：active quantity-time与inventory-time。第四是terminal path：库存生命周期 value、tail与窗口末端库存。更快cadence通常降低第一项，却可能提高第二项，并通过失去queue priority或删掉repair fills恶化后三项。
 
 一个有说服力的cadence实验不应只比较1s与10s两个端点。它应在结果前冻结少量工程可行档位，保持feature horizon、order TTL与risk horizon语义明确；对每个arm记录真实decision opportunity、action change率与full-path outcome。若1s只是在十次检查中九次重复keep，它与真正每秒撤换不是同一个treatment。
 

@@ -1,5 +1,5 @@
 ---
-title: 'NarrowGate Exposure Guards：BER Proxy、BUY q90、Ranked Toxicity 与跨 Campaign 订单所有权'
+title: 'NarrowGate Exposure Guards：BER Proxy、BUY q90、Ranked Toxicity 与跨 库存生命周期 订单所有权'
 date: 2026-08-29 13:30:00
 updated: 2026-09-27 10:45:00
 categories:
@@ -13,14 +13,11 @@ tags:
 math: true
 ---
 
-
-
-
 ## 1. 三类 Guard 研究的是同一条从风险分数到终局价值的链
 
 历史上以 `BER` 命名的机制实际是 trade-intensity acceleration proxy，并非论文中的 Book Exhaustion Rate；BUY q90 使用 active-order hazard 的高分位过滤；ranked-toxicity guard 则用 causal-v12 toxicity rank 触发持久 permission state。三个机制虽然 score 来源不同，却都必须回答同一问题：风险分数何时可见、它控制哪张订单、订单离开 exchange risk set 后 permission 如何延续，以及改变路径后 portfolio terminal value 是否改善。
 
-Role-safe BER 能改变 exposure 路径，却使 terminal value 恶化。q90 审计发现 mixed clock 与 post-cancel-ACK terminal hold，portfolio attribution 又只支持 fill imbalance 的第一条边。Ranked-toxicity preflight 进一步发现订单可以跨 inventory campaign 改变 role，迫使 assignment unit 升级为 carryover-safe episode。三种 guard 共同面临的难点，是信号何时可见、风险集何时结束，以及动作属于哪张订单；仅改变 `1.2`、q90 或 p90 这样的阈值，无法解决这些身份问题。
+Role-safe BER 能改变 exposure 路径，却使 terminal value 恶化。q90 审计发现 mixed clock 与 post-cancel-ACK terminal hold，portfolio attribution 又只支持 fill imbalance 的第一条边。Ranked-toxicity preflight 进一步发现订单可以跨 库存生命周期 改变 role，迫使 assignment unit 升级为 carryover-safe episode。三种 guard 共同面临的难点，是信号何时可见、风险集何时结束，以及动作属于哪张订单；仅改变 `1.2`、q90 或 p90 这样的阈值，无法解决这些身份问题。
 
 统一状态需要同时追踪
 
@@ -28,7 +25,7 @@ $$
 O_t=(\text{order id},\text{owner arm},\text{submit role},\text{current role},\text{risk-set state},\text{guard state}).
 $$
 
-若订单从 reducing 变为 exposure-increasing，不能重新随机 arm，也不能让新 campaign 接管旧 queue position。Guard 的动作正确性因此取决于 lifecycle ownership，而不只是 score 超过 p90。
+若订单从 reducing 变为 exposure-increasing，不能重新随机 arm，也不能让新 库存生命周期 接管旧 queue position。Guard 的动作正确性因此取决于 lifecycle ownership，而不只是 score 超过 p90。
 
 ## 2. 研究阶段与证据状态
 
@@ -37,7 +34,7 @@ $$
 | Trade-intensity proxy add-only | 只保护 exposure-increasing add 能否避免误伤 opener/reducing？ | fills 增加但 terminal value 恶化；关闭 |
 | BUY q90 clock/lifecycle | 高分位 active-order guard 是否在合法可见时钟和风险集上运行？ | mixed-clock 与 post-ACK 缺陷确认；旧 parity 失效 |
 | BUY q90 portfolio attribution | 过滤 BUY 是否通过 fill imbalance 导致 SHORT concentration 与损失？ | 只支持第一条机制边；没有 policy 结论 |
-| Ranked-toxicity carryover-safe guard | p90 rank 触发的持久 guard 能否保持跨 campaign 订单所有权？ | 一日 smoke 通过；40 日 mechanics/economics 未运行 |
+| Ranked-toxicity carryover-safe guard | p90 rank 触发的持久 guard 能否保持跨 库存生命周期 订单所有权？ | 一日 smoke 通过；40 日 mechanics/economics 未运行 |
 
 ## 3. Trade-intensity proxy add-only
 
@@ -47,15 +44,15 @@ $$
 
 40 日 daily fresh-start Development 中，candidate 产生 172,328 个 effective side-price changes，change rate 14.96%，BUY/SELL 82,682/89,646，40 日均有支持；Python/C++ fill path、BER state、source 与 cap mismatches 都为零。机械实现明确。
 
-经济上，control/candidate terminal MTM 为 -144.2517/-155.9180 USDC，差 -11.6663；closed-campaign value 差 -9.3845；fills 从 17,118 增至 19,488，即 +13.85%。paired daily delta -0.2917 USDC/day，95% interval $[-1.1439,+0.6813]$，只有 13/40 日改善。candidate 的 q10、CVaR、MAE、max inventory 与 inventory time 等 proxy 反而变好，再一次说明更低库存/更快 repair 不能替代 terminal value。
+经济上，control/candidate terminal MTM 为 -144.2517/-155.9180 USDC，差 -11.6663；已结束库存生命周期 value 差 -9.3845；fills 从 17,118 增至 19,488，即 +13.85%。paired daily delta -0.2917 USDC/day，95% interval $[-1.1439,+0.6813]$，只有 13/40 日改善。candidate 的 q10、CVaR、MAE、max inventory 与 inventory time 等 proxy 反而变好，再一次说明更低库存/更快 repair 不能替代 terminal value。
 
-这还是一个 outcome-informed owner Development screen，不是独立 confirmation；即使未来有正结果，也不能重标为 research-supported。当前 global BER 保持不变，candidate foundation 关闭，也没有 continuous confirmation、action 或 live authority。
+这还是一个 outcome-informed owner Development screen，不是独立 confirmation；即使未来有正结果，也不能重标为 research-supported。当前 global BER 保持不变，candidate foundation 关闭，也没有 continuous confirmation、action 或 实盘有效性证据。
 
 ![BER role-safe add-only 的角色 DAG 与时钟](/images/narrowgate/ber-role-safe-add-only.svg)
 
 *图 1：机制示意。相同 completed-10s BER state 在每个 completed-1s callback 被采样；candidate 只把 add side 接到 BER quote，opener/reducing 接 bypass quote，cross-zero 保持 control。*
 
-![Role-safe spread action 的完整 campaign 路径](/images/narrowgate/f09-campaign-action-causal-path.svg)
+![Role-safe spread action 的完整 库存生命周期 路径](/images/narrowgate/f09-inventory_lifecycle-action-causal-path.svg)
 
 *图 2：历史 BER 状态只决定哪一套 quote source 进入角色合成；bypass 会改变 opener/reducing 的成交、库存与后续报价。fills 和风险 proxy改善后，仍须以 terminal value决定动作。*
 
@@ -111,7 +108,7 @@ $R_t$ 是状态代理，1.2 是离散 active门，2.0 是报价宽度映射。�
 
 ### 3. Role composition
 
-同一个 immutable decision snapshot 同时算 global BER quote 与 `ber_active=false` 的 bypass quote。role 由 decision-pre inventory 和 target quantity 确定：
+同一个 immutable decision snapshot 同时算 global BER quote 与 `trade_intensity_acceleration_guard_active=false` 的 bypass quote。role 由 decision-pre inventory 和 target quantity 确定：
 
 | Inventory / target | Candidate quote source |
 |---|---|
@@ -144,7 +141,7 @@ price action可以改变 fill，fill改变inventory与circuit breaker，继而�
 
 #### 4.2 Canonical denominator 如何防止 action-rate自我美化
 
-若 candidate因多fill产生更多后续decision，按candidate rows算分母可能降低change rate；若它早终止campaign，又可能提高。共同 canonical timestamps把支持测量固定在两臂可比较的机会，不让 treatment自己决定分母。
+若 candidate因多fill产生更多后续decision，按candidate rows算分母可能降低change rate；若它早终止库存生命周期，又可能提高。共同 canonical timestamps把支持测量固定在两臂可比较的机会，不让 treatment自己决定分母。
 
 经济终局仍各自沿完整path计算。也就是说，support使用共同机会，outcome允许后续分叉；这两个分母服务不同问题，不能强迫相同。
 
@@ -169,28 +166,28 @@ one-day native preflight 先要求 role semantics 与 Python/C++ full-path parit
 | Metric | Control | Candidate | Candidate-control |
 |---|---:|---:|---:|
 | terminal MTM PnL | -144.2517 | -155.9180 | -11.6663 USDC |
-| closed-campaign value | -147.4663 | -156.8508 | -9.3845 USDC |
+| 已结束库存生命周期 value | -147.4663 | -156.8508 | -9.3845 USDC |
 | fills | 17,118 | 19,488 | +2,370，+13.85% |
 
 按 40 个 UTC 日配对，terminal delta 为 -0.2917 USDC/day，95% interval $[-1.1439,+0.6813]$，仅 13/40 日改善。negative-terminal protection 也恶化 -0.4621 USDC/day。
 
-候选改善 campaign q10、CVaR10、MAE、maximum inventory、inventory time 与 multi-level LONG/SHORT point estimates。看似矛盾，其实说明 opener/reducing bypass 增加参与和修复，但新增 fills 的 execution/selection value 足以让 terminal 变差。proxy 可以描述机制，不能覆盖经济 hard gate。
+候选改善 库存生命周期 q10、CVaR10、MAE、maximum inventory、inventory time 与 multi-level LONG/SHORT point estimates。看似矛盾，其实说明 opener/reducing bypass 增加参与和修复，但新增 fills 的 execution/selection value 足以让 terminal 变差。proxy 可以描述机制，不能覆盖经济 hard gate。
 
 #### 6.1 为什么绕过 reducing 与 opener 会同时增加 fills
 
-reducing bypass让库存修复报价更靠近市场，提高成交；回到flat后，opener bypass又让新campaign更容易启动。于是 candidate不只“更快结束旧库存”，也“更快重新开始下一段暴露”。+13.85% fills是两条路径共同结果。
+reducing bypass让库存修复报价更靠近市场，提高成交；回到flat后，opener bypass又让新库存生命周期更容易启动。于是 candidate不只“更快结束旧库存”，也“更快重新开始下一段暴露”。+13.85% fills是两条路径共同结果。
 
-库存时间、MAE与max inventory下降，说明旧campaign修复机制确实增强；terminal变差则说明新增执行/selection与重复参与成本更大。只观察某个成功repair片段，会漏掉flat后的新opener和后续campaign。
+库存时间、MAE与max inventory下降，说明旧库存生命周期修复机制确实增强；terminal变差则说明新增执行/selection与重复参与成本更大。只观察某个成功repair片段，会漏掉flat后的新opener和后续库存生命周期。
 
 #### 6.2 一个数值一致性检查
 
 terminal总差 -11.6663 USDC除以40日为 -0.2917 USDC/day，与paired daily point estimate一致。fills增加2,370，不能用 $-11.6663/2370$ 当“每个新增fill因果成本”，因为新增/删除fill没有一一配对，且已有fills的时点、价格与后续path也改变。
 
-这个粗比值最多是描述性规模，不能支持“每多一笔必亏多少”。真正action unit是整条daily/campaign full path。
+这个粗比值最多是描述性规模，不能支持“每多一笔必亏多少”。真正action unit是整条daily/inventory_lifecycle full path。
 
 #### 6.3 Proxy改善为何不能隐式改成风险效用
 
-如果owner愿意用terminal价值换更低inventory，应在结果前冻结效用权重，例如 $U=PnL-\lambda E|q|dt$。本项目primary是terminal与closed-campaign value，没有预注册 $\lambda$；结果后以MAE、q10或inventory time救援，会改变目标函数。
+如果owner愿意用terminal价值换更低inventory，应在结果前冻结效用权重，例如 $U=PnL-\lambda E|q|dt$。本项目primary是terminal与已结束库存生命周期 value，没有预注册 $\lambda$；结果后以MAE、q10或inventory time救援，会改变目标函数。
 
 这并不贬低风险proxy。它们解释动作怎么运作，也可为新risk-mandate提供设计依据；它们只是不能反向改写当前hard gate。
 
@@ -198,7 +195,7 @@ terminal总差 -11.6663 USDC除以40日为 -0.2917 USDC/day，与paired daily po
 
 假设 inventory $q=-0.002$，BER active。global control 会同时 widen SELL add 与 BUY reducing；candidate 只 widen SELL，BUY 使用 bypass、更接近市场。candidate 更容易获得 reducing BUY fill，inventory time 下降。但若 BUY 在继续下跌的市场中更早成交，或者绕过 widening 损失了选择性，terminal value 可能变差。
 
-当 inventory 回到 near-flat，后续 opener 也 bypass BER，因此 candidate 可能比 control 更快重新参与，解释 fills +13.85%。这些都是 action path 的组成，不是 bug，也不能只选择“成功 repair 的 campaign”评价。
+当 inventory 回到 near-flat，后续 opener 也 bypass BER，因此 candidate 可能比 control 更快重新参与，解释 fills +13.85%。这些都是 action path 的组成，不是 bug，也不能只选择“成功 repair 的 库存生命周期”评价。
 
 ### 8. 研究演进与证据地位
 
@@ -236,7 +233,7 @@ $R_t>1$表示近期trade intensity相对慢基线加速；它没有直接测量�
 
 慢/快EMA可能每1秒采样，状态每10秒发布，而maker loop每100ms检查。100个loop ticks可能消费同一个published state；这不等于100次独立信号。若在10秒内重复cancel/requote，action frequency由loop与lifecycle共同决定，而feature information只更新一次。
 
-因此canonical denominator应是有合法published state且role明确的decision opportunities，另行报告unique state updates与最终quote changes。把100ms evaluations当样本量会严重低估不确定性；interval仍应按day或campaign cluster。
+因此canonical denominator应是有合法published state且role明确的decision opportunities，另行报告unique state updates与最终quote changes。把100ms evaluations当样本量会严重低估不确定性；interval仍应按day或库存生命周期 cluster。
 
 ### Role-safe 失败之后还剩什么可研究
 
@@ -246,9 +243,9 @@ $R_t>1$表示近期trade intensity相对慢基线加速；它没有直接测量�
 
 ### 11. 公共证据
 
-- [`ber_guard_role_safe_add_only_current_stack_owner_v1_development_20260809.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/ber_guard_role_safe_add_only_current_stack_owner_v1_development_20260809.md)
-- [`ber_guard_role_safe_add_only_current_stack_owner_v1_spec_20260808.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/ber_guard_role_safe_add_only_current_stack_owner_v1_spec_20260808.md)
-- [`F09 README`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/README.md)
+- [`ber_guard_role_safe_add_only_current_stack_owner_v1_development_20260809.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/ber_guard_role_safe_add_only_current_stack_owner_v1_development_20260809.md)
+- [`ber_guard_role_safe_add_only_current_stack_owner_v1_spec_20260808.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/ber_guard_role_safe_add_only_current_stack_owner_v1_spec_20260808.md)
+- [`F09 README`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/README.md)
 
 ### 结语
 
@@ -276,7 +273,7 @@ BUY q90 是 active-order fill-hazard 路径上的高分过滤机制。它本应�
 
 ![F10 从观测归因、机制复现到动作价值的证据阶梯](/images/narrowgate/f10-attribution-evidence-ladder.svg)
 
-*图 2：本项目停在“机制修复与单日复现”一层。它尚未完成全样本 transport，更没有跨过 paired action-value 与 live-authority 两道门。把修复后的 state machine 直接称为有效策略，会跳过阶梯中间的全部证据。*
+*图 2：本项目停在“机制修复与单日复现”一层。它尚未完成全样本 transport，更没有跨过 paired action-value 与 实盘有效性验证 两道门。把修复后的 state machine 直接称为有效策略，会跳过阶梯中间的全部证据。*
 
 ### 1. q90 到底在哪个风险集上工作
 
@@ -427,7 +424,7 @@ cancel ACK with positive remainder 只获得进入 prospective recovery 的资�
 
 retired order_id 只保留 lifecycle provenance。旧 cursor、queue path、elapsed age 与 active hazard state禁止作为 feature。没有引入新的 learned activation model；这一阶段 activation support 只是 GTX eligible 与 current state causally covered。
 
-这条合同保护 baseline integrity，但它仍不回答 q90 action 是否有经济价值。fresh candidate 只是 mechanics 正确，不代表 score calibration、re-entry fill probability 或 terminal campaign value已通过。
+这条合同保护 baseline integrity，但它仍不回答 q90 action 是否有经济价值。fresh candidate 只是 mechanics 正确，不代表 score calibration、re-entry fill probability 或 terminal 库存生命周期 value已通过。
 
 #### 9.1 Active hazard 与 prospective placement 是两个 estimand
 
@@ -470,7 +467,7 @@ v1.6 one-day Development smoke 在 exact feature-ready batch semantics 下得到
 
 #### 10.1 从 smoke 到 economics 还缺四个闭环
 
-第一，全 40 日必须在同一 frozen input identity 上完成，确认 one-day 的 zero mismatch不是偶然避开某种 terminal route。第二，prospective placement必须获得非零且可解释的有效支持，否则“双方一致 invalid”只是一种安全停机。第三，replay与目标运行环境要在 valid fraction、cancel role、cancel/hour、state age和terminal route上通过 transport gates。第四，只有前三项完成后，才允许比较 q90 ON/OFF 的 fills、inventory campaign与 terminal MTM。
+第一，全 40 日必须在同一 frozen input identity 上完成，确认 one-day 的 zero mismatch不是偶然避开某种 terminal route。第二，prospective placement必须获得非零且可解释的有效支持，否则“双方一致 invalid”只是一种安全停机。第三，replay与目标运行环境要在 valid fraction、cancel role、cancel/hour、state age和terminal route上通过 transport gates。第四，只有前三项完成后，才允许比较 q90 ON/OFF 的 fills、库存生命周期与 terminal MTM。
 
 顺序不能倒置。若在 recovery rows全 invalid时先看 PnL，观察到的 arm difference主要反映 fail-closed fallback；若 action rate未 transport就做 paired replay，结果只适用于历史低强度 treatment；若 lifecycle仍泄漏就调阈值，threshold会吸收系统 bug。完整证据链因此是
 
@@ -500,7 +497,7 @@ $$
 - one-day event lockstep passed；
 - full 40-day mechanics、exact transport、recovery support 与 economics仍未完成。
 
-没有读取 PnL、markout、campaign reward、Validation 或 sealed holdout；没有 q90 threshold change、F07 v2 registration、action、rollback、deployment 或 live authority。q90 mechanics 的修复不能被解释为策略应该 ON。
+没有读取 PnL、markout、库存生命周期 reward、Validation 或 sealed holdout；没有 q90 threshold change、F07 v2 registration、action、rollback、deployment 或 实盘有效性证据。q90 mechanics 的修复不能被解释为策略应该 ON。
 
 ### 12. 公共证据
 
@@ -517,11 +514,11 @@ $$
 
 ### TL;DR：q90 ON 确实扩大了 SELL-minus-BUY fill imbalance，但“更多 SHORT、更多多层 SHORT、终局更差”都没有成立
 
-BUY q90 的组合机制假说很直观：若系统优先取消高风险 BUY active orders，就会减少增加 LONG 或修复 SHORT 的 BUY fills；SELL exposure fills相对更多，库存因此更容易进入 SHORT；SHORT campaigns 进一步变成 multi-level；最终 terminal MTM 变差。
+BUY q90 的组合机制假说很直观：若系统优先取消高风险 BUY active orders，就会减少增加 LONG 或修复 SHORT 的 BUY fills；SELL exposure fills相对更多，库存因此更容易进入 SHORT；SHORT 库存生命周期 进一步变成 multi-level；最终 terminal MTM 变差。
 
 F10 用冻结 40 日 paired full-path replay 比较 q90 ON 与 q90 OFF。24 个 Grade-A primary 日里，q90 ON 的 SELL-minus-BUY exposure-fill imbalance 增加 $+0.43057$ fills/hour，95% 日期聚类区间 $[+0.00869,+0.85418]$，是整条链唯一通过的 link。
 
-其它 link 均不成立。BUY exposure suppression 为 $-0.22744$ fills/hour，区间上端 $+0.00173$，仅差一点却仍失败；SHORT campaign share 增加 $+0.00851$，区间跨零；multi-level SHORT share 反而点估计下降 $-0.00124$；terminal MTM 为 $+0.09470$ USDC/day，区间 $[-0.23214,+0.45084]$，没有 terminal harm evidence。
+其它 link 均不成立。BUY exposure suppression 为 $-0.22744$ fills/hour，区间上端 $+0.00173$，仅差一点却仍失败；SHORT 库存生命周期 share 增加 $+0.00851$，区间跨零；multi-level SHORT share 反而点估计下降 $-0.00124$；terminal MTM 为 $+0.09470$ USDC/day，区间 $[-0.23214,+0.45084]$，没有 terminal harm evidence。
 
 全 40 日描述性 aggregate 甚至显示 q90 ON 的 terminal MTM 比 OFF 少亏 $+0.33804$ USDC/day，但这不是独立 OOS policy validation。更关键的 transport mismatch 是：replay 959.963 小时只有 105 个 cancel requests，约 0.109/hour；另一个冻结历史 operational diagnostic 为约 20.84/hour，强度相差约 190 倍。历史 replay 没有回答异常高频 policy 是否造成 observed SHORT concentration。
 
@@ -529,7 +526,7 @@ F10 用冻结 40 日 paired full-path replay 比较 q90 ON 与 q90 OFF。24 个 
 
 本文只讨论公开 Development aggregation，不构成交易建议。图中的 K 线、订单与库存分叉是合成机制示意。
 
-![BUY q90 ON/OFF 到 exposure imbalance、SHORT campaign 与 terminal MTM 的机制链](/images/narrowgate/buy-q90-portfolio-attribution.svg)
+![BUY q90 ON/OFF 到 exposure imbalance、SHORT 库存生命周期 与 terminal MTM 的机制链](/images/narrowgate/buy-q90-portfolio-attribution.svg)
 
 *图 1：q90 ON 与 OFF 共享市场路径，在 BUY cancel 处开始分叉。只有 SELL-minus-BUY exposure imbalance 获得正下界；后续 SHORT share、multi-level share 与 terminal harm 均未通过。*
 
@@ -539,9 +536,9 @@ F10 用冻结 40 日 paired full-path replay 比较 q90 ON 与 q90 OFF。24 个 
 
 ### 1. 为什么这是 portfolio path，不是单笔 cancel study
 
-一笔 BUY cancel 的局部结果可能只是少一次 fill，但 inventory system 具有反馈。少一个 BUY exposure fill 可能减少 LONG，也可能减少对已有 SHORT 的 repair；随后 quote role、cooldown、inventory guard 与 campaign identity都会改变。不能只看被取消订单的 10 秒 markout，就推断组合终局。
+一笔 BUY cancel 的局部结果可能只是少一次 fill，但 inventory system 具有反馈。少一个 BUY exposure fill 可能减少 LONG，也可能减少对已有 SHORT 的 repair；随后 quote role、cooldown、inventory guard 与 库存生命周期 identity都会改变。不能只看被取消订单的 10 秒 markout，就推断组合终局。
 
-因此 q90 portfolio attribution 把 action 视为一条 full-path policy toggle：同一历史 market path、latency path、P3、queue calibration、cooldown、loss guard、size 与 inventory limit 下，只改变 q90 ON/OFF。arms 一旦 inventory path 分叉，campaigns 独立重建，不再强行匹配同名 campaign。
+因此 q90 portfolio attribution 把 action 视为一条 full-path policy toggle：同一历史 market path、latency path、P3、queue calibration、cooldown、loss guard、size 与 inventory limit 下，只改变 q90 ON/OFF。arms 一旦 inventory path 分叉，库存生命周期 独立重建，不再强行匹配同名 库存生命周期。
 
 主 contrast 为 paired daily effect：
 
@@ -553,7 +550,7 @@ $$
 \left(m_{d,ON}-m_{d,OFF}\right).
 $$
 
-不确定性按 UTC day cluster 重采样，保留同日共同市场 shock 与多个 campaign 的依赖。
+不确定性按 UTC day cluster 重采样，保留同日共同市场 shock 与多个 库存生命周期 的依赖。
 
 ### 2. 预注册的四段机制链
 
@@ -575,7 +572,7 @@ $$
 
 冻结 contract 要求所有核心 links 同时通过。中间一段显著不能补偿后一段失败；terminal harm 又需要 upper bound 低于零，而不是点估计为负。
 
-这种 joint gate 防止研究者只挑一个符合故事的 mediator。一个 policy 可以改变 side activity，却被后续 reducing fills、campaign repair 或其它 feedback 抵消。
+这种 joint gate 防止研究者只挑一个符合故事的 mediator。一个 policy 可以改变 side activity，却被后续 reducing fills、库存生命周期 repair 或其它 feedback 抵消。
 
 #### 2.1 为什么一条链不能靠单个显著 link 成立
 
@@ -592,9 +589,9 @@ $$
 +R,
 $$
 
-其中 $R$ 汇总 SELL fills、reducing fills、quote recenter、cooldown、campaign duration和terminal mark等其它路径。这个式子不是用来做线性估计，而是提醒我们：第一段方向正确，不代表乘积的后续项非零，更不代表 $R$ 不会抵消。当前证据只较清楚地支持 imbalance这一段；SHORT share、multi-level与terminal三段均未闭合。
+其中 $R$ 汇总 SELL fills、reducing fills、quote recenter、cooldown、库存生命周期 duration和terminal mark等其它路径。这个式子不是用来做线性估计，而是提醒我们：第一段方向正确，不代表乘积的后续项非零，更不代表 $R$ 不会抵消。当前证据只较清楚地支持 imbalance这一段；SHORT share、multi-level与terminal三段均未闭合。
 
-因此“q90减少 BUY，所以一定造成 SHORT”是把 flow当成stock。库存是历史成交的累积状态，BUY既可能增加 LONG，也可能减少 SHORT；SELL同理。只有把初始库存、fill role与campaign边界一并纳入，才能知道 side flow改变最终落在哪个库存状态。
+因此“q90减少 BUY，所以一定造成 SHORT”是把 flow当成stock。库存是历史成交的累积状态，BUY既可能增加 LONG，也可能减少 SHORT；SELL同理。只有把初始库存、fill role与库存生命周期边界一并纳入，才能知道 side flow改变最终落在哪个库存状态。
 
 ### 3. 数据、arms 与 causal boundary
 
@@ -602,7 +599,7 @@ primary panel 是 24 个 Grade-A Development 日，16 个 Grade-B 日只作 sens
 
 q90 scorer 的 Python/C++ kernel 在使用点 fail-fast lockstep，但完整 tick replay以 Python 为 authority。这个边界不能写成“全 C++ replay parity”。
 
-action 后 campaign path 可以不同，因此 outcome 在每个 arm 内独立 accounting。最大 absolute campaign accounting error 为 $3.69\times10^{-13}$ USDC，native event denominator在所有日、两 arms间一致。
+action 后 库存生命周期 path 可以不同，因此 outcome 在每个 arm 内独立 accounting。最大 absolute 库存生命周期 accounting error 为 $3.69\times10^{-13}$ USDC，native event denominator在所有日、两 arms间一致。
 
 Validation 与 sealed holdout 没有读取。fixed q90 model 与 Development存在训练/选择 overlap，所以这项研究是机制 attribution，不是 independent policy validation。
 
@@ -611,24 +608,24 @@ Validation 与 sealed holdout 没有读取。fixed q90 model 与 Development存�
 | Metric，ON − OFF | Estimate | 95% day-cluster interval | Gate |
 |---|---:|---:|---|
 | Terminal MTM, USDC/day | +0.09470 | [-0.23214, +0.45084] | no harm evidence |
-| Closed campaign value, USDC/day | +0.09061 | [-0.23923, +0.44908] | diagnostic |
+| Closed 库存生命周期 value, USDC/day | +0.09061 | [-0.23923, +0.44908] | diagnostic |
 | BUY exposure fills/hour | -0.22744 | [-0.45487, +0.00173] | fail |
 | SELL exposure fills/hour | +0.20313 | [-0.00521, +0.41494] | diagnostic |
 | SELL-minus-BUY fills/hour | +0.43057 | [+0.00869, +0.85418] | pass |
-| SHORT campaign share | +0.00851 | [-0.00247, +0.01922] | fail |
+| SHORT 库存生命周期 share | +0.00851 | [-0.00247, +0.01922] | fail |
 | Multi-level SHORT share | -0.00124 | [-0.00633, +0.00386] | fail |
 | Multi-level rate among SHORT | -0.00630 | [-0.01597, +0.00324] | diagnostic |
 | Multi-level SHORT value, USDC/day | -0.12788 | [-0.33732, +0.05815] | diagnostic |
 
 BUY suppression 的 upper endpoint 仅为 $+0.00173$，但冻结 gate 是单侧不跨零；“差一点”仍是失败。即使把这一 link宽松视为方向性成立，SHORT share 与 multi-level share 也没有正下界，terminal harm 更没有出现。
 
-这说明 exposure-flow imbalance 与 campaign-stock distribution 不是同一 estimand。fills/hour 的 side difference 可以改变，但 campaign birth、repair 与 flatting 的 nonlinear path可能吸收它。
+这说明 exposure-flow imbalance 与 库存生命周期-stock distribution 不是同一 estimand。fills/hour 的 side difference 可以改变，但 库存生命周期 birth、repair 与 flatting 的 nonlinear path可能吸收它。
 
 #### 4.1 一个数值路径说明为何 flow 增加不等于 SHORT 增加
 
-假设某日 OFF arm 有 100 次 BUY exposure fills与100次 SELL exposure fills，side imbalance为0。ON arm因 q90少了3次BUY fills、同时多了2次SELL fills，imbalance于是增加5；但若被取消的3次 BUY里，两次原本会增加 LONG、只有一次会修复 SHORT，而新增的2次 SELL都发生在已有 LONG 上并把库存推回 flat，那么最终 SHORT campaign数未必增加。
+假设某日 OFF arm 有 100 次 BUY exposure fills与100次 SELL exposure fills，side imbalance为0。ON arm因 q90少了3次BUY fills、同时多了2次SELL fills，imbalance于是增加5；但若被取消的3次 BUY里，两次原本会增加 LONG、只有一次会修复 SHORT，而新增的2次 SELL都发生在已有 LONG 上并把库存推回 flat，那么最终 SHORT 库存生命周期数未必增加。
 
-反过来，即使 SHORT campaign share增加，multi-level share也可能下降：policy可能制造更多很浅、很快被修复的单层 SHORT，同时减少少数长期累积的深层 SHORT。terminal MTM又同时取决于进场价、持有时间、repair价格与窗口末端标记。因此表中的五列不是同一事实的重复指标，而是同一机制故事中不可互换的状态转移。
+反过来，即使 SHORT 库存生命周期 share增加，multi-level share也可能下降：policy可能制造更多很浅、很快被修复的单层 SHORT，同时减少少数长期累积的深层 SHORT。terminal MTM又同时取决于进场价、持有时间、repair价格与窗口末端标记。因此表中的五列不是同一事实的重复指标，而是同一机制故事中不可互换的状态转移。
 
 ### 5. Grade B 与 all-40 为什么不能救 primary
 
@@ -675,7 +672,7 @@ $$
 E_T=cash_T+inventory_T\cdot mark_T-fees_T.
 $$
 
-它避免把未关闭库存当作 realized zero，也避免只用 30 秒 markout判断长期 harm。但一个 daily terminal delta仍可被少数日和 window endpoint影响，因此研究同时报告 closed campaign value、multi-level SHORT value、share 与 day-cluster interval。
+它避免把未关闭库存当作 realized zero，也避免只用 30 秒 markout判断长期 harm。但一个 daily terminal delta仍可被少数日和 window endpoint影响，因此研究同时报告 closed 库存生命周期 value、multi-level SHORT value、share 与 day-cluster interval。
 
 Grade A terminal point estimate为正、区间跨零，所以既没有 harm evidence，也没有稳定 benefit evidence。正确读法是 uncertain，不是“q90 改善 PnL”。
 
@@ -683,7 +680,7 @@ Grade A terminal point estimate为正、区间跨零，所以既没有 harm evid
 
 支持：q90 ON 在冻结 Grade-A replay上增加 SELL-minus-BUY exposure-fill imbalance；full-path mechanics 具有 nonzero treatment；paired day accounting 与 native event denominator闭合。
 
-不支持：BUY exposure suppression 的冻结单侧门、更多 SHORT campaigns、更多 multi-level SHORT campaigns、terminal harm、当前 operational policy effect。
+不支持：BUY exposure suppression 的冻结单侧门、更多 SHORT 库存生命周期、更多 multi-level SHORT 库存生命周期、terminal harm、当前 operational policy effect。
 
 不能从本结果推导的决策包括：keep q90、remove q90、rollback、调 threshold、把 BUY filtering 改成 SELL filtering，或将 all-40 descriptive少亏当成 promotion evidence。
 
@@ -691,7 +688,7 @@ Grade A terminal point estimate为正、区间跨零，所以既没有 harm evid
 
 “没有证明有害”不是“证明无害”；区间跨零意味着当前分辨率下两种方向都仍可能。“全40日少亏”不是“Grade-A primary通过”；后者是预注册证据角色，前者混入 sensitivity days。“imbalance通过”不是“完整机制通过”；joint hypothesis要求链条闭合。“paired replay”也不是“独立OOS”；模型选择与Development overlap仍然存在。
 
-把这四层分开，文章得到的是一张机制地图：q90确实能够改变订单流方向，但在当前低强度路径上，这个改变没有稳定地传到 campaign结构或terminal harm。这个结果有研究价值，因为它排除了最简单的单调故事，同时告诉下一轮实验应把精力放在action transport与库存状态转移，而不是重复证明 scorer能发cancel。
+把这四层分开，文章得到的是一张机制地图：q90确实能够改变订单流方向，但在当前低强度路径上，这个改变没有稳定地传到 库存生命周期结构或terminal harm。这个结果有研究价值，因为它排除了最简单的单调故事，同时告诉下一轮实验应把精力放在action transport与库存状态转移，而不是重复证明 scorer能发cancel。
 
 ### 9. 最终状态与权限
 
@@ -737,17 +734,17 @@ daily fresh start可能低估连续live中继承的SHORT、active orders和coold
 
 这项研究尝试把 causal-v12 的 side-specific toxicity rank 变成一个真正的 active-order action：在 exposure-increasing BUY 或 SELL quote 的 score 穿越 past-only p90 时，candidate 只取消当前风险订单一次，等待 cancel ACK，把旧订单移出 fill-risk set，随后持续抑制 exposure quote；直到下一个 completed 10-second score 低于当日冻结 p90，才以新 queue、age 与 order identity re-enter。reducing quote 永远 bypass。
 
-最初的 campaign-side assignment 不能安全处理跨边界仍存活的 active order。carryover-safe v2 因此把 ownership 与 exchange-live order 绑定，并允许一个真实角色转移：订单提交时是 reducing，inventory 变化后在仍 active 且 fill-risk-active 的情况下变为 exposure；它保留 queue 和 assignment owner，而不是强制 washout。
+最初的 库存生命周期-side assignment 不能安全处理跨边界仍存活的 active order。carryover-safe v2 因此把 ownership 与 exchange-live order 绑定，并允许一个真实角色转移：订单提交时是 reducing，inventory 变化后在仍 active 且 fill-risk-active 的情况下变为 exposure；它保留 queue 和 assignment owner，而不是强制 washout。
 
 冻结一日 smoke 的 untreated baseline 有 29,072 decisions，candidate 全部消费。BUY/SELL 各 337 episodes、336 complete、1 censor；carryovers 58/50，SELL 有 1 次合法 active-order role transition；cross-arm ownership、forced washout cancel、owner mismatch 与 terminal risk-set reuse 都为零。v2.2 plumbing 因而通过，但正式 40 日 mechanics 未运行，PnL、reward、markout、Validation 与 sealed holdout 全部未读。本文的结论是**因果动作与所有权合同可实现**，不是支持、价值或部署结论。
 
 ![Ranked toxicity guard 的 ACK 与 carryover 状态机](/images/narrowgate/ranked-toxicity-exposure-guard.svg)
 
-*图 1：机制示意。p90 crossing 只发一次 cancel；ACK 才把旧 order 移出风险集。campaign 边界不能冲掉仍 live 的 owner，role 也可随 inventory 合法转移。*
+*图 1：机制示意。p90 crossing 只发一次 cancel；ACK 才把旧 order 移出风险集。库存生命周期 边界不能冲掉仍 live 的 owner，role 也可随 inventory 合法转移。*
 
-![Persistent guard 的 campaign action 与 ownership 路径](/images/narrowgate/f09-campaign-action-causal-path.svg)
+![Persistent guard 的 库存生命周期 action 与 ownership 路径](/images/narrowgate/f09-inventory_lifecycle-action-causal-path.svg)
 
-*图 2：rank crossing 只是 trigger。candidate 经 cancel pending、ACK、suppression、release 与 fresh re-entry 形成完整路径；ownership 必须跨 campaign 边界保持，mechanics 通过后才能读取 selectivity 与 economics。*
+*图 2：rank crossing 只是 trigger。candidate 经 cancel pending、ACK、suppression、release 与 fresh re-entry 形成完整路径；ownership 必须跨 库存生命周期 边界保持，mechanics 通过后才能读取 selectivity 与 economics。*
 
 ### 1. 研究问题：预测毒性之后，究竟对哪一张订单做什么？
 
@@ -804,7 +801,7 @@ SUPPRESSING --next completed score < p90--> RELEASED
 
 | 元素 | 冻结语义 |
 |---|---|
-| Assignment | prospective campaign-side lineage，0.5/0.5，仅一次 |
+| Assignment | prospective 库存生命周期-side lineage，0.5/0.5，仅一次 |
 | Trigger | completed 10s side score 穿越 past-only p90 |
 | Immediate action | 对 active exposure order 发一次 cancel |
 | ACK boundary | ACK 后旧 order 才退出 fill-risk set |
@@ -827,9 +824,9 @@ $$
 
 这条边界避免一个常见乐观偏差：candidate 发出 cancel 就立即删除未来 fill，而 control 继续承担 ACK latency risk。严格 replay 必须允许 cancel-request/ACK race 的真实结果。
 
-### 5. 为什么 v1 的 campaign 边界不够安全
+### 5. 为什么 v1 的 库存生命周期 边界不够安全
 
-订单生命周期可能跨 campaign-side assignment boundary。若新 assignment 到来时旧 active order 仍可成交，强制把它洗掉会改变 market path；把它交给新 arm 又会产生 cross-arm contamination。carryover-safe identity 因而将 assignment owner 延续到 active risk set 终止。
+订单生命周期可能跨 库存生命周期-side assignment boundary。若新 assignment 到来时旧 active order 仍可成交，强制把它洗掉会改变 market path；把它交给新 arm 又会产生 cross-arm contamination。carryover-safe identity 因而将 assignment owner 延续到 active risk set 终止。
 
 更隐蔽的情况是 role transition。某订单提交时是 reducing SELL，之后其他 fill 改变 inventory，使同一 exchange-live order 变为 exposure-increasing。旧 adapter 把 submit-time role 当永恒常量，于是错误 fail。修复只允许在 order 仍 active、exchange-nonterminal、`fill_risk_active=true` 且 owner 相同的情况下发生：
 
@@ -853,11 +850,11 @@ $$
 role_i(t)=r(side_i,q_t,remaining_i).
 $$
 
-把 role冻结在 submit，会错过合法 transition；按新 campaign重写 owner，又会让新 arm控制旧 arm创建的 queue option。carryover-safe adapter必须同时维护这两个状态。
+把 role冻结在 submit，会错过合法 transition；按新 库存生命周期重写 owner，又会让新 arm控制旧 arm创建的 queue option。carryover-safe adapter必须同时维护这两个状态。
 
 #### 5.2 为什么不能强制 washout
 
-在 campaign flat 时强制取消所有旧单，确实能让 assignment边界整齐，但它本身是额外动作，会改变 fill、queue与下一 campaign。若只在 candidate或边界附近发生，就污染 treatment contrast。
+在 库存生命周期 flat 时强制取消所有旧单，确实能让 assignment边界整齐，但它本身是额外动作，会改变 fill、queue与下一 库存生命周期。若只在 candidate或边界附近发生，就污染 treatment contrast。
 
 自然 washout要求 owner延续到所有 owned exchange-live orders和guard state终止；最后未终止 episode右 censor。这样牺牲一点样本整齐度，保留真实市场路径。58/50 carryovers说明这不是理论角落，而是常见 lifecycle事实。
 
@@ -915,14 +912,14 @@ formal mechanics 尚未运行，所以 action可能支持不足、过度抑制�
 
 #### 8.2 这项 plumbing 对其它动作有什么公共价值
 
-carryover-safe ownership不只服务 toxicity guard。任何 campaign-level随机 action，只要订单可跨 flat或role可随 inventory变化，都需要同一原则：exchange-live order保留创建 arm，role动态计算，terminal后才释放 owner。
+carryover-safe ownership不只服务 toxicity guard。任何 库存生命周期-level随机 action，只要订单可跨 flat或role可随 inventory变化，都需要同一原则：exchange-live order保留创建 arm，role动态计算，terminal后才释放 owner。
 
 这类基础设施可以复用，经济证据不能复用。另一个 action继承 adapter parity，不等于继承本 guard的 p90、support或value；它仍需自己的 assignment与结果门。
 
 ### 9. 没有获得的权限
 
 - 正式 40 日 mechanics 尚未运行；
-- PnL、reward、markout、toxic fills 与 campaign tails 未读；
+- PnL、reward、markout、toxic fills 与 库存生命周期 tails 未读；
 - Validation 与 sealed holdout 未读；
 - 没有 shadow、action、live 或 q90 authority；
 - 没有把一日 0.8 plumbing threshold 当作预测阈值；
@@ -944,24 +941,24 @@ $$
 
 一张订单在assignment时可能是exposure-increasing，之后库存因另一侧fill改变，它在当前时刻变成reducing。若guard按动态role立即释放，treatment duration依赖其它订单；若按assignment owner保持，可能继续保护一张现在有修复价值的单。两种都合理，却是不同policy。
 
-因此lineage需同时保存`assignment_owner_role`与`current_inventory_role`，并预注册terminal/release规则。campaign边界也不能靠强制washout制造独立样本；自然flat或明确terminal state才结束经济路径。否则guard可能通过删除跨窗口尾部看起来更安全。
+因此lineage需同时保存`assignment_owner_role`与`current_inventory_role`，并预注册terminal/release规则。库存生命周期边界也不能靠强制washout制造独立样本；自然flat或明确terminal state才结束经济路径。否则guard可能通过删除跨窗口尾部看起来更安全。
 
 ### 从 one-day plumbing 到 40-day scorecard
 
-正式mechanics至少要给eligible→rank valid→threshold hit→quote changed→order active→fill/cancel→campaign terminal的selectivity funnel，并按side、role与day报告。只有action exposure充分且不被少数日期支配，才允许读取terminal value。
+正式mechanics至少要给eligible→rank valid→threshold hit→quote changed→order active→fill/cancel→库存生命周期 terminal的selectivity funnel，并按side、role与day报告。只有action exposure充分且不被少数日期支配，才允许读取terminal value。
 
 经济阶段应比较guard ON/OFF的paired full path，并预注册mean、tail、fills retention和inventory-time gates。若rank只在action intensity上transport、value不通过，结论仍是不晋级；若mechanics本身不足，则状态是incomplete而非negative。当前一日结果只证明state/ACK plumbing可工作，离这两种正式结论都还有距离。
 
 ### 10. 公共证据
 
-- [`causal_v12_ranked_toxicity_exposure_guard_v1_registration_20260802.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/causal_v12_ranked_toxicity_exposure_guard_v1_registration_20260802.md)
-- [`causal_v12_ranked_toxicity_exposure_guard_carryover_safe_v2_implementation_20260803.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/causal_v12_ranked_toxicity_exposure_guard_carryover_safe_v2_implementation_20260803.md)
-- [`causal_v12_ranked_toxicity_exposure_guard_carryover_safe_v2_2_execution_result_20260803.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/causal_v12_ranked_toxicity_exposure_guard_carryover_safe_v2_2_execution_result_20260803.md)
-- [`F09 README`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/README.md)
+- [`causal_v12_ranked_toxicity_exposure_guard_v1_registration_20260802.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/causal_v12_ranked_toxicity_exposure_guard_v1_registration_20260802.md)
+- [`causal_v12_ranked_toxicity_exposure_guard_carryover_safe_v2_implementation_20260803.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/causal_v12_ranked_toxicity_exposure_guard_carryover_safe_v2_implementation_20260803.md)
+- [`causal_v12_ranked_toxicity_exposure_guard_carryover_safe_v2_2_execution_result_20260803.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/causal_v12_ranked_toxicity_exposure_guard_carryover_safe_v2_2_execution_result_20260803.md)
+- [`F09 README`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/README.md)
 
 ### 结语
 
-这项研究最重要的进展不是 score，而是把订单所有权当作因果合同：cancel request 不是终点，campaign boundary 不是 washout，submit-time role 也未必永恒。一日 plumbing 已把这些边界跑通；在 40 日 mechanics 与 economics 之前，除此之外没有更强的结论。
+这项研究最重要的进展不是 score，而是把订单所有权当作因果合同：cancel request 不是终点，库存生命周期 boundary 不是 washout，submit-time role 也未必永恒。一日 plumbing 已把这些边界跑通；在 40 日 mechanics 与 economics 之前，除此之外没有更强的结论。
 
 ![Exposure Guard 从经济关闭到身份撤回与 carryover plumbing 的结果收敛](/images/narrowgate/exposure-guard-research-synthesis.svg)
 

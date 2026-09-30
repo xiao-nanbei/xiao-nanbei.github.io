@@ -13,9 +13,6 @@ tags:
 math: true
 ---
 
-
-
-
 ## 1. P3 研究真正经历了什么
 
 P3 的主问题不是“能不能拟合一条好看的概率曲线”，而是：在决策时刻、给定 side、报价距离与当时市场状态，未来价格何时会主动触达该坐标；这个 first-passage 概率能否经过策略可见时钟、queue/lifecycle 与终局价值，最终支持一个报价动作？归一化 100ms 复现、source-aware 扩样本、波动率条件面、标量报价 adapter、policy-visible transport、joint quote value 和 reach-time hazard 都是这一个问题的连续阶段。
@@ -54,7 +51,7 @@ NarrowGate 的经验 P3 是一个很容易被误读的量。它估计的是：�
 
 当历史 BBO 从 mixed-cadence 目录迁移到统一的 normalized 100ms identity 后，项目保留原来的 117 日 chronological split 和 aggTrades 输入，只替换 BBO 根并重新拟合 5 秒与 10 秒曲线。结果非常稳定：`delta_star` 完全不变，`kappa_eff` 相对变化不超过约 0.2%，日/side touch-rate 的新旧相关性至少为 `0.99995`。
 
-这个结果支持“经验触达曲线在正确 BBO 身份下可复现”，却不恢复任何旧 queue、fill、campaign 或 action-uplift 数字，也没有自动修改 live artifact。它是一篇数据身份与 estimand 边界都很清楚的校准研究。
+这个结果支持“经验触达曲线在正确 BBO 身份下可复现”，却不恢复任何旧 queue、fill、库存生命周期 或 action-uplift 数字，也没有自动修改 live artifact。它是一篇数据身份与 estimand 边界都很清楚的校准研究。
 
 ![归一化前后 P3 触达概率曲线](/images/narrowgate/p3-normalized-100ms-recalibration-curves.svg)
 
@@ -121,7 +118,7 @@ normalized 100ms BBO 的作用，是给每个窗口一个稳定、可审计的�
 | 层级 | 本研究使用 | 本研究不声称 |
 | --- | --- | --- |
 | 起点报价 | normalized 100ms last-known BBO | exact active-order queue |
-| 未来标签 | official aggTrades 的 side-correct reach | order fill、cancel 或 campaign outcome |
+| 未来标签 | official aggTrades 的 side-correct reach | order fill、cancel 或 库存生命周期 outcome |
 | 时间边界 | 5s/10s 非重叠窗口 | 最优自然 horizon |
 | 输出 | distance curve、`delta_star`、`kappa_eff` | 可直接执行的 quote action |
 
@@ -159,7 +156,7 @@ normalized 100ms BBO 的作用，是给每个窗口一个稳定、可审计的�
 
 本研究支持：固定 5s/10s 经验 touch curve 对 mixed-to-normalized BBO 修复不敏感；normalized artifact 是后续研究应绑定的正确输入身份。
 
-它不支持：touch 等于 fill、局部 log-slope 等于 fill intensity、曲线能优化 quote、更多 touches 会改善 PnL、旧 queue/campaign 证据被恢复。
+它不支持：touch 等于 fill、局部 log-slope 等于 fill intensity、曲线能优化 quote、更多 touches 会改善 PnL、旧 queue/inventory_lifecycle 证据被恢复。
 
 本次校准没有 quote action、artifact replacement、Validation 晋级、sealed holdout、shadow 或 live 权限。任何把 P3 映射到报价的研究，都必须另行冻结 mapping 和 full-path economic A/B。
 
@@ -183,7 +180,7 @@ $$
 
 ![P3 从触达到完整动作价值的 estimand 阶梯](/images/narrowgate/f02-p3-estimand-ladder.svg)
 
-*图 2：`P(touch)`、reach-time hazard、queue-conditioned fill、fill value 与 campaign action value 是五级不同 estimand。v2 位于第一级。*
+*图 2：`P(touch)`、reach-time hazard、queue-conditioned fill、fill value 与 库存生命周期 action value 是五级不同 estimand。v2 位于第一级。*
 
 ### 一个数值例子：同样的 P3，不同的执行价值
 
@@ -267,7 +264,7 @@ P3 source-aware expanded v3 把 93 个 provider-normalized 2025 日加入 69 个
 
 ![静态 P3 池化如何收窄报价并改变成交路径](/images/narrowgate/p3-source-aware-static-quote-path.svg)
 
-*图 1：机制示意。跨 regime 池化后，静态曲线给出更陡的局部斜率，quote band 变窄、fills 增加，但完整库存与 campaign 路径可能更差。图不是实盘 K 线。*
+*图 1：机制示意。跨 regime 池化后，静态曲线给出更陡的局部斜率，quote band 变窄、fills 增加，但完整库存与 库存生命周期 路径可能更差。图不是实盘 K 线。*
 
 本文只讨论历史 Development 与 diagnostic evidence，不构成任何交易建议。
 
@@ -343,7 +340,7 @@ Development 的平均日 PnL delta 为 `-0.6475 USDC/day`，区间 `[-1.7420,+0.
 
 这说明 source expansion 不是一次无害的 `delta_star` 微调。两条路径第一次出现不同 fill 后，库存与后续机会也会分叉；matched quote diagnostics 只能证明机制强度，完整价值仍必须由 full path 给出。
 
-一个直观例子是：pooled curve 的 slope 更陡，使普通状态的报价向内十几或几十 ticks。开始几次 fill 可能只是活动增加，但一次新增 exposure-increasing fill 会改变库存偏斜，随后 reducing side 与 adding side 的报价不再与 baseline 同步；后续同一市场事件便作用在不同 campaign state 上。把每次 matched quote difference 乘一个静态 markout 再相加，会漏掉这种顺序反馈。
+一个直观例子是：pooled curve 的 slope 更陡，使普通状态的报价向内十几或几十 ticks。开始几次 fill 可能只是活动增加，但一次新增 exposure-increasing fill 会改变库存偏斜，随后 reducing side 与 adding side 的报价不再与 baseline 同步；后续同一市场事件便作用在不同 库存生命周期 state 上。把每次 matched quote difference 乘一个静态 markout 再相加，会漏掉这种顺序反馈。
 
 44 日结果中，99.27% 的 matched prices 已发生变化，平均绝对差约 29.74 ticks。这证明候选 action strength 很强，却不是 same-state causal effect：matched rows 只在两条路径仍有共同 timestamp/side 时存在，不能为分叉后消失的机会构造虚假配对。
 
@@ -562,7 +559,7 @@ $$
 
 ### 6. 为什么预测面不能直接成为报价
 
-条件 surface 的输出是 $P_{touch}(d\mid x)$，而 maker 需要比较不同 quote coordinates 的净价值。至少还缺三个环节：touch 后是否轮到本单、fill 的 maker-signed value、以及 fill 对 inventory/campaign 后续路径的影响。
+条件 surface 的输出是 $P_{touch}(d\mid x)$，而 maker 需要比较不同 quote coordinates 的净价值。至少还缺三个环节：touch 后是否轮到本单、fill 的 maker-signed value、以及 fill 对 inventory/inventory_lifecycle 后续路径的影响。
 
 若只因为某个高波动状态的 near-distance touch probability 很高就收窄报价，策略可能恰好在最容易被 adverse flow 穿越的状态增加 fills。相反，简单 widen 又可能删除有价值 repair fills。prediction ranking 不能决定动作方向。
 
@@ -574,7 +571,7 @@ $$
 
 不支持：exact receive-time transport、fill probability、maker value 或 quote action。v4.1 的通过不能自动替换 current v2 artifact，也不能把 conditional curve 压成一个 scalar kappa 后直接输入 AS/GLFT。
 
-本项目没有 artifact replacement、quote mapping、action experiment、Validation、sealed holdout、shadow 或 live authority。经济使用必须另行冻结 curve-to-quote mapping，并用完整 maker path 检验 fills、campaign value 与 tail。
+本项目没有 artifact replacement、quote mapping、action experiment、Validation、sealed holdout、shadow 或 实盘有效性证据。经济使用必须另行冻结 curve-to-quote mapping，并用完整 maker path 检验 fills、库存生命周期 value 与 tail。
 
 ### 深入推导：从一条曲线到条件概率曲面
 
@@ -590,7 +587,7 @@ $$
 
 ![P3 条件曲面仍位于动作价值阶梯的第一层](/images/narrowgate/f02-p3-estimand-ladder.svg)
 
-*图 2：增加 volatility 条件提高了 `P(touch)` 的状态分辨率，但没有自动增加 queue、fill value 或 campaign 反事实。*
+*图 2：增加 volatility 条件提高了 `P(touch)` 的状态分辨率，但没有自动增加 queue、fill value 或 库存生命周期 反事实。*
 
 ### 一个曲面单元格怎样影响报价，又为何不能直接决定报价
 
@@ -687,7 +684,7 @@ NarrowGate 冻结了一个没有可调 gain、cap、side weight 或事后 shrink
 
 这不是“动作太弱”或 coverage 不足。它说明一个更深的 estimand mismatch：10 秒 touch probability 不是 1 秒 fill-arrival intensity；touch curve 的 log-slope 不是 AS/GLFT 强度弹性；同一曲线又同时改变 `kappa_eff` 与 spread floor，相当于让一个信号通过两个通道重复收窄报价。
 
-因此项目关闭 `conditional_p3_scalar_compression_adapter_v1`，但不关闭 side-specific conditional curve、queue conversion、fill value 与 campaign economics 联合决定报价的更一般路线。
+因此项目关闭 `conditional_p3_scalar_compression_adapter_v1`，但不关闭 side-specific conditional curve、queue conversion、fill value 与 库存生命周期 economics 联合决定报价的更一般路线。
 
 ![条件 P3 标量压缩如何收窄报价并增加有毒成交](/images/narrowgate/p3-conditional-scalar-adapter-kline.svg)
 
@@ -753,7 +750,7 @@ $Y_d$ 的 primary view 是 daily terminal MTM；同时检查 fills、inventory t
 
 正式 denominator 包含 24 个历史 native OOF 日，其中九日来自已经读取过的 historical validation，十五日来自 late diagnostic。它们不是新 Validation，也不是 sealed holdout。
 
-每个日使用该日所属 chronological fold 的 OOF conditional artifact；没有把全样本 refit model 回填到训练期。曲面按 10 秒 bucket 的 feature-ready clock 更新，full replay 继续使用相同 native book、individual trades、queue、latency、cooldown、inventory 与 campaign accounting。
+每个日使用该日所属 chronological fold 的 OOF conditional artifact；没有把全样本 refit model 回填到训练期。曲面按 10 秒 bucket 的 feature-ready clock 更新，full replay 继续使用相同 native book、individual trades、queue、latency、cooldown、inventory 与 库存生命周期 accounting。
 
 适配器只有在 context 和 mapping 都有效时才改变标量。minimum daily causal-context coverage 为 `99.7917%`，minimum valid-mapping coverage 为 `99.7569%`。这两个数字非常高，因此失败不能归因于 v4/v4.1 的 coverage controversy。
 
@@ -765,7 +762,7 @@ $Y_d$ 的 primary view 是 daily terminal MTM；同时检查 fills、inventory t
 
 旧 quote core 可能同时通过两条通道响应：更大的 `kappa_eff` 改变 AS/GLFT spread term，更小的 `delta_star` 又让 P3 floor 向内。即使两者都来自同一张曲线，它们并不是两个独立证据，却会共同收窄最终报价。
 
-价格随后向 maker 不利方向移动时，近价订单更容易触达并成交；这些 fills 又增加库存，触发 cooldown、改变另一侧 reducing quote 与后续 campaign path。于是“预测到了高 touch probability”转化成了“更积极地接受高 touch state”，这可能恰好增加 adverse selection。
+价格随后向 maker 不利方向移动时，近价订单更容易触达并成交；这些 fills 又增加库存，触发 cooldown、改变另一侧 reducing quote 与后续 库存生命周期 path。于是“预测到了高 touch probability”转化成了“更积极地接受高 touch state”，这可能恰好增加 adverse selection。
 
 若没有单独估计 queue conversion 与 fill value，适配器不知道某个 touch 是自然 repair、无害扫单还是有毒价格穿越。它优化的是 reach geometry，不是价值。
 
@@ -799,9 +796,9 @@ mean raw half-spread 从 `24.5822` 降到 `13.4900 USDC/BTC`。因此不能用�
 
 关闭：pair-averaged scalar compression、当前 grid/central-slope mapping，以及任何在这 24 个已读 OOF 日上追加 kappa cap、shrinkage、side weight 或 favorable-day filtering 的救援。
 
-未关闭：保持 BUY/SELL 分离、显式建模 queue conversion、fill value、campaign terminal economics，并直接优化一对 quote coordinates 的新 mapping。那必须是新的 ex-ante identity。
+未关闭：保持 BUY/SELL 分离、显式建模 queue conversion、fill value、库存生命周期 terminal economics，并直接优化一对 quote coordinates 的新 mapping。那必须是新的 ex-ante identity。
 
-本项目没有 prediction promotion、artifact replacement、quote authority、action registration、Validation、sealed holdout、shadow 或 live authority。current v2 继续作为 operational baseline dependency。
+本项目没有 prediction promotion、artifact replacement、quote authority、action registration、Validation、sealed holdout、shadow 或 实盘有效性证据。current v2 继续作为 operational baseline dependency。
 
 ### 深入推导：曲面压成两个标量为什么是不可逆的
 
@@ -831,7 +828,7 @@ P3 描述固定时间内市场价格是否触达某价位。除非 queue convers
 
 这项研究最有解释力的不是 prediction 指标，而是完整路径反例。adapter 把平均半价差从约 24.58 缩到 13.49，fills 从 8,799 增到 21,597；如果只看参与度，会认为更准确的概率模型成功提高了成交机会。但终局 MTM 反而恶化约 115.66 USDC。
 
-这组数字揭示了三件事。第一，报价更近确实改变了动作，不是 no-op。第二，更多 fills 没有被自动转化为更高价值，说明 fill conversion 与 adverse selection 的联合分布没有被两个标量表达。第三，路径反馈很强：新增 fill 改变库存，库存改变 reservation price，进而改变后续两侧 quotes 和 campaign tail。
+这组数字揭示了三件事。第一，报价更近确实改变了动作，不是 no-op。第二，更多 fills 没有被自动转化为更高价值，说明 fill conversion 与 adverse selection 的联合分布没有被两个标量表达。第三，路径反馈很强：新增 fill 改变库存，库存改变 reservation price，进而改变后续两侧 quotes 和 库存生命周期 tail。
 
 可以把增量粗略分解为：
 
@@ -877,7 +874,7 @@ $$
 
 候选报价更窄、fills增加、terminal MTM恶化，至少排除了no-op，但仍存在多个机制分支：新增fills可能集中在不利side；相同side内可能来自更toxic状态；更早fill会改变inventory reservation price；更多cancel/requote会重置queue；floor又可能让曲面信息在某些状态被重复放大。
 
-要区分这些分支，successor应报告从decision到terminal的分层分解：候选改变了多少报价、多少订单激活、多少touch、多少fill、哪些fill增加exposure、campaign持续多久，以及未成交路径的机会成本。特别要避免只在filled rows比较markout，因为action本身选择了谁会fill。
+要区分这些分支，successor应报告从decision到terminal的分层分解：候选改变了多少报价、多少订单激活、多少touch、多少fill、哪些fill增加exposure、库存生命周期持续多久，以及未成交路径的机会成本。特别要避免只在filled rows比较markout，因为action本身选择了谁会fill。
 
 一个合格的negative conclusion因此不是“更窄一定不好”，而是：在冻结scalar-compression mapping、当前queue与完整path identity下，增加的参与度没有补偿选择与库存路径成本。它关闭这一个ABI，不关闭条件P3、离散quote action或显式fill-value模型。
 
@@ -1025,7 +1022,7 @@ calibration 的 integrated absolute error 也从 v2 的约 `0.0519/0.0538` 降�
 
 关闭/阻塞：当前 28-day/3-fold transport identity 不允许 direct value fitting；synthetic history 不具有 receive-time 或 exact persisted-state authority。
 
-本研究没有 quote mapping、action、Validation、sealed holdout、artifact replacement、shadow 或 live authority。未来 successor 需要持久化完整 feature state，或提供 event-lockstep replay parity，并重新冻结足够的 chronological support。
+本研究没有 quote mapping、action、Validation、sealed holdout、artifact replacement、shadow 或 实盘有效性证据。未来 successor 需要持久化完整 feature state，或提供 event-lockstep replay parity，并重新冻结足够的 chronological support。
 
 ### 深入推导：transport 不是把时间戳列重命名
 
@@ -1111,7 +1108,7 @@ $$
 
 ### Transport pass 后的最小 value panel
 
-每行应绑定decision id、pre-action state、baseline/candidate quote、合法性、activation、order lineage、terminal campaign outcome与censor reason。候选若只在某side/distance有共同支持，动作权限就限制在该region；其它rows固定fallback baseline。
+每行应绑定decision id、pre-action state、baseline/candidate quote、合法性、activation、order lineage、terminal 库存生命周期 outcome与censor reason。候选若只在某side/distance有共同支持，动作权限就限制在该region；其它rows固定fallback baseline。
 
 先做one-shot paired action可减少feedback复杂度，再用repeated full-path确认。只有prediction transport、lifecycle completeness、action overlap和terminal value全部通过，P3才从policy-visible probability升级为quote input。本项目只完成了前半座桥。
 
@@ -1161,7 +1158,7 @@ $$
 \arg\max_a V(a\mid x).
 $$
 
-更靠近市场的报价可能更容易被触达，也可能接到更有毒的成交；更远的报价可能改善成交价格，却失去大量自然修复机会。真正的报价价值还取决于 activation、GTX、queue、fill quality、后续 inventory、cooldown、campaign terminal 与跨侧相互作用。
+更靠近市场的报价可能更容易被触达，也可能接到更有毒的成交；更远的报价可能改善成交价格，却失去大量自然修复机会。真正的报价价值还取决于 activation、GTX、queue、fill quality、后续 inventory、cooldown、库存生命周期 terminal 与跨侧相互作用。
 
 早期曾尝试把 BUY 与 SELL 的条件概率平均成一个 scalar，再压缩成动态报价参数。这个映射把触达概率斜率误当作另一种报价模型里的 fill-hazard elasticity，并在 spread core 与 spread floor 中重复收窄。它已经关闭。后来的 F05 分支不再做这种代数替换，而是把 side-specific P3 当成普通特征，直接问候选报价有没有 USDC value。
 
@@ -1238,7 +1235,7 @@ Q(x,a)
 \end{aligned}
 $$
 
-$A$ 表示订单通过 GTX 并激活，$F$ 表示生命周期内成交。P3 更靠近“未来 aggressive flow 是否到达价格”的分量，却没有自动给出 activation、queue-to-fill conversion、partial fill、cancel race、成交后的 markout 或 inventory terminal。尤其是：价格被触达时，排在前面的队列可能已经吸收全部流量；价格没有被触达时，远离市场的订单也可能通过后续 reprice 改变 campaign。
+$A$ 表示订单通过 GTX 并激活，$F$ 表示生命周期内成交。P3 更靠近“未来 aggressive flow 是否到达价格”的分量，却没有自动给出 activation、queue-to-fill conversion、partial fill、cancel race、成交后的 markout 或 inventory terminal。尤其是：价格被触达时，排在前面的队列可能已经吸收全部流量；价格没有被触达时，远离市场的订单也可能通过后续 reprice 改变 库存生命周期。
 
 所以把 $P_3$ 直接乘一个历史平均 fill value，只在非常强的可分离假设下才成立：
 
@@ -1293,7 +1290,7 @@ $$
 
 最薄的 cell 是 SELL add 的 farther 4 ticks，仅 1 笔 fill。其他 role-action cells 也有明显稀疏。
 
-支持门的作用不是追求一个好看的样本量，而是避免高维直接价值面用极少 lifecycle 事件估计每个报价动作。若一个 cell 只有一笔 fill，模型很容易把一次 campaign 的偶然大值当成动作规律。
+支持门的作用不是追求一个好看的样本量，而是避免高维直接价值面用极少 lifecycle 事件估计每个报价动作。若一个 cell 只有一笔 fill，模型很容易把一次 库存生命周期 的偶然大值当成动作规律。
 
 因此标准路径作出：
 
@@ -1314,7 +1311,7 @@ owner 随后明确接受实际支持，授权一次 Development continuation。�
 1. 原来的 $30/4/30$ 门仍然是失败，不能回写成通过；
 2. 新结果即使有正点估计，也只能是 proxy diagnostic，不能直接形成 action。
 
-继续分支以 baseline campaign-terminal overlay 为基础，为十三个候选构造 quantity-weighted 单侧 delta：
+继续分支以 baseline 库存生命周期-terminal overlay 为基础，为十三个候选构造 quantity-weighted 单侧 delta：
 
 $$
 \Delta V_i(a)
@@ -1322,7 +1319,7 @@ $$
 Y_i^{overlay}(a)-Y_i^{overlay}(a_0).
 $$
 
-它没有重放完整 action-dependent inventory、cooldown、queue、campaign birth/death 或双侧相互作用。因此它不是：
+它没有重放完整 action-dependent inventory、cooldown、queue、库存生命周期 birth/death 或双侧相互作用。因此它不是：
 
 $$
 Y_i^{full\ path}(a)-Y_i^{full\ path}(a_0).
@@ -1423,7 +1420,7 @@ V(a\mid x)
 C(a,x),
 $$
 
-其中 $O_j$ 不只有触达，还包括 activation、exact/through fill、cancel ACK、queue reset 与 campaign continuation。P3 只覆盖其中一部分机制。它表现良好，不会自动让完整 $V(a\mid x)$ 获得正下界。
+其中 $O_j$ 不只有触达，还包括 activation、exact/through fill、cancel ACK、queue reset 与 库存生命周期 continuation。P3 只覆盖其中一部分机制。它表现良好，不会自动让完整 $V(a\mid x)$ 获得正下界。
 
 ### 8. 最终边界
 
@@ -1599,9 +1596,9 @@ overall context coverage 为 `99.835%`，高于冻结的 98% gate。distance-CDF
 
 支持：side-specific conditioned first-passage hazard 在历史 Development 上相对 baseline 有稳定 proper-score improvement，结构与 aggregate source transport gates 通过。
 
-不支持：activation probability、queue fill、cancel/reentry value、campaign terminal PnL、当前 runtime artifact replacement 或 sub-100ms transport。
+不支持：activation probability、queue fill、cancel/reentry value、库存生命周期 terminal PnL、当前 runtime artifact replacement 或 sub-100ms transport。
 
-本项目没有 quote mapping、action registration、Validation、sealed holdout、shadow 或 live authority。operational fixed-10s P3 v2 保持不变。
+本项目没有 quote mapping、action registration、Validation、sealed holdout、shadow 或 实盘有效性证据。operational fixed-10s P3 v2 保持不变。
 
 ### 深入推导：固定 horizon 概率怎样展开成到达时间分布
 
@@ -1624,7 +1621,7 @@ $$
 
 ![Reach-time hazard 在 P3 estimand 阶梯中的位置](/images/narrowgate/f02-p3-estimand-ladder.svg)
 
-*图 2：hazard 把固定 horizon 的第一级展开为完整时间结构，但仍未加入 queue conversion、fill value 与 campaign action。*
+*图 2：hazard 把固定 horizon 的第一级展开为完整时间结构，但仍未加入 queue conversion、fill value 与 库存生命周期 action。*
 
 ### 一个可计算例子：早触达与晚触达为何对报价不同
 
@@ -1710,4 +1707,4 @@ IBS对整个时间区间平均，早期与晚期误差可以互相抵消。实�
 
 这条研究链留下了一个可复用的 first-passage probability 基础设施，也留下了一个实质性反例：更好的概率模型通过错误 adapter 接入旧报价 ABI，可以让报价更激进、成交更多，却让 terminal MTM 更差。失败的不是概率建模本身，而是把不同 estimand 压成相似标量的工程捷径。
 
-未来若再次从 P3 走向动作，必须直接评价候选 joint quote 的完整价值，而不是先构造一个貌似 GLFT 的 $\kappa_{eff}$。最低合同包括 side-specific exact-distance surface、policy-visible feature-ready clock、submit/activation/queue/cancel/fill path、assignment 后的 campaign terminal USDC，以及足够日期和 chronological folds。达到这些条件之前，P3 是 prediction evidence，不是 fill probability、Quote EV 或 live authority。
+未来若再次从 P3 走向动作，必须直接评价候选 joint quote 的完整价值，而不是先构造一个貌似 GLFT 的 $\kappa_{eff}$。最低合同包括 side-specific exact-distance surface、policy-visible feature-ready clock、submit/activation/queue/cancel/fill path、assignment 后的 库存生命周期 terminal USDC，以及足够日期和 chronological folds。达到这些条件之前，P3 是 prediction evidence，不是 fill probability、Quote EV 或 实盘有效性证据。

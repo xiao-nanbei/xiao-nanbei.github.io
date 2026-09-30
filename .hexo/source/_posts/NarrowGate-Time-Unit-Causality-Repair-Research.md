@@ -13,8 +13,6 @@ tags:
 math: true
 ---
 
-
-
 回测中的时间与量纲不是显示细节。它们决定策略何时看见信息、订单何时生效，以及哪笔成交进入账户。修复这些定义以后，旧结果需要按受影响的执行路径重新判断；保留历史研究过程，不等于保留已经失效的精确收益。
 
 ## 延迟怎样进入策略比较
@@ -23,11 +21,11 @@ math: true
 
 当时的 B0（不增加候选动作的对照策略）与候选尚无该环境下的完整配对经济结果。下面的执行设计不构成新的收益证据。
 
-环境复验要回答的是：**在已经测量到的延迟环境中，这一次首次开仓、再次增仓或继续保留挂单，相比等待是否值得？** NarrowGate 并非没有事前控制：决策可见的毒性、方向、收益预测和 weighted-mid proxy 可以影响报价；成交后的冷却、markout 反馈和风险退出也能保护下一次决策。尚未充分闭合的是从信号到可执行动作，再到完整 campaign 终点增量价值的证据链。
+环境复验要回答的是：**在已经测量到的延迟环境中，这一次首次开仓、再次增仓或继续保留挂单，相比等待是否值得？** NarrowGate 并非没有事前控制：决策可见的毒性、方向、收益预测和 weighted-mid proxy 可以影响报价；成交后的冷却、markout 反馈和风险退出也能保护下一次决策。尚未充分闭合的是从信号到可执行动作，再到完整 库存生命周期 终点增量价值的证据链。
 
 ### 不是从零开始，也不是把旧失败重新命名
 
-公开研究已经检验过 [SELL first-opener 的条件价值](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/sell_first_fill_conditional_value_feasibility_v3_development_20260730.md)、[首次增仓的决策可见负价值](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/decision_visible_negative_fill_value_evidence_m0_v1_1_development_20260729.md)，以及 [ADD NOW 相对 WAIT ONE EXTERNAL EPOCH](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/multiscale_ema_add_wait_incremental_value_v1_2_development_20260809.md)。这些冻结身份没有证明稳定的选择增益。因此，正确说法是“选择能力尚未验证”，不是“从未研究事前选择”。用未来的 campaign 结果构造训练标签也不等于事后动作；关键是输入何时可见、动作何时生效，以及训练是否只使用过去的数据。
+公开研究已经检验过 [SELL first-opener 的条件价值](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/sell_first_fill_conditional_value_feasibility_v3_development_20260730.md)、[首次增仓的决策可见负价值](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/decision_visible_negative_fill_value_evidence_m0_v1_1_development_20260729.md)，以及 [ADD NOW 相对 WAIT ONE EXTERNAL EPOCH](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/multiscale_ema_add_wait_incremental_value_v1_2_development_20260809.md)。这些冻结身份没有证明稳定的选择增益。因此，正确说法是“选择能力尚未验证”，不是“从未研究事前选择”。用未来的 库存生命周期 结果构造训练标签也不等于事后动作；关键是输入何时可见、动作何时生效，以及训练是否只使用过去的数据。
 
 旧关闭结论继续约束原候选与原面板；新的延迟环境只提供明确标注的环境迁移复验理由，不自动开启旧 holdout，不允许一边观察新结果一边改阈值。复验未通过时，不把失败解释成冷却常数已经最优，也不据此否定所有不同的状态或动作模型。
 
@@ -37,7 +35,7 @@ math: true
 
 本轮可取得的原始运维样本保存在私有证据库，不随公共仓库分发。短窗口的百级请求样本只能提供有限的经验分布和实现诊断，不能冒充长期稳定的尾延迟分布。无法识别的时刻保留为显式假设及敏感性范围；原始尾部不因数字难看而默认截去。本轮没有可公开声称的完整 market-event→exchange-effective 实测 p99。
 
-两臂共享行情交付和外部网络扰动的生成规则，能够对应的请求使用相同 keyed draws；候选改变请求数量以后，各自的 FIFO 等待、订单队列、成交、库存和 campaign 必须独立演化。不能强行给两臂相同的最终等待时间，也不能把 B0 的成交路径缓存给候选。Python/C++ 共享内核一致不等于完整运行机制一致；缺少当前机制的 backend 不用于出具当前环境的经济结论。
+两臂共享行情交付和外部网络扰动的生成规则，能够对应的请求使用相同 keyed draws；候选改变请求数量以后，各自的 FIFO 等待、订单队列、成交、库存和 库存生命周期 必须独立演化。不能强行给两臂相同的最终等待时间，也不能把 B0 的成交路径缓存给候选。Python/C++ 共享内核一致不等于完整运行机制一致；缺少当前机制的 backend 不用于出具当前环境的经济结论。
 
 实现方面，确定 native 字段、统一加载边界和日志复用已验证模型 metadata 的调整见[源码修复提交](https://github.com/xiao-nanbei/NarrowGateMaker/commit/13d44967)；root-private 部署环境文件的受限元数据读取见[部署修复提交](https://github.com/xiao-nanbei/NarrowGateMaker/commit/db0122cd)。这些是工程变更，不构成延迟收益或策略收益证明；新的异步生命周期与分源可见性覆盖仍须由完整 replay 验证，不能用公共模板或旧 40/50 日金额代替实际 B0。
 
@@ -55,7 +53,7 @@ $$
 \Delta V(s)=\mathbb E\!\left[R_{\mathrm{terminal}}\mid s,\mathrm{action},\pi_0\right]-\mathbb E\!\left[R_{\mathrm{terminal}}\mid s,\mathrm{wait},\pi_0\right].
 $$
 
-这里的终点收益来自完整现金流和剩余库存计价；不把同一个 campaign 的终点 PnL 重复算给每个决策。历史价格档数据不能恢复全部订单级队列身份，queue/fill 仍须作为模型假设报告，而不是要求模拟成交与 live 逐笔相同。
+这里的终点收益来自完整现金流和剩余库存计价；不把同一个 库存生命周期 的终点 PnL 重复算给每个决策。历史价格档数据不能恢复全部订单级队列身份，queue/fill 仍须作为模型假设报告，而不是要求模拟成交与 live 逐笔相同。
 
 执行顺序是：先补齐当前 B0 与 no-op 对照；再重做 BUY/SELL、opener/add/reducing 的损失归因；随后用现有信号和少量预先确定的动作检验事前选择的独立增益。SELL 增仓过滤等候选先经过支持和机制检查，不先扩展成新的大参数网格。此前的 deadline-floor 和细分 cooldown 暂不作为优先调参对象；它们保留原定义，供后续有明确增量问题时复验。
 
@@ -63,10 +61,9 @@ $$
 
 截至该历史设计阶段，工程进展尚未形成新的完整经济结果。 旧临时交付包未找回时，任务记录只能恢复研究线索，不能替代原始报告、补丁与输出；不会把残缺旧结果拼成新 B0，也不新增 live shadow 来代替离线复验。
 
-
 ## 1. 修复基础设施与重验旧证据是一项研究
 
-时间单位、方差 ABI、feature-ready clock、timer event、commission 与 campaign accounting 的修复，不只是工程 housekeeping；它们会改变事件先后、订单生命周期和两个策略 arm 的分叉方式。因此需要进一步核对历史证据：先说明 identity 为什么变，再判断旧结论中哪些方向仍安全、哪些精确数字必须撤回。
+时间单位、方差 ABI、feature-ready clock、timer event、commission 与 库存生命周期 accounting 的修复，不只是工程 housekeeping；它们会改变事件先后、订单生命周期和两个策略 arm 的分叉方式。因此需要进一步核对历史证据：先说明 identity 为什么变，再判断旧结论中哪些方向仍安全、哪些精确数字必须撤回。
 
 reservation-price 风险项提供了最直观的量纲检查：
 
@@ -222,7 +219,7 @@ $$
 
 这衡量 activity coverage，不是 replay elapsed time。一个完整但稀疏的 UTC day可能被报成“半天”，fills/day随之虚高。
 
-旧 PnL-curve capacity又用 event_count / interval_ms，把无量纲 count除以 milliseconds当成时间。修复后 duration、campaign age、inventory time与 capacity全部从 merged stream的 elapsed milliseconds推导。
+旧 PnL-curve capacity又用 event_count / interval_ms，把无量纲 count除以 milliseconds当成时间。修复后 duration、库存生命周期 age、inventory time与 capacity全部从 merged stream的 elapsed milliseconds推导。
 
 inventory exposure按 wall clock积分：
 
@@ -267,9 +264,9 @@ $$
 
 ### 8. Formal replay 与 live alignment必须分离
 
-formal replay用于 baseline/candidate strategy evidence，要求 strict calibration、frozen identity与 promotion-eligible inputs。live_alignment只诊断单位、event clock、state transition与 gate order，不要求与某一 warm-start historical process逐 campaign或PnL相同。
+formal replay用于 baseline/candidate strategy evidence，要求 strict calibration、frozen identity与 promotion-eligible inputs。live_alignment只诊断单位、event clock、state transition与 gate order，不要求与某一 warm-start historical process逐 库存生命周期或PnL相同。
 
-formal默认 fresh_start：inventory=0、entry price=0、无 inherited orders/cooldown/markout/campaign state。若使用 frozen_standard，只允许一个已绑定的标准 inventory/entry artifact；完整 live active-order state只属于 alignment。
+formal默认 fresh_start：inventory=0、entry price=0、无 inherited orders/cooldown/markout/inventory_lifecycle state。若使用 frozen_standard，只允许一个已绑定的标准 inventory/entry artifact；完整 live active-order state只属于 alignment。
 
 每个 arm共享 config、models、P3、queue、trade source、merged clock、initial state、latency samples与 seeds。action override可以不同。deterministic keyed latency保证一个 arm多 cancel不会移动另一个 arm所有后续随机 draws。
 
@@ -333,9 +330,9 @@ strict ML A/B只改变 ML OFF vs causal-v7 13 heads，BUY actions disabled。Val
 
 inventory-adjusted diagnostic有局部正值，不能补偿 raw/terminal、activity与inventory-time gates。13-head inference因此不 promoted，保持 disabled。
 
-BUY fill-selection的四个 targets也没有同时改善 markout、terminal campaign value、bad rate与tail。例如 non_toxic hit组20s/30s markout更好，却terminal PnL/campaign差 $-0.1053$、bad rate高 $+0.2001$、tail高 $+0.0368$。prediction slice好看没有形成 joint action value。
+BUY fill-selection的四个 targets也没有同时改善 markout、terminal 库存生命周期 value、bad rate与tail。例如 non_toxic hit组20s/30s markout更好，却terminal PnL/inventory_lifecycle差 $-0.1053$、bad rate高 $+0.2001$、tail高 $+0.0368$。prediction slice好看没有形成 joint action value。
 
-queue q0.55–q1.00 sensitivity显著改变 fills、campaigns、tail与inventory time，PnL却不单调。q0.70保留外部 calibration baseline，不能用 replay PnL反选 queue quantile。
+queue q0.55–q1.00 sensitivity显著改变 fills、库存生命周期、tail与inventory time，PnL却不单调。q0.70保留外部 calibration baseline，不能用 replay PnL反选 queue quantile。
 
 ### 12. 最终状态与权限
 
@@ -368,7 +365,7 @@ $$
 
 ### TL;DR：旧“不要晋级”仍然安全，旧 PnL、winner 与参数排名却不能继续引用
 
-回测系统修复单位、feature clock、merged event clock、L2 identity、trade side、calendar、commission、tick/lot 或 queue semantics 后，最危险的反应是保留旧结果，只补一句“新系统更准确”。非线性 maker replay 中，一个时钟修复会改变 requote、cancel、queue、fill、inventory 与 campaign path；旧 arm delta 也可能随之改变。
+回测系统修复单位、feature clock、merged event clock、L2 identity、trade side、calendar、commission、tick/lot 或 queue semantics 后，最危险的反应是保留旧结果，只补一句“新系统更准确”。非线性 maker replay 中，一个时钟修复会改变 requote、cancel、queue、fill、inventory 与 库存生命周期 path；旧 arm delta 也可能随之改变。
 
 F10 Historical Backtest Evidence Revalidation 因此不重新挑选策略，而是逐项判定旧 evidence：哪些是与数据无关的 correctness conclusion，哪些能在新 identity 下复现，哪些只保留 conservative governance decision，哪些 exact numbers 与 rankings 必须撤回。
 
@@ -408,13 +405,13 @@ f(
 ).
 $$
 
-只要其中一个维度发生 material change，旧 $\mathcal E$ 就不再自动与新 baseline可比较。即使 strategy parameter完全相同，订单是否存在、何时 cancel、是否 fill、campaign 是否形成都可能改变。
+只要其中一个维度发生 material change，旧 $\mathcal E$ 就不再自动与新 baseline可比较。即使 strategy parameter完全相同，订单是否存在、何时 cancel、是否 fill、库存生命周期 是否形成都可能改变。
 
 SHA256 只能标识某份 bytes，不能替代 reader-accessible provenance，更不能让 superseded bytes重新获得 current authority。正确做法是把 claim 与输入、语义、source commit/manifest和权限一起绑定。
 
 #### 1.1 一个结果至少有六层身份
 
-第一层是问题：估计的是touch、fill、markout、campaign value还是action uplift。第二层是观测：market data、calendar与initial state。第三层是可见性：source、receive、feature-ready与decision clocks。第四层是执行：queue、latency、cancel/ACK、fees与tick/lot。第五层是统计：split、cluster、multiplicity与scorecard。第六层才是权限：exploratory、Development、Validation、action或live。
+第一层是问题：估计的是touch、fill、markout、库存生命周期 value还是action uplift。第二层是观测：market data、calendar与initial state。第三层是可见性：source、receive、feature-ready与decision clocks。第四层是执行：queue、latency、cancel/ACK、fees与tick/lot。第五层是统计：split、cluster、multiplicity与scorecard。第六层才是权限：exploratory、Development、Validation、action或live。
 
 两个文件即使参数表相同，只要其中一层不同，就不应共用一个“版本号+收益”标签。反过来，SHA完全不同的两个artifact也可能支持同一条抽象correctness不变量，例如“左标窗口必须在右边界后才可见”。Revalidation研究的核心就是按claim层级判断，而不是按文件新旧一刀切。
 
@@ -441,7 +438,7 @@ SHA256 只能标识某份 bytes，不能替代 reader-accessible provenance，�
 
 #### 3.1 Retained correctness
 
-与具体市场数值无关、且修复后仍构成必要不变量的结论可以保留。例如 feature必须在 decision前 ready；formal replay需要 merged event clock；terminal equity不能虚构 end-of-window taker close；markout要按 quantity加权；action reward不能重复 campaign outcome。
+与具体市场数值无关、且修复后仍构成必要不变量的结论可以保留。例如 feature必须在 decision前 ready；formal replay需要 merged event clock；terminal equity不能虚构 end-of-window taker close；markout要按 quantity加权；action reward不能重复 库存生命周期 outcome。
 
 这些结论不声称哪个 strategy赚钱，只约束怎样生成可信 evidence。
 
@@ -461,7 +458,7 @@ $$
 
 #### 3.3 Conservative decision retained, estimate withdrawn
 
-若旧 action family 本来就 failed 或 do not promote，修复后保留“不把它上线”是安全的。可是旧 DR point estimate、fill leverage、campaign value 与 ranking不能继续当方向证据。
+若旧 action family 本来就 failed 或 do not promote，修复后保留“不把它上线”是安全的。可是旧 DR point estimate、fill leverage、库存生命周期 value 与 ranking不能继续当方向证据。
 
 Fixed local actions、BUY conditional widen、SELL one-cycle skip 等历史 families 都属于这类：不晋级仍成立；若要重新研究，必须创建新的 frozen denominator和 paired current baseline，不能把旧 failure数字改名成 current evidence。
 
@@ -515,7 +512,7 @@ Python/C++ parity将相同 causal inputs送入两个 implementations，比较 qu
 
 常见辩护是“lookahead 或 wrong clock 同时作用于 baseline与candidate，difference会抵消”。Maker system不满足线性抵消。
 
-一次 feature timing差异可能让一个 arm多 cancel一次；从那以后两个 arms的active orders、queue positions、fills、inventory与campaign identities都分叉。effect不是同一 outcome减一个共同 bias，而是两个不同 nonlinear trajectories：
+一次 feature timing差异可能让一个 arm多 cancel一次；从那以后两个 arms的active orders、queue positions、fills、inventory与库存生命周期 identities都分叉。effect不是同一 outcome减一个共同 bias，而是两个不同 nonlinear trajectories：
 
 $$
 \Delta
@@ -541,11 +538,11 @@ repair audit中，一个 full-day public-template diagnostic从 legacy trade clo
 
 ### 8. 什么需要 paired rerun
 
-只有仍值得研究的 hypothesis 才重跑。新 rerun必须在 outcomes前冻结：code/config/model/P3 identities、event-L2与 individual-trade identity、initial inventory/order/campaign state、strict queue、latency profile、random seeds、action probabilities和 scorecard。
+只有仍值得研究的 hypothesis 才重跑。新 rerun必须在 outcomes前冻结：code/config/model/P3 identities、event-L2与 individual-trade identity、initial inventory/order/inventory_lifecycle state、strict queue、latency profile、random seeds、action probabilities和 scorecard。
 
 如果重启 global parameter work，至少要先有 corrected strict baseline，再逐步研究 gamma、kappa/depth/cap interaction、guard、cooldown/execution，最后才考虑新的 broad search。旧 Sobol survivors不能直接带入新 baseline。
 
-更优先的是明确 action value：一套小 candidate family、known overlap、chronological panels、paired full path和 terminal campaign outcome。Revalidation不是邀请回到无边界参数挖掘。
+更优先的是明确 action value：一套小 candidate family、known overlap、chronological panels、paired full path和 terminal 库存生命周期 outcome。Revalidation不是邀请回到无边界参数挖掘。
 
 #### 8.1 重跑不是复制旧命令
 
@@ -589,7 +586,7 @@ $$
 \mathcal I=(D,M,C,U,S_0,Q,L,A,T),
 $$
 
-其中 $D$ 是数据与日期，$M$ 是市场事件及其排序，$C$ 是 feature-ready 与决策时钟，$U$ 是单位/精度合同，$S_0$ 是初始 inventory、orders 与 campaign state，$Q$ 是 queue/activation/fill 机制，$L$ 是 latency/ACK 机制，$A$ 是 accounting、fee 与 mark source，$T$ 是 terminal/censoring 规则。只绑定 config 而不绑定这些字段，相当于只给实验写了标题，没有写样本、测量仪器和终点。
+其中 $D$ 是数据与日期，$M$ 是市场事件及其排序，$C$ 是 feature-ready 与决策时钟，$U$ 是单位/精度合同，$S_0$ 是初始 inventory、orders 与 库存生命周期 state，$Q$ 是 queue/activation/fill 机制，$L$ 是 latency/ACK 机制，$A$ 是 accounting、fee 与 mark source，$T$ 是 terminal/censoring 规则。只绑定 config 而不绑定这些字段，相当于只给实验写了标题，没有写样本、测量仪器和终点。
 
 策略路径是递归系统：
 
@@ -607,9 +604,9 @@ $$
 
 严格 source manifest 要冻结目标日、完整前一自然日 warmup、每小时覆盖、snapshot bootstrap、`U/u/pu` 连续性、individual trades、aggTrade parent 映射、外部 venue availability，以及被拒绝日期与原因。后来供应商补回一个缺失小时，也不能静默让旧实验多一天；那会改变 denominator、regime mix 和 fold composition。
 
-### 5.2 Daily fresh start 与 continuous campaign 是不同 estimand
+### 5.2 Daily fresh start 与 continuous 库存生命周期 是不同 estimand
 
-每日以零库存、零挂单、零 cooldown state 开始，测量的是 daily-fresh-start 策略；连续运行则把前一日 inventory、active orders、queue age、pending cancel 与 campaign state 带到下一日。设日界前状态为 $S_{d^-}$，两者分别是
+每日以零库存、零挂单、零 cooldown state 开始，测量的是 daily-fresh-start 策略；连续运行则把前一日 inventory、active orders、queue age、pending cancel 与 库存生命周期 state 带到下一日。设日界前状态为 $S_{d^-}$，两者分别是
 
 $$
 S_d=S_{reset}
@@ -646,7 +643,7 @@ $$
 L_{lookback},\qquad \Delta t_{variance},\qquad H_{risk}.
 $$
 
-60×1s 的统计计算可以完全正确，但固定 $H=1s$ 仍可能与 5–10 秒订单寿命、10 秒 P3、85 秒 cooldown 或数分钟 campaign 风险错位。这不是“公式抄错”，而是经济期限没有闭合。
+60×1s 的统计计算可以完全正确，但固定 $H=1s$ 仍可能与 5–10 秒订单寿命、10 秒 P3、85 秒 cooldown 或数分钟 库存生命周期 风险错位。这不是“公式抄错”，而是经济期限没有闭合。
 
 ### 6.2 一个 denomination-invariance 测试
 
@@ -674,7 +671,7 @@ $$
 
 ## 7. 因果事件钟：没有 trade 的十秒也会发生事情
 
-旧 trade-driven replay 容易只在成交到来时推进策略。真实系统中，即使十秒没有 trade，timer、requote、order age、cancel timeout、feature bucket close 与 campaign clock 仍然前进。事件集合应是多个流的并：
+旧 trade-driven replay 容易只在成交到来时推进策略。真实系统中，即使十秒没有 trade，timer、requote、order age、cancel timeout、feature bucket close 与 库存生命周期 clock 仍然前进。事件集合应是多个流的并：
 
 $$
 \mathcal E=
@@ -705,17 +702,17 @@ $$
 Q_{k+1}=Q_k-q_k.
 $$
 
-Queue position、inventory 与 fee accounting 已变化。若每个 fill row 都复制整张订单数量，会同时放大成交额、库存和 terminal PnL；若只记录最后一笔，又会丢失早期 latency 与 campaign attribution。Markout 可以按 fill slice 计算，campaign value 必须按完整现金流汇总，不能把同一 terminal PnL 复制给每个 slice。
+Queue position、inventory 与 fee accounting 已变化。若每个 fill row 都复制整张订单数量，会同时放大成交额、库存和 terminal PnL；若只记录最后一笔，又会丢失早期 latency 与 库存生命周期 attribution。Markout 可以按 fill slice 计算，库存生命周期 value 必须按完整现金流汇总，不能把同一 terminal PnL 复制给每个 slice。
 
 ### 7.3 为什么共同 bug 不会从 paired A/B 自动消失
 
 只有误差是与策略无关的加性常数时，$Y_1+b-(Y_0+b)$ 才能消掉。Replay defect 往往进入状态转移，而且 $A_k^1\ne A_k^0$，所以两个 arm 的偏差是 $b_1\ne b_0$。
 
-设两臂都在 bid 挂一张订单，candidate 在 $t_1$ 因 guard cancel，baseline keep；timer bug 让 cancel 延迟到 $t_2$ trade 之后。旧 replay 中两臂都先 fill，库存相同。修复后 candidate 先 ACK、baseline 后 fill，两个库存分别为 0 和正值；下一轮 reservation price、哪侧是 add/reducing、cooldown 与 campaign id 全部分叉。旧 difference 不是在新路径上加一个修正数，而是在比较两棵不同状态树。
+设两臂都在 bid 挂一张订单，candidate 在 $t_1$ 因 guard cancel，baseline keep；timer bug 让 cancel 延迟到 $t_2$ trade 之后。旧 replay 中两臂都先 fill，库存相同。修复后 candidate 先 ACK、baseline 后 fill，两个库存分别为 0 和正值；下一轮 reservation price、哪侧是 add/reducing、cooldown 与 库存生命周期 id 全部分叉。旧 difference 不是在新路径上加一个修正数，而是在比较两棵不同状态树。
 
 ### 7.4 Aggregate parity 近似不等于订单路径一致
 
-同日 fill 数、breaker 数或 PnL 很接近，无法证明订单逐一对应。少量差异可能集中在一个长 inventory campaign，决定全天左尾；也可能是相互抵消的短 opener。需要先比较 decision IDs、quote coordinates、activation、first fill、cancel route、remaining quantity 与 campaign lineage，再解释 aggregate economics。
+同日 fill 数、breaker 数或 PnL 很接近，无法证明订单逐一对应。少量差异可能集中在一个长 库存生命周期，决定全天左尾；也可能是相互抵消的短 opener。需要先比较 decision IDs、quote coordinates、activation、first fill、cancel route、remaining quantity 与 库存生命周期 lineage，再解释 aggregate economics。
 
 Python/C++ same-input lockstep 只能说明两个实现一致。如果二者共同读取未来 feature、共同缺 timer 或共同采用错误 quantity unit，它们会精确地一起错。因此 parity 是 implementation evidence，不是 estimand validity。
 
@@ -728,7 +725,7 @@ Python/C++ same-input lockstep 只能说明两个实现一致。如果二者共�
 | 纯解析/schema 单测 | 条件保留 | 修复未改变对应字节和语义时仍有效 |
 | Same-input Python/C++ parity | 保留为实现证据 | 不能扩张成经济正确性 |
 | 方向性的 no-promotion 决定 | 保守保留 | 没有新证据授权旧候选 |
-| Absolute PnL、winner、参数排名 | 撤回 | 依赖旧路径与 accounting identity |
+| Absolute PnL、winner、参数排名 | 撤回 | 依赖该实验的路径与会计定义 |
 | Action A/B uplift | 通常重跑 | defect 与 action/state transition 交互 |
 | Prediction score | 按 feature/label clock 判断 | ready time 或 label span 改变即失效 |
 | Operational historical fact | 只保留历史描述 | 不能证明 corrected replay 或当前 live |
@@ -749,10 +746,10 @@ Python/C++ same-input lockstep 只能说明两个实现一致。如果二者共�
 
 1. 冻结 Development、Validation、sealed holdout、embargo、D-1 warmup 与 source rejection。
 2. 绑定 baseline/candidate 的 code、config、model、P3、queue、latency、initial state、fees 与 random seed。
-3. 用 zero-economic preflight 走完所有日期/fold，证明 feature-ready、timer、ACK、partial fill、campaign lineage 与 terminal route 可完整生成。
+3. 用 zero-economic preflight 走完所有日期/fold，证明 feature-ready、timer、ACK、partial fill、库存生命周期 lineage 与 terminal route 可完整生成。
 4. 在代表日做逐事件 lockstep，而不是只比日汇总。
 5. 证明 action 在冻结 denominator 上真实发生，报告 candidate rate、path divergence、activation、fill 与 retained activity。
-6. 最后才打开 assignment-to-terminal reward、tail、inventory time 与 campaign duration，并按日 cluster 不确定性。
+6. 最后才打开 assignment-to-terminal reward、tail、inventory time 与 库存生命周期 duration，并按日 cluster 不确定性。
 
 报告还应把两类差异分开：baseline-vs-candidate 回答动作价值，old-vs-new migration diagnostic 回答修复有多 material。把两者混在一张 PnL 表里，会让读者无法区分策略变化与测量系统变化。
 

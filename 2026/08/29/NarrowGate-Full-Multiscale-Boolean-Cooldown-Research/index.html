@@ -19,12 +19,12 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="TL;DR：这是一个有正信号、但没有通过研究门槛的实验NarrowGate 的 Full-Multiscale 研究问了一个很具体的问题：在一次 maker 成交增加库存以后，能否根据从 0.5 秒到 256 秒的多尺度市场状态，动态决定下一次允许继续加仓前要等待多久，并且比实验冻结时的精确 owner baseline 获得更好的 campaign-terminal USDC value？ 把它">
+    <meta name="description" content="TL;DR：这是一个有正信号、但没有通过研究门槛的实验NarrowGate 的 Full-Multiscale 研究问了一个很具体的问题：在一次 maker 成交增加库存以后，能否根据从 0.5 秒到 256 秒的多尺度市场状态，动态决定下一次允许继续加仓前要等待多久，并且比实验冻结时的精确 owner baseline 获得更好的 库存生命周期-terminal USDC value？ 把它翻译">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate Full-Multiscale：从多尺度 EMA 到 Boolean Cooldown 的一次阴性研究">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Full-Multiscale-Boolean-Cooldown-Research/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="TL;DR：这是一个有正信号、但没有通过研究门槛的实验NarrowGate 的 Full-Multiscale 研究问了一个很具体的问题：在一次 maker 成交增加库存以后，能否根据从 0.5 秒到 256 秒的多尺度市场状态，动态决定下一次允许继续加仓前要等待多久，并且比实验冻结时的精确 owner baseline 获得更好的 campaign-terminal USDC value？ 把它">
+<meta property="og:description" content="TL;DR：这是一个有正信号、但没有通过研究门槛的实验NarrowGate 的 Full-Multiscale 研究问了一个很具体的问题：在一次 maker 成交增加库存以后，能否根据从 0.5 秒到 256 秒的多尺度市场状态，动态决定下一次允许继续加仓前要等待多久，并且比实验冻结时的精确 owner baseline 获得更好的 库存生命周期-terminal USDC value？ 把它翻译">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/full-multiscale-research-loop.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/cooldown-side-selective-kline.svg">
@@ -402,25 +402,25 @@
             
               <div class="markdown-body">
                 
-                <h2 id="TL-DR：这是一个有正信号、但没有通过研究门槛的实验"><a href="#TL-DR：这是一个有正信号、但没有通过研究门槛的实验" class="headerlink" title="TL;DR：这是一个有正信号、但没有通过研究门槛的实验"></a>TL;DR：这是一个有正信号、但没有通过研究门槛的实验</h2><p>NarrowGate 的 Full-Multiscale 研究问了一个很具体的问题：<strong>在一次 maker 成交增加库存以后，能否根据从 0.5 秒到 256 秒的多尺度市场状态，动态决定下一次允许继续加仓前要等待多久，并且比实验冻结时的精确 owner baseline 获得更好的 campaign-terminal USDC value？</strong></p>
+                <h2 id="TL-DR：这是一个有正信号、但没有通过研究门槛的实验"><a href="#TL-DR：这是一个有正信号、但没有通过研究门槛的实验" class="headerlink" title="TL;DR：这是一个有正信号、但没有通过研究门槛的实验"></a>TL;DR：这是一个有正信号、但没有通过研究门槛的实验</h2><p>NarrowGate 的 Full-Multiscale 研究问了一个很具体的问题：<strong>在一次 maker 成交增加库存以后，能否根据从 0.5 秒到 256 秒的多尺度市场状态，动态决定下一次允许继续加仓前要等待多久，并且比实验冻结时的精确 owner baseline 获得更好的 库存生命周期-terminal USDC value？</strong></p>
 <p>把它翻译成人话：研究让同一条价格同时经过十把“反应速度不同的尺子”——最快只记得最近约 0.5 秒，最慢保留约 256 秒的背景；任取一快一慢两把尺子，共有 45 种配对。程序不只问“快线在慢线上面吗”，还问“刚交叉多久、两线正在分开还是靠拢、这种排列持续了多久”，然后只用过去日期学习一组有长度上限的 AND / OR / NOT 规则，为当前成交选择一个预先冻结的冷却时长。</p>
 <p>这里的“三值”也不是三种动作，而是每个条件有 <code>true / false / unobserved</code> 三种状态：数据缺失不能被当成 <code>false</code>，取反以后也不能凭空变成证据。动作空间仍是 BUY 与 SELL 各自预先冻结的八档 duration。第 4 节会把 EMA、pair state 和 policy 分别写成式子。</p>
-<p>结果并不是“没有信号”。BUY 侧最强候选 <code>E3_HIGHER_ORDER_BOOLEAN</code> 相对精确 baseline 的 terminal value 改善 <code>+0.458577 USDC/day</code>，closed-campaign value 改善 <code>+0.604012 USDC/day</code>，保留 97.29% 的 fills，四个 outer-fold 平均值全部为正；在匹配 action rate 与 duration distribution 的控制组之上，仍有 <code>+0.193888 USDC/day</code> 的额外点估计。</p>
-<p>但它仍然没有通过研究门槛：day-level simultaneous interval 跨过零，语义增量的区间也跨过零，冻结的 feature hierarchy 第一层未通过，tail 与 lifecycle gates 同样失败。SELL 没有正的 non-baseline candidate。因此，正确结论是：<strong>这个冻结的 30 日 Development 研究族关闭，<code>supported_sides=[]</code>，没有 final refit、没有 Validation、没有 sealed holdout、没有 research-supported action 或 live authority。</strong></p>
+<p>结果并不是“没有信号”。BUY 侧最强候选 <code>E3_HIGHER_ORDER_BOOLEAN</code> 相对精确 baseline 的 terminal value 改善 <code>+0.458577 USDC/day</code>，已结束库存生命周期 value 改善 <code>+0.604012 USDC/day</code>，保留 97.29% 的 fills，四个 outer-fold 平均值全部为正；在匹配 action rate 与 duration distribution 的控制组之上，仍有 <code>+0.193888 USDC/day</code> 的额外点估计。</p>
+<p>但它仍然没有通过研究门槛：day-level simultaneous interval 跨过零，语义增量的区间也跨过零，冻结的 feature hierarchy 第一层未通过，tail 与 lifecycle gates 同样失败。SELL 没有正的 non-baseline candidate。因此，正确结论是：<strong>这个冻结的 30 日 Development 研究族关闭，<code>supported_sides=[]</code>，没有 final refit、没有 Validation、没有 sealed holdout、没有 research-supported action 或 实盘有效性证据。</strong></p>
 <p>这篇文章讲的不是一个“成功上线的策略”，而是一个更有代表性的研究结果：为什么看起来相当漂亮的点估计，仍然不足以证明一个做市动作具有可迁移的增量价值。</p>
 <p>项目源码：<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker">GitHub - xiao-nanbei/NarrowGateMaker</a>。完整的研究框架见 <a href="/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/">Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift</a>，执行器与 C++ parity 背景见 <a href="/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/">回测吞吐与 Live 尾延迟工程</a>。</p>
 <p>本文只讨论研究方法和历史 Development 证据，不讨论或建议任何真实交易行为。文中的 PnL、value、fill 和 uplift 都是特定 replay identity 下的研究量，不是收益承诺。</p>
 <h2 id="1-问题不是“EMA-能不能预测价格”，而是“状态能不能改变动作价值”"><a href="#1-问题不是“EMA-能不能预测价格”，而是“状态能不能改变动作价值”" class="headerlink" title="1. 问题不是“EMA 能不能预测价格”，而是“状态能不能改变动作价值”"></a>1. 问题不是“EMA 能不能预测价格”，而是“状态能不能改变动作价值”</h2><p>maker 策略里的 cooldown，是一次 exposure-increasing fill 之后暂时不允许同侧继续增加库存的时间。最简单的实现是固定等待，例如按连续成交单位使用 <code>85 × N</code> 秒。它的好处是可解释、稳定、容易在 live 和 replay 之间保持一致；缺点是把所有市场状态都压缩成同一个时间常数。</p>
 <p>直觉上，固定 cooldown 很可能过于粗糙。一次短促的流动性冲击，可能在几十秒内完成 refill；一次持续性的单边 taker flow，则可能在几分钟后仍未恢复。快慢 EMA 的交叉方向、交叉发生多久、价差是否继续扩张、盘口深度是否恢复，看起来都可能帮助回答“现在恢复加仓是否太早”。</p>
-<p>但这不是普通的价格预测问题。即使某个状态能预测未来继续下跌，也不能直接推出“延长 cooldown 更好”。延长等待会同时删除一部分有毒成交和一部分自然修复成交，还会改变后续订单、库存、campaign 长度和终局价值。研究真正要估计的是动作反事实：</p>
+<p>但这不是普通的价格预测问题。即使某个状态能预测未来继续下跌，也不能直接推出“延长 cooldown 更好”。延长等待会同时删除一部分有毒成交和一部分自然修复成交，还会改变后续订单、库存、库存生命周期 长度和终局价值。研究真正要估计的是动作反事实：</p>
 <script type="math/tex; mode=display">
-\Delta = Y(\text{candidate repeated policy}) - Y(\text{frozen exact baseline policy}).</script><p>这里的 $Y$ 不是下一秒方向，也不是 fill 后某个孤立 markout，而是完整顺序路径上的 terminal 或 closed-campaign USDC value。</p>
+\Delta = Y(\text{candidate repeated policy}) - Y(\text{frozen exact baseline policy}).</script><p>这里的 $Y$ 不是下一秒方向，也不是 fill 后某个孤立 markout，而是完整顺序路径上的 terminal 或 已结束库存生命周期 USDC value。</p>
 <p>因此，Full-Multiscale 的研究映射是：</p>
-<div class="code-wrapper"><pre><code class="hljs text">因果可见的市场、订单与 campaign 状态
+<div class="code-wrapper"><pre><code class="hljs text">因果可见的市场、订单与 inventory_lifecycle 状态
 -&gt; 只在 inner-train 内进行的有界 Boolean discovery
 -&gt; cooldown duration policy
 -&gt; untouched outer-test 上的 repeated sequential full-path replay
--&gt; 相对冻结 exact baseline 的 campaign-terminal USDC increment</code></pre></div>
+-&gt; 相对冻结 exact baseline 的 inventory_lifecycle-terminal USDC increment</code></pre></div>
 <p><img src="/images/narrowgate/full-multiscale-research-loop.svg" srcset="/img/loading.gif" lazyload alt="Full-Multiscale 从状态到动作价值的研究链"></p>
 <p><em>图 1：one-shot label 只帮助训练；正式结论来自 candidate 与 B0 各自运行的重复顺序完整路径。</em></p>
 <p><img src="/images/narrowgate/cooldown-side-selective-kline.svg" srcset="/img/loading.gif" lazyload alt="成交后逐侧 cooldown 如何改变 K 线上的 maker 报单"></p>
@@ -430,7 +430,7 @@
 <h2 id="2-为什么要做-Full-Multiscale-successor"><a href="#2-为什么要做-Full-Multiscale-successor" class="headerlink" title="2. 为什么要做 Full-Multiscale successor"></a>2. 为什么要做 Full-Multiscale successor</h2><p>这项研究之前，NarrowGate 已经测试过 ADD 与 WAIT、固定八档 cooldown、有限 Boolean predicate、modeled-queue persistent policy，以及 50/71 日 full-path diagnostics。它们暴露了几个不能靠“再加一个特征”解决的问题。</p>
 <p>第一，早期 Boolean 搜索并没有真正实现完整 feature hierarchy。部分大 feature block 被压缩成少数 outcome-blind predicates，外层 policy 也退化成很浅的一条规则，所以阴性结果只能关闭那个受限实现，不能证明高阶 multiscale structure 没有价值。</p>
 <p>第二，strict-native 历史标签遇到了不可恢复的跨流顺序问题。公开 individual trade 的时间戳精度与 book stream 的子毫秒顺序不足以判断同一毫秒内 trade 与 depth change 谁先发生；强行指定 tie-break 会改变 queue seed 和 fill。正确处理是 censor ambiguity，而不是制造一个看起来精确的顺序。</p>
-<p>第三，先前的一次性 duration label 不能直接相加成策略收益。只要一个动作改变订单是否成交，它就会进一步改变库存、后续 eligibility、cooldown lineage 和 campaign terminal。真正的外层检验必须让 candidate policy 在完整路径上反复触发。</p>
+<p>第三，先前的一次性 duration label 不能直接相加成策略收益。只要一个动作改变订单是否成交，它就会进一步改变库存、后续 eligibility、cooldown lineage 和 库存生命周期 terminal。真正的外层检验必须让 candidate policy 在完整路径上反复触发。</p>
 <p>Full-Multiscale successor 因此没有只扩大一个 feature list，而是同时修正了四件事：完整的多尺度状态、interaction-capable Boolean policy、nested chronological discovery，以及 repeated sequential evaluation。</p>
 <h2 id="3-证据身份：30-日历史-Development，而不是-prospective-或-strict-live-evidence"><a href="#3-证据身份：30-日历史-Development，而不是-prospective-或-strict-live-evidence" class="headerlink" title="3. 证据身份：30 日历史 Development，而不是 prospective 或 strict-live evidence"></a>3. 证据身份：30 日历史 Development，而不是 prospective 或 strict-live evidence</h2><p>最早的设计曾考虑建立一个 prospective companion，从冻结时点以后收集 30 个新日期。但该 companion 在部署前被撤回，产生零行数据，也没有修改 live runtime。项目没有把“0/30”误写成历史数据不存在，而是转向纯离线、family-specific 的历史 Development identity。</p>
 <p>离线研究在 outcome-blind source audit 后冻结了 30 个按时间排列的历史日期，共有 3,516 个机会。用于此前精确 F05 cooldown-selection chain 的日期被排除为 target；它们最多只能作为 D−1 warmup 或 D+1 washout context。这些日期是“对本研究族未消费”，不是“全项目从未看过”。</p>
@@ -444,7 +444,7 @@ T_1\prec T_2\prec\cdots.</script><p>但当 $\operatorname{ms}(B_j)=\operatorname
 <script type="math/tex; mode=display">
 S_m^{T\rightarrow B}=F_B\!\left(F_T(S_{m^-})\right),
 \qquad
-S_m^{B\rightarrow T}=F_T\!\left(F_B(S_{m^-})\right).</script><p>Queue replay 通常满足 $F_B\circ F_T\ne F_T\circ F_B$：trade 会消耗 queue ahead，book change 可能改变 displayed depth、重置 queue seed 或让旧 seed 失效。假设模拟订单前面有 $0.6$ BTC，同毫秒出现 $0.5$ BTC aggressive trade 和 $0.4$ BTC displayed-depth decrease；先处理哪一个事件，可能分别得到 fill 与 no-fill。第一次 fill 一旦分叉，库存、cooldown deadline、下一次 eligibility、reducing quote 和 campaign terminal 都会继续分叉。</p>
+S_m^{B\rightarrow T}=F_T\!\left(F_B(S_{m^-})\right).</script><p>Queue replay 通常满足 $F_B\circ F_T\ne F_T\circ F_B$：trade 会消耗 queue ahead，book change 可能改变 displayed depth、重置 queue seed 或让旧 seed 失效。假设模拟订单前面有 $0.6$ BTC，同毫秒出现 $0.5$ BTC aggressive trade 和 $0.4$ BTC displayed-depth decrease；先处理哪一个事件，可能分别得到 fill 与 no-fill。第一次 fill 一旦分叉，库存、cooldown deadline、下一次 eligibility、reducing quote 和 库存生命周期 terminal 都会继续分叉。</p>
 <p>因此对机会 $i$，若 $A_i=1$ 表示 active path 遇到会改变结果的 unresolved collision，严格点标签只能写成：</p>
 <script type="math/tex; mode=display">
 Y_i^{\mathrm{strict}}=
@@ -469,7 +469,7 @@ E_h(t_i)=\lambda_{i,h}E_h(t_{i-1})+(1-\lambda_{i,h})p_i.</script><p>$h$ 的直�
 <script type="math/tex; mode=display">
 H=\{0.5,1,2,4,8,16,32,64,128,256\}\ \text{seconds}.</script><p>例如 $h=8\text{s}$ 时，4 秒后旧状态权重约为 $2^{-1/2}=0.707$，8 秒后为 $0.5$，16 秒后为 $0.25$。所以 half-life 回答“过去的信息以多快速度淡出”，不是“要预测未来几秒”，也不要求 cooldown duration 等于该 half-life。研究以完成后的 100ms 状态窗口为基础，但 EMA 衰减使用两次有效观测之间真实的 $\Delta t_i$；source gap、stale 或 warmup incomplete 不会被零填充，也不会被伪装成又看到一次相同价格。</p>
 <p>任取 $f&lt;s$ 作为 fast 与 slow，就得到 $\binom{10}{2}=45$ 个合法配对。这里不是先在全部 30 天中挑一对“历史赢家”，而是让每个 inner fold 只用自己的过去训练段决定哪些 pair 值得进入规则。</p>
-<p>非相邻尺度也有明确语义：$4\text{s}/8\text{s}$ 更像局部弯折，$4\text{s}/64\text{s}$ 描述短冲击相对一分钟背景的偏离，$16\text{s}/256\text{s}$ 则更接近 campaign 级慢状态。45 个 pair 越多，事后挑 winner 的自由度也越大；因此它们必须作为一个相关特征全集进入 nested search，不能被写成 45 次独立实验。</p>
+<p>非相邻尺度也有明确语义：$4\text{s}/8\text{s}$ 更像局部弯折，$4\text{s}/64\text{s}$ 描述短冲击相对一分钟背景的偏离，$16\text{s}/256\text{s}$ 则更接近 库存生命周期 级慢状态。45 个 pair 越多，事后挑 winner 的自由度也越大；因此它们必须作为一个相关特征全集进入 nested search，不能被写成 45 次独立实验。</p>
 <p><img src="/images/narrowgate/full-multiscale-ema-bank.svg" srcset="/img/loading.gif" lazyload alt="十个 EMA half-life 与全部 45 个 fast slow 配对"></p>
 <p><em>图 5：十个二倍间隔的时间尺度形成 45 个 fast/slow pair；每个方格是一组候选状态，不是一条独立策略。</em></p>
 <p>对一个配对 $(f,s)$，先定义以 basis point 表示的两线距离与距离速度：</p>
@@ -486,7 +486,7 @@ d_{f,s}(t)v_{f,s}(t)>0\Rightarrow\text{expanding},
 \qquad
 d_{f,s}(t)v_{f,s}(t)<0\Rightarrow\text{converging}.</script><p>单条 EMA 的 slope 是 $\dot E_h$，curvature 是 $\ddot E_h$；配对的 curvature 则来自快慢 acceleration 之差。实现还会按 maker side 统一“有利 / 不利”方向，并在相应特征上使用因果可见的波动尺度做 normalization；上面的式子刻意省略这些符号变换，只保留最容易理解的几何关系。</p>
 <p><img src="/images/narrowgate/full-multiscale-kline-policy-mechanism.svg" srcset="/img/loading.gif" lazyload alt="一段 K 线如何变成 EMA pair state 并进入三值 Boolean policy"></p>
-<p><em>图 6：合成 K 线展示 fast/slow EMA 从扩张转为收敛。ordering 尚未反转，但 cross age、persistence、distance、slope、curvature 与 $d\cdot v$ 已经变化；这些状态再与 trade、depth、campaign 和 readiness 拼接，进入有界三值 first-match policy。图不是历史 E3 私有规则或实盘证据。</em></p>
+<p><em>图 6：合成 K 线展示 fast/slow EMA 从扩张转为收敛。ordering 尚未反转，但 cross age、persistence、distance、slope、curvature 与 $d\cdot v$ 已经变化；这些状态再与 trade、depth、库存生命周期 和 readiness 拼接，进入有界三值 first-match policy。图不是历史 E3 私有规则或实盘证据。</em></p>
 <p>从图上看，“fast 仍在 slow 上方”只是一个截面。前半段两线继续拉开，后半段虽然还没发生反叉，却已经开始靠拢；如果只保留 golden/death cross，一个 bit 会把这两个可能对应不同加仓风险的阶段压成同一状态。</p>
 <p><img src="/images/narrowgate/full-multiscale-pair-state.svg" srcset="/img/loading.gif" lazyload alt="一个 EMA 配对如何产生 cross age distance 与 expansion"></p>
 <p><em>图 7：同一个交叉方向下，“刚交叉且继续扩张”与“交叉很久且正在收敛”是两种不同的市场状态。</em></p>
@@ -498,7 +498,7 @@ d_{f,s}(t)v_{f,s}(t)<0\Rightarrow\text{converging}.</script><p>单条 EMA 的 sl
 <li>slope 与 curvature；</li>
 <li>convergence 与 expansion。</li>
 </ul>
-<p>后置的 M2 层才允许加入 aggressive trade flow、trade count/tempo、depth imbalance、depletion/refill、目标价 displayed quantity 和 queue state。这样可以回答一个更干净的问题：trade/depth 是否在已经有 campaign 与 EMA 表示以后仍提供增量价值，而不是把所有信息一次性混在一起。</p>
+<p>后置的 M2 层才允许加入 aggressive trade flow、trade count/tempo、depth imbalance、depletion/refill、目标价 displayed quantity 和 queue state。这样可以回答一个更干净的问题：trade/depth 是否在已经有 库存生命周期 与 EMA 表示以后仍提供增量价值，而不是把所有信息一次性混在一起。</p>
 <h3 id="4-2-Raw、normalized-与-side-transformed-state"><a href="#4-2-Raw、normalized-与-side-transformed-state" class="headerlink" title="4.2 Raw、normalized 与 side-transformed state"></a>4.2 Raw、normalized 与 side-transformed state</h3><p>Raw distance 保留通道原本的量纲：价格通道是价格单位，数量通道是 BTC，trade-rate 通道是 BTC/s。不同通道和不同波动阶段的绝对距离不能共享一个阈值，因此一般的归一化状态写成：</p>
 <script type="math/tex; mode=display">
 z_{c,f,s}(t)=\frac{d_{c,f,s}(t)}{S_c(t)},</script><p>其中 $S_c(t)&gt;0$ 是 outcome-blind 冻结且在当时因果可见的通道尺度。具体分母与 predicate threshold 必须由冻结 transform 给出，不能看到经济结果后再调整。</p>
@@ -596,7 +596,7 @@ k^*(x)=\min\{k:R_k(x)=T\ \land\ \forall j<k,\ R_j(x)=F\}.</script><p>若更早�
 <p><img src="/images/narrowgate/full-multiscale-boolean-policy.svg" srcset="/img/loading.gif" lazyload alt="三值 Boolean first match policy"></p>
 <p><em>图 8：三值属于 predicate；duration action 仍是八档。更早规则若不可观测，policy fail closed 回到 B0，而不会让后规则捡漏。</em></p>
 <p>搜索是有意限制的。每个 purged inner-training fold 最多经济筛选 1,024 个特征；per-action tree 深度最多 6、最多 32 个叶子，最终 policy 最多 7 条有序规则，每条规则最多 16 个 OR clause、每个 clause 最多 6 个 literal。这个约束减少了自由度，但也决定了结论边界：它是一个 bounded successor，不是对所有 Boolean architecture 的穷尽证明。</p>
-<h2 id="5-Candidate-ladder：从简单-campaign-状态逐层增加信息"><a href="#5-Candidate-ladder：从简单-campaign-状态逐层增加信息" class="headerlink" title="5. Candidate ladder：从简单 campaign 状态逐层增加信息"></a>5. Candidate ladder：从简单 campaign 状态逐层增加信息</h2><p>研究没有直接把 E3 与一个随意的 85 秒常数比较，而是冻结了逐层 candidate ladder。</p>
+<h2 id="5-Candidate-ladder：从简单-库存生命周期-状态逐层增加信息"><a href="#5-Candidate-ladder：从简单-库存生命周期-状态逐层增加信息" class="headerlink" title="5. Candidate ladder：从简单 库存生命周期 状态逐层增加信息"></a>5. Candidate ladder：从简单 库存生命周期 状态逐层增加信息</h2><p>研究没有直接把 E3 与一个随意的 85 秒常数比较，而是冻结了逐层 candidate ladder。</p>
 <div class="table-container">
 <table>
 <thead>
@@ -611,11 +611,11 @@ k^*(x)=\min\{k:R_k(x)=T\ \land\ \forall j<k,\ R_j(x)=F\}.</script><p>若更早�
 <td>实验冻结时逐行复现的 exact owner baseline；不是独立的固定 <code>CONTROL_85N</code> 列</td>
 </tr>
 <tr>
-<td><code>B1_CAMPAIGN_AGE_ONLY</code></td>
-<td>只根据 campaign age 学习 duration</td>
+<td><code>B1_INVENTORY_LIFECYCLE_AGE_ONLY</code></td>
+<td>只根据 库存生命周期 age 学习 duration</td>
 </tr>
 <tr>
-<td><code>B2_CAMPAIGN_PLUS_H16_H256</code></td>
+<td><code>B2_INVENTORY_LIFECYCLE_PLUS_H16_H256</code></td>
 <td>加入 16s/256s cross recency</td>
 </tr>
 <tr>
@@ -636,7 +636,7 @@ k^*(x)=\min\{k:R_k(x)=T\ \land\ \forall j<k,\ R_j(x)=F\}.</script><p>若更早�
 </tr>
 <tr>
 <td><code>M2_TRUE_INCREMENTAL</code></td>
-<td>在最佳 campaign/EMA representation 上再加入 trade 与 depth</td>
+<td>在最佳 inventory_lifecycle/EMA representation 上再加入 trade 与 depth</td>
 </tr>
 <tr>
 <td><code>ACTION_MATCHED_CONTROLS</code></td>
@@ -704,17 +704,17 @@ k^*(x)=\min\{k:R_k(x)=T\ \land\ \forall j<k,\ R_j(x)=F\}.</script><p>若更早�
 <script type="math/tex; mode=display">
 T_k=\{d_1,\ldots,d_{10+5(k-1)}\},
 \qquad
-V_k=\{d_{11+5(k-1)},\ldots,d_{15+5(k-1)}\}.</script><p>每个 outer-training block 内还有三组 expanding inner fold。feature census、support calculation、economic screening、complexity selection 和 policy freeze 都只能发生在 purged inner-train。只要某个 assignment 的后代订单、queue、inventory、cooldown 或 campaign state 穿过测试边界，就必须从训练中 purge。</p>
+V_k=\{d_{11+5(k-1)},\ldots,d_{15+5(k-1)}\}.</script><p>每个 outer-training block 内还有三组 expanding inner fold。feature census、support calculation、economic screening、complexity selection 和 policy freeze 都只能发生在 purged inner-train。只要某个 assignment 的后代订单、queue、inventory、cooldown 或 库存生命周期 state 穿过测试边界，就必须从训练中 purge。</p>
 <p>Inner 层负责在 outer train 内比较 feature/profile/complexity，outer test 只评价已经冻结的学习结果。对候选 profile $c$，第 $k$ 个 outer train 内的 inner OOF 分数可以写成：</p>
 <script type="math/tex; mode=display">
 \widehat Q_k(c)=\frac{1}{|I_k|}\sum_{d\in I_k}
 \left[Y_d\!\left(\pi_{k,c}^{\mathrm{repeated}}\right)-Y_d(B0)\right],</script><p>其中 $I_k$ 是三个 inner-test block 的日期并集。分数相同时优先低复杂度，再用稳定名称打破完全平局；outer-test 的经济结果不能反过来选择 tree depth、规则数、阈值、duration 或 continuous comparator。</p>
-<p>只要求 <code>train day &lt; test day</code> 仍不够。若训练机会 $i$ 的 assignment time、observation end 和 campaign id 分别为 $a_i,e_i,g_i$，测试段最早 assignment 为 $b_k$、测试 campaign 集为 $G_k^{test}$，则可保留的训练机会满足：</p>
+<p>只要求 <code>train day &lt; test day</code> 仍不够。若训练机会 $i$ 的 assignment time、observation end 和 库存生命周期 id 分别为 $a_i,e_i,g_i$，测试段最早 assignment 为 $b_k$、测试 库存生命周期 集为 $G_k^{test}$，则可保留的训练机会满足：</p>
 <script type="math/tex; mode=display">
 i\in T_k^{\mathrm{purged}}
 \iff
-e_i<b_k\ \land\ g_i\notin G_k^{test}.</script><p>若 $e_i$ 未知、后代订单或 terminal path 跨入测试段，或者同一 campaign 同时出现在两侧，这条训练行必须移除。这比机械空出一天更准确：短路径不会被无谓删除，跨界长尾也不会因为日历翻页就被误判为安全。</p>
-<p>这套结构是为了防止两种常见泄漏：一是先在全部 30 日里挑出“看起来最有效”的 EMA pair，再假装 outer fold 没看过；二是用未来 campaign 的 terminal outcome 帮助当前规则选择。</p>
+e_i<b_k\ \land\ g_i\notin G_k^{test}.</script><p>若 $e_i$ 未知、后代订单或 terminal path 跨入测试段，或者同一 库存生命周期 同时出现在两侧，这条训练行必须移除。这比机械空出一天更准确：短路径不会被无谓删除，跨界长尾也不会因为日历翻页就被误判为安全。</p>
+<p>这套结构是为了防止两种常见泄漏：一是先在全部 30 日里挑出“看起来最有效”的 EMA pair，再假装 outer fold 没看过；二是用未来 库存生命周期 的 terminal outcome 帮助当前规则选择。</p>
 <p>外层测试只执行已经冻结的 fold policy，不再修改 feature、threshold、duration 或 complexity。因而它提供的是“学习算法在不同历史时点会产生什么 policy”的 OOF 证据，而不是一个最后 refit 出来的固定 artifact 的 OOF 证据。</p>
 <p>令 $\mathcal A$ 表示 feature screening、profile selection、Boolean fit 与 side-specific action mapping 的完整学习算法，$\pi_k=\mathcal A(T_k^{\mathrm{purged}})$，则外层估计对应：</p>
 <script type="math/tex; mode=display">
@@ -731,14 +731,14 @@ y_i(a\mid H_i^{B0})-y_i(a_i^{B0}\mid H_i^{B0}).</script><p>它回答“在这个
 <p>一个两次成交的反例足以说明。假设 B0 在 10:00 有一次 BUY fill，85 秒后恢复加仓，并在 10:02 又发生一次 BUY fill；one-shot 表分别认为把第一次等待改成 173 秒改善 <code>+0.08 USDC</code>，把第二次等待改成 223 秒改善 <code>+0.06 USDC</code>。直接相加得到 <code>+0.14</code>，但第一次改成 173 秒后，10:02 的 BUY order 根本尚未恢复，第二次 fill 和它的 <code>+0.06</code> 属于另一个世界。这组示例数字只说明结构，不是研究结果。</p>
 <p><img src="/images/narrowgate/full-multiscale-one-shot-vs-repeated.svg" srcset="/img/loading.gif" lazyload alt="One shot label 与 repeated sequential replay 的差别"></p>
 <p><em>图 11：候选 duration 会改变后续订单、fill、inventory 与 eligibility；把仍按 baseline 世界生成的局部效果相加，不等于 policy PnL。</em></p>
-<p>外层 evaluation 因此采用 repeated sequential full-path replay：每一次符合条件的 exposure-increasing fill 都调用该 fold 已冻结的 policy，candidate 与 B0 分别重建后续订单、fill、inventory 和 campaign path。</p>
+<p>外层 evaluation 因此采用 repeated sequential full-path replay：每一次符合条件的 exposure-increasing fill 都调用该 fold 已冻结的 policy，candidate 与 B0 分别重建后续订单、fill、inventory 和 库存生命周期 path。</p>
 <p>把策略 $\pi$ 的内生状态写成：</p>
 <script type="math/tex; mode=display">
-S_t^\pi=(O_t^\pi,q_t^\pi,C_t^\pi,K_t^\pi,E_t^\pi),</script><p>其中 $O$ 是订单，$q$ 是库存，$C$ 是 campaign，$K$ 是 cooldown，$E$ 是 EMA state。对外生市场事件 $X_{t+1}$ 和策略动作 $A_t^\pi$，完整路径按：</p>
+S_t^\pi=(O_t^\pi,q_t^\pi,C_t^\pi,K_t^\pi,E_t^\pi),</script><p>其中 $O$ 是订单，$q$ 是库存，$C$ 是 库存生命周期，$K$ 是 cooldown，$E$ 是 EMA state。对外生市场事件 $X_{t+1}$ 和策略动作 $A_t^\pi$，完整路径按：</p>
 <script type="math/tex; mode=display">
 S_{t+1}^\pi=F(S_t^\pi,X_{t+1},A_t^\pi),
 \qquad
-Y(\pi)=G(S_0,X_{1:T},A_{1:T}^\pi).</script><p>一般不存在 $Y(\pi)-Y(B0)=\sum_i\delta_i^{\mathrm{one}}(\pi(H_i^{B0}))$。Candidate 与 control 可以共享相同外生 market source、visibility clocks 和冻结随机源，但 orders、inventory、campaign、cooldown 与 EMA state 必须分别递推；共享库存或 checkpoint 会把本应分叉的两条策略路径重新压回一个世界。</p>
+Y(\pi)=G(S_0,X_{1:T},A_{1:T}^\pi).</script><p>一般不存在 $Y(\pi)-Y(B0)=\sum_i\delta_i^{\mathrm{one}}(\pi(H_i^{B0}))$。Candidate 与 control 可以共享相同外生 market source、visibility clocks 和冻结随机源，但 orders、inventory、库存生命周期、cooldown 与 EMA state 必须分别递推；共享库存或 checkpoint 会把本应分叉的两条策略路径重新压回一个世界。</p>
 <p>这也是 action-matched control 的意义。它复制 candidate 的 action rate 与 duration distribution，但不复制其状态语义。如果 candidate 只是通过“少做一点”改善亏损，matched control 应该得到相近结果；只有超出 matched control 的部分，才可能来自状态选择本身。</p>
 <h2 id="8-为什么-BUY-与-SELL-必须从输入到权限全程分开"><a href="#8-为什么-BUY-与-SELL-必须从输入到权限全程分开" class="headerlink" title="8. 为什么 BUY 与 SELL 必须从输入到权限全程分开"></a>8. 为什么 BUY 与 SELL 必须从输入到权限全程分开</h2><p>Maker side 与 aggressive taker side 的映射首先要写对：</p>
 <script type="math/tex; mode=display">
@@ -781,7 +781,7 @@ Y_d(\pi_s,B0_{-s})-Y_d(B0_s,B0_{-s})
 <td style="text-align:right">+0.458577 USDC/day</td>
 </tr>
 <tr>
-<td>Closed-campaign value</td>
+<td>Closed-库存生命周期 value</td>
 <td style="text-align:right">-3.018197 USDC/day</td>
 <td style="text-align:right">-2.414185 USDC/day</td>
 <td style="text-align:right">+0.604012 USDC/day</td>
@@ -795,7 +795,7 @@ Y_d(\pi_s,B0_{-s})-Y_d(B0_s,B0_{-s})
 </tbody>
 </table>
 </div>
-<p>按这个 modeled replay denominator 计算，terminal loss 降低 15.79%，closed-campaign loss 降低 20.01%。四个 outer fold 的平均 uplift 全部为正，20 个 OOF test days 中有 13 日改善。</p>
+<p>按这个 modeled replay denominator 计算，terminal loss 降低 15.79%，已结束库存生命周期 loss 降低 20.01%。四个 outer fold 的平均 uplift 全部为正，20 个 OOF test days 中有 13 日改善。</p>
 <p>action-matched control 的 fills 从 8,565 降到 8,312，比 E3 还略少，但 terminal uplift 只有 <code>+0.264689 USDC/day</code>。E3 在它之上还有 <code>+0.193888 USDC/day</code> 的 semantic increment，因此这个结果并不能简单解释成“少成交，所以少亏”。</p>
 <p>这正是一个有研究价值的信号：它同时具有跨四个 fold 的正方向、有限的 fill sacrifice，以及超出 matched control 的正点估计。如果只看排行榜，E3 很容易被描述成 winner。</p>
 <p><img src="/images/narrowgate/full-multiscale-frozen-result-authority.svg" srcset="/img/loading.gif" lazyload alt="Full-Multiscale 冻结结果、区间与研究权限"></p>
@@ -813,7 +813,7 @@ Y_d(\pi_s,B0_{-s})-Y_d(B0_s,B0_{-s})
 <p>第四，tail 与 lifecycle gates 没有被较好的均值补偿。scorecard 记录的失败包括 conditional net-value lower bound 非正、negative-terminal protection 和 q10 shortfall protection 下界为负，以及 repair-event、censoring-avoidance 等指标方向不满足要求。</p>
 <p>因此，<code>ranking_score</code> 必须保持 null，candidate class 是 <code>hard_gate_failed</code>。这不是“保守一点所以暂不部署”，而是正式的 Development failure。</p>
 <h2 id="11-SELL：没有可以保留为候选的-non-baseline-policy"><a href="#11-SELL：没有可以保留为候选的-non-baseline-policy" class="headerlink" title="11. SELL：没有可以保留为候选的 non-baseline policy"></a>11. SELL：没有可以保留为候选的 non-baseline policy</h2><p>SELL E3 是 enriched candidate 中最不差的一项，但相对 exact B0 的 terminal increment 仍为 <code>-0.009708 USDC/day</code>。它保留了 101.18% 的 fills，20 个 OOF test days 中 12 日改善，但 simultaneous lower bound、tail 与 lifecycle gates 都失败。</p>
-<p>E1、E2、M2、continuous comparator 和简单 campaign-age candidate 的 terminal point increment 也都是负数。SELL 因此没有 successor candidate，不能靠 pooled BUY/SELL 结果掩盖这一侧的失败。</p>
+<p>E1、E2、M2、continuous comparator 和简单 库存生命周期-age candidate 的 terminal point increment 也都是负数。SELL 因此没有 successor candidate，不能靠 pooled BUY/SELL 结果掩盖这一侧的失败。</p>
 <h2 id="12-formal-v13-到-formal-v27-不是十五代研究"><a href="#12-formal-v13-到-formal-v27-不是十五代研究" class="headerlink" title="12. formal-v13 到 formal-v27 不是十五代研究"></a>12. <code>formal-v13</code> 到 <code>formal-v27</code> 不是十五代研究</h2><p>这项研究的执行历史很长：scheduler、cache schema、C++ lockstep、mmap lifetime、resume identity 和跨执行 cache binding 都出现过失败。历史记录曾使用 <code>formal-v13</code> 到 <code>formal-v27</code> 等名字，看上去像连续迭代了十五个研究版本。</p>
 <p>更准确的身份模型是：它们是同一冻结研究身份下的 execution attempts。样本、B0、candidate ladder、fold、estimand 和 statistical contract 没变；普通运行时 bug 不会创造新的研究问题，也不能让失败 attempt 的部分经济结果继续使用。</p>
 <p>把 research identity 写成合同元组：</p>
@@ -901,7 +901,7 @@ A_{k+1}=A_k\land G_k(E_k).</script><p>一旦 Development gate 为 false，后面
 <div class="code-wrapper"><pre><code class="hljs text">research: design -&gt; Development -&gt; refit -&gt; Validation -&gt; holdout -&gt; supported action
 operations: candidate release -&gt; safety gate -&gt; canary -&gt; observation -&gt; promotion or rollback</code></pre></div>
 <p><img src="/images/narrowgate/full-multiscale-evidence-boundary.svg" srcset="/img/loading.gif" lazyload alt="Full-Multiscale 的证据与权限边界"></p>
-<p><em>图 14：研究完成到 historical Development OOF，并在门槛处停止；final refit、Validation、holdout、action 与 live authority 都没有被创建。</em></p>
+<p><em>图 14：研究完成到 historical Development OOF，并在门槛处停止；final refit、Validation、holdout、action 与 实盘有效性证据 都没有被创建。</em></p>
 <p>它没有证明多尺度状态毫无信息，也没有证明所有 state-to-duration policy 都无效。搜索本身是 bounded 的，queue 是 modeled 的，证据是 exchange-time Development，strict-native 同毫秒顺序、receive-time transport、exact lifecycle 和 final-artifact confirmation 都不在它的 authority 内。</p>
 <p>BUY E3 可以被保留为高优先级 hypothesis，但未来若确认，必须在读取新证据前冻结 E3 的 feature、rule、threshold、action 和 statistical contract，并建立新的 confirmation identity。不能回到这 30 日上修改 hierarchy、缩窄区间、挑选聚类方法或重调 action rate。</p>
 <p>任何后续 owner operational decision 也是独立权限。它可以显式接受未闭合风险，但不能倒写成本文的 research hard gates 已经通过。</p>

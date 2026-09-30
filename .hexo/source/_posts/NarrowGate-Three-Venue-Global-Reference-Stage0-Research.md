@@ -13,9 +13,6 @@ tags:
 math: true
 ---
 
-
-
-
 ## 1. BABEL 外部市场研究是一张并行路线图
 
 Bitget、Bybit 与 OKX 的价格和主动成交可以提供本地 BTCUSDC 之外的信息，但“外部市场有预测增量”离“应当移动本地报价”相隔多层。Stage 0、information decay、causal fair price、first-add M0/M1、adverse-edge guard 和 fair-center randomized replay 都属于同一 BABEL 研究计划的不同桥段：先建立信息与时钟，再建立坐标，再问状态价值，最后才允许动作。
@@ -52,9 +49,9 @@ $$
 
 冻结面板覆盖 111 个保留 UTC 日。OKX 永续含 `399,947,490` 笔标准化成交和 `8,742,874` 个一秒状态，OKX 现货含 `69,915,914` 笔成交和 `5,846,509` 个状态，USDCUSDT 锚含 `46,776,513` 笔聚合成交和 `8,792,656` 个一秒 bars。三交易所现货与永续联接后有 `7,547,083` 个状态；层级 reference 最终有 `6,247,083` 个状态，其中 `4,659,028` 个同时通过新鲜度、2-of-3、方向一致、离散度与因果 basis gates。
 
-最值得保留的线索是 `SELL submit 1s`：它是唯一在全来源和三个 LOO 版本中，30 秒与 campaign delta 均保持正向的 global-residual row。但量级只有约 `+0.05` 到 `+0.10 bps`，5 秒效果为负，逐日方向接近一半；`SELL fill + divergent` 虽有更大的 30 秒线索，却不能在短时、campaign repair 与 LOO 中稳定复现。因此 Stage 0 没有授权 re-center、cancel、tighten、size 或 lifecycle 动作。
+最值得保留的线索是 `SELL submit 1s`：它是唯一在全来源和三个 LOO 版本中，30 秒与 库存生命周期 delta 均保持正向的 global-residual row。但量级只有约 `+0.05` 到 `+0.10 bps`，5 秒效果为负，逐日方向接近一半；`SELL fill + divergent` 虽有更大的 30 秒线索，却不能在短时、库存生命周期 repair 与 LOO 中稳定复现。因此 Stage 0 没有授权 re-center、cancel、tighten、size 或 lifecycle 动作。
 
-更重要的勘误是：旧报告里 maker markout、fill、campaign 与 PnL 的精确表使用了后来被替换的本地 mixed-L2/queue denominator，现已撤回。仍成立的是外部逐笔成交的一秒因果状态构造和 LOO 方法，以及“本次 Stage 0 不足以授权动作”。它不等于“外部信息没有价值”，也不能否定 receive-time BBO/trades 对亚秒 fill toxicity 的价值。
+更重要的勘误是：旧报告里 maker markout、fill、库存生命周期 与 PnL 的精确表使用了后来被替换的本地 mixed-L2/queue denominator，现已撤回。仍成立的是外部逐笔成交的一秒因果状态构造和 LOO 方法，以及“本次 Stage 0 不足以授权动作”。它不等于“外部信息没有价值”，也不能否定 receive-time BBO/trades 对亚秒 fill toxicity 的价值。
 
 ![三交易所外部状态到BTCUSDC参考坐标的因果链](/images/narrowgate/three-venue-global-reference-stage0.svg)
 
@@ -66,7 +63,7 @@ $$
 
 BTCUSDC 的本地订单簿并不孤立。BTCUSDT 流动性更深，多个交易所的现货和永续也可能先出现共同方向、spot/perp 分歧或某家异常。直觉上，外部市场先跌时，继续在本地卖出似乎更安全，继续买入似乎更危险；但这个直觉混合了价格翻译、时间可见性、来源故障与交易动作四件不同的事。
 
-Stage 0 把问题收窄为：在不改变报价、尺寸、库存限制、撤单或成交的前提下，一个由三交易所逐笔成交构造的秒级 external state，能否稳定排序之后 5 秒、30 秒与 campaign 层结果？
+Stage 0 把问题收窄为：在不改变报价、尺寸、库存限制、撤单或成交的前提下，一个由三交易所逐笔成交构造的秒级 external state，能否稳定排序之后 5 秒、30 秒与 库存生命周期 层结果？
 
 这首先是 diagnostics，而不是策略。若状态连结果排序都不稳定，就没有理由进一步做 action；若排序稳定，也仍需要另一个冻结动作实验来回答“移动报价是否改善价值”。
 
@@ -92,7 +89,7 @@ $$
 \Delta_h(s)=E[M_{t,h}\mid S_t=s]-E[M_{t,h}\mid S_t\in baseline],
 $$
 
-其中 $h\in\{5s,30s\}$，另有 campaign terminal/repair diagnostics。由于本地 outcome denominator 后来被撤回，今天不能再把旧精确数字当成可用经济估计；只保留其方向稳定性不足所支持的 no-action decision。
+其中 $h\in\{5s,30s\}$，另有 库存生命周期 terminal/repair diagnostics。由于本地 outcome denominator 后来被撤回，今天不能再把旧精确数字当成可用经济估计；只保留其方向稳定性不足所支持的 no-action decision。
 
 ### 3. 数据面板与两只时钟
 
@@ -138,13 +135,13 @@ $$
 | hierarchical reference states | 6,247,083 |
 | strict gates passed | 4,659,028 |
 
-大覆盖证明 reference 可以构造，不证明 maker action 有价值。冻结审计里，只有 `SELL submit 1s` 在全来源和三种 LOO 中同时保留正的 30 秒与 campaign delta；但它的 30 秒量级约 `+0.05` 至 `+0.10 bps`，5 秒为负，逐日正负接近各半。
+大覆盖证明 reference 可以构造，不证明 maker action 有价值。冻结审计里，只有 `SELL submit 1s` 在全来源和三种 LOO 中同时保留正的 30 秒与 库存生命周期 delta；但它的 30 秒量级约 `+0.05` 至 `+0.10 bps`，5 秒为负，逐日正负接近各半。
 
-`SELL fill + divergent` 的较长 horizon clue 更大，却在 5 秒接近零或翻转，删除某家后 campaign 与 repair 也不稳定。`BUY submit + perp_only_up`、`SELL fill + perp_only_up` 只是局部长时线索；`spot_leading` 小桶则样本不足。这样的结果适合生成下一步问题，不适合把 threshold 写进报价器。
+`SELL fill + divergent` 的较长 horizon clue 更大，却在 5 秒接近零或翻转，删除某家后 库存生命周期 与 repair 也不稳定。`BUY submit + perp_only_up`、`SELL fill + perp_only_up` 只是局部长时线索；`spot_leading` 小桶则样本不足。这样的结果适合生成下一步问题，不适合把 threshold 写进报价器。
 
 ### 6. 为什么旧 maker 数字必须撤回
 
-后续数据治理发现，原报告所联接的本地 BTCUSDC outcomes 使用了已经被 normalized/native replay 取代的 mixed L2/queue identity。它会影响 fill、queue 与 campaign denominator，所以即使外部 state 本身无误，也不能继续引用旧 markout、fill、campaign 或 PnL 精确表。
+后续数据治理发现，原报告所联接的本地 BTCUSDC outcomes 使用了已经被 normalized/native replay 取代的 mixed L2/queue identity。它会影响 fill、queue 与 库存生命周期 denominator，所以即使外部 state 本身无误，也不能继续引用旧 markout、fill、库存生命周期 或 PnL 精确表。
 
 撤回不是把整个研究删除。可复用部分包括：来源翻译、一秒右边界、2-of-3、LOO、因果 basis、严格 gates 和对短长 horizon 不一致的观察。不可复用部分是基于旧本地 denominator 的经济量级。把这两部分分开，比用“结果大概没变”强行保留数字更诚实。
 
@@ -174,7 +171,7 @@ $$
 
 ### 9. 没有获得的权限
 
-本项目没有读取 Validation 或 sealed holdout，没有获得 prediction promotion、quote action、re-center、cancel、widen/tighten、size、shadow deployment 或 live authority。保留全部六个外部 spot/perp 来源作为未来研究输入，只表示数据层有价值，不表示任一策略已获准运行。
+本项目没有读取 Validation 或 sealed holdout，没有获得 prediction promotion、quote action、re-center、cancel、widen/tighten、size、shadow deployment 或 实盘有效性证据。保留全部六个外部 spot/perp 来源作为未来研究输入，只表示数据层有价值，不表示任一策略已获准运行。
 
 ### 深入推导：global reference 为什么首先是一个稳健坐标问题
 
@@ -291,7 +288,7 @@ $$
 
 研究问题因此是：在固定的因果一秒可见性合同下，外部三 venue 状态相对本地 baseline 的方向预测增量，在 $h=1,2,\ldots,18$ 秒上如何衰减？应该选哪一个 horizon 进入独立确认，而不是一次性把所有 horizon 都带入策略？
 
-这个问题与“哪个 feature lookback 最好”不同。内部仍保留固定 multiscale basis；实验只改变 future-direction target horizon。也与“是否取消当前订单”不同：方向 prediction 没有定义 action cost、queue loss、inventory feedback 或 campaign terminal value。
+这个问题与“哪个 feature lookback 最好”不同。内部仍保留固定 multiscale basis；实验只改变 future-direction target horizon。也与“是否取消当前订单”不同：方向 prediction 没有定义 action cost、queue loss、inventory feedback 或 库存生命周期 terminal value。
 
 ### 2. M0、M1 与 estimand
 
@@ -384,7 +381,7 @@ post-peak half-gain horizon 为 9 秒：它描述经验曲线从 1 秒峰值下�
 
 未关闭：亚秒 receive-time decay、side-specific maker fill quality、动态 event-time kernels，以及任何经济 action estimand。
 
-没有获得：Test/late 读取、Validation promotion、cancel、widen、re-center、quote replacement、shadow 或 live authority。prediction qualification 也不能跨层继承为 action permission。
+没有获得：Test/late 读取、Validation promotion、cancel、widen、re-center、quote replacement、shadow 或 实盘有效性证据。prediction qualification 也不能跨层继承为 action permission。
 
 ### 深入推导：为什么必须对整条 horizon 曲线同时推断
 
@@ -481,9 +478,9 @@ NarrowGate 的 `cross_venue_causal_fair_price_v1` 试图回答一个比“外部
 
 历史 Development sensitivity 覆盖 40 个 UTC 日，冻结 all venues 与 leave-Bitget/Bybit/OKX-out 四个 variants。为了不让不同 variants 各自在自己最有利的 rows 上比较，四者共享交集 validity mask：overall common support 为 `0.896466724537037`，最低单日为 `0.667349537037037`。
 
-这个数字证明“坐标在大部分历史一秒 states 上可以按合同计算”，不证明它能预测 campaign value，更不证明中心平移有正收益。历史适配器使用 provider/event-time 的一秒 individual-trade bars，只能做 coverage 与 sensitivity；真实 receive-time BBO 的输运、feature-ready clock 与执行 parity 必须另证。
+这个数字证明“坐标在大部分历史一秒 states 上可以按合同计算”，不证明它能预测 库存生命周期 value，更不证明中心平移有正收益。历史适配器使用 provider/event-time 的一秒 individual-trade bars，只能做 coverage 与 sensitivity；真实 receive-time BBO 的输运、feature-ready clock 与执行 parity 必须另证。
 
-项目的最终状态是 frozen coordinate evidence。它输出 `causally_visible_cross_venue_fair_price_usdc_per_btc`，没有读取 Validation 或 sealed holdout，没有获得 prediction、action、shadow collection、部署或 live authority。后来的独立对称 fair-center shift 动作失败，也不能倒推出这个坐标“错误”；coordinate 与 action 是不同 estimand。
+项目的最终状态是 frozen coordinate evidence。它输出 `causally_visible_cross_venue_fair_price_usdc_per_btc`，没有读取 Validation 或 sealed holdout，没有获得 prediction、action、shadow collection、部署或 实盘有效性证据。后来的独立对称 fair-center shift 动作失败，也不能倒推出这个坐标“错误”；coordinate 与 action 是不同 estimand。
 
 ![三交易所价格经basis和weighted median形成收缩公允中心](/images/narrowgate/cross-venue-causal-fair-price.svg)
 
@@ -517,7 +514,7 @@ $$
 
 $C_t^{base}$ 已含本地 inventory reservation 等 baseline 逻辑，$M_t^{local}$ 是本地 mid，$g_t\in[0,1]$ 是 outcome-blind 在线 gain。这个公式不会直接生成 bid/ask，也不决定 move、cancel、size 或 keep。若未来动作要移动整对报价，它必须冻结 spread-preserving rule、tick rounding、GTX clamp、queue reset 和经济 estimand。
 
-非目标包括未来方向分类、campaign value prediction、fill toxicity 和动作收益。即使 $F_t^{ext}$ 看起来领先，本项目也不读取这些 labels 来调 basis、half-life、dispersion gate 或 gain。
+非目标包括未来方向分类、库存生命周期 value prediction、fill toxicity 和动作收益。即使 $F_t^{ext}$ 看起来领先，本项目也不读取这些 labels 来调 basis、half-life、dispersion gate 或 gain。
 
 ### 3. Past-only basis：当前观测不能校正自己
 
@@ -614,7 +611,7 @@ $$
 
 cross-venue price translation、fair-price spec、historical cache audit、feature DAG 与 coordinate parity 都在回答同一个 identity：坐标怎样被因果地计算。坐标一致性为后续动作比较提供输入，并不直接证明收益增量。
 
-而 Stage 0 global residual、external information decay 和后来的 fair-center shift action 必须保持独立。Stage 0 问一秒状态是否排序结果；decay 问未来方向的 target horizon；本项目只定义 fair coordinate；动作 sibling 才问移动 bid/ask 是否改善 campaign economics。输入相似不代表 estimand 相同。
+而 Stage 0 global residual、external information decay 和后来的 fair-center shift action 必须保持独立。Stage 0 问一秒状态是否排序结果；decay 问未来方向的 target horizon；本项目只定义 fair coordinate；动作 sibling 才问移动 bid/ask 是否改善 库存生命周期 economics。输入相似不代表 estimand 相同。
 
 后来的对称 center-shift 动作在另一研究族的 24-day Grade-A Development 上点估计为正，但 lower bound 跨零，leave-Bybit-out 的 reward 与 USDC/day 方向为负，因此 action 关闭。这个结果不删除本 coordinate，也不授权改成 outward-only guard；每个动作需要自己的冻结身份。
 
@@ -622,9 +619,9 @@ cross-venue price translation、fair-price spec、historical cache audit、featu
 
 支持：在 40 日历史一秒 sensitivity source 上，past-only basis、2-of-3 weighted median、online gain 和四路 common-mask LOO 可以稳定产出一条有明确 fallback 的 BTCUSDC coordinate，overall support 约 89.65%。
 
-未支持：方向 prediction、campaign value、fill quality、quote-center economic uplift、receive-time transport 与亚秒执行。common support 高不等于收益高。
+未支持：方向 prediction、库存生命周期 value、fill quality、quote-center economic uplift、receive-time transport 与亚秒执行。common support 高不等于收益高。
 
-没有获得：Validation、sealed holdout、参数 outcome tuning、quote mutation、action experiment、shadow collection、model promotion、部署或 live authority。早期 spec 中任何历史性工程许可都不能被解释成当前运行授权；本文采用当前公开 README 的更严格边界。
+没有获得：Validation、sealed holdout、参数 outcome tuning、quote mutation、action experiment、shadow collection、model promotion、部署或 实盘有效性证据。早期 spec 中任何历史性工程许可都不能被解释成当前运行授权；本文采用当前公开 README 的更严格边界。
 
 ### 深入推导：past-only basis 与 online gain 各解决什么
 
@@ -685,7 +682,7 @@ online gain也必须有shrinkage与support gate。短窗口内某venue偶然领�
 
 设baseline center误差较大但quotes较宽，candidate center MAE更小却把BUY与SELL整对平移。若平移方向在inventory-exposure side增加了更多toxic fills，terminal value仍会恶化。反过来，一个center prediction总体无显著MAE改善，也可能在特定inventory-reducing role上有动作价值。
 
-因此从fair price到quote至少要区分pair-preserving recenter与side-specific width。前者保持spread但改变两侧相对本地book的位置；后者改变成交机会。完整研究需要记录candidate quote是否cross、距best多少ticks、queue seed、fill role与campaign outcome，而不是把价格预测误差直接换算成PnL。
+因此从fair price到quote至少要区分pair-preserving recenter与side-specific width。前者保持spread但改变两侧相对本地book的位置；后者改变成交机会。完整研究需要记录candidate quote是否cross、距best多少ticks、queue seed、fill role与库存生命周期 outcome，而不是把价格预测误差直接换算成PnL。
 
 一个安全的后继顺序是：先在common-mask上验证causal fair price；再做leave-one-venue-out和signal-age敏感性；然后冻结一个很小的recenter action；最后做paired full-path replay。每层失败都停止，不能用后层偶然PnL给前层补票。
 
@@ -719,31 +716,31 @@ MAE适合中心误差，但maker还关心signed error、tail和turnover。一个
 
 ### TL;DR：30 日数量门已完成，但 exact lifecycle 与共同分母仍未闭合，因此没有模型结果
 
-First-Add M0/M1 研究的目标不是预测下一秒涨跌，而是识别 maker campaign 中第一次 exposure-increasing add 是否会带来负的 campaign-terminal value。M0 只使用 campaign state 与本地因果微观结构；M1 在完全相同的 first-add rows 上加入 Bitget、Bybit、OKX 的真实接收时钟外部状态，包含 10/25/50/100/250/500ms 多尺度窗口。
+First-Add M0/M1 研究的目标不是预测下一秒涨跌，而是识别 maker 库存生命周期 中第一次 exposure-increasing add 是否会带来负的 库存生命周期-terminal value。M0 只使用 库存生命周期 state 与本地因果微观结构；M1 在完全相同的 first-add rows 上加入 Bitget、Bybit、OKX 的真实接收时钟外部状态，包含 10/25/50/100/250/500ms 多尺度窗口。
 
 冻结 target 是直接经济结果：
 
 $$
-Y=V(T_{campaign})-V(t_{first\ add}),
+Y=V(T_{库存生命周期})-V(t_{first\ add}),
 $$
 
-单位为每个 first-add decision 的 USDC。未来方向、独立 markout、fill-conditioned toxicity 都不能替代它，因为那些 target 不包含后续加仓、修复、库存持有与 campaign 终结。
+单位为每个 first-add decision 的 USDC。未来方向、独立 markout、fill-conditioned toxicity 都不能替代它，因为那些 target 不包含后续加仓、修复、库存持有与 库存生命周期 终结。
 
 早期公开 preregistration 写着“等待 30 个不同 UTC 日”，当时快照只有 16 个完整 windows、15 个不同日。后来的公开 BABEL evidence map 更新了状态：历史采集已关闭，共 `31` 个 valid full windows、覆盖 `30` 个 distinct UTC days；同一天的重复 window 只计一次。因此 count gate 已通过，不再是当前 blocker。
 
-但是研究没有开始拟合，也没有经济结论。它仍被 corrected exact-lifecycle successor 以及逐行共同分母、source transport、因果时钟、true leave-one-venue-out、BUY/SELL 分侧、Grade A/B、chronological split 与 late-panel admission gates 阻塞。数量够了，不等于样本身份正确；在 exact first-add decision、campaign lineage 与 external feature-ready time 对齐前，任何 M0/M1 AUC 或 score 都会回答错误问题。
+但是研究没有开始拟合，也没有经济结论。它仍被 corrected exact-lifecycle successor 以及逐行共同分母、source transport、因果时钟、true leave-one-venue-out、BUY/SELL 分侧、Grade A/B、chronological split 与 late-panel admission gates 阻塞。数量够了，不等于样本身份正确；在 exact first-add decision、库存生命周期 lineage 与 external feature-ready time 对齐前，任何 M0/M1 AUC 或 score 都会回答错误问题。
 
-最终状态是“preregistered、count-complete、evidence-blocked”。没有 Validation 或 sealed holdout 读取，没有模型、阈值或 action 结果，也没有获得 shadow collection、quote action 或 live authority。若未来两侧都不能通过冻结 prediction gates，该 first-add classifier route 将关闭并转向经济结构重设计；即使某一侧通过，也只得到 prediction evidence，仍需独立 action experiment。
+最终状态是“preregistered、count-complete、evidence-blocked”。没有 Validation 或 sealed holdout 读取，没有模型、阈值或 action 结果，也没有获得 shadow collection、quote action 或 实盘有效性证据。若未来两侧都不能通过冻结 prediction gates，该 first-add classifier route 将关闭并转向经济结构重设计；即使某一侧通过，也只得到 prediction evidence，仍需独立 action experiment。
 
-![first-add决策、外部多尺度状态与campaign终值的因果链](/images/narrowgate/first-add-external-m0-m1.svg)
+![first-add决策、外部多尺度状态与库存生命周期终值的因果链](/images/narrowgate/first-add-external-m0-m1.svg)
 
-*图 1：机制示意。在一段 maker campaign 中，第一次 exposure-increasing add 是唯一 assignment row；M0 与 M1 读取决策前可见状态，target 到 campaign terminal 才确定。K 线与订单位置不是实盘记录。*
+*图 1：机制示意。在一段 maker 库存生命周期 中，第一次 exposure-increasing add 是唯一 assignment row；M0 与 M1 读取决策前可见状态，target 到 库存生命周期 terminal 才确定。K 线与订单位置不是实盘记录。*
 
 本文只说明预注册和公开状态，不建议任何真实交易行为。
 
 ### 1. 研究问题：为什么只研究“第一次加仓”
 
-maker campaign 往往从 flat/opening 开始，随后可能加仓、减仓、修复并最终回到 flat。把所有 fills 混在一起，会把动作角色混淆：一个 reducing fill 降低风险，一个 exposure-increasing fill 增加风险；同一次 campaign 的多个 adds 还共享后续 terminal value，不能当作独立样本。
+maker 库存生命周期 往往从 flat/opening 开始，随后可能加仓、减仓、修复并最终回到 flat。把所有 fills 混在一起，会把动作角色混淆：一个 reducing fill 降低风险，一个 exposure-increasing fill 增加风险；同一次 库存生命周期 的多个 adds 还共享后续 terminal value，不能当作独立样本。
 
 First-add identity 把 decision unit 冻结为：已有非零或刚建立方向性 exposure 后，第一次会增加绝对库存的 maker add 决策。BUY/SELL 分开建模，因为买侧 adverse state 和卖侧 adverse state 不必对称。
 
@@ -753,23 +750,23 @@ $$
 |q_{t^-}+\delta q_s|>|q_{t^-}|.
 $$
 
-“first” 要由完整 campaign lifecycle 确定，而不是从某条 quote log 推测。若一笔订单先 partial fill、cancel-reject 后继续成交，或同一 decision 产生 replace，新旧 order identity 必须沿 lineage 归属于同一次决策；否则 first-add denominator 会重复或错位。
+“first” 要由完整 库存生命周期 lifecycle 确定，而不是从某条 quote log 推测。若一笔订单先 partial fill、cancel-reject 后继续成交，或同一 decision 产生 replace，新旧 order identity 必须沿 lineage 归属于同一次决策；否则 first-add denominator 会重复或错位。
 
 ### 2. 直接 target 为什么不可替代
 
-$V(t)$ 是冻结 accounting contract 下，campaign 在时刻 $t$ 的已实现加未实现价值。直接 target：
+$V(t)$ 是冻结 accounting contract 下，库存生命周期 在时刻 $t$ 的已实现加未实现价值。直接 target：
 
 $$
 Y_i=V_i(T_i)-V_i(t_i)
 $$
 
-从 first-add decision $t_i$ 一直计算到同一 campaign 的 terminal $T_i$。若 $Y_i<0$，表示从该决策到 campaign 结束净价值为负；它自然包含后续成交、价格变化、fees、inventory repair 与 terminal realization。
+从 first-add decision $t_i$ 一直计算到同一 库存生命周期 的 terminal $T_i$。若 $Y_i<0$，表示从该决策到 库存生命周期 结束净价值为负；它自然包含后续成交、价格变化、fees、inventory repair 与 terminal realization。
 
-相比之下，5 秒 markout 只看固定 horizon 价格，未来 direction 只看符号，fill toxicity 又通常以“已经成交”为条件。它们可以是 feature diagnostics，却不能回答“若在这个 first-add decision 上识别高风险，是否找到负价值子集”。F10 的先行 evidence 说明 first-add 平均价值两侧为负，F05 的本地 campaign/microstructure 模型没有找到稳定负值子集；本研究问外部 receive-time state 是否提供增量。
+相比之下，5 秒 markout 只看固定 horizon 价格，未来 direction 只看符号，fill toxicity 又通常以“已经成交”为条件。它们可以是 feature diagnostics，却不能回答“若在这个 first-add decision 上识别高风险，是否找到负价值子集”。F10 的先行 evidence 说明 first-add 平均价值两侧为负，F05 的本地 inventory_lifecycle/microstructure 模型没有找到稳定负值子集；本研究问外部 receive-time state 是否提供增量。
 
 ### 3. M0、M1 与 estimand
 
-M0 的输入是 decision 前 campaign state 与本地 causal microstructure。可包括当前 signed inventory/role、campaign age、已有 fills、local book/flow、queue/lifecycle 可见状态，但每一列必须在 $t_i$ 前 ready。
+M0 的输入是 decision 前 库存生命周期 state 与本地 causal microstructure。可包括当前 signed inventory/role、库存生命周期 age、已有 fills、local book/flow、queue/lifecycle 可见状态，但每一列必须在 $t_i$ 前 ready。
 
 M1 为：
 
@@ -797,15 +794,15 @@ $$
 
 外部 event time 早于 decision 仍不够；如果网络接收或计算在 decision 后完成，特征不可用。10–500ms windows 是既有 receive-time ABI 的工程支持，不是从 first-add outcome 上挑出的“最佳 horizon”。
 
-target 则严格位于未来，直到 campaign terminal 才完成。训练/评分生成 labels 可以读取 $T_i$，但 feature builder、row admission 和模型输入都不能。embargo 还需阻止相邻 campaign 或跨日未闭合路径把未来信息带回训练。
+target 则严格位于未来，直到 库存生命周期 terminal 才完成。训练/评分生成 labels 可以读取 $T_i$，但 feature builder、row admission 和模型输入都不能。embargo 还需阻止相邻 库存生命周期 或跨日未闭合路径把未来信息带回训练。
 
 | 层级 | 冻结要求 |
 | --- | --- |
 | Decision unit | exact first exposure-increasing add |
-| Target | decision-to-campaign-terminal USDC |
+| Target | decision-to-库存生命周期-terminal USDC |
 | Sides | BUY、SELL 独立 |
 | Quality | Grade A primary；Grade B sensitivity |
-| M0 | campaign + local causal microstructure |
+| M0 | 库存生命周期 + local causal microstructure |
 | M1 | M0 + 三 venue receive-time multiscale state |
 | Source robustness | full + 三个 true LOO，同 rows |
 | 最小时序 | 20 train + 1 embargo + 5 test + 4 late days |
@@ -821,7 +818,7 @@ target 则严格位于未来，直到 campaign terminal 才完成。训练/评�
 
 ### 6. 为什么 count-complete 仍不能拟合
 
-30 日门只回答 chronology 是否有最低支持，不回答 rows 是否正确。正式拟合前必须闭合：exact first-add lifecycle；每个 decision 的稳定 ID；signed inventory 与 role；campaign terminal lineage；无重复或缺失 terminal；外部 source/feature-ready clocks；M0/M1 与所有 LOO 的 common-row intersection；Grade A/B quality；两侧最低样本；train/test/late 隔离。
+30 日门只回答 chronology 是否有最低支持，不回答 rows 是否正确。正式拟合前必须闭合：exact first-add lifecycle；每个 decision 的稳定 ID；signed inventory 与 role；库存生命周期 terminal lineage；无重复或缺失 terminal；外部 source/feature-ready clocks；M0/M1 与所有 LOO 的 common-row intersection；Grade A/B quality；两侧最低样本；train/test/late 隔离。
 
 举例说，若旧 quote row 只有写日志的毫秒时间而没有 decision-start 时间，外部状态可能在实际 decision 后、日志前变为可见。把它 join 进来会产生几十毫秒级 look-ahead。又如，若 order replace 后失去 origin decision ID，同一 first-add 可能被算成两次。样本量越大，只会让这种系统误差的置信区间越窄。
 
@@ -833,11 +830,11 @@ target 则严格位于未来，直到 campaign terminal 才完成。训练/评�
 
 这些 gates 不是把所有指标都当同等主终点。proper score 回答整体增量，高风险 subset 回答是否真的定位负值，LOO/Grade B/late 是 robustness。若某侧样本不足，结果是 defer，不是降低阈值；若两侧均完成且失败，关闭当前 classifier route。
 
-即便一侧通过，也只支持“外部 state 对这个 exact target 有 incremental prediction”。下一步若要 test ADD/NO-ADD、widen 或 cancel，需要在 F09 类 action identity 下冻结 intervention、propensity、共同支持、campaign reward 与 tail gates。prediction model 的 high-risk label 不能自动成为政策。
+即便一侧通过，也只支持“外部 state 对这个 exact target 有 incremental prediction”。下一步若要 test ADD/NO-ADD、widen 或 cancel，需要在 F09 类 action identity 下冻结 intervention、propensity、共同支持、库存生命周期 reward 与 tail gates。prediction model 的 high-risk label 不能自动成为政策。
 
 ### 8. 与 Adverse-Edge Guard 为什么不是一个项目
 
-两者都使用外部三 venue receive-time state，但 denominator 和 estimand 不同。First-Add P1 只看 exact first exposure-increasing add，目标是 campaign-terminal value；Adverse-Edge mechanics P2 看所有 paired quote-opportunity 中的 opener/add，且 outcome-blind，只问信号是否及时可见并能把 quote 向外移动。
+两者都使用外部三 venue receive-time state，但 denominator 和 estimand 不同。First-Add P1 只看 exact first exposure-increasing add，目标是 库存生命周期-terminal value；Adverse-Edge mechanics P2 看所有 paired quote-opportunity 中的 opener/add，且 outcome-blind，只问信号是否及时可见并能把 quote 向外移动。
 
 P2 的 26 个 changes 中只有 6 个是 adds，20 个是 openers，所以不能拿它的 trigger rate 代替 P1 的 prediction support。P1 的 30 日 collection 也不能自动成为 P2 exact-opener tape。BABEL map 把它们画成并行路线，只有未来在同一个 exact surface 上重新注册，才可能会合。
 
@@ -853,41 +850,41 @@ P2 的 26 个 changes 中只有 6 个是 adds，20 个是 openers，所以不能
 
 仍阻塞：corrected exact lifecycle、row-level/common-mask、source transport、causal clock、side/quality 与 late-panel admission。当前没有 prediction 或 economics result。
 
-没有获得：Validation 或 sealed holdout 读取、模型拟合后的 promotion、阈值选择、ADD/NO-ADD、cancel、widen、re-center、shadow collection、外部 feed action 或 live authority。
+没有获得：Validation 或 sealed holdout 读取、模型拟合后的 promotion、阈值选择、ADD/NO-ADD、cancel、widen、re-center、shadow collection、外部 feed action 或 实盘有效性证据。
 
 ### 深入推导：为什么 first-add 是一个自然 decision surface
 
-Campaign opener 把库存从零变成非零，first add 则把已有暴露进一步加深。后者发生时，策略已经拥有一段 campaign history：初次成交价格、当前库存、已等待时间、repair 是否失败、外部市场是否继续领先。它既比任意 add 更同质，又直接对应“是否继续增加风险”的动作问题。
+库存生命周期 opener 把库存从零变成非零，first add 则把已有暴露进一步加深。后者发生时，策略已经拥有一段 库存生命周期 history：初次成交价格、当前库存、已等待时间、repair 是否失败、外部市场是否继续领先。它既比任意 add 更同质，又直接对应“是否继续增加风险”的动作问题。
 
-目标不应从 realized fill rows 倒推。正确 row 在 baseline 首次满足 add eligibility 的 decision 时产生，无论候选最终是否成交；reward 从 decision 前权益一直追到 campaign terminal。否则只保留发生了 fill 的路径，会把 action-dependent selection 写进训练集。
+目标不应从 realized fill rows 倒推。正确 row 在 baseline 首次满足 add eligibility 的 decision 时产生，无论候选最终是否成交；reward 从 decision 前权益一直追到 库存生命周期 terminal。否则只保留发生了 fill 的路径，会把 action-dependent selection 写进训练集。
 
-![First-add 外部增量从 source clock 到 campaign terminal](/images/narrowgate/f04-external-signal-to-action-clock.svg)
+![First-add 外部增量从 source clock 到 库存生命周期 terminal](/images/narrowgate/f04-external-signal-to-action-clock.svg)
 
 *图 2：M1 外部状态必须在 first-add decision 前 ready；terminal 只能作为标签。数量门完成并不代表 lifecycle 这条路径可识别。*
 
 ### M0/M1 增量究竟检验什么
 
-M0 应包含本地 decision-visible state：inventory、campaign age、local flow、spread、queue/placement、P3 与波动等。M1 只增加冻结的 external state。比较对象不是两个模型各自的 AUC，而是共同 rows 上的增量：
+M0 应包含本地 decision-visible state：inventory、库存生命周期 age、local flow、spread、queue/placement、P3 与波动等。M1 只增加冻结的 external state。比较对象不是两个模型各自的 AUC，而是共同 rows 上的增量：
 
 $$
 \Delta_{M1}=L_{OOF}(M0)-L_{OOF}(M1).
 $$
 
-若 M1 改善，才能说外部信息在本地状态之外提供额外解释；若只看 M1 自身表现，模型可能完全依赖本地 inventory 或 campaign age。即使增量通过，也只建立 observational value prediction，动作仍需 randomized/paired add versus no-add。
+若 M1 改善，才能说外部信息在本地状态之外提供额外解释；若只看 M1 自身表现，模型可能完全依赖本地 inventory 或 库存生命周期 age。即使增量通过，也只建立 observational value prediction，动作仍需 randomized/paired add versus no-add。
 
 ### 为什么 30 日 count complete 仍然不是 usable panel
 
-一天有至少一个 capture window，只证明日期数量达到门槛。正式 first-add row 还需要在同一 causal interval 上连接 external trades、local L2、policy decision、order activation、fill/cancel ACK、inventory campaign 与 terminal equity。任一关键字段缺失，都可能使 M0/M1 看到不同 rows 或让 reward 截断。
+一天有至少一个 capture window，只证明日期数量达到门槛。正式 first-add row 还需要在同一 causal interval 上连接 external trades、local L2、policy decision、order activation、fill/cancel ACK、库存生命周期 与 terminal equity。任一关键字段缺失，都可能使 M0/M1 看到不同 rows 或让 reward 截断。
 
-特别是 exact lifecycle gate：若不知道某张订单何时真正 active、何时 cancel ACK，无法判断它在风险集中多久；若 campaign terminal 缺失，不能把最后一个 markout 当作 flat。共同分母要求 M0 与 M1 对完全相同 rows 可评分，不能让外部缺失只删除 M1 的难例。
+特别是 exact lifecycle gate：若不知道某张订单何时真正 active、何时 cancel ACK，无法判断它在风险集中多久；若 库存生命周期 terminal 缺失，不能把最后一个 markout 当作 flat。共同分母要求 M0 与 M1 对完全相同 rows 可评分，不能让外部缺失只删除 M1 的难例。
 
 所以项目停在 count complete 是严谨的阻塞状态。继续训练一个“能跑”的模型会换成较窄 estimand，再把它误写成原问题答案。
 
 ### First-add row 怎样避免把结果条件化进输入
 
-一条campaign可以有许多候选时刻，但本项目的decision unit是第一次允许增加absolute inventory的机会。row必须在动作发生前确定：campaign id、current inventory、side/role、candidate quote、internal state、external features与feature-ready ages。随后才附上activation、fill、campaign terminal outcome等未来字段。
+一条库存生命周期可以有许多候选时刻，但本项目的decision unit是第一次允许增加absolute inventory的机会。row必须在动作发生前确定：库存生命周期 id、current inventory、side/role、candidate quote、internal state、external features与feature-ready ages。随后才附上activation、fill、库存生命周期 terminal outcome等未来字段。
 
-若只保留实际发生first-add的campaign，会条件化在baseline action与execution上；若只保留filled first-add，又会进一步形成fill collider。正确面板应包含所有合法decision opportunities，包括最终未激活、未成交与campaign在窗口末端censor的路径，并明确各自outcome是否可识别。
+若只保留实际发生first-add的库存生命周期，会条件化在baseline action与execution上；若只保留filled first-add，又会进一步形成fill collider。正确面板应包含所有合法decision opportunities，包括最终未激活、未成交与库存生命周期在窗口末端censor的路径，并明确各自outcome是否可识别。
 
 M0与M1的增量比较也必须在共同rows上完成。设$L_d(M)$是第 $d$ 日loss，则主要estimand是
 
@@ -901,7 +898,7 @@ $$
 
 ### 为什么 exact lifecycle 是模型训练前的条件
 
-first-add价值依赖这次动作是否真正进入exchange、何时成交、随后是否触发更多adds、何时repair/flat以及窗口末端剩余库存。若order activation与cancel ACK不完整，一行label可能把“从未暴露”当成“暴露但未成交”；若campaign join用nearest timestamp，可能把后一个campaign的terminal outcome归给前一个decision。
+first-add价值依赖这次动作是否真正进入exchange、何时成交、随后是否触发更多adds、何时repair/flat以及窗口末端剩余库存。若order activation与cancel ACK不完整，一行label可能把“从未暴露”当成“暴露但未成交”；若库存生命周期 join用nearest timestamp，可能把后一个库存生命周期的terminal outcome归给前一个decision。
 
 这类错误无法靠更强模型修复。模型会学习数据管线的错误选择机制，甚至在OOF取得稳定增量。数量门完成只说明日期和机会可能足够，不说明label semantics成立；停止在fit前，是避免生成一张看似精确、实际对象不明确的分数表。
 
@@ -913,15 +910,15 @@ first-add价值依赖这次动作是否真正进入exchange、何时成交、随
 
 ### 数量门应基于 cluster，而不是总 rows
 
-first-add每campaign一行后，表面样本已经更接近经济单位，但同日campaign仍共享趋势、波动与source outage。可检测能力主要由distinct days、每日日志完整度和effect dispersion决定；把30日内数千campaign当IID会高估精度。
+first-add每库存生命周期一行后，表面样本已经更接近经济单位，但同日库存生命周期仍共享趋势、波动与source outage。可检测能力主要由distinct days、每日日志完整度和effect dispersion决定；把30日内数千库存生命周期当IID会高估精度。
 
-preflight可在不读outcome方向的情况下统计每side的eligible campaigns、terminal-complete比例、最大单日占比、external-valid rate与candidate action overlap。若某side由三天贡献一半，即使总count过门，也应降低证据等级或增加日期。
+preflight可在不读outcome方向的情况下统计每side的eligible 库存生命周期、terminal-complete比例、最大单日占比、external-valid rate与candidate action overlap。若某side由三天贡献一半，即使总count过门，也应降低证据等级或增加日期。
 
 ### Exact lifecycle 的守恒条件
 
-每个decision只能绑定一个campaign；每个order lifecycle的submitted、ACK、partial fills、cancel与terminal数量必须守恒；terminal campaign value只能归属一次。对first-add动作，还要确认pre-action inventory非零且fill方向增加$|q|$，否则row可能是opener或reducing。
+每个decision只能绑定一个库存生命周期；每个order lifecycle的submitted、ACK、partial fills、cancel与terminal数量必须守恒；terminal 库存生命周期 value只能归属一次。对first-add动作，还要确认pre-action inventory非零且fill方向增加$|q|$，否则row可能是opener或reducing。
 
-在两arms full-path分叉后，campaign ids可以不同，不能强行按编号匹配。paired unit应是共同起始day/initial state，或在one-shot设计中是冻结decision。把action后的campaign nearest-join到一起会引入错误对应。
+在两arms full-path分叉后，库存生命周期 ids可以不同，不能强行按编号匹配。paired unit应是共同起始day/initial state，或在one-shot设计中是冻结decision。把action后的库存生命周期 nearest-join到一起会引入错误对应。
 
 ### 为什么“没有模型结果”比弱模型表更诚实
 
@@ -941,7 +938,7 @@ lifecycle与common denominator未闭合时训练M0/M1，任何loss差都同时�
 
 ### TL;DR：机制能动，支持度太低；v2 修正 denominator，但没有采集正式 tape
 
-External Adverse Quote Edge Guard 是一个 outcome-blind mechanics 项目：当三交易所 fair-price 的全来源与所有 leave-one-venue-out（LOO）版本都判断某侧 quote 有不利外部 edge 时，只允许把 exposure-increasing opener/add quote 向外移动；reducing quote 保持原样。它先问信号是否在 decision 前可见、能否改变预期坐标、会不会被 spread cap 吃掉，以及可能引起多少 replace/queue reset，不读取 PnL、reward、markout 或 campaign terminal。
+External Adverse Quote Edge Guard 是一个 outcome-blind mechanics 项目：当三交易所 fair-price 的全来源与所有 leave-one-venue-out（LOO）版本都判断某侧 quote 有不利外部 edge 时，只允许把 exposure-increasing opener/add quote 向外移动；reducing quote 保持原样。它先问信号是否在 decision 前可见、能否改变预期坐标、会不会被 spread cap 吃掉，以及可能引起多少 replace/queue reset，不读取 PnL、reward、markout 或 库存生命周期 terminal。
 
 v1 历史面板的 immutable ledger 有 19 个 valid full windows / 18 个不同 UTC 日；quote logs 实际覆盖 17 windows / 16 日，形成 `9,138` 个 paired quote decisions，即 `18,276` 个 side opportunities。外部输入包含 `50,359,162` 个 public book events；`feature_ready_ts_ns` 有 `4,481` 次输入顺序回退，最大 `209.563275ms`，全部在冻结的 5,000ms bounded reorder 内复原，评估 rows 没有 future-feature violation。
 
@@ -949,7 +946,7 @@ v1 历史面板的 immutable ledger 有 19 个 valid full windows / 18 个不同
 
 v1 还暴露了 denominator 问题：`inventory_ratio` 是 $|q|/q_{max}$，没有符号，不能判断 opener/add/reducing；历史 quote timestamp 是 post-decision log-write clock，不是 exact decision start；缺稳定 decision ID 和权威 order/ACK/queue lineage。v2 因此把 formal denominator 改为 native exact opener opportunities，记录 signed inventory、feature-ready time、baseline/candidate coordinates 与完整 lifecycle。v2.1/v2.2 继续强化 schema、runtime binding、writer health、hot-start quarantine、cancel-reject、crash recovery 和 atomic admission。
 
-这些版本逐步修正同一采集与对齐链路。正式 prospective tape 最终仍处于 disabled、未采集状态，所以不能声称 v2 已得到新的 support rate。项目的冻结结论是：v1 成功证明有限的 clock/coordinate mechanics，却因 0.334% support 不能注册动作；v2 只完成 infrastructure contract，没有 prediction、action、Validation、holdout 或 live authority。
+这些版本逐步修正同一采集与对齐链路。正式 prospective tape 最终仍处于 disabled、未采集状态，所以不能声称 v2 已得到新的 support rate。项目的冻结结论是：v1 成功证明有限的 clock/coordinate mechanics，却因 0.334% support 不能注册动作；v2 只完成 infrastructure contract，没有 prediction、action、Validation、holdout 或 实盘有效性证据。
 
 ![外部不利edge推动报价向外并经历延迟和生命周期的机制](/images/narrowgate/external-adverse-edge-guard-kline.svg)
 
@@ -1049,7 +1046,7 @@ $$
 E[N_{changed}]=26\times0.5=13.
 $$
 
-这不足以估计 day-cluster campaign reward 或 side-specific tails；因此没有理由在 v1 后读取 economics。
+这不足以估计 day-cluster 库存生命周期 reward 或 side-specific tails；因此没有理由在 v1 后读取 economics。
 
 ### 5. 延迟存活、报价距离与 lifecycle leverage
 
@@ -1069,7 +1066,7 @@ trigger episode 的历史 median duration 约五秒，也继承稀疏 quote-log 
 
 v1 把所有 historical paired quote rows 作为机会面板，角色又靠旁路 signed-state join 推导。v2 把 formal denominator 冻结为 native exact baseline-eligible opener decisions，并要求每个 decision 有稳定 ID、exact decision/feature-ready timestamps、signed inventory、baseline/candidate coordinates，以及由该 decision 发出的 order lineage。
 
-order origin ID 必须跨 REST acknowledgment、activation、cancel request/ACK、partial/full fill、reject、expiry 和 queue reset 保持。validator outcome-blind：拒绝 PnL、markout、reward、future price 与 campaign-terminal columns；但可以读取 operational terminal/lifecycle events，以确认订单是否实际进入所声明的 mechanics path。读取 lifecycle 不等于读取 economic outcome。
+order origin ID 必须跨 REST acknowledgment、activation、cancel request/ACK、partial/full fill、reject、expiry 和 queue reset 保持。validator outcome-blind：拒绝 PnL、markout、reward、future price 与 库存生命周期-terminal columns；但可以读取 operational terminal/lifecycle events，以确认订单是否实际进入所声明的 mechanics path。读取 lifecycle 不等于读取 economic outcome。
 
 BUY 与 SELL 分开计算 unchanged 5% support floor。若任一侧仍不足，该 guard 对 action support 关闭。不能为了过 gate 临时去掉 LOO，或按当天排名强行凑 5%；那会成为新的 research identity，必须重新预注册。
 
@@ -1095,7 +1092,7 @@ v1、v2、v2.1、v2.2 都围绕同一个 hypothesis surface：conservative all/L
 
 待证：v2 exact-opener side rates、正式 receive-time transport、真实 place/replace/activation/cancel/fill lineage，以及任何 reward uplift。prospective v2 tape 未收集，所以没有“改进后的 rate”。
 
-没有获得：prediction、PnL/reward/markout read、Validation、sealed holdout、F09 action registration、prospective collection、quote mutation、shadow deployment 或 live authority。
+没有获得：prediction、PnL/reward/markout read、Validation、sealed holdout、F09 action registration、prospective collection、quote mutation、shadow deployment 或 实盘有效性证据。
 
 ### 深入推导：adverse quote edge 应怎样定义
 
@@ -1111,7 +1108,7 @@ edge 还需要净掉 fee、tick rounding 与最小可执行移动。若 $E^{adv}
 
 ![External adverse edge 从 fair coordinate 到 exact opener action](/images/narrowgate/f04-external-signal-to-action-clock.svg)
 
-*图 2：外部 fair、edge guard 与 campaign action 分属三层；v2 exact-opener 解决动作定位，但 formal action-value 仍未产生。*
+*图 2：外部 fair、edge guard 与 库存生命周期 action 分属三层；v2 exact-opener 解决动作定位，但 formal action-value 仍未产生。*
 
 ### 延迟存活不是一个固定毫秒阈值
 
@@ -1123,7 +1120,7 @@ $$
 
 若用平均 latency 代替分布，高延迟尾部会被掩盖。应使用与 source、host、runtime epoch 匹配的 latency profile，至少检查 p50/p90/p99 sensitivity。历史 transport 测量只能作为其原 host/epoch 的 prior，不能标成当前 live 精确延迟。
 
-即使 $E^{net}>0$，也只说明动作有几何空间；完整价值还取决于 guard 是否优先删除 toxic fills，还是按比例删除所有 fills。需要 fill retention、toxic reduction surplus、inventory time 与 campaign tail 的共同门。
+即使 $E^{net}>0$，也只说明动作有几何空间；完整价值还取决于 guard 是否优先删除 toxic fills，还是按比例删除所有 fills。需要 fill retention、toxic reduction surplus、inventory time 与 库存生命周期 tail 的共同门。
 
 ### Exact-opener 为什么改变识别而不改变研究主题
 
@@ -1145,9 +1142,9 @@ v1 在较宽 surface 上统计 guard 支持，可能把 opener、add、reducing 
 
 ### TL;DR：动作每次都发生、保留 97% fills，却依赖单一 venue 且主区间跨零
 
-这项研究不用外部价格决定 BUY 或 SELL，而是把 NarrowGate 的整对 bid/ask 按 causal cross-venue fair-price adjustment 连续平移，同时保持 pair spread、size、cooldown、inventory/reducing logic、latency、queue 与 GTX 约束。campaign 在两条 full paths 生成前以 0.5/0.5 随机化。
+这项研究不用外部价格决定 BUY 或 SELL，而是把 NarrowGate 的整对 bid/ask 按 causal cross-venue fair-price adjustment 连续平移，同时保持 pair spread、size、cooldown、inventory/reducing logic、latency、queue 与 GTX 约束。库存生命周期 在两条 full paths 生成前以 0.5/0.5 随机化。
 
-Grade-A 24 日有 9,164 个 campaign rows，candidate/control 4,542/4,622；action-change 100%，activity retention 92.35%，fill retention 97.00%。reward uplift +0.001446 USDC/assignment，但 95% UTC-day interval $[-0.002732,+0.006053]$，正日 54.17% 略低于 55% 门；HT policy value +0.6351 USDC/day，区间 $[-1.0143,+2.3994]$。
+Grade-A 24 日有 9,164 个 库存生命周期 rows，candidate/control 4,542/4,622；action-change 100%，activity retention 92.35%，fill retention 97.00%。reward uplift +0.001446 USDC/assignment，但 95% UTC-day interval $[-0.002732,+0.006053]$，正日 54.17% 略低于 55% 门；HT policy value +0.6351 USDC/day，区间 $[-1.0143,+2.3994]$。
 
 BUY 点估计 +0.003324，SELL -0.000429；Grade-B sensitivity 为正且 interval 过零上方，但不能救援 primary。更关键的是 leave-Bybit-out 后 Grade-A uplift 反转为 -0.000632，而 leave Bitget/OKX 仍正，违反预注册 leave-one-venue-out direction gate。因此它是有希望的描述性线索，不是 transport-stable three-venue alpha。Validation 与 sealed holdout 未读。
 
@@ -1155,7 +1152,7 @@ BUY 点估计 +0.003324，SELL -0.000429；Grade-B sensitivity 为正且 interva
 
 *图 1：机制示意。三个外部 venue 的 causal trade bars 形成 fair adjustment，candidate 同量平移 bid/ask；spread 不变。leave-one-out 是依赖性检验，不是事后挑 venue。*
 
-![Cross-venue center shift 的完整 maker action path](/images/narrowgate/f09-campaign-action-causal-path.svg)
+![Cross-venue center shift 的完整 maker action path](/images/narrowgate/f09-inventory_lifecycle-action-causal-path.svg)
 
 *图 2：外部 fair adjustment 只定义动作起点；整对报价平移仍会改变两侧 queue、fill mix、inventory 与 terminal。100% action-change 与 97% fill retention 证明杠杆适中，但不能替代价值和运输门。*
 
@@ -1167,7 +1164,7 @@ $$
 \tau=E[Y(\text{local center}+g\hat\delta^{XV})-Y(\text{local center})].
 $$
 
-$\hat\delta^{XV}$ 由 Bitget、Bybit、OKX 的 past-only one-second individual-trade bars 在共同支持上构成，$g$ 与 basis/eligibility 在 outcome 前冻结。主要 $Y$ 是 assignment-to-campaign-terminal USDC。
+$\hat\delta^{XV}$ 由 Bitget、Bybit、OKX 的 past-only one-second individual-trade bars 在共同支持上构成，$g$ 与 basis/eligibility 在 outcome 前冻结。主要 $Y$ 是 assignment-to-库存生命周期-terminal USDC。
 
 ### 2. 动作与因果输入
 
@@ -1186,7 +1183,7 @@ $$
 
 | 冻结元素 | 定义 |
 |---|---|
-| Assignment | campaign prospective 0.5/0.5 |
+| Assignment | 库存生命周期 prospective 0.5/0.5 |
 | Control | current local quote center |
 | Candidate | causal cross-venue fair adjustment 平移整对 quote |
 | 保持 | pair spread、size、cooldown、inventory/reducing、queue、latency、GTX |
@@ -1200,7 +1197,7 @@ common support 外两臂都回 local baseline center，避免 candidate 在缺�
 
 外部 individual trades 先按 exchange time 归入 completed one-second bars，再经过 ready delay 成为可用 feature。本地 decision 只能读取 $t_{ready}\le t_{decision}$ 的 bar。若在 bar 未完成时使用 close，等于偷看未来数百毫秒。
 
-例子：local bid/ask 为 100,000.0/100,000.2，外部 fair adjustment 为 +0.1，则 candidate 为 100,000.1/100,000.3，spread 仍 0.2。BUY quote 更容易成交、SELL 更难成交；若本地随后上涨，平移可能改善 selection，若信号短暂反转则 queue reset 与错过 fills 造成损失。必须重放两条 quote/cancel/queue/fill/campaign path。
+例子：local bid/ask 为 100,000.0/100,000.2，外部 fair adjustment 为 +0.1，则 candidate 为 100,000.1/100,000.3，spread 仍 0.2。BUY quote 更容易成交、SELL 更难成交；若本地随后上涨，平移可能改善 selection，若信号短暂反转则 queue reset 与错过 fills 造成损失。必须重放两条 quote/cancel/queue/fill/inventory_lifecycle path。
 
 BUY 与 SELL contribution 分开检查，因为同一个正 center shift 对两侧作用相反。pooled 正点估计不能隐藏 SELL 伤害。
 
@@ -1293,7 +1290,7 @@ Grade A/B在 source、质量或可审计性上预先分层。若 primary失败�
 
 primary interval 跨零、positive days 未过门、SELL 偏负、LOO 反转，是四个相互独立的警告。Grade B 与 BUY point estimate 提供后续研究动机，但不能合成 deployment authority。
 
-HT estimator 将 campaign assignment 推到 full-policy value：
+HT estimator 将 库存生命周期 assignment 推到 full-policy value：
 
 $$
 \widehat V_{HT}=\sum_i\left(\frac{A_iY_i}{p_i}-\frac{(1-A_i)Y_i}{1-p_i}\right)/D,
@@ -1303,7 +1300,7 @@ $$
 
 #### 7.1 HT 日价值为何比每 assignment 更不稳定
 
-HT 将每条 assignment按 propensity扩展到政策总量，再按日归一。campaign数量、值的尾部与当日市场 regime共同进入估计，所以 +0.6351 USDC/day 的区间跨约 3.4 USDC，远宽于点估计。
+HT 将每条 assignment按 propensity扩展到政策总量，再按日归一。库存生命周期数量、值的尾部与当日市场 regime共同进入估计，所以 +0.6351 USDC/day 的区间跨约 3.4 USDC，远宽于点估计。
 
 这个量更接近“如果整天采用 candidate会怎样”，也更暴露 capacity与日间风险。每 assignment微小正值若来自极少高活动日，HT区间会如实放大不确定性；不能只选尺度看起来更大的 USDC/day进行宣传。
 
@@ -1331,7 +1328,7 @@ v1 implementation failure 与 v1.1 正式 run 共享 action/estimand；前者是
 
 若baseline quotes为$(b,a)$、candidate center shift为$g_t$，理想pair translation给出$(b+g_t,a+g_t)$，spread$a-b$保持不变。但相对本地best bid/ask的距离分别改变；经过tick rounding、post-only clamp和inventory skew后，两侧实际位移也未必相等。
 
-因此“97% fills保留”只说明参与度相近，不能证明同一订单被更好定价。candidate可能删除一部分BUY fills又增加SELL fills，campaign path仍会分叉。完整mechanics要报告理论shift、round后shift、clamp rate、side fill变化和role composition。
+因此“97% fills保留”只说明参与度相近，不能证明同一订单被更好定价。candidate可能删除一部分BUY fills又增加SELL fills，库存生命周期 path仍会分叉。完整mechanics要报告理论shift、round后shift、clamp rate、side fill变化和role composition。
 
 ### 单一 venue 依赖为何是 transport failure
 
@@ -1365,9 +1362,9 @@ source health还应包含venue count、basis jump、staleness与disagreement。�
 
 ### 10. 公共证据
 
-- [`cross_venue_fair_center_shift_randomized_replay_v1_1_development_20260801.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/cross_venue_fair_center_shift_randomized_replay_v1_1_development_20260801.md)
-- [`cross_venue_fair_center_shift_randomized_replay_v1_implementation_failure_20260801.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/docs/cross_venue_fair_center_shift_randomized_replay_v1_implementation_failure_20260801.md)
-- [`F09 README`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_campaign_action_uplift/README.md)
+- [`cross_venue_fair_center_shift_randomized_replay_v1_1_development_20260801.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/cross_venue_fair_center_shift_randomized_replay_v1_1_development_20260801.md)
+- [`cross_venue_fair_center_shift_randomized_replay_v1_implementation_failure_20260801.md`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/docs/cross_venue_fair_center_shift_randomized_replay_v1_implementation_failure_20260801.md)
+- [`F09 README`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/README.md)
 
 ### 结语
 

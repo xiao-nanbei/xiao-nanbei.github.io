@@ -13,9 +13,6 @@ tags:
 math: true
 ---
 
-
-
-
 ## 1. 同一笔成交同时属于两种时间真相
 
 Side-taker 研究最初想检验主动买卖流能否预示 maker fill quality，但很快发现输入事件、策略可见时间和订单风险集没有闭合。individual trades 提供 exchange-time 的撮合顺序；aggTrade parent 才接近 live 策略能整体看到的消息；订单自身又经历 submit、activation、partial fill、cancel request、cancel ACK 与 terminal。因此，流量特征、风险率和事件身份必须在同一条订单生命周期上对齐。
@@ -71,7 +68,7 @@ $$
 t_{visible}=\left\lceil t_{event}/100\text{ms}\right\rceil 100\text{ms}.
 $$
 
-这项研究没有 treatment。主要 estimand 是同一可见市场状态下的分侧 flow 差异，以及 actual fills 内 flow 与 maker-signed markout 的描述性关联。它不是 action uplift，也没有 propensity、DR reward 或 campaign counterfactual。
+这项研究没有 treatment。主要 estimand 是同一可见市场状态下的分侧 flow 差异，以及 actual fills 内 flow 与 maker-signed markout 的描述性关联。它不是 action uplift，也没有 propensity、DR reward 或 库存生命周期 counterfactual。
 
 为了避免把方向名词混成一个抽象分数，面板先保留两侧原始流，再构造 maker 语义。以窗口 $w$ 为例：
 
@@ -96,11 +93,11 @@ $$
 
 假设某个 BUY maker 决策前的一个完成窗口里，aggressive SELL taker 共成交 0.18 BTC，aggressive BUY taker 共成交 0.06 BTC。则 BUY maker 的 counterparty pressure 约为 $(0.18-0.06)/(0.18+0.06)=0.5$。这只说明当时直接冲向 bid 的流更强。若这组 child trades 直到窗口末端以后才被 parent `aggTrade` 发布，那么决策在 parent ready 之前仍必须使用旧状态；不能因为历史文件已经列出 child，就把 0.5 提前写进 feature。
 
-如果该 BUY maker 随后成交，30 秒后 mid 比成交价低 0.8bps，那么 $M_{30s}=-0.8$bps。这个观测可以进入“高 pressure fill 的后续质量”描述，却不能回答：若当时 widen 一 tick，订单是否还会成交、库存是否会由后续 reducing fill 修复、campaign terminal 是否更好。后一个问题需要完整反事实 replay。
+如果该 BUY maker 随后成交，30 秒后 mid 比成交价低 0.8bps，那么 $M_{30s}=-0.8$bps。这个观测可以进入“高 pressure fill 的后续质量”描述，却不能回答：若当时 widen 一 tick，订单是否还会成交、库存是否会由后续 reducing fill 修复、库存生命周期 terminal 是否更好。后一个问题需要完整反事实 replay。
 
 ### 3. 数据与因果时钟
 
-冻结输出包含 17 个 Development 日、1,448 个 campaign-level order-decision states，BUY/SELL actual fills 各 170。Validation 与 sealed holdout 均未读取。
+冻结输出包含 17 个 Development 日、1,448 个 库存生命周期-level order-decision states，BUY/SELL actual fills 各 170。Validation 与 sealed holdout 均未读取。
 
 历史 individual trades 只有 exchange timestamp。它们可以用于撮合与 outcome truth，却不能假装成 live 策略即时看到的消息。正式策略特征必须等待 individual child 所属的 parent `aggTrade` 到达并完成 feature 处理：
 
@@ -177,7 +174,7 @@ actual BUY fills 中，100ms net counterparty pressure 的 high-minus-low maker-
 
 ### 6. 为什么相关性不能直接变成动作
 
-假设高 counterparty pressure 的 BUY fills 平均更差，至少有三种完全不同的机制解释。第一，pressure 真正使当前 resting order 更容易发生有毒成交，此时 cancel 或 widen 可能有价值。第二，pressure 只是标记一个已经恶化的 campaign，删除当前 fill 会失去本可较快修复库存的机会。第三，订单只有在 queue、距离和 baseline eligibility 特定组合下才会成交，fill-conditioned 样本把选择机制带进了相关性。
+假设高 counterparty pressure 的 BUY fills 平均更差，至少有三种完全不同的机制解释。第一，pressure 真正使当前 resting order 更容易发生有毒成交，此时 cancel 或 widen 可能有价值。第二，pressure 只是标记一个已经恶化的 库存生命周期，删除当前 fill 会失去本可较快修复库存的机会。第三，订单只有在 queue、距离和 baseline eligibility 特定组合下才会成交，fill-conditioned 样本把选择机制带进了相关性。
 
 动作价值必须比较同一个 decision surface 上的潜在结果：
 
@@ -203,7 +200,7 @@ $$
 
 初始 BUY 100ms 结果有清楚的方向与日期区间，它仍然是可审计的 hypothesis origin。宽 denominator 没有复现，意味着当前 identity 的 transport 失败，而不是早期数字从未发生。保留两者可以防止以后又在同一小分母上重复发现相同线索并误称为新证据。
 
-真正能重开的结果应同时满足：预先冻结 maker-side mapping；使用 parent-ready 特征；在未参与窗口选择的未来日期复现；相对于只含 campaign/order state 的 M0 有增量；并且有足够 top-risk support。之后最多获得 action-registration eligibility，仍不是动作通过。
+真正能重开的结果应同时满足：预先冻结 maker-side mapping；使用 parent-ready 特征；在未参与窗口选择的未来日期复现；相对于只含 inventory_lifecycle/order state 的 M0 有增量；并且有足够 top-risk support。之后最多获得 action-registration eligibility，仍不是动作通过。
 
 #### 6.3 读图时应把 K 线放在哪一层
 
@@ -252,7 +249,7 @@ $$
 
 首先在未条件化fill的decision rows上评估flow对future touch、fill cause与markout的增量；随后按maker side与inventory role分层。只有某个state同时满足足够日期、非退化action overlap与稳定条件价值，才冻结局部动作如widen、cancel或keep。
 
-动作实验还必须在flow unavailable时回退baseline，不能把missing映射成零；burst/run/sweep thresholds必须在新outcomes前冻结。若只发现“高SELL flow后的BUY fills更差”，仍不能推出取消所有BUY，因为filled-only样本遗漏了被动作改变的未成交与repair路径。最终判断仍需要paired campaign terminal value。
+动作实验还必须在flow unavailable时回退baseline，不能把missing映射成零；burst/run/sweep thresholds必须在新outcomes前冻结。若只发现“高SELL flow后的BUY fills更差”，仍不能推出取消所有BUY，因为filled-only样本遗漏了被动作改变的未成交与repair路径。最终判断仍需要paired 库存生命周期 terminal value。
 
 ### Flow normalization 与 price impact 不是同一个对象
 
@@ -280,13 +277,13 @@ flow与价格还存在机械同步：aggressive BUY通常在ask成交，本身�
 
 ### TL;DR：模型关闭，不是因为 AUC 不够漂亮，而是问题本身没有被正确识别
 
-`side_taker_hazard_m0_v1` 试图用分侧 taker-flow 与订单状态预测 favorable fill 和 adverse fill。SELL split 的 balanced loss 一度优于 pooled model，看起来像“分侧模型有效”；审计却发现，fill、baseline cancel、legacy price jump 和 campaign repair 被塞进同一个 first-event competing-risk 表，pooled 与 split 还使用了不同 normalizer、intercept 和正则几何。更宽 denominator 也没有复现最初 BUY 100ms markout 信号。
+`side_taker_hazard_m0_v1` 试图用分侧 taker-flow 与订单状态预测 favorable fill 和 adverse fill。SELL split 的 balanced loss 一度优于 pooled model，看起来像“分侧模型有效”；审计却发现，fill、baseline cancel、legacy price jump 和 库存生命周期 repair 被塞进同一个 first-event competing-risk 表，pooled 与 split 还使用了不同 normalizer、intercept 和正则几何。更宽 denominator 也没有复现最初 BUY 100ms markout 信号。
 
 因此，这不是一个可以靠调阈值、加 cause 或换模型救活的弱阳性结果。正确结论是：**静态 M0 关闭，Validation 与 holdout 不读，先重建 event identity 和 start-stop risk set。**
 
 ![Side-Taker Hazard M0 的事件竞争与错误混合](/images/narrowgate/side-taker-hazard-m0-kline.svg)
 
-*图 1：机制示意。订单激活后，fill 属于市场 outcome；cancel request 是策略动作；price jump 是状态转移；repair 是 delayed-entry campaign 事件。把四者当作同质 first cause 会改变 estimand。*
+*图 1：机制示意。订单激活后，fill 属于市场 outcome；cancel request 是策略动作；price jump 是状态转移；repair 是 delayed-entry 库存生命周期 事件。把四者当作同质 first cause 会改变 estimand。*
 
 ### 1. 研究问题
 
@@ -302,9 +299,9 @@ $$
 
 ### 2. 输入、输出与 estimand
 
-冻结面板有 277,368 行、18 日，包含 native book state、分侧 taker-flow、订单 first event 与 campaign 字段。模型比较 pooled 与 BUY/SELL split 的 favorable/adverse fill heads，输出 balanced log loss 与 AUC。它没有动作，也没有 campaign reward。
+冻结面板有 277,368 行、18 日，包含 native book state、分侧 taker-flow、订单 first event 与 库存生命周期 字段。模型比较 pooled 与 BUY/SELL split 的 favorable/adverse fill heads，输出 balanced log loss 与 AUC。它没有动作，也没有 库存生命周期 reward。
 
-冻结标签的真实身份是 `exact_order_id_mixed_market_policy_campaign_first_event.v2`，不是纯市场 competing risk。171,839 个 adverse-jump first events 全部来自 legacy `adverse_price_jump_ts_ns`；只有 26,304 个与 native future-mid first-hit 完全一致。
+冻结标签的真实身份是 `exact_order_id_mixed_market_policy_inventory_lifecycle_first_event.v2`，不是纯市场 competing risk。171,839 个 adverse-jump first events 全部来自 legacy `adverse_price_jump_ts_ns`；只有 26,304 个与 native future-mid first-hit 完全一致。
 
 模型在每个离散区间里用 logistic link 估计 cause-specific probability：
 
@@ -433,10 +430,10 @@ $$
 
 若这些条件通过，评价也不能只看 AUC。至少需要 side-specific Brier skill、calibration、day-cluster uncertainty、top-risk support，以及未来动作表面的 overlap。一个有效 prediction 最多允许登记新的 randomized action experiment；它本身不能设置 `action_family_allowed=true`。
 
-预测到“高 adverse-fill hazard”仍不等于 cancel 有正值。动作会丢掉 queue position、改变 re-entry、fill mix 与后续 campaign，正式 reward 至少需要：
+预测到“高 adverse-fill hazard”仍不等于 cancel 有正值。动作会丢掉 queue position、改变 re-entry、fill mix 与后续 库存生命周期，正式 reward 至少需要：
 
 $$
-R=V_{fill}-C_{campaign}-C_{queue\ reset}.
+R=V_{fill}-C_{库存生命周期}-C_{queue\ reset}.
 $$
 
 M0 没有 propensity 或 paired full path，因此没有能力估计这个量。
@@ -744,7 +741,7 @@ schema应给关键字段标注authority和ready semantics。下游builder按用�
 
 ### TL;DR：订单从“尚未激活”到“终止”之间，不是一条只有一个终点的直线
 
-旧 panel 从 `decision_ts` 开始，把 fill、cancel ACK、adverse jump 和 campaign repair 当作同质 first events。审计表明，这种表无法识别 dynamic fill hazard：订单激活前不在 fill risk set；cancel request 是 behavior-policy stopping time；ACK 前仍可能成交；jump 后订单仍可能存活；repair 只在 inventory 非零且 reducing path 已进入可修复状态后才 at risk。
+旧 panel 从 `decision_ts` 开始，把 fill、cancel ACK、adverse jump 和 库存生命周期 repair 当作同质 first events。审计表明，这种表无法识别 dynamic fill hazard：订单激活前不在 fill risk set；cancel request 是 behavior-policy stopping time；ACK 前仍可能成交；jump 后订单仍可能存活；repair 只在 inventory 非零且 reducing path 已进入可修复状态后才 at risk。
 
 `event_identity_and_riskset_v1` 因此 blocked，v2 改成 start-stop lifecycle。这个结果没有说“fill hazard 不可研究”，只说在事件身份没有拆开前，任何漂亮 hazard 都不具备动作含义。
 
@@ -758,7 +755,7 @@ schema应给关键字段标注authority和ready semantics。下游builder按用�
 
 ### 1. 研究问题
 
-研究要识别三个不同对象：订单在真实 exchange exposure 下的 fill hazard、策略 cancel 对风险集的截断，以及 campaign repair 的 delayed-entry transition。它们必须有各自的 at-risk indicator。
+研究要识别三个不同对象：订单在真实 exchange exposure 下的 fill hazard、策略 cancel 对风险集的截断，以及 库存生命周期 repair 的 delayed-entry transition。它们必须有各自的 at-risk indicator。
 
 fill risk indicator 可写成：
 
@@ -772,11 +769,11 @@ $$
 \lambda_R(t\mid\mathcal H_t)=Y_R(t)\widetilde\lambda_R(t\mid\mathcal H_t),
 $$
 
-其中 $Y_R(t)$ 只有在 campaign active、inventory 非零、reducing quote active 且 eligible 时才为 1。
+其中 $Y_R(t)$ 只有在 库存生命周期 active、inventory 非零、reducing quote active 且 eligible 时才为 1。
 
 ### 2. 输入、动作与 estimand
 
-输入是订单 submit/activation、GTX reject、partial/full fills、remaining quantity、cancel request/ACK、pending-cancel fill、native snapshot/delta jump、campaign repair 与 censoring。
+输入是订单 submit/activation、GTX reject、partial/full fills、remaining quantity、cancel request/ACK、pending-cancel fill、native snapshot/delta jump、库存生命周期 repair 与 censoring。
 
 该项目没有候选策略动作。它的 estimand 是事件身份和 start-stop interval 的可识别性：一行必须说明区间前后剩余量、事件顺序、进入/退出风险集的理由，而不是给旧 first-event 表补几个字段。
 
@@ -799,7 +796,7 @@ $$
 | exchange terminal | full fill、cancel ACK | 吸收当前订单剩余量 |
 | non-terminal transition | partial fill、price jump、cancel reject | 更新 state 或重启 quantity spell |
 | policy action | cancel request、replace decision | 改变未来机制，但非交易所终局 |
-| campaign event | inventory nonzero、repair、flat | 属于另一 delayed-entry process |
+| 库存生命周期 event | inventory nonzero、repair、flat | 属于另一 delayed-entry process |
 
 如果数据库只保存一列 first event，这四类会竞争同一个位置；较早的 jump 会让后续 fill 消失，较早的 cancel request 会把 ACK 前风险删除，repair 又可能在根本尚未 at risk 时参与竞争。模型学到的是日志产生顺序，而不是一个可解释的市场过程。
 
@@ -813,7 +810,7 @@ $$
 Z(t)\in\{not\ active,active,partial,cancel\ pending,terminal\}.
 $$
 
-允许的转移构成有方向图，而非所有 cause 从同一起点互斥。例如 active 可以经 partial 回到 partial-risk，active 或 partial 可进入 cancel pending，cancel pending 可 fill 或 ACK。repair 则属于库存 campaign 的另一张图。
+允许的转移构成有方向图，而非所有 cause 从同一起点互斥。例如 active 可以经 partial 回到 partial-risk，active 或 partial 可进入 cancel pending，cancel pending 可 fill 或 ACK。repair 则属于库存生命周期 的另一张图。
 
 multi-state 强迫研究者说明每条边：谁触发、是否可见、是否吸收、remaining quantity 如何变化。first-event 表把这些边压成一个标签，表面简单，却失去对 action 最重要的 request/ACK race 和 post-jump survival。
 
@@ -825,14 +822,14 @@ multi-state 强迫研究者说明每条边：谁触发、是否可见、是否�
 |---|:---:|:---:|:---:|:---:|
 | activation | on | off | 否 | 否 |
 | native jump | on | off | 否 | 否 |
-| cancel request | on | 依 campaign 而定 | 否 | 是 |
+| cancel request | on | 依 库存生命周期 而定 | 否 | 是 |
 | pending partial fill | on，剩余量更新 | 可能进入 | 否 | 否 |
 | cancel ACK | off | 可继续 | 是 | 否 |
 | repair | 与该订单无关 | terminal/transition | 否 | 否 |
 
 ### 3. 数据与因果时钟
 
-v1 审计读取 277,368 行、18 日的 order-value panel。旧表含 1,264 个 favorable/adverse fills、102,703 个 cancel ACK、171,839 个 adverse jumps、1,544 个 campaign repairs。
+v1 审计读取 277,368 行、18 日的 order-value panel。旧表含 1,264 个 favorable/adverse fills、102,703 个 cancel ACK、171,839 个 adverse jumps、1,544 个 库存生命周期 repairs。
 
 事件需要两个时钟：exchange-time 决定撮合、queue consumption 和 lifecycle truth；feature-ready 决定策略当时能使用哪些 flow/book features。同一毫秒跨 trade 与 book 且无共同 sequence 的顺序保持 ambiguity，不能通过排序规则“修复”。
 
@@ -842,7 +839,7 @@ v1 审计读取 277,368 行、18 日的 order-value panel。旧表含 1,264 个 
 
 v1 的作用是冻结阻塞原因，而不是保留一个可运行的旧模型。v2 要求 replay 原生输出完整 lifecycle artifact 与 risk intervals，并禁止缺这些文件的 partial cache 复用。版本变化改变了 risk-set estimand，因此属于同一研究项目的实质 successor；普通缓存、序列化或执行修复不产生新文章。
 
-v2 需要的最小 row identity 包括 decision、order、campaign、activation、interval start/stop、remaining quantity before/after、event kind、event sequence、cancel state、repair-at-risk indicator 和 censor reason。旧 cache 即使拥有相同 day 与 config hash，只要缺 lifecycle artifact，也不能被“补默认值”后继续使用。
+v2 需要的最小 row identity 包括 decision、order、库存生命周期、activation、interval start/stop、remaining quantity before/after、event kind、event sequence、cancel state、repair-at-risk indicator 和 censor reason。旧 cache 即使拥有相同 day 与 config hash，只要缺 lifecycle artifact，也不能被“补默认值”后继续使用。
 
 ### 5. 结果与不确定性
 
@@ -890,10 +887,10 @@ $$
 
 正确 lifecycle 只是 prediction prerequisite。接下来还需要同 denominator 的 trade-clock parity、side-specific calibration、past-only chronological folds 与 uncertainty gate。即使 prediction 成功，也只能登记一个 propensity 已知、完整 replay 的 action experiment。
 
-对 keep/cancel 之类动作，正式 reward 至少应包含 fill value、incremental campaign cost 与 queue reset cost：
+对 keep/cancel 之类动作，正式 reward 至少应包含 fill value、incremental 库存生命周期 cost 与 queue reset cost：
 
 $$
-R=V_{fill}-C_{campaign}-C_{queue\ reset}.
+R=V_{fill}-C_{库存生命周期}-C_{queue\ reset}.
 $$
 
 v2 lifecycle 能让这些路径被追踪，却不会自动识别 $C_{queue\ reset}$ 或 counterfactual reward。
@@ -914,7 +911,7 @@ $$
 
 v1 冻结为 blocked。v2 生命周期代码可以表达正确事件，但正式 Development panel 仍须重建并通过身份审计。通过事件 gate 只解决 label/risk-set；live taker-flow parity 仍是另一个必要条件。
 
-正式 gate 至少要逐日核对：activation coverage、remaining-quantity conservation、request-before-ACK、ACK 前 fill 数量、terminal 后 hazard reuse、native sequence gap、same-ms ambiguity、repair entry/exit 与 order/day/campaign censoring。任何一项缺失都应给出明确 unsupported reason，而不是把 row 删除后只报告一个更好看的模型样本量。
+正式 gate 至少要逐日核对：activation coverage、remaining-quantity conservation、request-before-ACK、ACK 前 fill 数量、terminal 后 hazard reuse、native sequence gap、same-ms ambiguity、repair entry/exit 与 order/day/inventory_lifecycle censoring。任何一项缺失都应给出明确 unsupported reason，而不是把 row 删除后只报告一个更好看的模型样本量。
 
 ### 8. 没有获得的权限
 
@@ -937,7 +934,7 @@ $$
 Q_{rem}(t)=Q_0-\sum_{t_i\le t}q_i\ge0.
 $$
 
-cancel ACK只能终止剩余量，不能抹掉此前fills；full fill后任何cancel ACK是晚到确认，不应重新创建risk。replacement/re-entry是新order identity，即便继承同一campaign与经济意图，也不能继承queue、age或active cursor。
+cancel ACK只能终止剩余量，不能抹掉此前fills；full fill后任何cancel ACK是晚到确认，不应重新创建risk。replacement/re-entry是新order identity，即便继承同一库存生命周期与经济意图，也不能继承queue、age或active cursor。
 
 这些守恒检查比模型指标更先验。若remaining变负、terminal后继续暴露、同一fill被parent/child重复记账或0ms exposure被当成确定先后，任何下游hazard都会学习错误状态机。
 
@@ -957,7 +954,7 @@ $$
 
 ### 一张最小 event ledger 应有哪些键
 
-稳定的`order_id`、`generation`、`event_id`、exchange/source time、feature-ready/receive time、event type、price、quantity、remaining quantity、side、campaign lineage与terminal reason。replacement必须增加generation；同一个client id复用也不能让新旧queue cursor相连。
+稳定的`order_id`、`generation`、`event_id`、exchange/source time、feature-ready/receive time、event type、price、quantity、remaining quantity、side、库存生命周期 lineage与terminal reason。replacement必须增加generation；同一个client id复用也不能让新旧queue cursor相连。
 
 每条derived risk row还应指回start event与stop event，保存为何valid/censor/unknown。这样aggregate hazard出现异常时，可以沿provenance回到原事件，而不是靠nearest timestamp猜。
 
@@ -975,7 +972,7 @@ $$
 
 ### 结语
 
-风险集不是“从决策到第一个事件”的便捷切片，而是订单实际暴露、策略动作与 campaign 状态共同决定的对象。先把事件身份做对，预测才有资格开始。
+风险集不是“从决策到第一个事件”的便捷切片，而是订单实际暴露、策略动作与 库存生命周期 状态共同决定的对象。先把事件身份做对，预测才有资格开始。
 
 ![Side-Taker 从描述性微观流到双时钟动态风险集的结果收敛](/images/narrowgate/side-taker-research-synthesis.svg)
 
@@ -983,6 +980,6 @@ $$
 
 ## 7. 结论：静态 side signal 关闭，动态生命周期问题仍然开放
 
-早期 side-taker M0 没有在更严格 denominator 上复现，且把 non-absorbing jump、策略 cancel 与 campaign repair 混进了错误的事件结构。双时钟与 risk-set 审计解释了为什么：输入可见性和订单生存状态不是一个静态 row 可以表达的。这个诊断关闭旧 M0，却没有否定所有 side-specific taker information。
+早期 side-taker M0 没有在更严格 denominator 上复现，且把 non-absorbing jump、策略 cancel 与 库存生命周期 repair 混进了错误的事件结构。双时钟与 risk-set 审计解释了为什么：输入可见性和订单生存状态不是一个静态 row 可以表达的。这个诊断关闭旧 M0，却没有否定所有 side-specific taker information。
 
 合法 successor 必须先通过 historical/live aggTrade feature-time parity，再用统一 normalizer、side intercept 与动态 start-stop panel 估计 cause-specific hazards。即便 prediction 通过，也只能注册新的 randomized action；不能直接生成 live guard。

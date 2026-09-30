@@ -2,14 +2,14 @@
   <title>SELL add permission 从首个决策阻断到 flat 的状态机</title>
   <desc>机制示意图：K线上的多次 SELL add，candidate 从首个 eligible add 起持续阻断，reducing BUY 保持，flat 后释放，同时展示 tail 改善和 fill retention 代价。</desc>
   <rect width="1200" height="720" fill="#07111f"/>
-  <text x="52" y="55" fill="#f4f7fb" font-size="28" font-family="sans-serif" font-weight="700">SELL campaign add permission：风险收缩与参与关闭</text>
+  <text x="52" y="55" fill="#f4f7fb" font-size="28" font-family="sans-serif" font-weight="700">SELL 库存生命周期 add permission：风险收缩与参与关闭</text>
   <text x="52" y="84" fill="#9fb3c8" font-size="16" font-family="sans-serif">机制示意 · candidate 不是价格微调，而是持久 permission state</text>
   <g stroke="#24374b"><path d="M65 155H740M65 255H740M65 355H740M65 455H740M65 555H740"/><path d="M145 125V575M265 125V575M385 125V575M505 125V575M625 125V575"/></g>
   <path d="M75 360C170 420 235 315 325 350S470 245 555 290S660 390 730 335" fill="none" stroke="#f8c15c" stroke-width="4"/>
   <g font-family="sans-serif"><circle cx="265" cy="335" r="11" fill="#ff6f7d"/><text x="205" y="300" fill="#ff9ca5" font-size="16">first eligible add</text><circle cx="385" cy="318" r="10" fill="#ff6f7d"/><circle cx="505" cy="278" r="10" fill="#ff6f7d"/><circle cx="625" cy="365" r="11" fill="#41d69a"/><text x="600" y="410" fill="#76e1b7" font-size="16">reducing BUY → flat</text></g>
   <path d="M265 350V515H625V424" fill="none" stroke="#ff6f7d" stroke-width="3" stroke-dasharray="9 7"/>
   <text x="335" y="507" fill="#ff9ca5" font-size="17" font-family="sans-serif">candidate：所有后续 exposure SELL adds blocked</text>
-  <rect x="780" y="125" width="360" height="94" rx="15" fill="#102238" stroke="#42a5f5" stroke-width="2"/><text x="804" y="159" fill="#eaf2fb" font-size="19" font-family="sans-serif" font-weight="700">第一次 eligible decision</text><text x="804" y="190" fill="#9fd8ff" font-size="16" font-family="sans-serif">campaign-level 50 / 50 assignment</text>
+  <rect x="780" y="125" width="360" height="94" rx="15" fill="#102238" stroke="#42a5f5" stroke-width="2"/><text x="804" y="159" fill="#eaf2fb" font-size="19" font-family="sans-serif" font-weight="700">第一次 eligible decision</text><text x="804" y="190" fill="#9fd8ff" font-size="16" font-family="sans-serif">库存生命周期-level 50 / 50 assignment</text>
   <path d="M960 219V260" stroke="#9fb3c8" stroke-width="2"/>
   <rect x="780" y="260" width="360" height="96" rx="15" fill="#361b26" stroke="#ff6f7d" stroke-width="2"/><text x="804" y="295" fill="#ff9ca5" font-size="19" font-family="sans-serif" font-weight="700">BLOCKED</text><text x="804" y="324" fill="#f7d6da" font-size="15" font-family="sans-serif">SELL add 被阻断；reducing BUY 保留</text><text x="804" y="346" fill="#f7d6da" font-size="15" font-family="sans-serif">直到 inventory = 0</text>
   <path d="M960 356V397" stroke="#9fb3c8" stroke-width="2"/>

@@ -5,7 +5,7 @@
   <rect class="bg" width="1200" height="720" rx="24"/>
   <text class="t h" x="48" y="56">十三个预测头不是十三张“投票券”：每一层都要单独闭合</text>
   <text class="m s" x="48" y="84">共享 encoder 可以提高效率，但不能把失败 head、错误时钟或经济反号平均掉</text>
-  <rect class="box" x="48" y="122" width="224" height="180" rx="15"/><text class="t b" x="70" y="160">因果可见输入 Xₜ</text><text class="m s" x="70" y="198">本地 BBO / L2</text><text class="m s" x="70" y="224">trade tempo / P3 / queue</text><text class="m s" x="70" y="250">inventory / campaign</text><text class="t s" x="70" y="278">全部按 feature-ready clock</text>
+  <rect class="box" x="48" y="122" width="224" height="180" rx="15"/><text class="t b" x="70" y="160">因果可见输入 Xₜ</text><text class="m s" x="70" y="198">本地 BBO / L2</text><text class="m s" x="70" y="224">trade tempo / P3 / queue</text><text class="m s" x="70" y="250">inventory / 库存生命周期</text><text class="t s" x="70" y="278">全部按 feature-ready clock</text>
   <path class="arrow" d="M286 212H332"/>
   <g transform="translate(346 116)">
     <text class="t b" x="0" y="26">共享表示 + 13 个目标头</text>
@@ -22,9 +22,9 @@
   <g transform="translate(48 374)">
     <rect class="box" x="0" y="0" width="300" height="198" rx="15"/><text class="t b" x="22" y="38">冻结 inference mapping</text><text class="m s" x="22" y="75">score → quote center / spread / side</text><text class="m s" x="22" y="103">cadence、fallback、unsupported state</text><text class="t s" x="22" y="137">必须与训练后的 artifact 一起冻结</text><text class="m s" x="22" y="168">不能从经济结果反调 threshold</text>
     <path class="arrow" d="M316 98H366"/>
-    <rect class="box" x="382" y="0" width="300" height="198" rx="15"/><text class="t b" x="404" y="38">完整顺序 replay</text><text class="m s" x="404" y="75">quote → queue → fill / cancel</text><text class="m s" x="404" y="103">inventory → reducing → campaign terminal</text><text class="t s" x="404" y="137">ML-ON 与 ML-OFF 同日同源配对</text><text class="m s" x="404" y="168">1s cadence 也必须重放全部路径</text>
+    <rect class="box" x="382" y="0" width="300" height="198" rx="15"/><text class="t b" x="404" y="38">完整顺序 replay</text><text class="m s" x="404" y="75">quote → queue → fill / cancel</text><text class="m s" x="404" y="103">inventory → reducing → 库存生命周期 terminal</text><text class="t s" x="404" y="137">ML-ON 与 ML-OFF 同日同源配对</text><text class="m s" x="404" y="168">1s cadence 也必须重放全部路径</text>
     <path class="arrow" d="M698 98H748"/>
-    <rect class="ok" x="764" y="0" width="340" height="198" rx="15"/><text class="t b" x="786" y="38">Economics joint gate</text><text class="m s" x="786" y="75">terminal value + campaign tail</text><text class="m s" x="786" y="103">fills/activity + inventory time</text><text class="m s" x="786" y="131">BUY / SELL / role 分开</text><text class="t s" x="786" y="168">预测通过不等于 action 或 live authority</text>
+    <rect class="ok" x="764" y="0" width="340" height="198" rx="15"/><text class="t b" x="786" y="38">Economics joint gate</text><text class="m s" x="786" y="75">terminal value + 库存生命周期 tail</text><text class="m s" x="786" y="103">fills/activity + inventory time</text><text class="m s" x="786" y="131">BUY / SELL / role 分开</text><text class="t s" x="786" y="168">预测通过不等于 action 或 live authority</text>
   </g>
   <text class="m s" x="48" y="660">机制示意 · 版本修复、执行 attempts 与研究 identity 必须分离</text>
 </svg>

@@ -92,3 +92,13 @@ hexo.extend.generator.register('narrowgate-legacy-redirects', function generateL
     };
   });
 });
+
+hexo.extend.generator.register('inventory-lifecycle-tag-redirect', function () {
+  const target = '/tags/' + encodeURIComponent('库存生命周期') + '/';
+  return [{
+    path: 'tags/Campaign/index.html',
+    data: '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">' +
+      '<meta name="robots" content="noindex,follow"><meta http-equiv="refresh" content="0;url=' + target + '">' +
+      '<title>库存生命周期</title></head><body><a href="' + target + '">库存生命周期</a></body></html>'
+  }];
+});

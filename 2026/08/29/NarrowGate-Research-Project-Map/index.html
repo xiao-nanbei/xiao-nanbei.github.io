@@ -27,7 +27,7 @@
 <meta property="og:description" content="做市研究的难点，是把市场信息变成值得执行的订单。预测价格方向或触达概率只是起点；订单还要经历提交、排队、成交、库存持有和减仓，最终由完整账户收益检验。这里按这条链组织 NarrowGate 的研究入口，方便读者从具体问题找到方法、实验和限制。 从哪个问题开始 报价为什么在这里？ 阅读报价动作与 P3：前者比较价格和中心的改变，后者区分市场触达与实际成交。 预测提供了什么信息？ 阅读新 Tardis">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-09-27T02:45:00.000Z">
+<meta property="article:modified_time" content="2026-09-30T19:20:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="因果推断">
@@ -331,7 +331,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          3.2k 字
+          3.3k 字
         
       </span>
     
@@ -343,7 +343,7 @@
         
         
           <!-- compatible with older versions-->
-          27 分钟
+          28 分钟
         
       </span>
     
@@ -394,7 +394,7 @@
 <li><strong>这笔风险是否值得承担？</strong> 阅读 Fill Quality、订单级价值和库存控制：区分成交后的标签、决策前可见状态与真正的动作差额。</li>
 <li><strong>怎样知道回测证据可信？</strong> 阅读时间量纲与因果时钟、工程主文：先确定数据到达、订单生效、成交通知和会计口径，再解释收益。</li>
 </ul>
-<p>这些问题相互依赖，但一个环节通过不替代下一环节。触达预测改善不代表成交价值改善，库存时间下降也不保证净收益提高。首次下单相对等待（POST/WAIT）以及挂单保留相对撤销（KEEP/CANCEL）需要各自的完整路径检验；这里不把尚未完成的成交前 E/C 选择研究写成有效策略。</p>
+<p>这些问题相互依赖，但一个环节通过不替代下一环节。触达预测改善不代表成交价值改善，库存时间下降也不保证净收益提高。F05 的机会级成交质量、风险加宽、首次下单相对等待（POST/WAIT）、挂单保留相对撤销（KEEP/CANCEL）与 Full-Multiscale 冷却有不同标签和动作合同，需分别检验完整路径。接口存在不表示已并入 B0 或部署 live，本页不据此发布私有实验进度或经济结论。</p>
 <h2 id="主文与实验范围"><a href="#主文与实验范围" class="headerlink" title="主文与实验范围"></a>主文与实验范围</h2><p>下表中的历史结论只属于相应冻结实验。新 Tardis F03 已有模型比较与完整 Final 结果；F05 已有双侧十头与一个固定风险加宽消费者的开发账户负结果，详见各自文章。执行进度和维护入口由<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/recompute_407.json">仓库研究台账</a>记录，不由本页推断实盘状态。</p>
 <div class="table-container">
 <table>
@@ -482,7 +482,7 @@
 <td style="text-align:right">11</td>
 <td><a href="/2026/08/29/NarrowGate-Ranked-Toxicity-Exposure-Guard-Research/">Exposure Guards：BER Proxy、BUY q90 与 Ranked Toxicity</a></td>
 <td>F09、F10</td>
-<td>风险分数如何绑定合法订单、ACK 风险集和跨 campaign ownership？</td>
+<td>风险分数如何绑定合法订单、ACK 风险集和跨 库存生命周期 ownership？</td>
 <td>旧 add-only guard 有经济伤害；q90 身份失效；新 guard 仅完成 plumbing</td>
 </tr>
 <tr>
@@ -541,7 +541,7 @@
 <td>Side-Taker Lifecycle 主文</td>
 </tr>
 <tr>
-<td>F09 Campaign Action Uplift</td>
+<td>F09 库存生命周期 Action Uplift</td>
 <td>报价动作、External、Cooldown、Inventory、Exposure Guards 五篇</td>
 </tr>
 <tr>

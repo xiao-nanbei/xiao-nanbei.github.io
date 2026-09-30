@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate 研究地图：从市场预测、订单决策到完整账户收益'
 date: 2026-08-29 13:30:00
-updated: 2026-09-27 10:45:00
+updated: 2026-10-01 03:20:00
 categories:
 - Market Making
 tags:
@@ -22,7 +22,7 @@ math: true
 - **这笔风险是否值得承担？** 阅读 Fill Quality、订单级价值和库存控制：区分成交后的标签、决策前可见状态与真正的动作差额。
 - **怎样知道回测证据可信？** 阅读时间量纲与因果时钟、工程主文：先确定数据到达、订单生效、成交通知和会计口径，再解释收益。
 
-这些问题相互依赖，但一个环节通过不替代下一环节。触达预测改善不代表成交价值改善，库存时间下降也不保证净收益提高。首次下单相对等待（POST/WAIT）以及挂单保留相对撤销（KEEP/CANCEL）需要各自的完整路径检验；这里不把尚未完成的成交前 E/C 选择研究写成有效策略。
+这些问题相互依赖，但一个环节通过不替代下一环节。触达预测改善不代表成交价值改善，库存时间下降也不保证净收益提高。F05 的机会级成交质量、风险加宽、首次下单相对等待（POST/WAIT）、挂单保留相对撤销（KEEP/CANCEL）与 Full-Multiscale 冷却有不同标签和动作合同，需分别检验完整路径。接口存在不表示已并入 B0 或部署 live，本页不据此发布私有实验进度或经济结论。
 
 ## 主文与实验范围
 
@@ -40,7 +40,7 @@ math: true
 | 8 | [Side-Taker Lifecycle：微观流、双时钟与 Risk Set](/2026/08/29/NarrowGate-Side-Taker-Flow-Research/) | F08 | 主动成交流如何在合法可见时钟上进入订单动态风险集？ | 静态 M0 关闭；双时钟与 v2 risk-set 前置仍未完成 |
 | 9 | [Cooldown Temporal-Permission Action Frontier](/2026/08/29/NarrowGate-Volatility-Time-Add-Rearm-Research/) | F09 | One-cycle、stop-until-flat、state、recovery、variance-time 哪个控制强度有效？ | 从 near-noop 到 participation shutdown 均无稳定正终局价值 |
 | 10 | [Inventory Control：Budget、SELL 抑制与 Passive Repair](/2026/08/29/NarrowGate-Sell-Add-Inventory-Price-Penalty-Research/) | F09 | 少进入风险库存或更快减仓，能否同时改善 terminal value？ | 库存代理可改善，但 reward、tail 或 action resolution 失败 |
-| 11 | [Exposure Guards：BER Proxy、BUY q90 与 Ranked Toxicity](/2026/08/29/NarrowGate-Ranked-Toxicity-Exposure-Guard-Research/) | F09、F10 | 风险分数如何绑定合法订单、ACK 风险集和跨 campaign ownership？ | 旧 add-only guard 有经济伤害；q90 身份失效；新 guard 仅完成 plumbing |
+| 11 | [Exposure Guards：BER Proxy、BUY q90 与 Ranked Toxicity](/2026/08/29/NarrowGate-Ranked-Toxicity-Exposure-Guard-Research/) | F09、F10 | 风险分数如何绑定合法订单、ACK 风险集和跨 库存生命周期 ownership？ | 旧 add-only guard 有经济伤害；q90 身份失效；新 guard 仅完成 plumbing |
 | 12 | [Replay Evidence Revalidation：时间、量纲与因果时钟](/2026/08/29/NarrowGate-Time-Unit-Causality-Repair-Research/) | F10、SYS | 基础时钟/单位修复后，旧回测证据还能保留什么？ | No-promotion 权限方向保留；旧 PnL、winner 与排名撤回 |
 
 ## 研究之间的依赖
@@ -65,7 +65,7 @@ math: true
 | F06 Placement Fill CIF | Order-Level Quote Value 主文 |
 | F07 Active Order Continuation | Order-Level Quote Value 主文 |
 | F08 Side-Taker Lifecycle | Side-Taker Lifecycle 主文 |
-| F09 Campaign Action Uplift | 报价动作、External、Cooldown、Inventory、Exposure Guards 五篇 |
+| F09 库存生命周期 Action Uplift | 报价动作、External、Cooldown、Inventory、Exposure Guards 五篇 |
 | F10 Live/Replay Attribution | Fill Quality、Exposure Guards、Replay Revalidation 三篇 |
 | SYS | Replay Evidence Revalidation 主文 |
 
