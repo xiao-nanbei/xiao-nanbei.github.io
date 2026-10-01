@@ -38,7 +38,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f03-thirteen-head-evidence-pipeline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/causal-13-head-research-synthesis.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-09-27T02:45:00.000Z">
+<meta property="article:modified_time" content="2026-10-02T04:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="机器学习">
@@ -355,7 +355,7 @@
         
         
           <!-- compatible with older versions-->
-          396 分钟
+          397 分钟
         
       </span>
     
@@ -567,12 +567,13 @@ R=\sqrt{\sigma^2H}\,|q|.</script><p>它不应再乘一次 mid，否则会重复�
 <h3 id="8-关闭与支持边界"><a href="#8-关闭与支持边界" class="headerlink" title="8. 关闭与支持边界"></a>8. 关闭与支持边界</h3><p>保留：empirical P3 研究方向、completed-bucket causal timing、merged clock、dimensionally closed risk/accounting，以及 artifact validation/parity discipline。</p>
 <p>撤回：v4 test prediction metrics、test/all ML A/B、BUY scorer bucket values 和任何基于它们的 promotion claim。</p>
 <p>没有获得：model replacement、BUY scorer action、queue retuning、Validation/holdout 晋级、shadow 或 实盘有效性证据。历史上某些 model bytes 曾作为 owner-directed operational trial，与统计 promotion 是两件事，也不描述当前 runtime。</p>
-<h3 id="深入推导：一个泄漏-head-怎样污染共享模型"><a href="#深入推导：一个泄漏-head-怎样污染共享模型" class="headerlink" title="深入推导：一个泄漏 head 怎样污染共享模型"></a>深入推导：一个泄漏 head 怎样污染共享模型</h3><p>多任务模型常写成共享表示 $z<em>t=f</em>\phi(X<em>t)$ 与十三个输出头 $\hat y</em>{j,t}=g_{\psi_j}(z_t)$，训练目标是：</p>
+<p><span id="深入推导：一个泄漏-head-怎样污染共享模型"></span></p>
+<h3 id="共同输入与独立目标模型：错误影响哪一层"><a href="#共同输入与独立目标模型：错误影响哪一层" class="headerlink" title="共同输入与独立目标模型：错误影响哪一层"></a>共同输入与独立目标模型：错误影响哪一层</h3><p>当前 F03 使用共同因果特征面板、逐目标独立拟合的 LightGBM，不是共享 encoder 的联合反向传播模型。<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/ml_model.py">ml_model.py 的 train_one()</a> 为一个目标选择分类器或回归器并独立拟合；<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/strategy/model_contract.py">model_contract.py</a> 固定十三个目标的加载合同。可以示意为：</p>
 <script type="math/tex; mode=display">
-\mathcal L(\phi,\psi)=\sum_{j=1}^{13}w_j\mathcal L_j(y_{j,t},g_{\psi_j}(f_\phi(X_t))).</script><p>如果某个输入列或 label construction 提前看见未来，问题不只停留在对应 head。它的梯度会更新共享参数 $\phi$，其他十二个头也可能从被污染的表示中获益。于是“删掉泄漏 head 的结果列”并不能恢复模型；必须从特征物化、训练、artifact 到 full-path replay 全部重建。</p>
-<p>v4 中三天 timing error 的严重性正来自这里。哪怕多数日期和多数 heads 合法，只要 formal test 的一部分 rows 使用了决策时尚未可见的 future metric，报告中的 prediction ranking、阈值、quote path 与经济差值就不再绑定同一个因果信息集。</p>
+\hat y_{j,t}=f_j(X_t),\qquad j=1,\ldots,13.</script><p>若共同输入的可见性错误，使用该输入的多个目标都可能受影响；若仅某个目标标签错误，则需追踪该模型及其实际下游消费者，不能声称错误经共享梯度传播到所有头。新 F03 使用 29 项特征，十三头由三个触达条件方向概率、三个绝对价格方差率、三个触达条件价格变化比例和 bid/ask 在 5/10 秒的四个不利概率组成。P3 是独立模型，taker tempo 是输入而非额外输出头。</p>
+<p>v4 三天 timing error 的撤回范围仍按前述训练、测试与下游 scorer 证据处理：不推翻部分训练未受影响的记录，也不以假想共享 encoder 扩大事故范围。非法可见信息影响过的测试排名、scorer 和经济比较必须按其依赖链解释，不能通过删除一列或按天打折恢复。训练十三头与实际报价桥接输出的五个字段是不同层级，不能推断十三份独立经济贡献均已验证。</p>
 <p><img src="/images/narrowgate/f03-thirteen-head-evidence-pipeline.svg" srcset="/img/loading.gif" lazyload alt="13-head 从共享输入到经济门的证据流水线"></p>
-<p><em>图 2：共享 encoder 会传播时钟错误；prediction joint gate 与 economics joint gate 都必须重跑，不能只删除一列结果。</em></p>
+<p><em>图 2：共同因果特征进入独立 LightGBM 目标模型，再经冻结消费映射进入完整订单、库存与净权益评价。图不表示共享梯度；v12 的 5/13 诊断仅属于后文对应实验。</em></p>
 <h3 id="为什么三天错误不能按比例“打折”"><a href="#为什么三天错误不能按比例“打折”" class="headerlink" title="为什么三天错误不能按比例“打折”"></a>为什么三天错误不能按比例“打折”</h3><p>直觉上，人们可能想把错误三天从总 PnL 中减掉，保留其他天。但 maker replay 有路径和选择反馈。模型阈值可能由含错误日期的训练或 calibration 决定；错误 rows 也可能改变模型在哪些状态开启、改变 fills 与库存，从而影响整个日期的后续订单。即使单日结果可以删除，训练 artifact 与 candidate selection 已经读过这些日期，剩余天也不再是原先声明的 untouched test。</p>
 <p>统计上，删除不合法日期还改变 denominator 与不确定性。若 formal test 原本只有少数日期，去掉三天会显著改变日级 cluster 数、regime 构成和 simultaneous gate。正确标签是“经济数字撤回、原不晋级决定保守保留”，而不是重新计算一个看似精确的折扣 PnL。</p>
 <h3 id="一个反事实例子：提前五分钟可见为何会显得异常强"><a href="#一个反事实例子：提前五分钟可见为何会显得异常强" class="headerlink" title="一个反事实例子：提前五分钟可见为何会显得异常强"></a>一个反事实例子：提前五分钟可见为何会显得异常强</h3><p>假设特征声称在 $t$ 时刻给出未来五分钟 realized volatility。市场即将单边下跌时，这个量已经升高，模型因而在跌势开始前扩大 BUY quote；历史回放会显示更少 adverse BUY fills。可是 live 在 $t$ 时刻不知道未来五分钟路径，真正可用的只能是过去窗口估计或延迟发布值。</p>
@@ -944,7 +945,7 @@ E[Y_0\mid score\ high]<E[Y_0\mid score\ low],</script><p>其中 $Y_0$ 是 baseli
 <script type="math/tex; mode=display">
 E[Y_1-Y_0\mid score\ high]>0,</script><p>这里 $Y_1$ 才是 widen、skip、cancel 等候选路径。第一式是 prognostic risk，第二式是 conditional treatment effect；它们可以一正一负。高风险状态中，撤掉 BUY 也可能错过最快的 reducing 或 repair 机会。</p>
 <p><img src="/images/narrowgate/f03-thirteen-head-evidence-pipeline.svg" srcset="/img/loading.gif" lazyload alt="十三头 prediction ranking 到 maker action 的完整证据链"></p>
-<p><em>图 2：tempo head 通过排序只到达 prediction gate；冻结报价 mapping 与完整路径仍可能反号。</em></p>
+<p><em>图 2：图示为新 F03 的实际独立目标结构，taker tempo 是输入而不是输出头；本节旧阶段的预测诊断不等于冻结映射及完整路径有效。</em></p>
 <h3 id="为什么-BUY-SELL-映射不能靠统一符号解决"><a href="#为什么-BUY-SELL-映射不能靠统一符号解决" class="headerlink" title="为什么 BUY/SELL 映射不能靠统一符号解决"></a>为什么 BUY/SELL 映射不能靠统一符号解决</h3><p>市场原始流有 BUY taker 与 SELL taker，maker 决策又有 BUY quote 与 SELL quote。BUY maker 的直接对手是 SELL taker，SELL maker 的直接对手是 BUY taker；但“away flow”对库存修复的影响还取决于当前持仓与订单角色。</p>
 <p>例如当前为 short inventory，SELL add 会继续加空，BUY reducing 则帮助 flat。相同的 aggressive BUY taker burst 对 SELL add 可能是 adverse continuation，对 BUY reducing 却可能提高修复成交机会。若只给 trade feature 乘一个 side sign，再把 opener/add/reducing 混合，模型会把风险和机会平均。</p>
 <p>所以 side-specific 不只是训练两个模型，还要冻结 maker-side counterparty mapping、order role、inventory sign 与 reward。没有实际 action overlap 的 role 只能写 <code>diagnostic_only</code>。</p>
@@ -1132,7 +1133,7 @@ SpearmanIC>0,\qquad RMSESkill>0.</script><p>family-level prediction pass 要求�
 <script type="math/tex; mode=display">
 G_{bundle}=\bigcap_{j\in J_{required}}G_j.</script><p>观察到 5/13 通过，说明部分预测对象有增量，却不满足交集。事后把 required set 缩成这五个，会把 Development 变成 feature selection panel；若想研究 five-head successor，必须重新冻结 mapping、面板与多重性，而不能把它写成 v12 原本就通过。</p>
 <p><img src="/images/narrowgate/f03-thirteen-head-evidence-pipeline.svg" srcset="/img/loading.gif" lazyload alt="十三头 joint gate、冻结映射与完整经济路径"></p>
-<p><em>图 2：共享模型的局部成功不能抵消 required head 的失败；经济正点估计也不能越过 prediction joint gate。</em></p>
+<p><em>图 2：共同特征、独立目标模型与经济消费分层检验。此处 v12 的 required-head 联合要求及 5/13 结果只属于原实验，不是新 F03 的通用通过比例。</em></p>
 <h3 id="五日-PnL-正点估计为什么证据仍然弱"><a href="#五日-PnL-正点估计为什么证据仍然弱" class="headerlink" title="五日 PnL 正点估计为什么证据仍然弱"></a>五日 PnL 正点估计为什么证据仍然弱</h3><p>五日 paired PnL 为正，可以说明 candidate 值得解释，但日级有效样本仍是五，而不是日内数百万 rows。若 daily deltas 为 $\Delta_1,\ldots,\Delta_5$，不确定性取决于日期间波动和 regime，而不是 tick 数：</p>
 <script type="math/tex; mode=display">
 SE(\bar\Delta)\approx \frac{s_{day}}{\sqrt5}.</script><p>任何单日都可能强烈影响均值；leave-one-day-out 旋转、side 反号或 tail harm 都不能被 pooled point estimate 掩盖。更何况 quote policy 是由多个 heads 联合驱动，正 PnL 无法告诉我们是哪一头贡献，也可能来自较低 participation。</p>
@@ -1426,9 +1427,9 @@ A_k=\pi(X_{t_k},S_k;\Delta t),</script><p>其中$\Delta t$显式进入policy ide
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Fixed-Parameter-Racing-Research/" title="NarrowGate 报价动作研究：从固定参数竞速到随机化 Widen、Recenter 与条件策略">
+                      <a href="/2026/08/29/NarrowGate-Active-Order-Queue-Value-Keep-Cancel-Research/" title="NarrowGate Order-Level Quote Value：Placement Distance、Queue Value 与 Active-Order Continuation">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">NarrowGate 报价动作研究：从固定参数竞速到随机化 Widen、Recenter 与条件策略</span>
+                        <span class="hidden-mobile">NarrowGate Order-Level Quote Value：Placement Distance、Queue Value 与 Active-Order Continuation</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -1436,8 +1437,8 @@ A_k=\pi(X_{t_k},S_k;\Delta t),</script><p>其中$\Delta t$显式进入policy ide
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Ranked-Toxicity-Exposure-Guard-Research/" title="NarrowGate Exposure Guards：BER Proxy、BUY q90、Ranked Toxicity 与跨 库存生命周期 订单所有权">
-                        <span class="hidden-mobile">NarrowGate Exposure Guards：BER Proxy、BUY q90、Ranked Toxicity 与跨 库存生命周期 订单所有权</span>
+                      <a href="/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/" title="NarrowGate Fill Quality 与 First-Add Quote EV：从 Markout、库存生命周期 Loss 到 Soft-Widen 动作">
+                        <span class="hidden-mobile">NarrowGate Fill Quality 与 First-Add Quote EV：从 Markout、库存生命周期 Loss 到 Soft-Widen 动作</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

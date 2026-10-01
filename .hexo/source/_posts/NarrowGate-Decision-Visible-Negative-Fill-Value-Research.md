@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate Fill Quality 与 First-Add Quote EV：从 Markout、库存生命周期 Loss 到 Soft-Widen 动作'
 date: 2026-08-29 13:30:00
-updated: 2026-10-01 03:20:00
+updated: 2026-10-02 12:00:00
 categories:
 - Market Making
 tags:
@@ -25,14 +25,13 @@ $$
 M_h=\operatorname{side}\,(m_{t+h}-p_{fill})-fee,
 $$
 
-而完整决策价值必须继续走到库存生命周期 终点：
+动作比较的共同终点 T 必须事前定义：可以是固定窗口、库存生命周期终点或完整账户终点，不要求一律等到 flat。在未将费用和资金费净含于成交现金项的写法中：
 
 $$
-Y_T=\sum_{i\in\text{post-decision fills}}\!\operatorname{signedCashflow}_i
-+q_T m_T-\text{fees}-\text{incremental costs}.
+W_T-W_0=-\sum_i dq_i p_i+q_Tm_T-q_0m_0-\mathrm{fees}+\mathrm{funding\_cashflow}.
 $$
 
-第一式是按价格差表达的单单位成交后价值，fee 也须采用相同单位；后文另给出未扣费的 bps markout。第二式以完整现金流和期末库存估值记账，费用只扣一次。比较动作时，使用同一初态下两条路径的终局差额，而不是把某笔负 markout 取反当作可避免损失。
+第一式是价格差单位，fee 须匹配该单位；第二式是账户货币单位，包含初始库存估值及带符号资金费。使用已经净含费用或资金费的 cash 字段时直接计算权益差，不重复扣加。动作价值为 `DeltaV = (W_T - W_0)_action - (W_T - W_0)_baseline`，两路径使用同一初态与终点；不能将负 markout 取反当作可避免损失。E/C 使用决策后 30 秒共同结算、未平库存按合同估值，而完整策略反复应用后的净 PnL 仍需完整账户评价。
 
 ## 从标签到动作：各项实验的比较对象
 
@@ -44,6 +43,16 @@ $$
 | Decision-visible fill value | 当时可见状态能否提前筛出负价值路径？ | chronological prediction branches 关闭 |
 | BUY soft-widen action | 解除一次放宽是否创造直接 assignment-to-terminal value？ | 动作真实发生；两种 role 均负，关闭 |
 
+## 成交前 E/C：独立的配对选择实验
+
+这与上表成交条件 markout/soft-widen、以及另一个双侧十头风险加宽单账户实验不同。E 为 POST−WAIT，只处理原基线允许的空仓开仓机会；C 为 KEEP−CANCEL，只处理基线 KEEP、仍有效且属于可见增险角色的旧单。四个 Ridge 对应 E/C 的 BUY/SELL 表面，不是 F03 十三头或 F05 十头。30 秒是一次干预后的共同结算窗口，不是新增冷却，更不是短标签可以直接累加成账户 PnL。
+
+实际冻结输入为八项：侧向 L1 不平衡、波动率、同侧距离 ticks、spread ticks、可见库存 lots、其他同侧 pending lots、对侧 pending lots、本地订单年龄。缺少严格支持的 5 秒成交不平衡与中价变化未用其他窗口替代。字段单位与可见性由实际特征消费者约束，不包含未来成交信息。
+
+`f03-407-t100-final107-v2` 已完成 2,288 个有效标签对、16 个合法空槽、132 个标签父账户、4 次冻结拟合，以及同一 204 个独立账户上的十路径、2,040 个经济单元、4,070 策略日。2,304 是槽位配额而非有效标签数。T100 提供拟合，A50/B100/C50 是交错日期诊断；全期包含训练日，Final 不供监督标签但已经评价。维护状态见[同一机器台账](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/recompute_407.json)，私有模型、配置和收益表不公开。
+
+EC 是原预声明主候选，不事后改称 E。随机对照匹配训练期机会流的否决概率，不匹配评价期成交量、库存暴露或实际否决率；仅两个种子的证据有限。减亏或单位成交额改善不单独证明选择性，不能据此断言随机更聪明或 E 等于随机减单。该批已完成不等于稳定盈利或整个 F05/F07 完成；E 未替换 B0/live，CANCEL 也不等于 REPLACE/REENTER。
+
 <span id="3-Fill-to-inventory-lifecycle"></span>
 
 ## Fill-to-inventory lifecycle
@@ -52,7 +61,7 @@ $$
 
 ![Fill、30 秒 markout、inventory lot 与 库存生命周期 terminal 的生命周期](/images/narrowgate/fill-inventory-lifecycle.svg)
 
-*图 1：同一 opening fill 同时启动短期 markout clock、库存 lot 和更长的 库存生命周期 path。30 秒价格标签先结束，不代表库存已经修复；replay boundary 到来时仍未关闭的 lot 只能 censor。*
+*图 1：同一 opening fill 启动短期 markout、库存 lot 和库存生命周期时钟。回放终点仍未关闭时，持有时长右删失；未平仓价值按期末估值纳入权益。这是成交后时间轴，不是 E/C 决策后 30 秒动作标签图。*
 
 ![从 markout 到 action uplift 的归因阶梯](/images/narrowgate/f10-attribution-evidence-ladder.svg)
 
@@ -111,7 +120,7 @@ $$
 
 若 opening 与 reducing 都是 passive fills，closed-lot realized value 可以按配对 quantity、成交价和费用计算。但 FIFO/LIFO 的差异是 model uncertainty，不是 exchange-observed truth。报告一条 lot-duration 曲线时，至少应同时给出两种归因、closed rate、median、tail quantiles 与 censoring rate。
 
-对 replay 结束仍未关闭的 lot，$T_{lot}$ 是右删失。不能把 replay boundary 当作一笔虚构 taker close，也不能无依据扣除假设性 taker fee。若研究需要价值，应独立报告 terminal MTM：
+对 replay 结束仍未关闭的 lot，$T_{lot}$ 是右删失。不能把 replay boundary 当作一笔虚构 taker close，也不能无依据扣除假设性 taker fee。价值评价仍须按合同将 terminal MTM 纳入权益，并单独报告该分量：
 
 $$
 V_{terminal}
@@ -163,7 +172,7 @@ Y_c
 E_c(T_{flat})-E_c(T_{birth}),
 $$
 
-并与 maximum adverse excursion、absolute inventory time、repair latency、duration 和 tail indicator 一起报告。若 库存生命周期 到 replay boundary 仍未 flat，同样必须 censor 或使用冻结 terminal-MTM 规则。
+并与 maximum adverse excursion、absolute inventory time、repair latency、duration 和 tail indicator 一起报告。若库存生命周期到 replay boundary 仍未 flat，持有时长右删失；未平仓价值仍按冻结 terminal-MTM 规则纳入权益。
 
 动作研究尤其不能把同一个 $Y_c$ 复制给 库存生命周期 内每个 decision。那会把一次终局损失重复计入多行，产生伪精度。正确做法是每个 intervention identity 只拥有一次 库存生命周期-level attribution，或使用明确的 incremental contribution contract。
 

@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate：Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift'
 date: 2026-06-19 16:50:48
-updated: 2026-10-01 03:20:00
+updated: 2026-10-02 12:00:00
 categories:
 - Market Making
 tags:
@@ -13,7 +13,7 @@ tags:
 math: true
 ---
 
-Last materially modified: 2026-10-01
+Last materially modified: 2026-10-02
 
 ## 被动报价、成交质量与库存风险
 
@@ -77,13 +77,13 @@ P3 的距离以实际同侧 BBO 原点为准，不能与 GLFT 相对 mid 的距�
 |---|---|---|
 | **作废** | 连续跨日/月度 replay 结论、坏日/gap 污染下的 quote EV A/B、markout EMA latch 污染下的 adverse 参数、fills/day 用错分母 | 不再用于选择 live 参数，只作为事故复盘 |
 | **保留** | 数据质量体系、identity-specific fresh-start、continuous segment/horizon guard、hard gate、库存时间积分、live/replay 机制量对齐 | 作为后续所有实验的入场条件；是否跨日 carry 必须由 Spec 明示 |
-| **共享底座尚未产生完整验证结果** | continuous state/restart/accounting contract 与三层 replay-cache DAG | shared tick-runner 绑定检查尚未通过；F05 的 71 日结果仅覆盖对应研究族的重启会计诊断 |
-| **causal-v4/v5/v9 历史 checkpoint** | bucket-end visibility、normalized-100ms、merged clock 与 13-head lineage | 保留为历史因果/数据修复证据；当前模型身份已滚动到 causal-v12 semantics-v6 |
+| **共享底座的分路径验收** | 新 F03、E/C 完整经济评价及有界状态恢复验收已有结果 | 只覆盖各自冻结输入、后端和执行合同；不外推为所有 native/live 路径全面通过，历史 F05 71 日恢复诊断另保留其范围 |
+| **causal-v4/v5/v9/v12 历史 checkpoint** | bucket-end visibility、normalized-100ms、merged clock 与 13-head lineage | 保留所属实验的因果/数据修复证据；本轮模型参照为新 Tardis F03/inf，不以 v12 替代其身份 |
 | **固定 local action 已否决** | BUY/SELL `prevent-over-widen / widen-1tick / recenter-1tick`，以及后续 BUY conditional-widen、SELL repair-trend skip 两个窄 family | development/validation 或 development gate 未过；对应 sealed holdout 保持未读，不等待新日期重跑同一 family |
-| **source-aware 数据身份** | 45 个 2026 native days + 67 个 provider-normalized target days；后者来自 Tardis top-20/100ms | 2025 provider days可训练 causal features，不能获得 native sequence/exact queue 权限 |
+| **历史 source-aware 数据身份** | 原实验的 45 个 native days + 67 个 provider-normalized target days | 不是新 407 日输入定义；派生 top-20/100ms 不获得 native sequence/exact queue 权限 |
 | **Full-Multiscale research** | 30 日 Development、BUY E3 为最强 point candidate | `supported_sides=[]`；Validation/holdout 未读，不能据此确认报价动作有效 |
 | **v12 50 日比较结果的适用范围** | causal-v12 semantics-v6、daily-fresh-start 实验 | 仅描述该实验采用的会计和成交顺序，不能替代当前执行器的经济验证 |
-| **固定参数研究族** | 报价控制器的库存与价差系数、cooldown/cap/max-inventory 与固定一档动作的 pooled winner search | 已作为完成的阴性研究族关闭；固定值只能是 baseline、经验校准或安全边界，不因字段名就被视为论文估计量 |
+| **指定固定参数搜索的负结果** | 原报价系数、cooldown/cap/max-inventory 与固定一档动作的 pooled winner search | 指定搜索未获支持，不代表 F01 永久关闭；后续方向化旧单更新条件另有比较，固定值不因字段名就成为论文估计量 |
 | **F06 placement-distance closure** | ordered surface、paired 1/2/4-tick resolution、direct marginal-fill terminal value | 0/24 正式 value cells 一侧区间通过，`closed_placement_distance_value_unidentified`；Value/Action 未创建 |
 | **BUY q90 baseline-integrity work** | 历史 100ms adverse-fill shadow、dual-clock exposure、terminal risk-set 与 fresh recovery | 40 日 exact-native mechanics 已完成；首次 prospective transport 因 duplicate activation 与缺 exact feature-ready companion fail closed；当时 action OFF/shadow ON，后来的冻结 no-shadow 快照中两者均关闭，但这不回答当前进程状态 |
 | **BUY fill-selection** | 冻结 40 日 ON-OFF 点估计 -16.7946 USDC，CI 跨零 | `unsupported_negative_point_estimate`；历史运维记录显示 action 与 shadow 后续停用，不能写成已证明普遍有害，也不由本文推断今日状态 |
@@ -107,36 +107,23 @@ P3 的距离以实际同侧 BBO 原点为准，不能与 GLFT 相对 mid 的距�
 
 causal-v4 **model** identity 在 122 日上使用 `80 train + 1 embargo + 20 validation + 1 embargo + 20 test`；独立的 action-family manifest 才把同一日期宇宙分配为 `80 development + 1 embargo + 20 validation + 1 embargo + 20 family-specific sealed holdout`。model test 与 action holdout 是两种身份，不能混写成一个没有限定词的“retained/OOS/sealed”。
 
-截至本次更新，当前研究链路可以概括成：
+新 407 日研究的输入与执行链路可概括为；它不是今日 live 部署验收：
 
 ![NarrowGate maker live hot path](/images/narrowgate/maker-hot-path.svg)
 
 ```text
-Binance Vision / native CryptoHFTData / Tardis / AWS receive-time tapes
-        │
-        ▼
-source-aware data audit + good-day intersection + D-1 warmup
-        │
-        ▼
-static Feature DAG + strict bucket cutoff + normalized L2 100ms
-        │
-        ├──► native sequence-valid subset：queue/lifecycle evidence
-        ├──► provider-normalized subset：prediction/source sensitivity
-        └──► closed source-bound receive-time tapes：BABEL historical evidence
-        │
-        ├──► causal-v12 13-head：10s completed-bucket prediction
-        │
-        ▼
-AS-shaped empirical quote core + explicit research/action permissions
-        │
-        ▼
-tick replay / live execution：dual clocks / queue / cancel-ACK / remaining qty
-        │
-        ▼
-order-level denominator + fill markout + inventory_lifecycle labels
-        │
-        ▼
-prediction -> transport -> economic resolution -> randomized action gate
+采购 L2 + 真实个体成交 → facts / 完整消息分组
+        ↓
+source 时间 + 模型化 delivery / ready（不是 live 主机实测接收时间）
+        ├──► 盘口观察 → 因果特征 / feature-ready → 新 F03 / inf
+        └──► 独立 outcome Bars → 标签（不反流为当时可见特征）
+                                               ↓
+选定报价时钟 / 单侧终态续接 → 目标报价 → 更新资格 / 订单生命周期
+                                               ↓
+                         经济撮合 / 库存 / 费用 / 资金费 / 终点 MTM
+
+参考市场 → 可选合同与消费者支路（不默认进入本轮本地 F03）
+native 后端 → 仅按已验收能力及实际任务入口选择
 ```
 
 这条链路很重要，因为 quote EV、fill-selection score 和 库存生命周期风险 score 都不是从原始行情直接训练出来的万能模型。它们依赖上游报价轨迹、成交路径、未来 markout 和 cross-market context；任何一层的数据边界或执行口径出错，最后得到的 AUC 和 PnL 都可能只是被污染后的精确数字。文中后续保留的 quote-EV 伪代码或 shadow calibration 都是历史抽象，不能通过环境变量重新启用，也不是创建新 live shadow 的建议。
@@ -148,11 +135,12 @@ prediction -> transport -> economic resolution -> randomized action gate
 | 数据层 | 主要来源 | 在项目中的角色 | 最容易出错的地方 |
 |---|---|---|---|
 | execution trades | 所选传输与模型合同声明的 aggregate 或 individual trade；历史文件也须保留来源类型 | `LiveExecutionFeatures.aggregate_trade()` 与 `individual_trade()` 消费不同协议；后者接收真实 trade 消息，不从聚合包虚构子成交 | 聚合包数、个体成交数和原生订单身份不是同一信息；接口支持不证明当前端点可用或实际部署已订阅，也不把成交数据变成全市场 MBO |
-| native execution orderbook | CryptoHFTData BTCUSDC hourly price-level snapshot/delta | 原生 sequence/warmup 合格日上的 formal queue、lifecycle 与 action replay | 小时缺失、无 snapshot、sequence gap，或把 top-20/MBP 写成全市场 MBO truth |
-| provider-normalized orderbook | Tardis `incremental_book_L2` + `book_ticker`，重建 top-20/100ms | 2025 source-aware causal-v12 training 与 provider sensitivity；双源重叠日可做一致性审计 | 没有 Binance native `U/u/pu` authority，也不是 AWS live receive time，不能用于 exact queue/action authorization |
+| 本轮采购盘口与成交 | Tardis `incremental_book_L2` 与真实个体 trades | facts 保留源时间、供应商接收时间和完整消息分组，再按任务合同生成观察与 ready | 多个 level 行不等于多次独立盘口；原始输入不能统称固定 100ms，供应商接收不是 live 主机接收 |
+| 派生观察、特征与 outcome | 已绑定 L2 重建 BBO、观察网格与独立 outcome Bars | 新 F03 的因果特征与未来标签分别按各自时钟消费 | L2 派生 BBO 不是原生 bookTicker；派生 100ms 与 1 秒 Bar 不是原始消息粒度，也不提供 MBO 排队真值 |
+| 历史 native/source-aware 输入 | CryptoHFTData hourly 与旧 Tardis top-20/100ms 合同 | 仅解释对应旧实验及重叠日审计 | 不能作为新 407 日输入定义或今日 live 配置 |
 | slow market context | Binance OI、long/short ratio、funding/premium 等日度慢变量 | regime 与慢速风险上下文 | 采样频率和 quote-time 动作尺度不同，不能直接当成毫秒级价格发现信号 |
-| cross-market anchors | BTCUSDT perp、BTCUSDT spot、BTCUSDC spot、`USDCUSDT` spot | Binance BTCUSDT 做本地 level bridge；`BTCUSDT / USDCUSDT` 换算到 USDC；BTCUSDC spot 做 cross-check/fallback | 多个 Binance 市场高度相关，不能伪装成独立 venue consensus；交易对正式 symbol 是 USDCUSDT，不是反向乘法 |
-| historical independent-venue capture | Bitget v3 `books1/publicTrade`、Bybit `orderbook.1/publicTrade`、OKX `bbo-tbt/trades`，以及 retained111 历史 trades | 历史 receive-time flow/toxicity、cross-venue consensus、leader/divergence 与 库存生命周期-moderator 研究 | current external/Flow/Ref 与全部 shadow 均 OFF；保留 tape 只作离线历史证据；L1 BBO 不是 exact L2，spot/perp 也不是六张独立选票 |
+| cross-market anchors（可选） | BTCUSDT perp、BTCUSDT spot、BTCUSDC spot、`USDCUSDT` spot | 在对应参考合同启用时可做 level bridge、USDC 换算与 cross-check，不默认进入本轮本地 F03 | 多个 Binance 市场不是独立 venue consensus；数据存在不证明参考消费者或今日 live 已启用 |
+| historical independent-venue capture | 对应旧实验的 Bitget、Bybit、OKX 行情与 retained111 trades | 历史 receive-time flow/toxicity、cross-venue 与库存生命周期研究 | 保存数据不证明今天 external/Flow/Ref 或 shadow 开关；参考市场是可选支路，L1 BBO 不是 exact L2 |
 
 因此本文里的“数据清理”不是普通 ETL 卫生问题，而是模型定义的一部分。maker 的 label 常常是条件事件：先有候选 quote，再看是否 fill，fill 后再看 1s/5s/30s mid。只要 orderbook 缺口或长 gap 横跨这个链条，`P(fill)`、`E(markout | fill)` 和库存风险都会被误标。
 
@@ -180,12 +168,12 @@ prediction -> transport -> economic resolution -> randomized action gate
 
 ### 1.1 为什么叫 NarrowGate
 
-NarrowGate 取自“窄门”的意象。对 maker 策略来说，市场里的机会并不是越多越好。每一个 tick 都可以触发报价，但真正值得暴露的窗口必须经过几道门：
+NarrowGate 取自“窄门”的意象。行情事件更新状态；目标报价由选定报价时钟、已安排的单侧终态续接等实际路径触发。生成目标后，价格/时间门槛、pending 和风险规则再决定是否更新旧单。讨论中的新事件驱动替代方案不等于已经实现或采用。研究中的参与判断还需区分：
 
 1. 当前 spread 是否提供了足够的流动性补偿；
 2. 报价相对 mid/BBO 的位置是否合理；
 3. 主动成交和盘口压力是短期流动性冲击，还是信息驱动的重定价；
-4. reference perp 与 spot 是否确认了这个变化；
+4. 若参考市场合同及消费者启用，其信息如何影响判断；
 5. 库存、挂单 TTL 和撤单频率是否仍在风险预算内。
 
 因此 NarrowGate 不是“预测涨跌然后追单”的趋势策略。它研究的是被动限价单：当别人为了立刻成交而付出成本时，maker 是否值得站在另一边接住这笔流动性。

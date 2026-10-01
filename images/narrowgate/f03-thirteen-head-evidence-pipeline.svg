@@ -1,30 +1,33 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
-  <title id="title">13-head 模型从多目标预测到完整 maker 经济路径的证据流水线</title>
-  <desc id="desc">展示十三个预测头共享因果特征后，必须逐头通过时钟、校准和时间外迁移，再进入冻结报价映射与完整订单库存回放，任何预测头或经济门失败都不能由总分补偿。</desc>
-  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 Z" fill="#7dd3fc"/></marker><style>.bg{fill:#071525}.box{fill:#102b43;stroke:#315a78;stroke-width:2}.head{fill:#172d4d;stroke:#60a5fa;stroke-width:1.5}.gate{fill:#3a2434;stroke:#fb7185;stroke-width:2}.ok{fill:#133a37;stroke:#34d399;stroke-width:2}.t{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;fill:#eef7ff}.m{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;fill:#9eb4c8}.h{font-size:28px;font-weight:700}.b{font-size:18px;font-weight:650}.s{font-size:14px}.arrow{stroke:#7dd3fc;stroke-width:3;fill:none;marker-end:url(#a)}</style></defs>
-  <rect class="bg" width="1200" height="720" rx="24"/>
-  <text class="t h" x="48" y="56">十三个预测头不是十三张“投票券”：每一层都要单独闭合</text>
-  <text class="m s" x="48" y="84">共享 encoder 可以提高效率，但不能把失败 head、错误时钟或经济反号平均掉</text>
-  <rect class="box" x="48" y="122" width="224" height="180" rx="15"/><text class="t b" x="70" y="160">因果可见输入 Xₜ</text><text class="m s" x="70" y="198">本地 BBO / L2</text><text class="m s" x="70" y="224">trade tempo / P3 / queue</text><text class="m s" x="70" y="250">inventory / 库存生命周期</text><text class="t s" x="70" y="278">全部按 feature-ready clock</text>
-  <path class="arrow" d="M286 212H332"/>
-  <g transform="translate(346 116)">
-    <text class="t b" x="0" y="26">共享表示 + 13 个目标头</text>
-    <rect class="head" x="0" y="46" width="118" height="48" rx="8"/><text class="t s" x="18" y="76">方向 / move</text>
-    <rect class="head" x="130" y="46" width="118" height="48" rx="8"/><text class="t s" x="145" y="76">volatility</text>
-    <rect class="head" x="260" y="46" width="118" height="48" rx="8"/><text class="t s" x="277" y="76">touch / fill</text>
-    <rect class="head" x="0" y="106" width="118" height="48" rx="8"/><text class="t s" x="17" y="136">markout / value</text>
-    <rect class="head" x="130" y="106" width="118" height="48" rx="8"/><text class="t s" x="150" y="136">taker tempo</text>
-    <rect class="head" x="260" y="106" width="118" height="48" rx="8"/><text class="t s" x="280" y="136">其余 heads</text>
-    <text class="m s" x="0" y="184">每个 head 有自己的 label support、base rate 与 calibration</text>
-  </g>
-  <path class="arrow" d="M738 212H782"/>
-  <rect class="gate" x="796" y="122" width="356" height="180" rx="15"/><text class="t b" x="818" y="160">Prediction joint gate</text><text class="m s" x="818" y="196">逐头 chronology / leakage / support</text><text class="m s" x="818" y="224">OOF ranking + calibration + daily transfer</text><text class="t s" x="818" y="254">5 / 13 通过 ≠ 整体通过</text><text class="m s" x="818" y="280">失败 head 不能被 pooled score 抵消</text>
-  <g transform="translate(48 374)">
-    <rect class="box" x="0" y="0" width="300" height="198" rx="15"/><text class="t b" x="22" y="38">冻结 inference mapping</text><text class="m s" x="22" y="75">score → quote center / spread / side</text><text class="m s" x="22" y="103">cadence、fallback、unsupported state</text><text class="t s" x="22" y="137">必须与训练后的 artifact 一起冻结</text><text class="m s" x="22" y="168">不能从经济结果反调 threshold</text>
-    <path class="arrow" d="M316 98H366"/>
-    <rect class="box" x="382" y="0" width="300" height="198" rx="15"/><text class="t b" x="404" y="38">完整顺序 replay</text><text class="m s" x="404" y="75">quote → queue → fill / cancel</text><text class="m s" x="404" y="103">inventory → reducing → 库存生命周期 terminal</text><text class="t s" x="404" y="137">ML-ON 与 ML-OFF 同日同源配对</text><text class="m s" x="404" y="168">1s cadence 也必须重放全部路径</text>
-    <path class="arrow" d="M698 98H748"/>
-    <rect class="ok" x="764" y="0" width="340" height="198" rx="15"/><text class="t b" x="786" y="38">Economics joint gate</text><text class="m s" x="786" y="75">terminal value + 库存生命周期 tail</text><text class="m s" x="786" y="103">fills/activity + inventory time</text><text class="m s" x="786" y="131">BUY / SELL / role 分开</text><text class="t s" x="786" y="168">预测通过不等于 action 或 live authority</text>
-  </g>
-  <text class="m s" x="48" y="660">机制示意 · 版本修复、执行 attempts 与研究 identity 必须分离</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-labelledby="title desc">
+<title id="title">F03：共同因果特征 → 独立 LightGBM → 冻结消费 → 完整经济评价</title>
+<desc id="desc">29 项共同特征输入十三个独立目标模型，不是共享 encoder。三个触达条件方向概率、三个绝对价格方差率、三个触达条件价格变化比例和 bid/ask 在 5/10 秒的四个不利概率。</desc>
+<defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 Z" fill="#344054"/></marker><style>text{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;fill:#101828}.box{fill:#eff8ff;stroke:#175cd3;stroke-width:1.5}.sub{font-size:16px;fill:#475467}.h{font-size:20px;font-weight:700}.line{stroke:#344054;stroke-width:2;fill:none;marker-end:url(#a)}</style></defs>
+<rect width="1200" height="650" fill="#fbfcfe"/>
+<text x="36" y="48" font-size="26" font-weight="700">F03：共同因果特征 → 独立 LightGBM → 冻结消费 → 完整经济评价</text>
+<rect class="box" x="36" y="100" width="320" height="255" rx="12"/>
+<text class="h" x="56" y="138">共同因果特征面板</text>
+<text class="sub" x="56" y="176">实际 29 项本地特征合同</text>
+<text class="sub" x="56" y="206">盘口、成交与因果时间窗口</text>
+<text class="sub" x="56" y="236">按 feature-ready 可见性消费</text>
+<text class="sub" x="56" y="266">不添加自有队列或库存特征</text>
+<text class="sub" x="56" y="296">参考市场不默认进入本轮 F03</text>
+<path class="line" d="M368 220H404"/>
+<rect class="box" x="420" y="100" width="744" height="255" rx="12"/>
+<text class="h" x="440" y="138">逐目标独立拟合：3 + 3 + 3 + 4 = 13</text>
+<text class="sub" x="440" y="176">3 × 触达条件方向概率（10 / 30 / 60 秒）</text>
+<text class="sub" x="440" y="206">3 × 绝对价格方差率（10 / 30 / 60 秒）</text>
+<text class="sub" x="440" y="236">3 × 触达条件价格变化比例（10 / 30 / 60 秒）</text>
+<text class="sub" x="440" y="266">4 × 不利概率（bid / ask，各 5 / 10 秒）</text>
+<text class="sub" x="440" y="296">taker tempo 是输入；P3 是独立模型，不是额外 F03 头</text>
+<path class="line" d="M800 370V395H245V430"/>
+<rect class="box" x="36" y="444" width="440" height="145" rx="12"/>
+<text class="h" x="56" y="482">冻结消费映射</text>
+<text class="sub" x="56" y="520">报价桥接输出五字段；作用按实际消费者</text>
+<text class="sub" x="56" y="550">独立训练，没有跨头共享梯度</text>
+<path class="line" d="M490 515H558"/>
+<rect class="box" x="574" y="444" width="590" height="145" rx="12"/>
+<text class="h" x="594" y="482">完整订单 → 成交 → 库存 → 净权益</text>
+<text class="sub" x="594" y="520">费用、资金费、终点 MTM 与独立账户边界</text>
+<text class="sub" x="594" y="550">十三头已训练 ≠ 十三份经济贡献已验证 ≠ live 准入</text>
+<text class="sub" x="36" y="630">结构示意；各实验的预测诊断与经济结论分别记录，不由本图宣告通过。</text>
 </svg>

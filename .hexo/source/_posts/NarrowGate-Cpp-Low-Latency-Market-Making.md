@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate：回测吞吐与 Live 尾延迟工程'
 date: 2026-07-01 08:03:00
-updated: 2026-09-27 10:45:00
+updated: 2026-10-02 12:00:00
 categories:
 - C++
 tags:
@@ -37,7 +37,9 @@ Replay 必须分别推进行情产生、各源消息到达、特征完成、决�
 
 另一个值得做的减法是 [复用 lifecycle 持久化实现](https://github.com/xiao-nanbei/NarrowGateMaker/commit/249a2549)：strict-native writer 不再维护一份近乎相同的持久化代码，正常回调采用增量提交，不再每次扫描全部历史 part；启动、失败恢复和最终完整性检查保留。恢复必须先于读取 cursor 和准备新 batch，这样减少的是重复工作，不是崩溃恢复保障。
 
-合并后的默认全套测试为 **4,853 passed、18 skipped、15 deselected**，本机重新编译的 C++ 也参与回归。这证明所覆盖的接口与状态机没有回归，不是 x86 性能测量，也不代表完整 C++ 异步 scheduler 已经可替代 Python。当前缺口是把逐源消息交付和 cached/new-bucket/catch-up 计算耗时接到完整日 runner；已接通的 gateway-only diagnostic 不能换个名称就当作当前 B0。本轮没有新部署，也没有新的实盘 p99 或经济结果。
+2026-09-06 合并后的默认全套测试为 **4,853 passed、18 skipped、15 deselected**，当时本机编译的 C++ 也参与回归。这是该日期所覆盖的接口与状态机结果，不是 x86 性能或完整 C++ 异步 scheduler 替代 Python 的证明。当时记录的缺口是逐源消息交付与 cached/new-bucket/catch-up 计算耗时尚未接入完整日 runner；这不是今天所有任务的状态。gateway-only diagnostic 也不能换名充当另一场景 B0。
+
+现有 Python 路径支持 `cached_no_new_bucket`、`new_bucket`、`catch_up` 计算样本及 pre-snapshot、准备入队、入队后尾部阶段；代码支持与某个任务实际装入样本必须分别核对。原方向化门槛批次未装入本地报价计算耗时样本，不代表其 REST、订单生效或通知延迟为零。后续计算耗时场景另行绑定样本，不能覆盖旧结果；F03 原批次是否装入须读取它自己的任务证据，本文不顺带推断，也不据此宣布旧实验全部作废。
 
 完成执行路径后，下一轮先建立当前 B0，再比较新增风险前的 quote/wait、挂单中的 keep/cancel、恢复后的 add/continue-wait。两臂保留相同事后保护和外部延迟抽样规则，但分别形成自己的订单、FIFO 等待、成交和库存路径。不能因为 native 更快，就用缺少这些时钟的旧 C++ 路径代替；也不能用旧 50 日或 71 日金额填充新的 baseline。详细研究边界见 [时间尺度与因果复验](/2026/08/29/NarrowGate-Time-Unit-Causality-Repair-Research/) 和 [研究项目地图](/2026/08/29/NarrowGate-Research-Project-Map/)。
 
@@ -74,9 +76,18 @@ $$
 +\frac{2}{\gamma z}\log\!\left(1+\frac{\gamma z}{k_{\mathrm{exec}}}\right).
 $$
 
-报价控制器通过 `inventory_reference_qty`、`eta_inventory` 和 `a_spread` 定义库存与价差缩放。单位变换需要配套参数变换与行为测试，不能仅凭公式形状声称 BTC→mBTC、USDC→cent 的计价单位不变性。
+报价控制器使用 `inventory_reference_qty` 归一化库存，并按实际消费者使用 `eta_inventory`、`risk_per_order` 等系数；`a_spread` 不因名称或数值相同就与价差表达式中的系数混同。单位变换需要配套参数变换与行为测试，不能仅凭公式形状声称 BTC→mBTC、USDC→cent 的计价单位不变性。
 
-时间上也有四个不同的时钟：`60×1s` 是方差 lookback，`quote_horizon_s=1s` 是风险积分期限，报价更新/存活约为 5–10s，P3 label horizon 是 10s。**60×1s 方差的实践量纲正确，但固定 1s risk horizon 与 5–10s 报价寿命、10s P3 仍有经济期限错位**。合理的下一步是对 `lookback × risk horizon × gamma/eta/a_spread` 做成对 chronological replay，而不是因为量纲表面通过就假定经济期限已对齐。
+时间上应分开方差 lookback、当前报价核心的 `risk_horizon_s` 风险积分、报价计算间隔、最小改单时间、撤单经济生效、本机 ACK 可见、订单实际可成交寿命、库存持有时间及标签 horizon。它们不是同一个时钟。价格差不足时旧单可保留多个报价周期，单侧终态续接又可能发生在常规周期之外；不能从 5–10 秒 RQ 推出订单寿命也是 5–10 秒。
+
+live 的 [`_effective_rq_interval()`](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/strategy/maker_engine.py) 在 `0 < rq_min < rq_max`、动态状态就绪且慢方差达到有效阈值时使用动态间隔，否则回退 `requote_interval`。该函数不检查 `requote_clock`；不能凭回测任务的 `requote_clock=fixed` 宣称所有 live 入口永久固定 5 秒。当前映射为：
+
+```text
+r = clamp(ema_fast / ema_slow, 0, 2)
+rq = clamp(rq_max * (rq_min / rq_max) ** r, rq_min, rq_max)
+```
+
+合成示例 `rq_min=5`、`rq_max=10` 时，r=0.5 约为 7.071 秒，r=1 已为 5 秒，r≥1 继续饱和在 5 秒；r=1 不是中间值。这解释配置消费，不验收实际 live 部署，也不构成本轮新参数搜索。
 
 最后，公开仓库的代码、聚合 scorecard 和 receipt 足以审计许多失败门槛，但精确 OOF rows、cache 与 owner artifacts 未分发。所以第三方可以核对“为什么没晋级”，不能独立重算全部数字；这是公开可审计，不是端到端公开可复现。
 

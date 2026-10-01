@@ -33,7 +33,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/buy-conditional-widen-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f09-inventory_lifecycle-action-causal-path.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-09-30T19:20:00.000Z">
+<meta property="article:modified_time" content="2026-10-02T04:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="报价动作">
@@ -338,7 +338,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          23k 字
+          24k 字
         
       </span>
     
@@ -350,7 +350,7 @@
         
         
           <!-- compatible with older versions-->
-          196 分钟
+          201 分钟
         
       </span>
     
@@ -427,6 +427,51 @@
 </tbody>
 </table>
 </div>
+<h2 id="旧单更新条件：A00-A11-A10-A01"><a href="#旧单更新条件：A00-A11-A10-A01" class="headerlink" title="旧单更新条件：A00/A11/A10/A01"></a>旧单更新条件：A00/A11/A10/A01</h2><p>另一类实验改变的是何时按原目标更新旧单，不是 Widen/Recenter 的目标价格公式。向外表示 BUY 降低买价、SELL 提高卖价；向内相反。价格门槛减少 5 ticks 不等于额外将目标移动 5 ticks。后续成交、库存和预测消费路径分叉后，目标仍可能自然不同，不能声称四臂逐时刻目标永远相同。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>分析臂</th>
+<th style="text-align:right">普通向外门槛 ticks</th>
+<th style="text-align:right">普通向内门槛 ticks</th>
+<th style="text-align:right">减仓门槛 ticks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A00</td>
+<td style="text-align:right">15</td>
+<td style="text-align:right">15</td>
+<td style="text-align:right">15</td>
+</tr>
+<tr>
+<td>A11</td>
+<td style="text-align:right">10</td>
+<td style="text-align:right">10</td>
+<td style="text-align:right">15</td>
+</tr>
+<tr>
+<td>A10</td>
+<td style="text-align:right">10</td>
+<td style="text-align:right">15</td>
+<td style="text-align:right">15</td>
+</tr>
+<tr>
+<td>A01</td>
+<td style="text-align:right">15</td>
+<td style="text-align:right">10</td>
+<td style="text-align:right">15</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A00 复用原 B0；A11 是先完成的统一降门槛实验，后来仅加入四臂分析命名，不重命名原实验或复制结果。只新增 A10/A01。每臂覆盖相同 Final107 的 54 个独立账户，不是单账户连续 107 日，也不是随机化单次改单。这组名称与风险系数轴的 A/B/C/D 不同。</p>
+<p>该样本中 A11 基本持平略差；A10 少亏，但改善集中于少数账户、配对差额中位数为负、库存峰值增加；A01 整体更差。未证明稳定最优，未晋升 B0，更不能概括为“向外越快越好”或“所有向内调整有害”。具体私有收益表不公开，完成范围与采用边界见<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/README.zh-CN.md">仓库 F01 主报告</a>。</p>
+<p>完整路径的交互必须保留：</p>
+<div class="code-wrapper"><pre><code class="hljs text">I = P11 - P10 - P01 + P00
+P11 - P00 = (P10 - P00) + (P01 - P00) + I</code></pre></div>
+<p>相同种子不保证闭环分叉后逐请求获得同一样本；两个单方向效应不能忽略交互直接相加。Final 已查看，本比较不是新盲测。该方向化批次未装入本地报价计算耗时样本，不表示原 REST/订单延迟为零；后续加入计算耗时是另一执行场景，不倒改这些历史结果。</p>
 <p><span id="3-固定参数竞速"></span></p>
 <h2 id="固定参数竞速"><a href="#固定参数竞速" class="headerlink" title="固定参数竞速"></a>固定参数竞速</h2><p>历史搜索覆盖过风险系数、距离衰减、冷却、库存上限和价差约束。它能比较整套配置，却也同时改变参与度和风险暴露。以下先说明怎样构造可比差值，再讨论参数排名的选择偏差。</p>
 <p><img src="/images/narrowgate/fixed-parameter-racing-regime-kline.svg" srcset="/img/loading.gif" lazyload alt="固定参数在不同市场状态下产生不同路径"></p>
@@ -543,7 +588,7 @@ E\left[\max_{k\le K}\hat\mu_k\right]
 <p>因此固定参数研究需要search ledger：所有尝试过的arms、输入身份、读过的panels、scorecard与淘汰原因都留在同一研究家族。Formal successor应先冻结极小候选集，再在chronologically later panel上比较；不是把旧top-N带到另一套有缺陷的replay里继续赛。</p>
 <h3 id="Denomination-invariance-是报价参数的最低物理检查"><a href="#Denomination-invariance-是报价参数的最低物理检查" class="headerlink" title="Denomination invariance 是报价参数的最低物理检查"></a>Denomination invariance 是报价参数的最低物理检查</h3><p>如果inventory从BTC改写成mBTC，或者价格从USDC改成cent，经济上同一状态不应产生不同quote。设数量单位缩放$q’=cq$，price unit缩放$p’=dp$；公式中的risk coefficient、variance与order size必须按对应维度变换，使最终quote在还原单位后相同。</p>
 <p>这类测试能暴露“参数在一次回测里看起来好，却依赖隐含单位”的问题。尤其AS/GLFT近似中，inventory、order size、risk aversion、absolute-price variance和distance elasticity必须闭合。若订单量$z$被归一化为1，文档应明确$\gamma$或$q$使用的是order units；若$q$仍是BTC，就应显式保留$z$并做BTC→mBTC不变性测试。</p>
-<p>同理，risk horizon、requote interval、order TTL与库存生命周期 horizon不是一个时钟。固定$\gamma$只能在固定的variance定义与horizon下解释；把60×1s variance与1s horizon、10s P3、5–10s订单寿命混在一起，可能让“最佳gamma”只是吸收期限错配。固定参数继续作为工程baseline的前提，是它的语义和单位已被锁定，而不是它曾经赢过一张表。</p>
+<p>同理，risk horizon、requote interval、order TTL 与库存生命周期 horizon 不是一个时钟。固定 $\gamma$ 只能在指定 variance 定义与 horizon 下解释；报价检查间隔不保证订单寿命，标签期限也不等于库存持有时间。固定参数作为工程 baseline 的前提是语义和单位明确，而不是曾经赢过一张表。</p>
 <h3 id="固定参数与-regime-interaction-的可视化方式"><a href="#固定参数与-regime-interaction-的可视化方式" class="headerlink" title="固定参数与 regime interaction 的可视化方式"></a>固定参数与 regime interaction 的可视化方式</h3><p>与其画一条总PnL冠军线，更有信息的是按日期把候选相对baseline的差值与volatility、spread、activity和initial inventory并列。若参数A只在高波动日好、B只在平静日好，总平均winner可能仅由样本regime占比决定。逐日paired scatter与累积差值能显示winner rotation和尾部集中。</p>
 <p>但这些图只能生成后继假说，不能在同一数据上定义regime selector再宣称通过。selector需在inner folds训练、outer chronology评价；否则“按图分段”只是把全局参数搜索变成更大conditional search。</p>
 <p><span id="4-固定局部报价动作"></span></p>
@@ -970,8 +1015,8 @@ R(\pi)=E\left[Y(a^*(X))-Y(\pi(X))\right].</script><p>$a^*$在现实中不可观�
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Causal-13-Head-Source-Aware-v12-Research/" title="NarrowGate 新 13-Head：Tardis 因果特征、时间加权选型与负收益结果">
-                        <span class="hidden-mobile">NarrowGate 新 13-Head：Tardis 因果特征、时间加权选型与负收益结果</span>
+                      <a href="/2026/08/29/NarrowGate-Ranked-Toxicity-Exposure-Guard-Research/" title="NarrowGate Exposure Guards：BER Proxy、BUY q90、Ranked Toxicity 与跨 库存生命周期 订单所有权">
+                        <span class="hidden-mobile">NarrowGate Exposure Guards：BER Proxy、BUY q90、Ranked Toxicity 与跨 库存生命周期 订单所有权</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

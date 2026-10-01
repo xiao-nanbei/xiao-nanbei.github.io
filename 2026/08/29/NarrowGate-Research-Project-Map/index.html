@@ -27,7 +27,7 @@
 <meta property="og:description" content="做市研究的难点，是把市场信息变成值得执行的订单。预测价格方向或触达概率只是起点；订单还要经历提交、排队、成交、库存持有和减仓，最终由完整账户收益检验。这里按这条链组织 NarrowGate 的研究入口，方便读者从具体问题找到方法、实验和限制。 从哪个问题开始 报价为什么在这里？ 阅读报价动作与 P3：前者比较价格和中心的改变，后者区分市场触达与实际成交。 预测提供了什么信息？ 阅读新 Tardis">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-09-30T19:20:00.000Z">
+<meta property="article:modified_time" content="2026-10-02T04:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="因果推断">
@@ -331,7 +331,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          3.3k 字
+          3.4k 字
         
       </span>
     
@@ -343,7 +343,7 @@
         
         
           <!-- compatible with older versions-->
-          28 分钟
+          29 分钟
         
       </span>
     
@@ -395,7 +395,7 @@
 <li><strong>怎样知道回测证据可信？</strong> 阅读时间量纲与因果时钟、工程主文：先确定数据到达、订单生效、成交通知和会计口径，再解释收益。</li>
 </ul>
 <p>这些问题相互依赖，但一个环节通过不替代下一环节。触达预测改善不代表成交价值改善，库存时间下降也不保证净收益提高。F05 的机会级成交质量、风险加宽、首次下单相对等待（POST/WAIT）、挂单保留相对撤销（KEEP/CANCEL）与 Full-Multiscale 冷却有不同标签和动作合同，需分别检验完整路径。接口存在不表示已并入 B0 或部署 live，本页不据此发布私有实验进度或经济结论。</p>
-<h2 id="主文与实验范围"><a href="#主文与实验范围" class="headerlink" title="主文与实验范围"></a>主文与实验范围</h2><p>下表中的历史结论只属于相应冻结实验。新 Tardis F03 已有模型比较与完整 Final 结果；F05 已有双侧十头与一个固定风险加宽消费者的开发账户负结果，详见各自文章。执行进度和维护入口由<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/recompute_407.json">仓库研究台账</a>记录，不由本页推断实盘状态。</p>
+<h2 id="主文与实验范围"><a href="#主文与实验范围" class="headerlink" title="主文与实验范围"></a>主文与实验范围</h2><p>下表结论各自绑定冻结实验。新 Tardis F03 四套模型通过 B100 选型，完成 858 次评价，原 H=inf 与 ML-OFF Final 均亏损；F05 的双侧十头风险加宽负结果与已完成 E/C 十路径评价分开保留。F01 另有方向化旧单更新门槛比较。完成范围统一链接<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/recompute_407.json">仓库研究台账</a>，不由此推断 live 采用，也不将 E/C 完成扩展为 F06/F07 或 Full-Multiscale 全部完成。</p>
 <div class="table-container">
 <table>
 <thead>
@@ -410,10 +410,10 @@
 <tbody>
 <tr>
 <td style="text-align:right">1</td>
-<td><a href="/2026/08/29/NarrowGate-Fixed-Parameter-Racing-Research/">报价动作：从固定参数竞速到随机化 Widen/Recenter</a></td>
+<td><a href="/2026/08/29/NarrowGate-Fixed-Parameter-Racing-Research/">报价动作与旧单更新门槛</a></td>
 <td>F01、F09</td>
-<td>参数 winner 能否升级为有反事实支持的报价动作？</td>
-<td>固定参数仅可 screening；已测局部动作与 BUY 条件加宽均无稳定晋级</td>
+<td>Widen/Recenter 改目标，方向化门槛改何时更新旧单，两者如何评价？</td>
+<td>原局部动作无稳定晋级；A00/A11/A10/A01 已完成探索性比较，未晋升 B0</td>
 </tr>
 <tr>
 <td style="text-align:right">2</td>
@@ -426,8 +426,8 @@
 <td style="text-align:right">3</td>
 <td><a href="/2026/08/29/NarrowGate-Causal-13-Head-Source-Aware-v12-Research/">NarrowGate 新 13-Head：Tardis 因果特征、时间加权选型与负收益结果</a></td>
 <td>F03</td>
-<td>十三个预测头能否跨数据修复、来源和频率形成完整 maker alpha？</td>
-<td>旧 v4–v12／cadence 阶段：局部 prediction 存在，完整经济 identity 未晋级；新 Tardis 结果见链接正文</td>
+<td>共同特征、独立目标模型能否改善完整 maker 路径？</td>
+<td>新 F03 四套模型、B100 选型及 858 次完成；H=inf 与 ML-OFF Final 仍均亏损，旧 v4–v12 范围另存</td>
 </tr>
 <tr>
 <td style="text-align:right">4</td>
@@ -438,10 +438,10 @@
 </tr>
 <tr>
 <td style="text-align:right">5</td>
-<td><a href="/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/">Fill Quality 与 First-Add Quote EV</a></td>
+<td><a href="/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/">Fill Quality、First-Add Quote EV 与 E/C</a></td>
 <td>F05、F10</td>
-<td>坏成交从何处开始，能否提前识别并用 soft-widen 改善？</td>
-<td>历史损失存在；无稳定 decision-visible subset，直接动作关闭</td>
+<td>成交质量、风险加宽与 POST/WAIT、KEEP/CANCEL 如何分别检验？</td>
+<td>原指定 soft-widen 分支负结果保留；E/C 十路径已完成，未证明稳定选择性，E 未替换 B0/live</td>
 </tr>
 <tr>
 <td style="text-align:right">6</td>
@@ -656,9 +656,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Time-Unit-Causality-Repair-Research/" title="NarrowGate Replay Evidence Revalidation：时间、量纲与因果时钟修复后，旧结论还剩什么">
+                      <a href="/2026/08/29/NarrowGate-Ranked-Toxicity-Exposure-Guard-Research/" title="NarrowGate Exposure Guards：BER Proxy、BUY q90、Ranked Toxicity 与跨 库存生命周期 订单所有权">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">NarrowGate Replay Evidence Revalidation：时间、量纲与因果时钟修复后，旧结论还剩什么</span>
+                        <span class="hidden-mobile">NarrowGate Exposure Guards：BER Proxy、BUY q90、Ranked Toxicity 与跨 库存生命周期 订单所有权</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -666,8 +666,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Volatility-Time-Add-Rearm-Research/" title="NarrowGate Cooldown Temporal-Permission：从 One-Cycle Skip 到 State、Recovery 与 Variance-Time Rearm">
-                        <span class="hidden-mobile">NarrowGate Cooldown Temporal-Permission：从 One-Cycle Skip 到 State、Recovery 与 Variance-Time Rearm</span>
+                      <a href="/2026/08/29/NarrowGate-P3-Aggressive-Reach-Time-Hazard-Research/" title="NarrowGate Empirical P3：从十秒触达曲线到 Reach-Time Hazard 与报价价值">
+                        <span class="hidden-mobile">NarrowGate Empirical P3：从十秒触达曲线到 Reach-Time Hazard 与报价价值</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate 报价动作研究：从固定参数竞速到随机化 Widen、Recenter 与条件策略'
 date: 2026-08-29 13:30:00
-updated: 2026-10-01 03:20:00
+updated: 2026-10-02 12:00:00
 categories:
 - Market Making
 tags:
@@ -34,6 +34,30 @@ $$
 | 固定参数竞速 | 全局参数 winner 能否被称为 alpha？ | 只能 screening；旧 winner 与精确排名撤回 |
 | 固定局部报价动作 | Widen、Recenter、Prevent-Over-Widen 是否稳定优于 baseline？ | 随机化 Development 没有稳定赢家 |
 | BUY 条件加宽 | 状态模型能否只在负价值区域加宽一 tick？ | 无条件点估计不足以支持 chronological policy；关闭 |
+
+## 旧单更新条件：A00/A11/A10/A01
+
+另一类实验改变的是何时按原目标更新旧单，不是 Widen/Recenter 的目标价格公式。向外表示 BUY 降低买价、SELL 提高卖价；向内相反。价格门槛减少 5 ticks 不等于额外将目标移动 5 ticks。后续成交、库存和预测消费路径分叉后，目标仍可能自然不同，不能声称四臂逐时刻目标永远相同。
+
+| 分析臂 | 普通向外门槛 ticks | 普通向内门槛 ticks | 减仓门槛 ticks |
+| --- | ---: | ---: | ---: |
+| A00 | 15 | 15 | 15 |
+| A11 | 10 | 10 | 15 |
+| A10 | 10 | 15 | 15 |
+| A01 | 15 | 10 | 15 |
+
+A00 复用原 B0；A11 是先完成的统一降门槛实验，后来仅加入四臂分析命名，不重命名原实验或复制结果。只新增 A10/A01。每臂覆盖相同 Final107 的 54 个独立账户，不是单账户连续 107 日，也不是随机化单次改单。这组名称与风险系数轴的 A/B/C/D 不同。
+
+该样本中 A11 基本持平略差；A10 少亏，但改善集中于少数账户、配对差额中位数为负、库存峰值增加；A01 整体更差。未证明稳定最优，未晋升 B0，更不能概括为“向外越快越好”或“所有向内调整有害”。具体私有收益表不公开，完成范围与采用边界见[仓库 F01 主报告](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/README.zh-CN.md)。
+
+完整路径的交互必须保留：
+
+```text
+I = P11 - P10 - P01 + P00
+P11 - P00 = (P10 - P00) + (P01 - P00) + I
+```
+
+相同种子不保证闭环分叉后逐请求获得同一样本；两个单方向效应不能忽略交互直接相加。Final 已查看，本比较不是新盲测。该方向化批次未装入本地报价计算耗时样本，不表示原 REST/订单延迟为零；后续加入计算耗时是另一执行场景，不倒改这些历史结果。
 
 <span id="3-固定参数竞速"></span>
 
@@ -225,7 +249,7 @@ $$
 
 这类测试能暴露“参数在一次回测里看起来好，却依赖隐含单位”的问题。尤其AS/GLFT近似中，inventory、order size、risk aversion、absolute-price variance和distance elasticity必须闭合。若订单量$z$被归一化为1，文档应明确$\gamma$或$q$使用的是order units；若$q$仍是BTC，就应显式保留$z$并做BTC→mBTC不变性测试。
 
-同理，risk horizon、requote interval、order TTL与库存生命周期 horizon不是一个时钟。固定$\gamma$只能在固定的variance定义与horizon下解释；把60×1s variance与1s horizon、10s P3、5–10s订单寿命混在一起，可能让“最佳gamma”只是吸收期限错配。固定参数继续作为工程baseline的前提，是它的语义和单位已被锁定，而不是它曾经赢过一张表。
+同理，risk horizon、requote interval、order TTL 与库存生命周期 horizon 不是一个时钟。固定 $\gamma$ 只能在指定 variance 定义与 horizon 下解释；报价检查间隔不保证订单寿命，标签期限也不等于库存持有时间。固定参数作为工程 baseline 的前提是语义和单位明确，而不是曾经赢过一张表。
 
 ### 固定参数与 regime interaction 的可视化方式
 

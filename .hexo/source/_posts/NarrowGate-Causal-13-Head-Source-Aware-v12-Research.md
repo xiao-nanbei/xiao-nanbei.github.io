@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate 新 13-Head：Tardis 因果特征、时间加权选型与负收益结果'
 date: 2026-08-29 13:30:00
-updated: 2026-09-27 10:45:00
+updated: 2026-10-02 12:00:00
 categories:
 - Market Making
 tags:
@@ -224,21 +224,23 @@ v4 report 曾给出 13-head、BUY scorer、strict ML A/B 和 queue sensitivity �
 
 没有获得：model replacement、BUY scorer action、queue retuning、Validation/holdout 晋级、shadow 或 实盘有效性证据。历史上某些 model bytes 曾作为 owner-directed operational trial，与统计 promotion 是两件事，也不描述当前 runtime。
 
-### 深入推导：一个泄漏 head 怎样污染共享模型
+<span id="深入推导：一个泄漏-head-怎样污染共享模型"></span>
 
-多任务模型常写成共享表示 $z_t=f_\phi(X_t)$ 与十三个输出头 $\hat y_{j,t}=g_{\psi_j}(z_t)$，训练目标是：
+### 共同输入与独立目标模型：错误影响哪一层
+
+当前 F03 使用共同因果特征面板、逐目标独立拟合的 LightGBM，不是共享 encoder 的联合反向传播模型。[ml_model.py 的 train_one()](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/ml_model.py) 为一个目标选择分类器或回归器并独立拟合；[model_contract.py](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/strategy/model_contract.py) 固定十三个目标的加载合同。可以示意为：
 
 $$
-\mathcal L(\phi,\psi)=\sum_{j=1}^{13}w_j\mathcal L_j(y_{j,t},g_{\psi_j}(f_\phi(X_t))).
+\hat y_{j,t}=f_j(X_t),\qquad j=1,\ldots,13.
 $$
 
-如果某个输入列或 label construction 提前看见未来，问题不只停留在对应 head。它的梯度会更新共享参数 $\phi$，其他十二个头也可能从被污染的表示中获益。于是“删掉泄漏 head 的结果列”并不能恢复模型；必须从特征物化、训练、artifact 到 full-path replay 全部重建。
+若共同输入的可见性错误，使用该输入的多个目标都可能受影响；若仅某个目标标签错误，则需追踪该模型及其实际下游消费者，不能声称错误经共享梯度传播到所有头。新 F03 使用 29 项特征，十三头由三个触达条件方向概率、三个绝对价格方差率、三个触达条件价格变化比例和 bid/ask 在 5/10 秒的四个不利概率组成。P3 是独立模型，taker tempo 是输入而非额外输出头。
 
-v4 中三天 timing error 的严重性正来自这里。哪怕多数日期和多数 heads 合法，只要 formal test 的一部分 rows 使用了决策时尚未可见的 future metric，报告中的 prediction ranking、阈值、quote path 与经济差值就不再绑定同一个因果信息集。
+v4 三天 timing error 的撤回范围仍按前述训练、测试与下游 scorer 证据处理：不推翻部分训练未受影响的记录，也不以假想共享 encoder 扩大事故范围。非法可见信息影响过的测试排名、scorer 和经济比较必须按其依赖链解释，不能通过删除一列或按天打折恢复。训练十三头与实际报价桥接输出的五个字段是不同层级，不能推断十三份独立经济贡献均已验证。
 
 ![13-head 从共享输入到经济门的证据流水线](/images/narrowgate/f03-thirteen-head-evidence-pipeline.svg)
 
-*图 2：共享 encoder 会传播时钟错误；prediction joint gate 与 economics joint gate 都必须重跑，不能只删除一列结果。*
+*图 2：共同因果特征进入独立 LightGBM 目标模型，再经冻结消费映射进入完整订单、库存与净权益评价。图不表示共享梯度；v12 的 5/13 诊断仅属于后文对应实验。*
 
 ### 为什么三天错误不能按比例“打折”
 
@@ -691,7 +693,7 @@ $$
 
 ![十三头 prediction ranking 到 maker action 的完整证据链](/images/narrowgate/f03-thirteen-head-evidence-pipeline.svg)
 
-*图 2：tempo head 通过排序只到达 prediction gate；冻结报价 mapping 与完整路径仍可能反号。*
+*图 2：图示为新 F03 的实际独立目标结构，taker tempo 是输入而不是输出头；本节旧阶段的预测诊断不等于冻结映射及完整路径有效。*
 
 ### 为什么 BUY/SELL 映射不能靠统一符号解决
 
@@ -917,7 +919,7 @@ $$
 
 ![十三头 joint gate、冻结映射与完整经济路径](/images/narrowgate/f03-thirteen-head-evidence-pipeline.svg)
 
-*图 2：共享模型的局部成功不能抵消 required head 的失败；经济正点估计也不能越过 prediction joint gate。*
+*图 2：共同特征、独立目标模型与经济消费分层检验。此处 v12 的 required-head 联合要求及 5/13 结果只属于原实验，不是新 F03 的通用通过比例。*
 
 ### 五日 PnL 正点估计为什么证据仍然弱
 
