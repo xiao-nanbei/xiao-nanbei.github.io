@@ -27,7 +27,7 @@
 <meta property="og:description" content="做市研究的难点，是把市场信息变成值得执行的订单。预测价格方向或触达概率只是起点；订单还要经历提交、排队、成交、库存持有和减仓，最终由完整账户收益检验。这里按这条链组织 NarrowGate 的研究入口，方便读者从具体问题找到方法、实验和限制。 从哪个问题开始 报价为什么在这里？ 阅读报价动作与 P3：前者比较价格和中心的改变，后者区分市场触达与实际成交。 预测提供了什么信息？ 阅读新 Tardis">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-10-02T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-10-04T04:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="因果推断">
@@ -331,7 +331,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          3.4k 字
+          3.9k 字
         
       </span>
     
@@ -343,7 +343,7 @@
         
         
           <!-- compatible with older versions-->
-          29 分钟
+          33 分钟
         
       </span>
     
@@ -394,8 +394,53 @@
 <li><strong>这笔风险是否值得承担？</strong> 阅读 Fill Quality、订单级价值和库存控制：区分成交后的标签、决策前可见状态与真正的动作差额。</li>
 <li><strong>怎样知道回测证据可信？</strong> 阅读时间量纲与因果时钟、工程主文：先确定数据到达、订单生效、成交通知和会计口径，再解释收益。</li>
 </ul>
-<p>这些问题相互依赖，但一个环节通过不替代下一环节。触达预测改善不代表成交价值改善，库存时间下降也不保证净收益提高。F05 的机会级成交质量、风险加宽、首次下单相对等待（POST/WAIT）、挂单保留相对撤销（KEEP/CANCEL）与 Full-Multiscale 冷却有不同标签和动作合同，需分别检验完整路径。接口存在不表示已并入 B0 或部署 live，本页不据此发布私有实验进度或经济结论。</p>
-<h2 id="主文与实验范围"><a href="#主文与实验范围" class="headerlink" title="主文与实验范围"></a>主文与实验范围</h2><p>下表结论各自绑定冻结实验。新 Tardis F03 四套模型通过 B100 选型，完成 858 次评价，原 H=inf 与 ML-OFF Final 均亏损；F05 的双侧十头风险加宽负结果与已完成 E/C 十路径评价分开保留。F01 另有方向化旧单更新门槛比较。完成范围统一链接<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/recompute_407.json">仓库研究台账</a>，不由此推断 live 采用，也不将 E/C 完成扩展为 F06/F07 或 Full-Multiscale 全部完成。</p>
+<p>这些问题相互依赖，但一个环节通过不替代下一环节。触达预测改善不代表成交价值改善，库存时间下降也不保证净收益提高。F05 的机会级成交质量、风险加宽、首次下单相对等待（POST/WAIT）、挂单保留相对撤销（KEEP/CANCEL）与 Full-Multiscale 冷却有不同标签和动作合同，需分别检验完整路径。下文提供已获允许的脱敏方法与结论摘要，不公开私有配置或账户账本，也不从接口存在推断已经部署。</p>
+<h2 id="从报价控制到更新时机：五组实验的归属"><a href="#从报价控制到更新时机：五组实验的归属" class="headerlink" title="从报价控制到更新时机：五组实验的归属"></a>从报价控制到更新时机：五组实验的归属</h2><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>实验</th>
+<th>主归属</th>
+<th>做了什么</th>
+<th>能得出的结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>联动系数＋不对称偏移</td>
+<td>F01</td>
+<td>交叉改变报价控制器的两个轴</td>
+<td>单账户少亏与库存风险并存，两轴有交互；后来的参照选择不是最优性证明</td>
+</tr>
+<tr>
+<td>E/C</td>
+<td>F05，C 交叉引用 F07</td>
+<td>POST/WAIT、KEEP/CANCEL 模型与随机对照的完整路径比较</td>
+<td>E/EC 少亏但仍亏损，C 增量不一致；成交量不同，未证明稳定选择性</td>
+</tr>
+<tr>
+<td>A00/A11/A10/A01</td>
+<td>F01</td>
+<td>拆开普通向外与向内的更新价格门槛</td>
+<td>统一降低基本持平略差；仅向外改善集中且库存峰值增加；仅向内更差</td>
+</tr>
+<tr>
+<td>目标报价方差率动态门槛</td>
+<td>F01</td>
+<td>单一动态尺度 D 与固定典型尺度 S 对照</td>
+<td>两账户合计 D/S 均弱于 B0，未证明动态关系的稳定额外价值</td>
+</tr>
+<tr>
+<td>U0/U1</td>
+<td>F07</td>
+<td>保留订单门槛，比较原评价时机与事件驱动评价</td>
+<td>八账户合计少亏，但单位成交额变差、请求与库存暴露增加，未证明更好选单或稳定盈利</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>这些实验没有建立新的研究族。F01 负责报价控制系数和门槛，F05 负责成交前动作选择，F07 负责旧单评价与续接；调度、计算耗时和性能优化是支撑工程。具体方法和范围分别见下列主文及<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/README.zh-CN.md">仓库研究导航</a>。旧方向化批次与后续加入本地计算耗时的场景不混成同一基线；各自的负结果保留，也不以新场景自动作废所有旧实验。E/C、门槛候选和 U1 均不因这些比较自动晋升 B0/live。</p>
+<h2 id="主文与实验范围"><a href="#主文与实验范围" class="headerlink" title="主文与实验范围"></a>主文与实验范围</h2><p>下表结论各自属于指定实验。新 Tardis F03 四套模型通过 B100 选型，完成 858 次评价，原 H=inf 与 ML-OFF Final 均亏损；F05 的双侧十头风险加宽负结果与 E/C 十路径评价分开保留。新完成的门槛和评价时机实验在各主文中单列，不覆盖早期局部动作的结果，也不扩展为 F06/F07 或 Full-Multiscale 全部完成。</p>
 <div class="table-container">
 <table>
 <thead>
@@ -412,8 +457,8 @@
 <td style="text-align:right">1</td>
 <td><a href="/2026/08/29/NarrowGate-Fixed-Parameter-Racing-Research/">报价动作与旧单更新门槛</a></td>
 <td>F01、F09</td>
-<td>Widen/Recenter 改目标，方向化门槛改何时更新旧单，两者如何评价？</td>
-<td>原局部动作无稳定晋级；A00/A11/A10/A01 已完成探索性比较，未晋升 B0</td>
+<td>系数/偏移改目标，固定/动态门槛改更新条件，如何区分？</td>
+<td>系数与偏移有交互；方向化改善不稳定；单一动态尺度探索未改善合计净 PnL</td>
 </tr>
 <tr>
 <td style="text-align:right">2</td>
@@ -452,10 +497,10 @@
 </tr>
 <tr>
 <td style="text-align:right">7</td>
-<td><a href="/2026/08/29/NarrowGate-Active-Order-Queue-Value-Keep-Cancel-Research/">Order-Level Quote Value：Placement、Queue Value 与 Continuation</a></td>
+<td><a href="/2026/08/29/NarrowGate-Active-Order-Queue-Value-Keep-Cancel-Research/">Order-Level Quote Value 与 U0/U1</a></td>
 <td>F06、F07</td>
-<td>报价应放多远，激活后应 KEEP 还是 CANCEL/RE-ENTER？</td>
-<td>2/4 tick fill 差可辨；marginal value 与 continuation action 均未通过</td>
+<td>报价应放多远、旧单何时评价及 KEEP/CANCEL/RE-ENTER？</td>
+<td>原距离/队列价值动作未获支持；U1 八账户少亏但请求与库存代价增加，未晋升</td>
 </tr>
 <tr>
 <td style="text-align:right">8</td>
@@ -510,7 +555,7 @@
 <tbody>
 <tr>
 <td>F01 Fixed Parameter Racing</td>
-<td>报价动作主文</td>
+<td>报价动作主文：系数＋偏移、四臂更新门槛、目标方差率动态门槛</td>
 </tr>
 <tr>
 <td>F02 Empirical P3</td>
@@ -534,7 +579,7 @@
 </tr>
 <tr>
 <td>F07 Active Order Continuation</td>
-<td>Order-Level Quote Value 主文</td>
+<td>Order-Level Quote Value 主文：旧单价值与 U0/U1 评价时机；C 链接 Fill Quality</td>
 </tr>
 <tr>
 <td>F08 Side-Taker Lifecycle</td>
@@ -666,8 +711,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-P3-Aggressive-Reach-Time-Hazard-Research/" title="NarrowGate Empirical P3：从十秒触达曲线到 Reach-Time Hazard 与报价价值">
-                        <span class="hidden-mobile">NarrowGate Empirical P3：从十秒触达曲线到 Reach-Time Hazard 与报价价值</span>
+                      <a href="/2026/08/29/NarrowGate-Time-Unit-Causality-Repair-Research/" title="NarrowGate Replay Evidence Revalidation：时间、量纲与因果时钟修复后，旧结论还剩什么">
+                        <span class="hidden-mobile">NarrowGate Replay Evidence Revalidation：时间、量纲与因果时钟修复后，旧结论还剩什么</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

@@ -21,7 +21,7 @@
   
     <meta name="description" content="参数搜索比较的是：在指定历史范围内，哪一套完整配置表现更好。局部报价动作进一步追问：在某个决策时可见的状态下，改变这一次报价，是否比保持原报价带来更高的后续净收益？两者都需要回放订单与库存，但比较的对象不同。 Widen 将增加风险暴露的一侧报价向外移动，Recenter 将报价向合理中心收回，Prevent-Over-Widen 则阻止额外的外移。它们先改变订单价格和排队位置，再通过成交与库存影">
 <meta property="og:type" content="article">
-<meta property="og:title" content="NarrowGate 报价动作研究：从固定参数竞速到随机化 Widen、Recenter 与条件策略">
+<meta property="og:title" content="NarrowGate 报价控制研究：系数与偏移、方向化门槛和动态改单">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Fixed-Parameter-Racing-Research/index.html">
 <meta property="og:site_name" content="databrains">
 <meta property="og:description" content="参数搜索比较的是：在指定历史范围内，哪一套完整配置表现更好。局部报价动作进一步追问：在某个决策时可见的状态下，改变这一次报价，是否比保持原报价带来更高的后续净收益？两者都需要回放订单与库存，但比较的对象不同。 Widen 将增加风险暴露的一侧报价向外移动，Recenter 将报价向合理中心收回，Prevent-Over-Widen 则阻止额外的外移。它们先改变订单价格和排队位置，再通过成交与库存影">
@@ -33,7 +33,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/buy-conditional-widen-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f09-inventory_lifecycle-action-causal-path.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-10-02T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-10-04T04:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="报价动作">
@@ -45,7 +45,7 @@
   
   
   
-  <title>NarrowGate 报价动作研究：从固定参数竞速到随机化 Widen、Recenter 与条件策略 - databrains</title>
+  <title>NarrowGate 报价控制研究：系数与偏移、方向化门槛和动态改单 - databrains</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
 
@@ -314,7 +314,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="NarrowGate 报价动作研究：从固定参数竞速到随机化 Widen、Recenter 与条件策略"></span>
+            <span id="subtitle" data-typed-text="NarrowGate 报价控制研究：系数与偏移、方向化门槛和动态改单"></span>
           
         </div>
 
@@ -338,7 +338,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          24k 字
+          25k 字
         
       </span>
     
@@ -350,7 +350,7 @@
         
         
           <!-- compatible with older versions-->
-          201 分钟
+          210 分钟
         
       </span>
     
@@ -389,7 +389,7 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">NarrowGate 报价动作研究：从固定参数竞速到随机化 Widen、Recenter 与条件策略</h1>
+            <h1 id="seo-header">NarrowGate 报价控制研究：系数与偏移、方向化门槛和动态改单</h1>
             
             
               <div class="markdown-body">
@@ -399,7 +399,8 @@
 <h2 id="报价动作要估计什么"><a href="#报价动作要估计什么" class="headerlink" title="报价动作要估计什么"></a>报价动作要估计什么</h2><p>核心 estimand 是</p>
 <script type="math/tex; mode=display">
 \tau(a\mid x)=E\!\left[Y_T(a)-Y_T(a_0)\mid X=x\right],</script><p>其中 $a_0$ 是冻结 baseline，$a$ 是明确的报价动作，$X$ 只能包含决策时可见状态，$Y_T$ 必须穿过 submit、queue、fill、inventory 与 库存生命周期 terminal。完整配置的配对回放估计策略差值；若要回答这里的局部条件动作价值，还需在同一决策状态上定义干预与后续路径。直接配对模拟依赖冻结的撮合与延迟假设；随机化日志的离线策略评估（OPE）还需要真实分配概率和共同支持。</p>
-<h2 id="三类实验分别回答什么"><a href="#三类实验分别回答什么" class="headerlink" title="三类实验分别回答什么"></a>三类实验分别回答什么</h2><div class="table-container">
+<p><span id="三类实验分别回答什么"></span></p>
+<h2 id="历史局部报价实验分别回答什么"><a href="#历史局部报价实验分别回答什么" class="headerlink" title="历史局部报价实验分别回答什么"></a>历史局部报价实验分别回答什么</h2><div class="table-container">
 <table>
 <thead>
 <tr>
@@ -427,6 +428,8 @@
 </tbody>
 </table>
 </div>
+<h2 id="联动系数与不对称偏移：完整报价控制器的比较"><a href="#联动系数与不对称偏移：完整报价控制器的比较" class="headerlink" title="联动系数与不对称偏移：完整报价控制器的比较"></a>联动系数与不对称偏移：完整报价控制器的比较</h2><p>后续 F01 沿两个轴交叉比较：一组联动风险系数，以及不对称报价偏移。历史 gamma 只是当时联动轴的名称，不意味着当前库存、价差和单笔风险字段可以合并成一个参数。这里的 A/B/C/D 也不是下文改单门槛的 A00/A11/A10/A01。</p>
+<p>同一完整开发账户中，提高系数且不加偏移的路径少亏最多，但库存峰值增加；较低系数下加入偏移也少亏，而较高系数下加入相同偏移却抵消了大部分改善。四臂仍均亏损。可得出的结论是两轴通过订单和库存路径发生交互，不能将单独改善直接相加，也不能从单账户推出不对称偏移普遍有利或某系数最优。首批风险不劣条件未通过的结论保留；后来选择 D 作为离线参照，不等于该四臂比较证明了 D 最优。</p>
 <h2 id="旧单更新条件：A00-A11-A10-A01"><a href="#旧单更新条件：A00-A11-A10-A01" class="headerlink" title="旧单更新条件：A00/A11/A10/A01"></a>旧单更新条件：A00/A11/A10/A01</h2><p>另一类实验改变的是何时按原目标更新旧单，不是 Widen/Recenter 的目标价格公式。向外表示 BUY 降低买价、SELL 提高卖价；向内相反。价格门槛减少 5 ticks 不等于额外将目标移动 5 ticks。后续成交、库存和预测消费路径分叉后，目标仍可能自然不同，不能声称四臂逐时刻目标永远相同。</p>
 <div class="table-container">
 <table>
@@ -472,6 +475,12 @@
 <div class="code-wrapper"><pre><code class="hljs text">I = P11 - P10 - P01 + P00
 P11 - P00 = (P10 - P00) + (P01 - P00) + I</code></pre></div>
 <p>相同种子不保证闭环分叉后逐请求获得同一样本；两个单方向效应不能忽略交互直接相加。Final 已查看，本比较不是新盲测。该方向化批次未装入本地报价计算耗时样本，不表示原 REST/订单延迟为零；后续加入计算耗时是另一执行场景，不倒改这些历史结果。</p>
+<h2 id="基于目标报价方差率的动态向外门槛"><a href="#基于目标报价方差率的动态向外门槛" class="headerlink" title="基于目标报价方差率的动态向外门槛"></a>基于目标报价方差率的动态向外门槛</h2><p>固定方向化门槛之后，F01 进一步问：普通向外改单能否按目标报价变化的强弱调整门槛？这不是额外加宽目标报价，也不是重新训练成交价值模型。经验控制函数为：</p>
+<script type="math/tex; mode=display">
+h_t=(12R_0v_t)^{1/4}.</script><p><code>h_t</code> 是价格距离，除以价格 tick 后按既定整数成本规则选择门槛，最少一 tick，不设置 10 或 15 的上限。<code>v_t</code> 是策略已经生成的目标报价方差率代理，按 BUY/SELL 分别因果更新；它包含预测、库存和风控反馈，不能称为纯市场方差。<code>R0</code> 的单位是价格平方乘秒，是经验尺度，不是已经测出的真实撤改单成本比，也不使该公式成为异步订单系统的严格最优解。</p>
+<p>完成目标发布观察与保存恢复检查后，有限探索使用两个完整开发账户，复用已经加入本地报价计算耗时的同场景 B0。单一 <code>R0</code> 在读取候选收益前由已有 B0 目标记录确定。动态 D 使用自身闭环目标序列更新 <code>v_t</code>；静态 S 使用同一参考分布的典型整数尺度。两者只改变普通向外门槛，保留向内、减仓及其他订单条件；就绪和缺失回退规则相同，因此 S 用于区分“动态变化有价值”与“只是换了固定尺度”。</p>
+<p>两账户合计 D 和 S 都比 B0 更差。D 相对 S 合计略好，但逐账户方向不一致，部分单位成交额指标改善没有变成更好的总净 PnL。这次结果不支持采用该动态门槛，也没有证明动态关系相对固定尺度的稳定额外价值。它只检验了一个预定尺度，不否定所有 R；两个账户同时用于输入诊断和尺度定义，因此属于开发探索，不是独立验证。没有因负结果继续扫描参数或给门槛临时加上限。</p>
+<p>这三类后续实验都由 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/README.zh-CN.md">F01 维护</a>。系数与偏移决定如何形成目标，固定/动态门槛决定多大变动才更新旧单；<a href="/2026/08/29/NarrowGate-Active-Order-Queue-Value-Keep-Cancel-Research/">F07 的 U0/U1</a>则改变何时重新评价。不同控制层的结果不能互相替代，也不混用各自的 B0 执行场景。</p>
 <p><span id="3-固定参数竞速"></span></p>
 <h2 id="固定参数竞速"><a href="#固定参数竞速" class="headerlink" title="固定参数竞速"></a>固定参数竞速</h2><p>历史搜索覆盖过风险系数、距离衰减、冷却、库存上限和价差约束。它能比较整套配置，却也同时改变参与度和风险暴露。以下先说明怎样构造可比差值，再讨论参数排名的选择偏差。</p>
 <p><img src="/images/narrowgate/fixed-parameter-racing-regime-kline.svg" srcset="/img/loading.gif" lazyload alt="固定参数在不同市场状态下产生不同路径"></p>
@@ -960,7 +969,7 @@ R(\pi)=E\left[Y(a^*(X))-Y(\pi(X))\right].</script><p>$a^*$在现实中不可观�
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>NarrowGate 报价动作研究：从固定参数竞速到随机化 Widen、Recenter 与条件策略</div>
+      <div>NarrowGate 报价控制研究：系数与偏移、方向化门槛和动态改单</div>
       <div>https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Fixed-Parameter-Racing-Research/</div>
     </div>
     <div class="license-meta">
@@ -1005,9 +1014,9 @@ R(\pi)=E\left[Y(a^*(X))-Y(\pi(X))\right].</script><p>$a^*$在现实中不可观�
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/" title="NarrowGate Fill Quality 与 First-Add Quote EV：从 Markout、库存生命周期 Loss 到 Soft-Widen 动作">
+                      <a href="/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/" title="NarrowGate 成交质量与动作选择：Markout、Quote EV 和 E/C 实验">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">NarrowGate Fill Quality 与 First-Add Quote EV：从 Markout、库存生命周期 Loss 到 Soft-Widen 动作</span>
+                        <span class="hidden-mobile">NarrowGate 成交质量与动作选择：Markout、Quote EV 和 E/C 实验</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -1015,8 +1024,8 @@ R(\pi)=E\left[Y(a^*(X))-Y(\pi(X))\right].</script><p>$a^*$在现实中不可观�
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Ranked-Toxicity-Exposure-Guard-Research/" title="NarrowGate Exposure Guards：BER Proxy、BUY q90、Ranked Toxicity 与跨 库存生命周期 订单所有权">
-                        <span class="hidden-mobile">NarrowGate Exposure Guards：BER Proxy、BUY q90、Ranked Toxicity 与跨 库存生命周期 订单所有权</span>
+                      <a href="/2026/08/29/NarrowGate-Causal-13-Head-Source-Aware-v12-Research/" title="NarrowGate 新 13-Head：Tardis 因果特征、时间加权选型与负收益结果">
+                        <span class="hidden-mobile">NarrowGate 新 13-Head：Tardis 因果特征、时间加权选型与负收益结果</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

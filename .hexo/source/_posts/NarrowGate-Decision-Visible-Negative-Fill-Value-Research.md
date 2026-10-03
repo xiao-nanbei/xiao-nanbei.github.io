@@ -1,7 +1,7 @@
 ---
-title: 'NarrowGate Fill Quality 与 First-Add Quote EV：从 Markout、库存生命周期 Loss 到 Soft-Widen 动作'
+title: 'NarrowGate 成交质量与动作选择：Markout、Quote EV 和 E/C 实验'
 date: 2026-08-29 13:30:00
-updated: 2026-10-02 12:00:00
+updated: 2026-10-04 12:00:00
 categories:
 - Market Making
 tags:
@@ -52,6 +52,14 @@ $$
 `f03-407-t100-final107-v2` 已完成 2,288 个有效标签对、16 个合法空槽、132 个标签父账户、4 次冻结拟合，以及同一 204 个独立账户上的十路径、2,040 个经济单元、4,070 策略日。2,304 是槽位配额而非有效标签数。T100 提供拟合，A50/B100/C50 是交错日期诊断；全期包含训练日，Final 不供监督标签但已经评价。维护状态见[同一机器台账](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/recompute_407.json)，私有模型、配置和收益表不公开。
 
 EC 是原预声明主候选，不事后改称 E。随机对照匹配训练期机会流的否决概率，不匹配评价期成交量、库存暴露或实际否决率；仅两个种子的证据有限。减亏或单位成交额改善不单独证明选择性，不能据此断言随机更聪明或 E 等于随机减单。该批已完成不等于稳定盈利或整个 F05/F07 完成；E 未替换 B0/live，CANCEL 也不等于 REPLACE/REENTER。
+
+### 完整路径支持什么结论
+
+该批全期和 Final 汇总中，各路径仍均亏损。模型 E、EC 相对 B0 少亏，但 C 单独使用、以及把 C 加到 E 上的效果随评价范围改变方向，没有一致的额外收益证据。不能因为 E 更有利，就把原预声明主候选 EC 事后改名为 E。
+
+随机 E/EC 对照的总亏损更少，同时成交量也明显更低，因此它们不是同成交量对照。模型 E 的单位成交额损益比两个随机 E 对照略好，但在 Final 上仍弱于 B0。总额与单位成交额回答不同问题：少亏可能伴随少交易，而单位指标略好也不保证完整账户更好。现有结果既不能证明稳定选择性，也不能简单断言“随机比模型聪明”或“E 就是随机减单”；两个种子还不足以刻画随机对照的分布。
+
+这项实验归 [F05](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/README.zh-CN.md)，C 从 F07 交叉引用订单生命周期语义。完成的是这一批标签、拟合和完整策略比较，不是整个 F05/F07 的成功，也不是 E 已进入 B0 或 live。全期含训练日、A/B/C 为交错诊断、Final 已有使用历史，均限制结果的外推。
 
 <span id="3-Fill-to-inventory-lifecycle"></span>
 

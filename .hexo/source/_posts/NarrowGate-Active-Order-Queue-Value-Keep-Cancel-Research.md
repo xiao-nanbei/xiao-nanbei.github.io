@@ -1,7 +1,7 @@
 ---
-title: 'NarrowGate Order-Level Quote Value：Placement Distance、Queue Value 与 Active-Order Continuation'
+title: 'NarrowGate 订单级决策：Placement、KEEP/CANCEL 与 U0/U1 事件驱动评价'
 date: 2026-08-29 13:30:00
-updated: 2026-09-27 10:45:00
+updated: 2026-10-04 12:00:00
 categories:
 - Market Making
 tags:
@@ -38,6 +38,20 @@ $$
 | Placement distance 与 marginal fill value | 更浅/更深的一、二、四 tick 报价是否产生可识别终局价值？ | 2/4 tick fill 差异可辨；signed marginal value 不可识别，关闭 |
 | Queue-value KEEP/CANCEL | 保留 queue 还是取消并等状态退出后重进？ | 净 hazard successor 删除大量 fills 但不具选择性；动作关闭 |
 | 100ms lifecycle CIF | 如何建立动态 risk set、competing risks 与双引擎锁步？ | mechanics/training/parity 完成；尚无经济动作 |
+
+上表是各自历史实验的结论，不把指定队列价值动作的负结果扩展为整个 F07 永久无效。[E/C 的 C](/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/)另行比较 KEEP−CANCEL；以下 U1 则研究重新评价的时机，不是新队列价值模型。
+
+## U0/U1：事件驱动报价评价
+
+U0 保留原 B0，在本批比较中已加入本地报价计算耗时；U1 在已可见状态变化及原订单生命周期事件后请求重新评价。原价格门槛、普通/减仓时间条件、pending、风控和报价公式保持不变。只有目标形成后，原订单消费者才决定 KEEP 或产生更新意图，所以事件驱动评价不等于每次事件都撤单重挂。
+
+计算未完成时不能重入或重新抽取耗时；尚未执行的报价计算请求可以合并，行情、成交和订单事件本身不能丢弃。这与把 requote_interval 设为零的忙轮询不同。调度推进、恢复和记录开销的工程检查，也不能代替完整净 PnL 比较。
+
+八个相同 Final 独立账户的完整比较中，U1 合计少亏，多数账户改善，配对差额中位数为正，但 U0/U1 合计仍均亏损。成交量明显下降，单位成交额净 PnL 却变差；报价评价及实际请求负担上升，绝对库存时间和库存峰值也增加。因此不能只看总 PnL 就宣布选单更好、风险更低，或响应提速没有代价。
+
+这批一份账户沿较早实现，其余使用后续调度修复与记录优化；它是已完成批次的比较，不是同一实现下全账户等价的证明。Final 已有使用历史，不是新盲测。实际请求数也不等于撤单经济生效或队列重置次数，现有统计不能把某次队列变化直接认定为收益差额的原因。
+
+当前可得结论是：评价时机显著改变完整订单与库存路径，本批存在减亏信号，但同时承担更高请求负担和库存暴露，尚未证明稳定盈利或普遍优越。U1 未晋升 B0，也未部署 live。该研究归 [F07 Active Order Continuation](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/README.zh-CN.md)；[F01 固定/动态门槛](/2026/08/29/NarrowGate-Fixed-Parameter-Racing-Research/)回答“目标移动多少才更新”，U1 回答“何时评价”，不把二者混成一个策略结论。
 
 ## 3. Placement distance 与 marginal fill value
 

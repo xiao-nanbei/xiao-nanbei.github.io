@@ -21,7 +21,7 @@
   
     <meta name="description" content="做市商需要判断的不只是订单能否成交，还包括成交后增加的库存是否值得持有。从成交价起算的短期 markout 衡量未来估值相对成交价的价格优势，却不能直接告诉我们：跳过这次交易、把报价挂得更远，或者继续等待，最终是否会让账户赚得更多。 原因在于，动作会改变后续路径。少一笔成交，可能少承担一段不利库存，也可能失去正常价差、改变减仓机会或延长已有仓位的持有时间。要从“这笔成交后来亏了”走到“当时应该采取">
 <meta property="og:type" content="article">
-<meta property="og:title" content="NarrowGate Fill Quality 与 First-Add Quote EV：从 Markout、库存生命周期 Loss 到 Soft-Widen 动作">
+<meta property="og:title" content="NarrowGate 成交质量与动作选择：Markout、Quote EV 和 E&#x2F;C 实验">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/index.html">
 <meta property="og:site_name" content="databrains">
 <meta property="og:description" content="做市商需要判断的不只是订单能否成交，还包括成交后增加的库存是否值得持有。从成交价起算的短期 markout 衡量未来估值相对成交价的价格优势，却不能直接告诉我们：跳过这次交易、把报价挂得更远，或者继续等待，最终是否会让账户赚得更多。 原因在于，动作会改变后续路径。少一笔成交，可能少承担一段不利库存，也可能失去正常价差、改变减仓机会或延长已有仓位的持有时间。要从“这笔成交后来亏了”走到“当时应该采取">
@@ -37,7 +37,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/buy-soft-widen-release-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f05-fill-value-action-ladder.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-10-02T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-10-04T04:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="Fill Quality">
@@ -49,7 +49,7 @@
   
   
   
-  <title>NarrowGate Fill Quality 与 First-Add Quote EV：从 Markout、库存生命周期 Loss 到 Soft-Widen 动作 - databrains</title>
+  <title>NarrowGate 成交质量与动作选择：Markout、Quote EV 和 E/C 实验 - databrains</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
 
@@ -318,7 +318,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="NarrowGate Fill Quality 与 First-Add Quote EV：从 Markout、库存生命周期 Loss 到 Soft-Widen 动作"></span>
+            <span id="subtitle" data-typed-text="NarrowGate 成交质量与动作选择：Markout、Quote EV 和 E/C 实验"></span>
           
         </div>
 
@@ -354,7 +354,7 @@
         
         
           <!-- compatible with older versions-->
-          299 分钟
+          302 分钟
         
       </span>
     
@@ -393,7 +393,7 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">NarrowGate Fill Quality 与 First-Add Quote EV：从 Markout、库存生命周期 Loss 到 Soft-Widen 动作</h1>
+            <h1 id="seo-header">NarrowGate 成交质量与动作选择：Markout、Quote EV 和 E/C 实验</h1>
             
             
               <div class="markdown-body">
@@ -447,6 +447,9 @@ W_T-W_0=-\sum_i dq_i p_i+q_Tm_T-q_0m_0-\mathrm{fees}+\mathrm{funding\_cashflow}.
 <p>实际冻结输入为八项：侧向 L1 不平衡、波动率、同侧距离 ticks、spread ticks、可见库存 lots、其他同侧 pending lots、对侧 pending lots、本地订单年龄。缺少严格支持的 5 秒成交不平衡与中价变化未用其他窗口替代。字段单位与可见性由实际特征消费者约束，不包含未来成交信息。</p>
 <p><code>f03-407-t100-final107-v2</code> 已完成 2,288 个有效标签对、16 个合法空槽、132 个标签父账户、4 次冻结拟合，以及同一 204 个独立账户上的十路径、2,040 个经济单元、4,070 策略日。2,304 是槽位配额而非有效标签数。T100 提供拟合，A50/B100/C50 是交错日期诊断；全期包含训练日，Final 不供监督标签但已经评价。维护状态见<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/recompute_407.json">同一机器台账</a>，私有模型、配置和收益表不公开。</p>
 <p>EC 是原预声明主候选，不事后改称 E。随机对照匹配训练期机会流的否决概率，不匹配评价期成交量、库存暴露或实际否决率；仅两个种子的证据有限。减亏或单位成交额改善不单独证明选择性，不能据此断言随机更聪明或 E 等于随机减单。该批已完成不等于稳定盈利或整个 F05/F07 完成；E 未替换 B0/live，CANCEL 也不等于 REPLACE/REENTER。</p>
+<h3 id="完整路径支持什么结论"><a href="#完整路径支持什么结论" class="headerlink" title="完整路径支持什么结论"></a>完整路径支持什么结论</h3><p>该批全期和 Final 汇总中，各路径仍均亏损。模型 E、EC 相对 B0 少亏，但 C 单独使用、以及把 C 加到 E 上的效果随评价范围改变方向，没有一致的额外收益证据。不能因为 E 更有利，就把原预声明主候选 EC 事后改名为 E。</p>
+<p>随机 E/EC 对照的总亏损更少，同时成交量也明显更低，因此它们不是同成交量对照。模型 E 的单位成交额损益比两个随机 E 对照略好，但在 Final 上仍弱于 B0。总额与单位成交额回答不同问题：少亏可能伴随少交易，而单位指标略好也不保证完整账户更好。现有结果既不能证明稳定选择性，也不能简单断言“随机比模型聪明”或“E 就是随机减单”；两个种子还不足以刻画随机对照的分布。</p>
+<p>这项实验归 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/README.zh-CN.md">F05</a>，C 从 F07 交叉引用订单生命周期语义。完成的是这一批标签、拟合和完整策略比较，不是整个 F05/F07 的成功，也不是 E 已进入 B0 或 live。全期含训练日、A/B/C 为交错诊断、Final 已有使用历史，均限制结果的外推。</p>
 <p><span id="3-Fill-to-inventory-lifecycle"></span></p>
 <h2 id="Fill-to-inventory-lifecycle"><a href="#Fill-to-inventory-lifecycle" class="headerlink" title="Fill-to-inventory lifecycle"></a>Fill-to-inventory lifecycle</h2><p>成交后的价格变化、单份库存何时被抵消、净库存何时归零，是三个不同终点。这里先定义它们，再说明为什么历史时长统计失效后，方法上的区别仍然成立。</p>
 <p><img src="/images/narrowgate/fill-inventory-lifecycle.svg" srcset="/img/loading.gif" lazyload alt="Fill、30 秒 markout、inventory lot 与 库存生命周期 terminal 的生命周期"></p>
@@ -1506,7 +1509,7 @@ r_{quote}\,r_{active}\,r_{market\ separates}\,r_{fill/path}\,r_{terminal}.</scri
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>NarrowGate Fill Quality 与 First-Add Quote EV：从 Markout、库存生命周期 Loss 到 Soft-Widen 动作</div>
+      <div>NarrowGate 成交质量与动作选择：Markout、Quote EV 和 E/C 实验</div>
       <div>https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/</div>
     </div>
     <div class="license-meta">
@@ -1551,9 +1554,9 @@ r_{quote}\,r_{active}\,r_{market\ separates}\,r_{fill/path}\,r_{terminal}.</scri
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Causal-13-Head-Source-Aware-v12-Research/" title="NarrowGate 新 13-Head：Tardis 因果特征、时间加权选型与负收益结果">
+                      <a href="/2026/08/29/NarrowGate-Full-Multiscale-Boolean-Cooldown-Research/" title="NarrowGate Full-Multiscale：从多尺度 EMA 到 Boolean Cooldown 的一次阴性研究">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">NarrowGate 新 13-Head：Tardis 因果特征、时间加权选型与负收益结果</span>
+                        <span class="hidden-mobile">NarrowGate Full-Multiscale：从多尺度 EMA 到 Boolean Cooldown 的一次阴性研究</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -1561,8 +1564,8 @@ r_{quote}\,r_{active}\,r_{market\ separates}\,r_{fill/path}\,r_{terminal}.</scri
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/08/29/NarrowGate-Fixed-Parameter-Racing-Research/" title="NarrowGate 报价动作研究：从固定参数竞速到随机化 Widen、Recenter 与条件策略">
-                        <span class="hidden-mobile">NarrowGate 报价动作研究：从固定参数竞速到随机化 Widen、Recenter 与条件策略</span>
+                      <a href="/2026/08/29/NarrowGate-Fixed-Parameter-Racing-Research/" title="NarrowGate 报价控制研究：系数与偏移、方向化门槛和动态改单">
+                        <span class="hidden-mobile">NarrowGate 报价控制研究：系数与偏移、方向化门槛和动态改单</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
