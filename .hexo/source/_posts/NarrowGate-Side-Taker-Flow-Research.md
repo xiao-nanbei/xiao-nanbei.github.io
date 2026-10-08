@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate Side-Taker Lifecycle：微观流、双时钟 Trade Identity 与动态 Risk Set'
 date: 2026-08-29 13:30:00
-updated: 2026-09-27 10:45:00
+updated: 2026-10-08 16:00:00
 categories:
 - Market Making
 tags:
@@ -12,6 +12,12 @@ tags:
 - 双时钟
 math: true
 ---
+
+## 阅读范围与后续响应动作研究
+
+本文保留历史 side-flow／hazard 与 aggTrade parent 可见性合同。下文“特征只能等 parent 可见”是该历史输入合同的限制，不是所有后续 live 适配必须使用 aggTrade；旧 hazard 的关闭和阴性结论不改写。
+
+后续[主动成交—盘口响应动作价值研究](/2026/10/08/NarrowGate-Response-Action-Baseline/)使用不同的输入、模型目标和动作合同，已经完成 204 个独立账户／407 日经济执行与身份收尾。冻结主候选晋升为后续研究 B0，不代表历史 hazard 成功，也不代表可部署交易。完整报告区分研究完成、live 代码存在、离线测试及真实环境尚缺证据。
 
 ## 1. 同一笔成交同时属于两种时间真相
 

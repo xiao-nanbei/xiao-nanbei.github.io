@@ -19,12 +19,12 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="1. 同一笔成交同时属于两种时间真相Side-taker 研究最初想检验主动买卖流能否预示 maker fill quality，但很快发现输入事件、策略可见时间和订单风险集没有闭合。individual trades 提供 exchange-time 的撮合顺序；aggTrade parent 才接近 live 策略能整体看到的消息；订单自身又经历 submit、activation、parti">
+    <meta name="description" content="阅读范围与后续响应动作研究本文保留历史 side-flow／hazard 与 aggTrade parent 可见性合同。下文“特征只能等 parent 可见”是该历史输入合同的限制，不是所有后续 live 适配必须使用 aggTrade；旧 hazard 的关闭和阴性结论不改写。 后续主动成交—盘口响应动作价值研究使用不同的输入、模型目标和动作合同，已经完成 204 个独立账户／407 日经济执">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate Side-Taker Lifecycle：微观流、双时钟 Trade Identity 与动态 Risk Set">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Side-Taker-Flow-Research/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="1. 同一笔成交同时属于两种时间真相Side-taker 研究最初想检验主动买卖流能否预示 maker fill quality，但很快发现输入事件、策略可见时间和订单风险集没有闭合。individual trades 提供 exchange-time 的撮合顺序；aggTrade parent 才接近 live 策略能整体看到的消息；订单自身又经历 submit、activation、parti">
+<meta property="og:description" content="阅读范围与后续响应动作研究本文保留历史 side-flow／hazard 与 aggTrade parent 可见性合同。下文“特征只能等 parent 可见”是该历史输入合同的限制，不是所有后续 live 适配必须使用 aggTrade；旧 hazard 的关闭和阴性结论不改写。 后续主动成交—盘口响应动作价值研究使用不同的输入、模型目标和动作合同，已经完成 204 个独立账户／407 日经济执">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/side-taker-flow-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f08-trade-parent-child-dual-clock.svg">
@@ -36,7 +36,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f08-trade-parent-child-dual-clock.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/side-taker-research-synthesis.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-09-27T02:45:00.000Z">
+<meta property="article:modified_time" content="2026-10-08T08:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="Taker Flow">
@@ -341,7 +341,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          3.8k 字
+          4.1k 字
         
       </span>
     
@@ -353,7 +353,7 @@
         
         
           <!-- compatible with older versions-->
-          33 分钟
+          35 分钟
         
       </span>
     
@@ -397,7 +397,9 @@
             
               <div class="markdown-body">
                 
-                <h2 id="1-同一笔成交同时属于两种时间真相"><a href="#1-同一笔成交同时属于两种时间真相" class="headerlink" title="1. 同一笔成交同时属于两种时间真相"></a>1. 同一笔成交同时属于两种时间真相</h2><p>Side-taker 研究最初想检验主动买卖流能否预示 maker fill quality，但很快发现输入事件、策略可见时间和订单风险集没有闭合。individual trades 提供 exchange-time 的撮合顺序；aggTrade parent 才接近 live 策略能整体看到的消息；订单自身又经历 submit、activation、partial fill、cancel request、cancel ACK 与 terminal。因此，流量特征、风险率和事件身份必须在同一条订单生命周期上对齐。</p>
+                <h2 id="阅读范围与后续响应动作研究"><a href="#阅读范围与后续响应动作研究" class="headerlink" title="阅读范围与后续响应动作研究"></a>阅读范围与后续响应动作研究</h2><p>本文保留历史 side-flow／hazard 与 aggTrade parent 可见性合同。下文“特征只能等 parent 可见”是该历史输入合同的限制，不是所有后续 live 适配必须使用 aggTrade；旧 hazard 的关闭和阴性结论不改写。</p>
+<p>后续<a href="/2026/10/08/NarrowGate-Response-Action-Baseline/">主动成交—盘口响应动作价值研究</a>使用不同的输入、模型目标和动作合同，已经完成 204 个独立账户／407 日经济执行与身份收尾。冻结主候选晋升为后续研究 B0，不代表历史 hazard 成功，也不代表可部署交易。完整报告区分研究完成、live 代码存在、离线测试及真实环境尚缺证据。</p>
+<h2 id="1-同一笔成交同时属于两种时间真相"><a href="#1-同一笔成交同时属于两种时间真相" class="headerlink" title="1. 同一笔成交同时属于两种时间真相"></a>1. 同一笔成交同时属于两种时间真相</h2><p>Side-taker 研究最初想检验主动买卖流能否预示 maker fill quality，但很快发现输入事件、策略可见时间和订单风险集没有闭合。individual trades 提供 exchange-time 的撮合顺序；aggTrade parent 才接近 live 策略能整体看到的消息；订单自身又经历 submit、activation、partial fill、cancel request、cancel ACK 与 terminal。因此，流量特征、风险率和事件身份必须在同一条订单生命周期上对齐。</p>
 <p>maker side 与 counterparty taker 的映射必须冻结：</p>
 <script type="math/tex; mode=display">
 \text{BUY maker}\leftarrow\text{aggressive SELL},\qquad

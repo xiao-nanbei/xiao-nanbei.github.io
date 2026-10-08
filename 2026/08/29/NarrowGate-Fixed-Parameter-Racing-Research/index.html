@@ -33,7 +33,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/buy-conditional-widen-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f09-inventory_lifecycle-action-causal-path.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-10-04T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-10-07T22:30:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="报价动作">
@@ -338,7 +338,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          25k 字
+          26k 字
         
       </span>
     
@@ -350,7 +350,7 @@
         
         
           <!-- compatible with older versions-->
-          210 分钟
+          215 分钟
         
       </span>
     
@@ -396,7 +396,10 @@
                 
                 <p>参数搜索比较的是：在指定历史范围内，哪一套完整配置表现更好。局部报价动作进一步追问：在某个决策时可见的状态下，改变这一次报价，是否比保持原报价带来更高的后续净收益？两者都需要回放订单与库存，但比较的对象不同。</p>
 <p>Widen 将增加风险暴露的一侧报价向外移动，Recenter 将报价向合理中心收回，Prevent-Over-Widen 则阻止额外的外移。它们先改变订单价格和排队位置，再通过成交与库存影响收益：挂得更远可能避开不利成交，也可能错过正常价差或减仓机会。因此，参数排名、实际订单变化和相对基线的净收益变化需要分别检验。</p>
-<h2 id="报价动作要估计什么"><a href="#报价动作要估计什么" class="headerlink" title="报价动作要估计什么"></a>报价动作要估计什么</h2><p>核心 estimand 是</p>
+<h2 id="报价动作要估计什么"><a href="#报价动作要估计什么" class="headerlink" title="报价动作要估计什么"></a>报价动作要估计什么</h2><h3 id="新响应基线：完成覆盖不等于证明盈利"><a href="#新响应基线：完成覆盖不等于证明盈利" class="headerlink" title="新响应基线：完成覆盖不等于证明盈利"></a>新响应基线：完成覆盖不等于证明盈利</h3><p>后续主动成交与盘口响应研究中的冻结候选 <code>TRADE_BOOK_RESPONSE_VALUE</code>，已由所有者选为新的离线研究参照 <code>B0_RESPONSE_20261007</code>。旧 B0 及下文历史比较保留原身份，不能将历史结果改名归给新参照。这一选择不是实盘部署，也不是宣称候选已经盈利。</p>
+<p>新参照的经济回执已覆盖 204 个账户、407 日：Development 为 150 个独立两日账户，Final 为 53 个两日账户加最后一日。已完成的候选 Final 结果只按原身份复用一次；独立账户的汇总不等于单账户连续 407 日。Development 包含训练日期，Final 也已有使用史，因此不能称为全样本外检验。完整净收益仍为负；私有逐账户收益、模型和运行材料不随博客公开。全部完整结果已在本机保留，冻结响应模型、授权源码overlay、计算耗时、输入身份、日期和账务绑定复核通过；这不等于实盘一致性或可直接部署。</p>
+<p>完整模型身份、47／39 特征消融、204 账户汇总及 live 接线边界见<a href="/2026/10/08/NarrowGate-Response-Action-Baseline/">响应动作研究报告</a>。下一项 Defense/Urgency 实验冻结九组控制方案和既有模型，先在指定 B 组选择，再读取后续候选收益，并另做真正连续 Final107 的状态承接检查。基线收尾时只有合同／纯规则验收；后续私有冻结工程与分阶段执行是另一版本和证据，不能拿本次文档发布冒充全实验或连续账户完成。完整状态以<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/README.zh-CN.md">研究族文档</a>为准。</p>
+<p>核心 estimand 是</p>
 <script type="math/tex; mode=display">
 \tau(a\mid x)=E\!\left[Y_T(a)-Y_T(a_0)\mid X=x\right],</script><p>其中 $a_0$ 是冻结 baseline，$a$ 是明确的报价动作，$X$ 只能包含决策时可见状态，$Y_T$ 必须穿过 submit、queue、fill、inventory 与 库存生命周期 terminal。完整配置的配对回放估计策略差值；若要回答这里的局部条件动作价值，还需在同一决策状态上定义干预与后续路径。直接配对模拟依赖冻结的撮合与延迟假设；随机化日志的离线策略评估（OPE）还需要真实分配概率和共同支持。</p>
 <p><span id="三类实验分别回答什么"></span></p>

@@ -35,7 +35,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f07-active-order-competing-risks-path.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/order-level-research-synthesis.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-10-04T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-10-08T08:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="Placement">
@@ -340,7 +340,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          4.4k 字
+          4.6k 字
         
       </span>
     
@@ -352,7 +352,7 @@
         
         
           <!-- compatible with older versions-->
-          37 分钟
+          38 分钟
         
       </span>
     
@@ -431,6 +431,7 @@ Y_T=Y_T(a_0,a_{t_1},a_{t_2},\ldots;M_{0:T}),</script><p>其中 $M_{0:T}$ 是同�
 </table>
 </div>
 <p>上表是各自历史实验的结论，不把指定队列价值动作的负结果扩展为整个 F07 永久无效。<a href="/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/">E/C 的 C</a>另行比较 KEEP−CANCEL；以下 U1 则研究重新评价的时机，不是新队列价值模型。</p>
+<h2 id="与响应动作基线的区别"><a href="#与响应动作基线的区别" class="headerlink" title="与响应动作基线的区别"></a>与响应动作基线的区别</h2><p><a href="/2026/10/08/NarrowGate-Response-Action-Baseline/">B0_RESPONSE 响应动作研究</a>研究在既有执行框架内如何利用主动成交和盘口响应选择旧单动作；下文 U1 研究何时重新评价目标。两者不是同一实验。新响应候选晋升不能写成 U1 最终成功；U1 未晋升及其单位成交额、库存和请求负担结论保持不变。</p>
 <h2 id="U0-U1：事件驱动报价评价"><a href="#U0-U1：事件驱动报价评价" class="headerlink" title="U0/U1：事件驱动报价评价"></a>U0/U1：事件驱动报价评价</h2><p>U0 保留原 B0，在本批比较中已加入本地报价计算耗时；U1 在已可见状态变化及原订单生命周期事件后请求重新评价。原价格门槛、普通/减仓时间条件、pending、风控和报价公式保持不变。只有目标形成后，原订单消费者才决定 KEEP 或产生更新意图，所以事件驱动评价不等于每次事件都撤单重挂。</p>
 <p>计算未完成时不能重入或重新抽取耗时；尚未执行的报价计算请求可以合并，行情、成交和订单事件本身不能丢弃。这与把 requote_interval 设为零的忙轮询不同。调度推进、恢复和记录开销的工程检查，也不能代替完整净 PnL 比较。</p>
 <p>八个相同 Final 独立账户的完整比较中，U1 合计少亏，多数账户改善，配对差额中位数为正，但 U0/U1 合计仍均亏损。成交量明显下降，单位成交额净 PnL 却变差；报价评价及实际请求负担上升，绝对库存时间和库存峰值也增加。因此不能只看总 PnL 就宣布选单更好、风险更低，或响应提速没有代价。</p>

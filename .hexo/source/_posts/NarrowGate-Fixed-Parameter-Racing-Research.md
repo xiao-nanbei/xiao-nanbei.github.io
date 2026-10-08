@@ -25,7 +25,7 @@ Widen 将增加风险暴露的一侧报价向外移动，Recenter 将报价向�
 
 新参照的经济回执已覆盖 204 个账户、407 日：Development 为 150 个独立两日账户，Final 为 53 个两日账户加最后一日。已完成的候选 Final 结果只按原身份复用一次；独立账户的汇总不等于单账户连续 407 日。Development 包含训练日期，Final 也已有使用史，因此不能称为全样本外检验。完整净收益仍为负；私有逐账户收益、模型和运行材料不随博客公开。全部完整结果已在本机保留，冻结响应模型、授权源码overlay、计算耗时、输入身份、日期和账务绑定复核通过；这不等于实盘一致性或可直接部署。
 
-下一项 Defense/Urgency 实验冻结九组控制方案和既有模型，先在指定 B 组选择，再读取后续候选收益，并另做真正连续 Final107 的状态承接检查。目前合同和纯规则已有测试，但真实报价接线、原生后端一致性及连续运行验收尚未完成，不能把计划通过或基线回测结束写成新实验已经开跑。完整状态以[研究族文档](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/README.zh-CN.md)为准。
+完整模型身份、47／39 特征消融、204 账户汇总及 live 接线边界见[响应动作研究报告](/2026/10/08/NarrowGate-Response-Action-Baseline/)。下一项 Defense/Urgency 实验冻结九组控制方案和既有模型，先在指定 B 组选择，再读取后续候选收益，并另做真正连续 Final107 的状态承接检查。基线收尾时只有合同／纯规则验收；后续私有冻结工程与分阶段执行是另一版本和证据，不能拿本次文档发布冒充全实验或连续账户完成。完整状态以[研究族文档](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/README.zh-CN.md)为准。
 
 核心 estimand 是
 

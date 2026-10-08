@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate 订单级决策：Placement、KEEP/CANCEL 与 U0/U1 事件驱动评价'
 date: 2026-08-29 13:30:00
-updated: 2026-10-04 12:00:00
+updated: 2026-10-08 16:00:00
 categories:
 - Market Making
 tags:
@@ -40,6 +40,10 @@ $$
 | 100ms lifecycle CIF | 如何建立动态 risk set、competing risks 与双引擎锁步？ | mechanics/training/parity 完成；尚无经济动作 |
 
 上表是各自历史实验的结论，不把指定队列价值动作的负结果扩展为整个 F07 永久无效。[E/C 的 C](/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/)另行比较 KEEP−CANCEL；以下 U1 则研究重新评价的时机，不是新队列价值模型。
+
+## 与响应动作基线的区别
+
+[B0_RESPONSE 响应动作研究](/2026/10/08/NarrowGate-Response-Action-Baseline/)研究在既有执行框架内如何利用主动成交和盘口响应选择旧单动作；下文 U1 研究何时重新评价目标。两者不是同一实验。新响应候选晋升不能写成 U1 最终成功；U1 未晋升及其单位成交额、库存和请求负担结论保持不变。
 
 ## U0/U1：事件驱动报价评价
 
