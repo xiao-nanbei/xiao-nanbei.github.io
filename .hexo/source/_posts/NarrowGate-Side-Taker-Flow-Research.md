@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate Side-Taker Lifecycle：微观流、双时钟 Trade Identity 与动态 Risk Set'
 date: 2026-08-29 13:30:00
-updated: 2026-10-08 16:00:00
+updated: 2026-10-11 11:43:00
 categories:
 - Market Making
 tags:
@@ -235,6 +235,14 @@ K 线只是把 price path 压成可视窗口。红色长阴线附近 aggressive 
 
 aggressor BUY表示主动买方跨过spread、消耗ask；它直接冲击的是挂在ask上的maker SELL订单。aggressor SELL消耗bid，直接冲击maker BUY。若研究的是“同侧未来价格延续”，符号可能与订单受击side相反；若研究的是inventory role，又必须结合当前$q_t$判断该fill是在add exposure还是reduce inventory。
 
+![主动买入逐档消耗卖盘的合成示意](/images/narrowgate/orderbook/orderbook_aggressive_buy_consumes_asks.png)
+
+*订单簿示意 1：主动 BUY 消耗卖盘；本例固定其他订单簿事件，买盘不变。机制示意 / 合成数值 / 非实盘或回测结果。*
+
+![主动卖出逐档消耗买盘的合成示意](/images/narrowgate/orderbook/orderbook_aggressive_sell_consumes_bids.png)
+
+*订单簿示意 2：主动 SELL 消耗买盘；本例最优买价下降，价差扩大。机制示意 / 合成数值 / 非实盘或回测结果。*
+
 因此一笔trade至少有三种side标签：taker aggressor side、resting maker side、inventory role。它们的映射为
 
 $$
@@ -262,6 +270,12 @@ $$
 raw signed quantity会随总体交易活跃度放大；除以总量得到imbalance又在低量bucket里极不稳定。可以同时保留signed BTC、signed notional、imbalance和event count，但每个字段有不同单位与missing规则。不能从中看哪个与outcome相关就事后选一个叫“flow”。
 
 flow与价格还存在机械同步：aggressive BUY通常在ask成交，本身就与短时上行同源。研究未来return时要确保feature window结束在label window开始前，并用本地price/volatility baseline判断外部或side信息的增量。否则模型只是重述当前价格已经动了。
+
+同样的最优价差也不表示相同的盘口厚度。下图把买卖两侧都改用“距各自最优价向外的距离”作横轴，只累计表中可见档位；这能补充流动性形状，但不能识别逐订单的排队位置。
+
+![同样价差下不同盘口厚度与累计深度的合成示意](/images/narrowgate/orderbook/orderbook_depth_shape_same_spread.png)
+
+*订单簿示意 6：两侧按同侧 BBO 向外累计；未列示的卖档不外推，累计深度不提供 FIFO 身份或成交先后。机制示意 / 合成数值 / 非实盘或回测结果。*
 
 ### 负对照可以发现哪些时钟错误
 
@@ -603,6 +617,12 @@ $$
 
 回放引擎可以用更完整的 outcome history 决定“订单实际上是否会成交”，却必须向策略屏蔽尚未 ready 的部分。就像离线仿真知道未来 K 线，也不能把未来收盘价喂给当时模型。双时钟 adapter 的职责正是维持这条信息防火墙。
 
+同一价位的 L2 净数量变化还混合了新增、撤单与成交消耗。即使已知同一观察区间内该价位的成交量，两个聚合截面也不能唯一分解新增与撤单，更不能证明逐订单 FIFO 身份。
+
+![同一价位净变化对应不同新增和撤单路径的合成示意](/images/narrowgate/orderbook/orderbook_net_level_change_not_equal_cancels.png)
+
+*订单簿示意 3：净减少 0.50 BTC 不等于撤单 0.50 BTC；两条不同路径都与同一观测一致。机制示意 / 合成数值 / 非实盘或回测结果。*
+
 #### 3.3 Internal gap 为什么只影响 strict queue，不必删除整天
 
 44 个 aggregate ranges 有 child ID gap。若缺失 child 的价位或数量未知，严格 queue consumption 不能证明完整；但 parent lineage、已观察 price/side 和保守 ready time 仍可能有效。正确做法是按用途降级：
@@ -753,7 +773,7 @@ schema应给关键字段标注authority和ready semantics。下游builder按用�
 
 ![订单生命周期与 start-stop 风险集](/images/narrowgate/event-identity-riskset.svg)
 
-*图 1：状态机示意。fill risk 从 activation 开始，到 full fill 或 cancel ACK 结束；jump 只更新状态；repair 使用独立 delayed-entry risk set。*
+*图 1：历史状态机示意。fill risk 从 activation 开始，到 full fill 或交易所撤单生效结束；图中 cancel ACK 是终态标记，不能把本地接收确认的时刻直接当成交易所生效时刻。jump 只更新状态；repair 使用独立 delayed-entry risk set。*
 
 ![成交 outcome 与策略可见输入的 parent/child 双时钟](/images/narrowgate/f08-trade-parent-child-dual-clock.svg)
 
@@ -789,7 +809,11 @@ $$
 \tau_{ack}=\tau_r+L_{cancel}(\mathcal H_{\tau_r},s_{system}).
 $$
 
-在 $[\tau_r,\tau_{ack})$ 内，订单仍有 exchange exposure；partial fill 会减少 remaining quantity，但不会抹掉 request。ACK 只终止尚未成交的剩余部分。因此 `cancel_request`、`cancel_ack`、`fill_while_cancel_pending` 必须同时存在。
+这里的 $\tau_{ack}$ 是本地接收确认时刻，还需单独区分交易所撤单生效时刻 $\tau_{eff}$。本例在 $[\tau_r,\tau_{eff})$ 内仍有 exchange exposure；partial fill 会减少 remaining quantity，但不会抹掉 request。撤单生效只取消尚未成交的剩余量，之后本地 ACK 确认该终态，并不延长交易所风险区间。若日志缺少生效时刻，应保留时点不确定性，不能仅凭本地 ACK 反推出精确风险终点；历史 panel 的结果与身份不因此重标。
+
+![触价、本单成交、撤单生效和本地确认的合成时序](/images/narrowgate/orderbook/orderbook_touch_fill_cancel_timeline.png)
+
+*订单簿示意 4：市场先成交 0.50 BTC 时本单未成交；随后市场成交 0.15 BTC，本单仅成交 0.05 BTC。撤单请求、交易所生效与本地 ACK 分列，队列身份为假设。机制示意 / 合成数值 / 非实盘或回测结果。*
 
 对 price jump，状态更新可写为 $x(t^+)=g(x(t^-),\Delta book_t)$，但 $Y_F(t^+)$ 仍可能为 1。也就是说 jump 改变 hazard covariates，不自动吸收 order。把 jump 设为 terminal cause，会截断 jump 后真正发生的 fill。
 
@@ -799,7 +823,7 @@ $$
 
 | 类别 | 例子 | 对风险集的作用 |
 |---|---|---|
-| exchange terminal | full fill、cancel ACK | 吸收当前订单剩余量 |
+| exchange terminal | full fill、交易所撤单生效 | 吸收当前订单剩余量；本地 ACK 是获知该终态的消息 |
 | non-terminal transition | partial fill、price jump、cancel reject | 更新 state 或重启 quantity spell |
 | policy action | cancel request、replace decision | 改变未来机制，但非交易所终局 |
 | 库存生命周期 event | inventory nonzero、repair、flat | 属于另一 delayed-entry process |
@@ -822,7 +846,7 @@ multi-state 强迫研究者说明每条边：谁触发、是否可见、是否�
 
 #### 一条完整路径示例
 
-某 BUY order 在 200ms 激活，700ms 遭遇 adverse mid jump，900ms 策略请求取消，940ms 成交 40%，980ms 收到 ACK。正确记录至少包含三个 start-stop interval：active-before-jump、active-after-jump、pending-cancel-after-partial。若库存由这次 partial fill 变为非零，repair risk 还要等 reducing quote 真实 active 后才独立进入。
+某 BUY order 在 200ms 激活，700ms 遭遇 adverse mid jump，900ms 策略请求取消，940ms 成交 40%，980ms 收到 ACK。正确记录至少包含三个 start-stop interval：active-before-jump、active-after-jump、pending-cancel-after-partial。这个日志示例未单列交易所撤单生效时刻，不能据 980ms 的本地 ACK 推断精确的交易所风险终点；下表的 ACK 行表示本地已确认终态。若库存由这次 partial fill 变为非零，repair risk 还要等 reducing quote 真实 active 后才独立进入。
 
 | 事件 | fill risk | repair risk | 是否吸收订单 | 策略动作 |
 |---|:---:|:---:|:---:|:---:|

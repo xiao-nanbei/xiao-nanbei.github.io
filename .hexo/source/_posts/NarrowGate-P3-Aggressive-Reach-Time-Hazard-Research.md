@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate Empirical P3：从十秒触达曲线到 Reach-Time Hazard 与报价价值'
 date: 2026-08-29 13:30:00
-updated: 2026-09-27 10:45:00
+updated: 2026-10-11 11:43:00
 categories:
 - Market Making
 tags:
@@ -90,6 +90,12 @@ $$
 $$
 
 这两个量的单位分别是 `USDC/BTC` 与 `(USDC/BTC)^-1`。`delta_star` 不是 tick 数，`kappa_eff` 也不是订单到达率。
+
+同侧 BBO 距离也不能用双边总价差的一半替代。下图固定 best bid 为 99、best ask 为 101：报价 98 / 102 虽满足总价差至少 4，但逐侧距离仅为 1；若要求两侧距离各至少 2，则对应边界报价为 97 / 103。这只是约束对象的区别，不表示哪种报价有更高收益。
+
+![P3 同侧 BBO 距离与双边总价差约束的合成对照](/images/narrowgate/orderbook/orderbook_p3_same_side_bbo_distance.png)
+
+*订单簿示意 5：同侧 BBO 距离约束与双边总价差下限不是同一个对象，不能换名后视为同一算法。机制示意 / 合成数值 / 非实盘或回测结果。*
 
 ### 3. 数据与因果时钟
 

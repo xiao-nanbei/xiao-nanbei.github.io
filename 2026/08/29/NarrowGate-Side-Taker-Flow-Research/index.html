@@ -28,15 +28,20 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/side-taker-flow-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f08-trade-parent-child-dual-clock.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/orderbook/orderbook_aggressive_buy_consumes_asks.png">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/orderbook/orderbook_aggressive_sell_consumes_bids.png">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/orderbook/orderbook_depth_shape_same_spread.png">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/side-taker-hazard-m0-kline.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f08-trade-parent-child-dual-clock.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/binance-trade-clock-parity.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f08-trade-parent-child-dual-clock.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/orderbook/orderbook_net_level_change_not_equal_cancels.png">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/event-identity-riskset.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f08-trade-parent-child-dual-clock.svg">
+<meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/orderbook/orderbook_touch_fill_cancel_timeline.png">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/side-taker-research-synthesis.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-10-08T08:00:00.000Z">
+<meta property="article:modified_time" content="2026-10-11T03:43:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="Taker Flow">
@@ -544,6 +549,10 @@ Q^{ready}_{100}(t)=\sum_p Q_p\mathbf 1\{t-100ms\le T_p^{ready}<t\}.</script><p>�
 <li>没有把 BUY 结论复制给 SELL 的权限。</li>
 </ul>
 <h3 id="从交易方向到-maker-side-的完整映射"><a href="#从交易方向到-maker-side-的完整映射" class="headerlink" title="从交易方向到 maker side 的完整映射"></a>从交易方向到 maker side 的完整映射</h3><p>aggressor BUY表示主动买方跨过spread、消耗ask；它直接冲击的是挂在ask上的maker SELL订单。aggressor SELL消耗bid，直接冲击maker BUY。若研究的是“同侧未来价格延续”，符号可能与订单受击side相反；若研究的是inventory role，又必须结合当前$q_t$判断该fill是在add exposure还是reduce inventory。</p>
+<p><img src="/images/narrowgate/orderbook/orderbook_aggressive_buy_consumes_asks.png" srcset="/img/loading.gif" lazyload alt="主动买入逐档消耗卖盘的合成示意"></p>
+<p><em>订单簿示意 1：主动 BUY 消耗卖盘；本例固定其他订单簿事件，买盘不变。机制示意 / 合成数值 / 非实盘或回测结果。</em></p>
+<p><img src="/images/narrowgate/orderbook/orderbook_aggressive_sell_consumes_bids.png" srcset="/img/loading.gif" lazyload alt="主动卖出逐档消耗买盘的合成示意"></p>
+<p><em>订单簿示意 2：主动 SELL 消耗买盘；本例最优买价下降，价差扩大。机制示意 / 合成数值 / 非实盘或回测结果。</em></p>
 <p>因此一笔trade至少有三种side标签：taker aggressor side、resting maker side、inventory role。它们的映射为</p>
 <script type="math/tex; mode=display">
 maker\_side=-taker\_side,
@@ -555,6 +564,9 @@ role=\operatorname{sign}(\Delta |q|),</script><p>第二个等式只在给定fill
 <p>动作实验还必须在flow unavailable时回退baseline，不能把missing映射成零；burst/run/sweep thresholds必须在新outcomes前冻结。若只发现“高SELL flow后的BUY fills更差”，仍不能推出取消所有BUY，因为filled-only样本遗漏了被动作改变的未成交与repair路径。最终判断仍需要paired 库存生命周期 terminal value。</p>
 <h3 id="Flow-normalization-与-price-impact-不是同一个对象"><a href="#Flow-normalization-与-price-impact-不是同一个对象" class="headerlink" title="Flow normalization 与 price impact 不是同一个对象"></a>Flow normalization 与 price impact 不是同一个对象</h3><p>raw signed quantity会随总体交易活跃度放大；除以总量得到imbalance又在低量bucket里极不稳定。可以同时保留signed BTC、signed notional、imbalance和event count，但每个字段有不同单位与missing规则。不能从中看哪个与outcome相关就事后选一个叫“flow”。</p>
 <p>flow与价格还存在机械同步：aggressive BUY通常在ask成交，本身就与短时上行同源。研究未来return时要确保feature window结束在label window开始前，并用本地price/volatility baseline判断外部或side信息的增量。否则模型只是重述当前价格已经动了。</p>
+<p>同样的最优价差也不表示相同的盘口厚度。下图把买卖两侧都改用“距各自最优价向外的距离”作横轴，只累计表中可见档位；这能补充流动性形状，但不能识别逐订单的排队位置。</p>
+<p><img src="/images/narrowgate/orderbook/orderbook_depth_shape_same_spread.png" srcset="/img/loading.gif" lazyload alt="同样价差下不同盘口厚度与累计深度的合成示意"></p>
+<p><em>订单簿示意 6：两侧按同侧 BBO 向外累计；未列示的卖档不外推，累计深度不提供 FIFO 身份或成交先后。机制示意 / 合成数值 / 非实盘或回测结果。</em></p>
 <h3 id="负对照可以发现哪些时钟错误"><a href="#负对照可以发现哪些时钟错误" class="headerlink" title="负对照可以发现哪些时钟错误"></a>负对照可以发现哪些时钟错误</h3><p>将flow time整体向未来错移一个bucket不应改善causal score；使用尚未ready的parent-complete quantity若异常强，提示lookahead。随机打乱同日parent顺序应破坏短期关系而保留日级activity；若仍高分，模型可能只学日期regime。</p>
 <p>这些negative controls不能代替lineage audit，却能快速暴露聚合、side或clock实现错误。通过后仍只获得prediction资格，动作层必须另行验证。</p>
 <h3 id="9-公共证据"><a href="#9-公共证据" class="headerlink" title="9. 公共证据"></a>9. 公共证据</h3><ul>
@@ -787,6 +799,9 @@ P_p(u)=\{i:f_p\le id_i\le l_p(u),\ T_i^{ex}\le u\},</script><p>其中 $l_p(u)$ �
 \mathcal H_t^{market\ outcome}
 \supseteq
 \mathcal H_t^{policy\ visible}.</script><p>回放引擎可以用更完整的 outcome history 决定“订单实际上是否会成交”，却必须向策略屏蔽尚未 ready 的部分。就像离线仿真知道未来 K 线，也不能把未来收盘价喂给当时模型。双时钟 adapter 的职责正是维持这条信息防火墙。</p>
+<p>同一价位的 L2 净数量变化还混合了新增、撤单与成交消耗。即使已知同一观察区间内该价位的成交量，两个聚合截面也不能唯一分解新增与撤单，更不能证明逐订单 FIFO 身份。</p>
+<p><img src="/images/narrowgate/orderbook/orderbook_net_level_change_not_equal_cancels.png" srcset="/img/loading.gif" lazyload alt="同一价位净变化对应不同新增和撤单路径的合成示意"></p>
+<p><em>订单簿示意 3：净减少 0.50 BTC 不等于撤单 0.50 BTC；两条不同路径都与同一观测一致。机制示意 / 合成数值 / 非实盘或回测结果。</em></p>
 <h4 id="3-3-Internal-gap-为什么只影响-strict-queue，不必删除整天"><a href="#3-3-Internal-gap-为什么只影响-strict-queue，不必删除整天" class="headerlink" title="3.3 Internal gap 为什么只影响 strict queue，不必删除整天"></a>3.3 Internal gap 为什么只影响 strict queue，不必删除整天</h4><p>44 个 aggregate ranges 有 child ID gap。若缺失 child 的价位或数量未知，严格 queue consumption 不能证明完整；但 parent lineage、已观察 price/side 和保守 ready time 仍可能有效。正确做法是按用途降级：</p>
 <ul>
 <li>strict queue outcome：该 range fail closed；</li>
@@ -881,7 +896,7 @@ Q_P=\sum_{i\in children(P)}Q_i,</script><p>但不能因此在两个ledger都消�
 <h2 id="6-Event-identity-and-risk-set"><a href="#6-Event-identity-and-risk-set" class="headerlink" title="6. Event identity and risk set"></a>6. Event identity and risk set</h2><h3 id="TL-DR：订单从“尚未激活”到“终止”之间，不是一条只有一个终点的直线"><a href="#TL-DR：订单从“尚未激活”到“终止”之间，不是一条只有一个终点的直线" class="headerlink" title="TL;DR：订单从“尚未激活”到“终止”之间，不是一条只有一个终点的直线"></a>TL;DR：订单从“尚未激活”到“终止”之间，不是一条只有一个终点的直线</h3><p>旧 panel 从 <code>decision_ts</code> 开始，把 fill、cancel ACK、adverse jump 和 库存生命周期 repair 当作同质 first events。审计表明，这种表无法识别 dynamic fill hazard：订单激活前不在 fill risk set；cancel request 是 behavior-policy stopping time；ACK 前仍可能成交；jump 后订单仍可能存活；repair 只在 inventory 非零且 reducing path 已进入可修复状态后才 at risk。</p>
 <p><code>event_identity_and_riskset_v1</code> 因此 blocked，v2 改成 start-stop lifecycle。这个结果没有说“fill hazard 不可研究”，只说在事件身份没有拆开前，任何漂亮 hazard 都不具备动作含义。</p>
 <p><img src="/images/narrowgate/event-identity-riskset.svg" srcset="/img/loading.gif" lazyload alt="订单生命周期与 start-stop 风险集"></p>
-<p><em>图 1：状态机示意。fill risk 从 activation 开始，到 full fill 或 cancel ACK 结束；jump 只更新状态；repair 使用独立 delayed-entry risk set。</em></p>
+<p><em>图 1：历史状态机示意。fill risk 从 activation 开始，到 full fill 或交易所撤单生效结束；图中 cancel ACK 是终态标记，不能把本地接收确认的时刻直接当成交易所生效时刻。jump 只更新状态；repair 使用独立 delayed-entry risk set。</em></p>
 <p><img src="/images/narrowgate/f08-trade-parent-child-dual-clock.svg" srcset="/img/loading.gif" lazyload alt="成交 outcome 与策略可见输入的 parent/child 双时钟"></p>
 <p><em>图 2：risk-set 的终局可以用 individual child 识别，但区间协变量只能在 parent feature-ready 后更新。事件身份与信息可见性是两道独立约束。</em></p>
 <h3 id="1-研究问题-3"><a href="#1-研究问题-3" class="headerlink" title="1. 研究问题"></a>1. 研究问题</h3><p>研究要识别三个不同对象：订单在真实 exchange exposure 下的 fill hazard、策略 cancel 对风险集的截断，以及 库存生命周期 repair 的 delayed-entry transition。它们必须有各自的 at-risk indicator。</p>
@@ -894,7 +909,9 @@ Y_F(t)=\mathbf 1\{t_{activation}\le t<t_{terminal},\ q_{remaining}(t)>0\}.</scri
 <p>该项目没有候选策略动作。它的 estimand 是事件身份和 start-stop interval 的可识别性：一行必须说明区间前后剩余量、事件顺序、进入/退出风险集的理由，而不是给旧 first-event 表补几个字段。</p>
 <p>cancel 需要一个独立 stopping-time 表达。若 request 时刻为 $\tau_r$，ACK latency 依赖当时历史与系统状态，则：</p>
 <script type="math/tex; mode=display">
-\tau_{ack}=\tau_r+L_{cancel}(\mathcal H_{\tau_r},s_{system}).</script><p>在 $[\tau<em>r,\tau</em>{ack})$ 内，订单仍有 exchange exposure；partial fill 会减少 remaining quantity，但不会抹掉 request。ACK 只终止尚未成交的剩余部分。因此 <code>cancel_request</code>、<code>cancel_ack</code>、<code>fill_while_cancel_pending</code> 必须同时存在。</p>
+\tau_{ack}=\tau_r+L_{cancel}(\mathcal H_{\tau_r},s_{system}).</script><p>这里的 $\tau<em>{ack}$ 是本地接收确认时刻，还需单独区分交易所撤单生效时刻 $\tau</em>{eff}$。本例在 $[\tau<em>r,\tau</em>{eff})$ 内仍有 exchange exposure；partial fill 会减少 remaining quantity，但不会抹掉 request。撤单生效只取消尚未成交的剩余量，之后本地 ACK 确认该终态，并不延长交易所风险区间。若日志缺少生效时刻，应保留时点不确定性，不能仅凭本地 ACK 反推出精确风险终点；历史 panel 的结果与身份不因此重标。</p>
+<p><img src="/images/narrowgate/orderbook/orderbook_touch_fill_cancel_timeline.png" srcset="/img/loading.gif" lazyload alt="触价、本单成交、撤单生效和本地确认的合成时序"></p>
+<p><em>订单簿示意 4：市场先成交 0.50 BTC 时本单未成交；随后市场成交 0.15 BTC，本单仅成交 0.05 BTC。撤单请求、交易所生效与本地 ACK 分列，队列身份为假设。机制示意 / 合成数值 / 非实盘或回测结果。</em></p>
 <p>对 price jump，状态更新可写为 $x(t^+)=g(x(t^-),\Delta book_t)$，但 $Y_F(t^+)$ 仍可能为 1。也就是说 jump 改变 hazard covariates，不自动吸收 order。把 jump 设为 terminal cause，会截断 jump 后真正发生的 fill。</p>
 <h4 id="2-1-四类日志对象为什么不能共享一个-event-type"><a href="#2-1-四类日志对象为什么不能共享一个-event-type" class="headerlink" title="2.1 四类日志对象为什么不能共享一个 event_type"></a>2.1 四类日志对象为什么不能共享一个 <code>event_type</code></h4><p>订单研究里至少有四种语义：</p>
 <div class="table-container">
@@ -909,8 +926,8 @@ Y_F(t)=\mathbf 1\{t_{activation}\le t<t_{terminal},\ q_{remaining}(t)>0\}.</scri
 <tbody>
 <tr>
 <td>exchange terminal</td>
-<td>full fill、cancel ACK</td>
-<td>吸收当前订单剩余量</td>
+<td>full fill、交易所撤单生效</td>
+<td>吸收当前订单剩余量；本地 ACK 是获知该终态的消息</td>
 </tr>
 <tr>
 <td>non-terminal transition</td>
@@ -936,7 +953,7 @@ Y_F(t)=\mathbf 1\{t_{activation}\le t<t_{terminal},\ q_{remaining}(t)>0\}.</scri
 <script type="math/tex; mode=display">
 Z(t)\in\{not\ active,active,partial,cancel\ pending,terminal\}.</script><p>允许的转移构成有方向图，而非所有 cause 从同一起点互斥。例如 active 可以经 partial 回到 partial-risk，active 或 partial 可进入 cancel pending，cancel pending 可 fill 或 ACK。repair 则属于库存生命周期 的另一张图。</p>
 <p>multi-state 强迫研究者说明每条边：谁触发、是否可见、是否吸收、remaining quantity 如何变化。first-event 表把这些边压成一个标签，表面简单，却失去对 action 最重要的 request/ACK race 和 post-jump survival。</p>
-<h4 id="一条完整路径示例"><a href="#一条完整路径示例" class="headerlink" title="一条完整路径示例"></a>一条完整路径示例</h4><p>某 BUY order 在 200ms 激活，700ms 遭遇 adverse mid jump，900ms 策略请求取消，940ms 成交 40%，980ms 收到 ACK。正确记录至少包含三个 start-stop interval：active-before-jump、active-after-jump、pending-cancel-after-partial。若库存由这次 partial fill 变为非零，repair risk 还要等 reducing quote 真实 active 后才独立进入。</p>
+<h4 id="一条完整路径示例"><a href="#一条完整路径示例" class="headerlink" title="一条完整路径示例"></a>一条完整路径示例</h4><p>某 BUY order 在 200ms 激活，700ms 遭遇 adverse mid jump，900ms 策略请求取消，940ms 成交 40%，980ms 收到 ACK。正确记录至少包含三个 start-stop interval：active-before-jump、active-after-jump、pending-cancel-after-partial。这个日志示例未单列交易所撤单生效时刻，不能据 980ms 的本地 ACK 推断精确的交易所风险终点；下表的 ACK 行表示本地已确认终态。若库存由这次 partial fill 变为非零，repair risk 还要等 reducing quote 真实 active 后才独立进入。</p>
 <div class="table-container">
 <table>
 <thead>
