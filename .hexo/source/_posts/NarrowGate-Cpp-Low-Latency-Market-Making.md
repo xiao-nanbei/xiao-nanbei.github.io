@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate：回测吞吐与 Live 尾延迟工程'
 date: 2026-07-01 08:03:00
-updated: 2026-10-17 14:00:00
+updated: 2026-10-17 22:06:04
 categories:
 - C++
 tags:
@@ -12,6 +12,9 @@ tags:
 - 系统工程
 math: true
 ---
+
+当前阅读口径（2026-10-17）：本文保留带原环境与时间范围的工程测试、性能及恢复数据；旧策略收益或模型排名转入研究族假设索引。下文历史阶段的“当前”指该阶段，不是今日 live 状态；新数据经济结果见[研究族当前报告](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/registry.json)。
+
 
 做市系统的工程目标不只是更快地算出报价，还要让行情可见性、订单生效和账户记账在回放与实际运行中各有清楚定义。本文讨论共享计算内核、事件调度和尾延迟测量；接口测试、有限组装与完整经济评价分别说明，不互相替代。
 
@@ -107,7 +110,7 @@ rq = clamp(rq_max * (rq_min / rq_max) ** r, rq_min, rq_max)
 
 2026-07-25 又完成了一轮纵向重建。正式 L2 输入迁移到版本化的 `normalized_l2_100ms_v2`，旧的约 1 秒与 100ms 混合目录退出 formal 默认路径；2026-07-04 至 07-11 的 individual-trade maker-side 标志也完成修复。基于这一身份，causal-v5 重新生成 128 日特征、重训 13-head bundle，并在严格 ML-ON/OFF replay 中取得小幅正的 raw/terminal 中心值，但区间仍跨零、fills 下降约 7% 至 9%，inventory time 没有改善。它随后按用户指定进入 live，promotion class 明确记录为 `user_directed_trial`，不是通过研究 strict gate 的 alpha。
 
-随后 causal-v9 将数据延伸到 2026-07-25，并修复 mutable taker-tempo lineage。正式 Test3 中 ML-ON 相对 ML-OFF 的 raw/terminal 分别为 `-2.2308/-2.6268 USDC`，tail 增加 3 个，三个 formal days 的 raw delta 全部为负，因此没有部署；**截至 2026-07-28**，live 回到 `ml.enabled=false`，empirical P3 保持不变。该快照的全仓测试为 `917 passed, 4 skipped`。这证明两套引擎能执行同一 corrected baseline，不把模型可加载、一次历史部署或预测 ranking 包装成现役 alpha；它已被上面的 2026-08-03 v7 baseline 状态取代。
+causal-v9 的旧模型经济点估计已从工程文章撤出，转入 [F03 待验证问题](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/research_questions.json)。该历史工程快照的 `917 passed, 4 skipped` 仅描述当时的测试覆盖，不证明当前模型收益或部署状态。
 
 本文只讨论工程实现，不讨论也不建议任何真实交易行为。所有 PnL、fill、markout、A/B 和 benchmark 都是研究指标或系统指标，不是收益承诺。
 
@@ -2499,7 +2502,7 @@ buy_q90_visibility_lifecycle_path_score.v3
 
 fresh prospective recovery 也不再复用旧订单：cancel ACK 且剩余数量大于零时，才以当前价格、age=0、当前因果可见簿、queue-at-tail 和当前 GTX support 评估一张**新候选单**。绑定旧 v5 配置的冻结 v1.6 一日 ABI-v4 smoke 曾做到 Python/C++ transitions 零 mismatch；但 61 次 recovery evaluation 没有一个满足有效 transport 条件。当前 v7 config hash 与继续开发后的 `backtest_tick.py`、bindings/native module hash 已偏离该冻结身份，因此旧 v1.6 不能直接复跑或冒充 v7 parity；需要新 successor/linkage 后才能继续 40 日 run。这项修复仍是 historical local baseline-integrity evidence，不是 q90 action 恢复依据。
 
-最后，跨日研究不再把“连续 replay”理解成把坏日硬拼起来。新的 versioned substrate 有三种不同权限：native strict 只在原生 sequence 合格段声明 exact lifecycle；restart-aware 把数据缺口冻结为计划停机，停机前必须完成 cancel terminal，期间不报单但持仓继续 MTM；Tardis provider-normalized 只做预测/source sensitivity，永远不获得 native queue 权限。UTC midnight 仍可作为 bootstrap cluster，却不再意味着平仓、清库存或结束经济 库存生命周期。
+最后，跨日研究不再把“连续 replay”理解成把坏日硬拼起来。新的 versioned substrate 有三种不同权限：native strict 只在原生 sequence 合格段声明 exact lifecycle；restart-aware 把数据缺口冻结为计划停机，停机前必须完成 cancel terminal，期间不报单但持仓继续 MTM；该历史 Tardis provider-normalized 分支当时只用于预测/source sensitivity；当前 Tardis 已有独立验收的建模经济回放，但这不等于恢复了交易所原生逐单队列。UTC midnight 仍可作为 bootstrap cluster，却不再意味着平仓、清库存或结束经济 库存生命周期。
 
 这套 substrate 与三层 cache DAG 都比 F03/F05/F09/F10 更底层，但它们只统一 replay 语义，不统一各 family 的 action、reward 或 promotion gate。当前 full tick-runner binding 仍然 fail-closed；在第一条权威连续路径跑出来前，不能拿单元测试通过冒充新的连续 PnL baseline。
 
@@ -2513,17 +2516,13 @@ fresh prospective recovery 也不再复用旧订单：cancel ACK 且剩余数量
 
 冻结的 50 日 compatibility result 也需要按这个边界重读。它完整复现了 40 日前缀并新增 10 日，但实际执行身份是规范化 top-20/100ms L2 的 C++ daily-fresh-start diagnostic，native raw snapshot/delta queue scheduler、订单/撤单延迟和 execution-book receive-time visibility 均未启用。它可以解释旧结果的冻结历史 denominator，却不是新 mechanics 的默认控制；只有新合同显式要求历史兼容复现时，才可按其原身份重放。
 
-| Panel | Terminal MTM | Closed-库存生命周期 value | Fills |
-|---|---:|---:|---:|
-| Immutable first 40 days | -144.251748 USDC | -147.466348 USDC | 17,118 |
-| Added 10 days | -21.314331 USDC | -21.064631 USDC | 3,029 |
-| Pooled 50 days | -165.566079 USDC | -168.530979 USDC | 20,147 |
+历史 compatibility 的 MTM/closed-value 结果表已撤出当前展示；它不作为新数据经济对照。原输入和执行身份仍是工程复现的定位，相关经济适用性登记在 [SYS 问题索引](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/system_engineering/research_questions.json)。
 
-这些数字是 predecessor common-simulator 的权威诊断分母，却不是 strict-native order-path PnL，更不是连续 live 账本。`daily_fresh_start` 会在每个 UTC 日重启进程态，公开 top-20/100ms L2 也没有驱动 native queue lookup；所以任何 cooldown、replace、cancel/re-entry 或 fill-selection 候选若要解释订单路径增量，必须在两臂共同升级到与主张匹配的执行身份。
+该 predecessor 的覆盖定义属于 common-simulator 诊断，不是 strict-native order-path 或连续 live 账本。`daily_fresh_start` 会在每个 UTC 日重启进程态，公开 top-20/100ms L2 也没有驱动 native queue lookup；所以任何 cooldown、replace、cancel/re-entry 或 fill-selection 候选若要解释订单路径增量，必须在两臂共同升级到与主张匹配的执行身份。
 
 F05 随后在明确较弱的 modeled-queue lane 上完成了 SELL persistent policy 的 50 日 repeated full-path 与 corrected 71 日 restart-aware replay：点估计均改善，但 primary lower bounds 仍为负，research hard gates 没有通过。这里的“71 日连续”是 F05 family-specific restart-aware runner 的结果；共享 `continuous_replay_state.v1` 的 authoritative full-tick-runner binding 仍是另一条 fail-closed 合同，二者不能混称同一个 continuous authority。
 
-对应的 strict-native + sampled-latency successor 已完成 2026-06-29 一日机制验证：消费 5,086,247 个 native events，完成 19,460 次 queue lookup，其中 exact 9,797、known-zero 9,663、missing 0，并应用 14,825 次 visibility delay。该日 fills 从 compatibility 路径的 489 变为 921，terminal MTM 从 -7.878888 变为 -7.132700 USDC；这证明 raw queue 与 latency 输入真实改变路径，但只证明机制已接通，不能据此推断完整 50 日修正的符号或幅度。
+对应的 strict-native + sampled-latency successor 已完成 2026-06-29 一日机制验证：消费 5,086,247 个 native events，完成 19,460 次 queue lookup，其中 exact 9,797、known-zero 9,663、missing 0，并应用 14,825 次 visibility delay。该日 fills 从 compatibility 路径的 489 变为 921；工程事件计数保留，但不再把旧单日 MTM 差额放在当前结论中；这证明 raw queue 与 latency 输入真实改变路径，但只证明机制已接通，不能据此推断完整 50 日修正的符号或幅度。
 
 更严格也不意味着可以越过数据不可识别性。后续 F05 strict-native cooldown 标签执行发现，历史 public trade 只有毫秒时间，而 raw book 含同毫秒内更细事件；trade、book、activation 与 ACK 跨流没有共同序号时，哪个事件先可见无法从源数据恢复。正式路径因此保留歧义并 fail closed，没有用任意 tie-break 伪造 exact queue 标签。这是 source identifiability 边界，不是把一个 C++ 排序规则写得更复杂就能消失的问题。
 
@@ -2531,7 +2530,7 @@ F05 随后在明确较弱的 modeled-queue lane 上完成了 SELL persistent pol
 
 即便 strict native queue 可识别，它仍只重建公开 exchange-time MBP 与我方反事实订单：看不到交易所私有订单 ID/FIFO、hidden liquidity、真实 private ACK/user-stream receive clock、live 多线程调度、完整进程内 warm state 和市场对我方订单的反馈。工程文章里的“parity”因此必须总是带限定词：Python/C++ mechanics parity、historical strict queue evidence、empirical transport sensitivity 与 exact live reproduction 是四种不同主张。
 
-对应的历史证据见 [50 日 compatibility baseline](https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f10_live_replay_attribution/docs/current_live_held_ber_replay_baseline_50d_20260810.json)、[execution-scope amendment](https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f10_live_replay_attribution/docs/current_live_held_ber_replay_baseline_50d_execution_scope_amendment_v1_20260810.md)、[strict-native 一日机制结果](https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f10_live_replay_attribution/docs/current_live_held_ber_strict_native_latency_baseline_50d_v1_one_day_mechanics_20260810.md)、[Python formal dispatcher](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/models/backtest_tick.py) 与 [pybind ABI](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/cpp/narrowgate_cpp/bindings.cpp)。文件名中的 `current_live_held_ber` 是历史 identity 名称；其 `ber` 对象实际是 trade-intensity acceleration guard，不是 book-exhaustion rate。
+对应的历史证据见 [50 日 compatibility baseline](https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f10_live_replay_attribution/docs/current_live_held_ber_replay_baseline_50d_20260810.json)、[execution-scope amendment](https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f10_live_replay_attribution/docs/current_live_held_ber_replay_baseline_50d_execution_scope_amendment_v1_20260810.md)、[strict-native 一日机制结果](https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f10_live_replay_attribution/docs/current_live_held_ber_strict_native_latency_baseline_50d_v1_one_day_mechanics_20260810.md)、[Python formal dispatcher](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/models/backtest_tick.py) 与 [pybind 模块入口](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/cpp/narrowgate_cpp/bindings_module.cpp)。文件名中的 `current_live_held_ber` 是历史 identity 名称；其 `ber` 对象实际是 trade-intensity acceleration guard，不是 book-exhaustion rate。上文单文件 `bindings.cpp` 属于历史布局，当前入口已经按功能拆分。
 
 ### Development 结果与证据范围
 

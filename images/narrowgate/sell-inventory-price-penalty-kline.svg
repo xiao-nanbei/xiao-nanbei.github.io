@@ -1,14 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid meet">
-  <title>SELL add inventory price penalty 的 K 线报价机制</title>
-  <desc>机制示意：随着 SHORT units 增加，候选 SELL ask 向外移动 0.5、1.0、1.5 basis points，展示 fill retention 和风险指标之间的权衡。</desc>
-  <rect width="1200" height="720" fill="#07111f"/>
-  <text x="52" y="55" fill="#f4f7fb" font-size="28" font-family="sans-serif" font-weight="700">SELL add price penalty：更少库存，也更少参与</text><text x="52" y="84" fill="#9fb3c8" font-size="16" font-family="sans-serif">机制示意 · flat opener 与 reducing BUY 不变</text>
-  <g stroke="#24374b"><path d="M60 145H730M60 245H730M60 345H730M60 445H730M60 545H730"/></g>
-  <path d="M75 450C175 390 250 430 330 345S485 300 565 235S665 205 720 180" fill="none" stroke="#f8c15c" stroke-width="4"/>
-  <g font-family="sans-serif"><path d="M170 330V470" stroke="#ff6f7d" stroke-width="4"/><rect x="154" y="365" width="32" height="68" fill="#ff6f7d"/><path d="M300 290V420" stroke="#ff6f7d" stroke-width="4"/><rect x="284" y="320" width="32" height="65" fill="#ff6f7d"/><path d="M430 240V370" stroke="#ff6f7d" stroke-width="4"/><rect x="414" y="275" width="32" height="60" fill="#ff6f7d"/><path d="M560 180V320" stroke="#ff6f7d" stroke-width="4"/><rect x="544" y="220" width="32" height="65" fill="#ff6f7d"/></g>
-  <g stroke-width="3" stroke-dasharray="9 6"><path d="M120 400H670" stroke="#9fb3c8"/><path d="M170 365H670" stroke="#9fd8ff"/><path d="M300 315H670" stroke="#ffd17c"/><path d="M430 255H670" stroke="#ff9ca5"/></g>
-  <g font-family="sans-serif" font-size="15"><text x="80" y="392" fill="#9fb3c8">baseline ask</text><text x="570" y="355" fill="#9fd8ff">SHORT 1: +0.5 bps</text><text x="570" y="305" fill="#ffd17c">SHORT 2: +1.0 bps</text><text x="570" y="245" fill="#ff9ca5">SHORT ≥3: +1.5 bps</text></g>
-  <rect x="775" y="125" width="370" height="420" rx="17" fill="#0e1c2d"/><text x="803" y="165" fill="#eaf2fb" font-size="19" font-family="sans-serif" font-weight="700">Grade-A 冻结聚合</text><text x="803" y="205" fill="#9fb3c8" font-size="16" font-family="sans-serif">action change 100%</text><text x="803" y="238" fill="#ff9ca5" font-size="16" font-family="sans-serif">SELL-add fill retention 60.98%</text><text x="803" y="271" fill="#ff9ca5" font-size="16" font-family="sans-serif">activity retention 73.74%</text><path d="M802 298H1118" stroke="#31465b"/><text x="803" y="335" fill="#63deb0" font-size="16" font-family="sans-serif">max inventory avoidance：pass</text><text x="803" y="368" fill="#63deb0" font-size="16" font-family="sans-serif">inventory time / MAE：改善</text><text x="803" y="411" fill="#ff9ca5" font-size="16" font-family="sans-serif">reward -0.001339</text><text x="803" y="441" fill="#ff9ca5" font-size="15" font-family="sans-serif">95% CI [-0.011489,+0.009242]</text><text x="803" y="485" fill="#f4f7fb" font-size="18" font-family="sans-serif" font-weight="700">risk control evidence only</text><text x="803" y="515" fill="#9fb3c8" font-size="14" font-family="sans-serif">不是 strategy candidate</text>
-  <rect x="60" y="610" width="1085" height="65" rx="14" fill="#0e1c2d"/><text x="88" y="639" fill="#eaf2fb" font-size="16" font-family="sans-serif">少成交同时移除 toxic 与 good fills；完整 库存生命周期 terminal 才是 estimand。</text><text x="88" y="662" fill="#9fb3c8" font-size="15" font-family="sans-serif">q90 OFF · Validation / holdout 未读 · 固定 0.5/1.0/1.5 bps curve 已关闭</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="520" viewBox="0 0 1100 520" role="img" aria-labelledby="title desc">
+  <title id="title">库存动作与参与度：待验证问题</title>
+  <desc id="desc">原图主题：SELL add inventory price penalty 的 K 线报价机制。旧结果曲线、数值和通过／关闭判断已撤出。库存相关的加仓价格、数量限制或减仓激进度能否改善净价值？ 当前已验收数据在对应研究报告中单独保留；本图是研究方法图，不是新实验结果。</desc>
+  <rect width="1100" height="520" fill="#f5f7fb"/>
+  <g font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif">
+    <text x="48" y="60" font-size="28" fill="#18243a">库存动作与参与度</text>
+    <text x="48" y="98" font-size="17" fill="#50617a">待验证假设 · 旧结果不作当前结论 · 方法图而非收益曲线</text>
+    <rect x="48" y="130" width="1004" height="100" rx="14" fill="#e7eefc"/>
+    <text x="70" y="170" font-size="21" fill="#183b73">库存相关的加仓价格、数量限制或减仓激进度能否改善净价值</text>
+    <text x="70" y="199" font-size="21" fill="#183b73">？</text>
+    <rect x="48" y="266" width="320" height="110" rx="12" fill="white" stroke="#cbd5e4"/><text x="68" y="303" font-size="20" fill="#18243a">01 绑定问题</text><text x="68" y="342" font-size="17" fill="#50617a">源、模型、B0 与历史使用</text>
+    <rect x="390" y="266" width="320" height="110" rx="12" fill="white" stroke="#cbd5e4"/><text x="410" y="303" font-size="20" fill="#18243a">02 定义比较</text><text x="410" y="342" font-size="17" fill="#50617a">可见信息、动作与风险集</text>
+    <rect x="732" y="266" width="320" height="110" rx="12" fill="white" stroke="#cbd5e4"/><text x="752" y="303" font-size="20" fill="#18243a">03 验收完整路径</text><text x="752" y="342" font-size="17" fill="#50617a">总／单位净收益及库存</text>
+    <text x="48" y="422" font-size="16" fill="#50617a">工程一致性与性能保留其原范围；只有匹配的新实验才能更新假设状态。</text>
+    <a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/research_questions.json"><text x="48" y="469" font-size="16" fill="#235caa">研究族索引：F09-INVENTORY-ACTIONS</text></a>
+  </g>
 </svg>
 

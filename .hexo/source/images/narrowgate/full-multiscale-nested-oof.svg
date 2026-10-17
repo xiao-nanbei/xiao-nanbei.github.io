@@ -1,39 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="570" viewBox="0 0 1040 570" role="img" aria-labelledby="title desc">
-  <title id="title">三十个历史日期上的嵌套时间序列样本外结构</title>
-  <desc id="desc">四个外层折使用扩展训练窗与后续五日测试窗。每个训练窗内部独立完成特征筛选、规则和复杂度选择，并清除跨越边界的路径；总共有二十个从未参与对应折选择的外层测试日。</desc>
-  <defs>
-    <style>
-      .bg{fill:#fbfcfe}.train{fill:#d1e9ff;stroke:#175cd3;stroke-width:1.1}.test{fill:#fedf89;stroke:#b54708;stroke-width:1.3}.future{fill:#f2f4f7;stroke:#d0d5dd;stroke-width:1}.inner{fill:#f4f3ff;stroke:#6941c6;stroke-width:1.1}.note{fill:#fff;stroke:#d0d5dd;stroke-width:1.2}.title{font:500 23px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.text{font:500 14px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#101828}.small{font:400 12px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#475467}.tiny{font:400 10px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;fill:#667085}.mono{font:400 12px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#344054}
-    </style>
-  </defs>
-  <rect class="bg" width="1040" height="570"/>
-  <text class="title" x="36" y="42">每次都只能用过去选规则，再到紧接着的未来五天考试</text>
-  <text class="small" x="36" y="68">每个色块代表连续 5 个 UTC day；蓝色是 outer-train，橙色是 untouched outer-test，灰色当时尚未使用。</text>
-
-  <text class="text" x="36" y="128">Fold 1</text>
-  <rect class="train" x="122" y="96" width="130" height="52" rx="5"/><rect class="train" x="260" y="96" width="130" height="52" rx="5"/><rect class="test" x="398" y="96" width="130" height="52" rx="5"/><rect class="future" x="536" y="96" width="130" height="52" rx="5"/><rect class="future" x="674" y="96" width="130" height="52" rx="5"/><rect class="future" x="812" y="96" width="130" height="52" rx="5"/>
-  <text class="tiny" text-anchor="middle" x="187" y="126">D1–5</text><text class="tiny" text-anchor="middle" x="325" y="126">D6–10</text><text class="tiny" text-anchor="middle" x="463" y="126">D11–15 TEST</text>
-
-  <text class="text" x="36" y="204">Fold 2</text>
-  <rect class="train" x="122" y="172" width="130" height="52" rx="5"/><rect class="train" x="260" y="172" width="130" height="52" rx="5"/><rect class="train" x="398" y="172" width="130" height="52" rx="5"/><rect class="test" x="536" y="172" width="130" height="52" rx="5"/><rect class="future" x="674" y="172" width="130" height="52" rx="5"/><rect class="future" x="812" y="172" width="130" height="52" rx="5"/>
-  <text class="tiny" text-anchor="middle" x="394" y="202">D1–15 TRAIN</text><text class="tiny" text-anchor="middle" x="601" y="202">D16–20 TEST</text>
-
-  <text class="text" x="36" y="280">Fold 3</text>
-  <rect class="train" x="122" y="248" width="130" height="52" rx="5"/><rect class="train" x="260" y="248" width="130" height="52" rx="5"/><rect class="train" x="398" y="248" width="130" height="52" rx="5"/><rect class="train" x="536" y="248" width="130" height="52" rx="5"/><rect class="test" x="674" y="248" width="130" height="52" rx="5"/><rect class="future" x="812" y="248" width="130" height="52" rx="5"/>
-  <text class="tiny" text-anchor="middle" x="394" y="278">D1–20 TRAIN</text><text class="tiny" text-anchor="middle" x="739" y="278">D21–25 TEST</text>
-
-  <text class="text" x="36" y="356">Fold 4</text>
-  <rect class="train" x="122" y="324" width="130" height="52" rx="5"/><rect class="train" x="260" y="324" width="130" height="52" rx="5"/><rect class="train" x="398" y="324" width="130" height="52" rx="5"/><rect class="train" x="536" y="324" width="130" height="52" rx="5"/><rect class="train" x="674" y="324" width="130" height="52" rx="5"/><rect class="test" x="812" y="324" width="130" height="52" rx="5"/>
-  <text class="tiny" text-anchor="middle" x="463" y="354">D1–25 TRAIN</text><text class="tiny" text-anchor="middle" x="877" y="354">D26–30 TEST</text>
-
-  <rect class="inner" x="122" y="414" width="420" height="96" rx="8"/>
-  <text class="text" x="144" y="443">每个蓝色训练窗内部再做 3 个 expanding inner folds</text>
-  <text class="small" x="144" y="469">feature census → support → economic screen → complexity → freeze</text>
-  <text class="small" x="144" y="493">任何后代订单 / 库存 / 库存生命周期 穿过边界的训练行都 purge</text>
-
-  <rect class="note" x="582" y="414" width="360" height="96" rx="8"/>
-  <text class="text" x="604" y="443">正式 OOF denominator</text>
-  <text class="mono" x="604" y="472">4 folds × 5 test days = 20 days</text>
-  <text class="small" x="604" y="496">外层测试结果不回流到特征、阈值或规则选择</text>
-  <rect class="train" x="122" y="536" width="22" height="14"/><text class="small" x="154" y="548">outer-train</text><rect class="test" x="268" y="536" width="22" height="14"/><text class="small" x="300" y="548">outer-test</text><rect class="future" x="414" y="536" width="22" height="14"/><text class="small" x="446" y="548">not yet used</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="520" viewBox="0 0 1100 520" role="img" aria-labelledby="title desc">
+  <title id="title">成交质量与完整路径：待验证问题</title>
+  <desc id="desc">原图主题：三十个历史日期上的嵌套时间序列样本外结构。旧结果曲线、数值和通过／关闭判断已撤出。多尺度市场状态选择成交后冷却时长，能否改善完整账户净价值，而非仅压低成交或延误有价值的减仓？ 当前已验收数据在对应研究报告中单独保留；本图是研究方法图，不是新实验结果。</desc>
+  <rect width="1100" height="520" fill="#f5f7fb"/>
+  <g font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif">
+    <text x="48" y="60" font-size="28" fill="#18243a">成交质量与完整路径</text>
+    <text x="48" y="98" font-size="17" fill="#50617a">待验证假设 · 旧结果不作当前结论 · 方法图而非收益曲线</text>
+    <rect x="48" y="130" width="1004" height="100" rx="14" fill="#e7eefc"/>
+    <text x="70" y="170" font-size="21" fill="#183b73">多尺度市场状态选择成交后冷却时长，能否改善完整账户净价</text>
+    <text x="70" y="199" font-size="21" fill="#183b73">值，而非仅压低成交或延误有价值的减仓？</text>
+    <rect x="48" y="266" width="320" height="110" rx="12" fill="white" stroke="#cbd5e4"/><text x="68" y="303" font-size="20" fill="#18243a">01 绑定问题</text><text x="68" y="342" font-size="17" fill="#50617a">源、模型、B0 与历史使用</text>
+    <rect x="390" y="266" width="320" height="110" rx="12" fill="white" stroke="#cbd5e4"/><text x="410" y="303" font-size="20" fill="#18243a">02 定义比较</text><text x="410" y="342" font-size="17" fill="#50617a">可见信息、动作与风险集</text>
+    <rect x="732" y="266" width="320" height="110" rx="12" fill="white" stroke="#cbd5e4"/><text x="752" y="303" font-size="20" fill="#18243a">03 验收完整路径</text><text x="752" y="342" font-size="17" fill="#50617a">总／单位净收益及库存</text>
+    <text x="48" y="422" font-size="16" fill="#50617a">工程一致性与性能保留其原范围；只有匹配的新实验才能更新假设状态。</text>
+    <a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/research_questions.json"><text x="48" y="469" font-size="16" fill="#235caa">研究族索引：F05-MULTISCALE-COOLDOWN-CURRENT-SOURCE</text></a>
+  </g>
 </svg>

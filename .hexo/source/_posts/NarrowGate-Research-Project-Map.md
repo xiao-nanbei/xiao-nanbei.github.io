@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate 研究地图：从市场预测、订单决策到完整账户收益'
 date: 2026-08-29 13:30:00
-updated: 2026-10-17 14:00:00
+updated: 2026-10-17 22:06:04
 categories:
 - Market Making
 tags:
@@ -13,78 +13,54 @@ tags:
 math: true
 ---
 
-做市研究的难点，是把市场信息变成值得执行的订单。预测价格方向或触达概率只是起点；订单还要经历提交、排队、成交、库存持有和减仓，最终由完整账户收益检验。这里按这条链组织 NarrowGate 的研究入口，方便读者从具体问题找到方法、实验和限制。
+这张地图把当前已验收证据、待验证问题和工程验证分开。旧报告的胜负、概率指标或关闭决定，不再作为当前研究状态。
 
-## 从哪个问题开始
+<!-- Preserve historical inbound section links; content now uses the current question/evidence scope. -->
+<div aria-hidden="true" style="height:0;overflow:hidden">
+<span id="从哪个问题开始"></span>
+<span id="从报价控制到更新时机：五组实验的归属"></span>
+<span id="主文与实验范围"></span>
+<span id="研究之间的依赖"></span>
+<span id="按研究族寻找文章"></span>
+<span id="基础阅读与结果边界"></span>
+</div>
 
-- **报价为什么在这里？** 阅读报价动作与 P3：前者比较价格和中心的改变，后者区分市场触达与实际成交。
-- **预测提供了什么信息？** 阅读新 Tardis 13-Head、外部市场和主动成交流：分别讨论本地预测、跨市场信息和订单风险集。
-- **这笔风险是否值得承担？** 阅读 Fill Quality、订单级价值和库存控制：区分成交后的标签、决策前可见状态与真正的动作差额。
-- **怎样知道回测证据可信？** 阅读时间量纲与因果时钟、工程主文：先确定数据到达、订单生效、成交通知和会计口径，再解释收益。
 
-这些问题相互依赖，但一个环节通过不替代下一环节。触达预测改善不代表成交价值改善，库存时间下降也不保证净收益提高。F05 的机会级成交质量、风险加宽、首次下单相对等待（POST/WAIT）、挂单保留相对撤销（KEEP/CANCEL）与 Full-Multiscale 冷却有不同标签和动作合同，需分别检验完整路径。下文提供已获允许的脱敏方法与结论摘要，不公开私有配置或账户账本，也不从接口存在推断已经部署。
+## 按问题进入研究族
 
-## 从报价控制到更新时机：五组实验的归属
+| 研究族 | 当前证据入口 | 待验证问题入口 |
+| --- | --- | --- |
+| F01 | [当前报告](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/README.zh-CN.md) | [统一问题索引](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/research_questions.json) |
+| F02 | [当前报告](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/README.zh-CN.md) | [统一问题索引](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/research_questions.json) |
+| F03 | [当前报告](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/README.zh-CN.md) | [统一问题索引](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f03_causal_13_head/research_questions.json) |
+| F04 | [当前报告](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f04_external_market_alpha/README.zh-CN.md) | [统一问题索引](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f04_external_market_alpha/research_questions.json) |
+| F05 | [当前报告](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/README.zh-CN.md) | [统一问题索引](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/research_questions.json) |
+| F06 | [当前报告](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f06_placement_fill_cif/README.zh-CN.md) | [统一问题索引](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f06_placement_fill_cif/research_questions.json) |
+| F07 | [当前报告](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/README.zh-CN.md) | [统一问题索引](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f07_active_order_continuation/research_questions.json) |
+| F08 | [当前报告](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f08_side_taker_lifecycle/README.zh-CN.md) | [统一问题索引](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f08_side_taker_lifecycle/research_questions.json) |
+| F09 | [当前报告](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/README.zh-CN.md) | [统一问题索引](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f09_inventory_lifecycle_action_uplift/research_questions.json) |
+| F10 | [当前报告](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/README.zh-CN.md) | [统一问题索引](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f10_live_replay_attribution/research_questions.json) |
+| SYS | [当前报告](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/system_engineering/README.zh-CN.md) | [统一问题索引](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/system_engineering/research_questions.json) |
 
-| 实验 | 主归属 | 做了什么 | 能得出的结论 |
-| --- | --- | --- | --- |
-| 联动系数＋不对称偏移 | F01 | 交叉改变报价控制器的两个轴 | 单账户少亏与库存风险并存，两轴有交互；后来的参照选择不是最优性证明 |
-| E/C | F05，C 交叉引用 F07 | POST/WAIT、KEEP/CANCEL 模型与随机对照的完整路径比较 | E/EC 少亏但仍亏损，C 增量不一致；成交量不同，未证明稳定选择性 |
-| A00/A11/A10/A01 | F01 | 拆开普通向外与向内的更新价格门槛 | 统一降低基本持平略差；仅向外改善集中且库存峰值增加；仅向内更差 |
-| 目标报价方差率动态门槛 | F01 | 单一动态尺度 D 与固定典型尺度 S 对照 | 两账户合计 D/S 均弱于 B0，未证明动态关系的稳定额外价值 |
-| U0/U1 | F07 | 保留订单门槛，比较原评价时机与事件驱动评价 | 八账户合计少亏，但单位成交额变差、请求与库存暴露增加，未证明更好选单或稳定盈利 |
+## 文章导航
 
-这些实验没有建立新的研究族。F01 负责报价控制系数和门槛，F05 负责成交前动作选择，F07 负责旧单评价与续接；调度、计算耗时和性能优化是支撑工程。具体方法和范围分别见下列主文及[仓库研究导航](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/README.zh-CN.md)。旧方向化批次与后续加入本地计算耗时的场景不混成同一基线；各自的负结果保留，也不以新场景自动作废所有旧实验。E/C、门槛候选和 U1 均不因这些比较自动晋升 B0/live。
+- F01：[ 报价控制研究：当前结果与待验证交互 ](/2026/08/29/NarrowGate-Fixed-Parameter-Racing-Research/)
+- F02：[ P3 研究：触达、成交与报价价值之间的待验证关系 ](/2026/08/29/NarrowGate-P3-Aggressive-Reach-Time-Hazard-Research/)
+- F03：[ 13-Head：用当前 Tardis 结果替换旧模型结论 ](/2026/08/29/NarrowGate-Causal-13-Head-Source-Aware-v12-Research/)
+- F04：[ 外部市场：当前联合方向结果与仍待验证的公允价格假设 ](/2026/08/29/NarrowGate-Three-Venue-Global-Reference-Stage0-Research/)
+- F05：[ 成交质量与 Quote EV：当前 E/C 结果和待验证的成交价值问题 ](/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/)
+- F05：[ 多尺度冷却：从旧结果转为待验证的状态—时长假设 ](/2026/08/29/NarrowGate-Full-Multiscale-Boolean-Cooldown-Research/)
+- F07：[ 订单续接：当前时机比较与待验证的队列价值 ](/2026/08/29/NarrowGate-Active-Order-Queue-Value-Keep-Cancel-Research/)
+- F08：[ 主动成交流：当前响应模型与待验证的订单风险集 ](/2026/08/29/NarrowGate-Side-Taker-Flow-Research/)
+- F09：[ 冷却与重新准入：待验证的时间控制问题 ](/2026/08/29/NarrowGate-Volatility-Time-Add-Rearm-Research/)
+- F09：[ 库存动作：价格、数量与修复速度的待验证取舍 ](/2026/08/29/NarrowGate-Sell-Add-Inventory-Price-Penalty-Research/)
+- F09：[ 敞口过滤：把旧毒性排名改成可验证假设 ](/2026/08/29/NarrowGate-Ranked-Toxicity-Exposure-Guard-Research/)
+- SYS：[ 回测证据：工程修复与经济结论分开验收 ](/2026/08/29/NarrowGate-Time-Unit-Causality-Repair-Research/)
 
-## 主文与实验范围
+## 不能互相覆盖的结果
 
-下表结论各自属于指定实验。新 Tardis F03 四套模型通过 B100 选型，完成 858 次评价，原 H=inf 与 ML-OFF Final 均亏损；F05 的双侧十头风险加宽负结果与 E/C 十路径评价分开保留。新完成的门槛和评价时机实验在各主文中单列，不覆盖早期局部动作的结果，也不扩展为 F06/F07 或 Full-Multiscale 全部完成。
+新 F03 Hinf/ML-OFF、五候选 Final、Defense/Urgency、prefill E/C 和 U0/U1 保留各自已经验收的覆盖。它们不是同一基线，不能合成一个总收益排行。新联合方向模型不能覆盖旧三交易所公允价格，E/C 不能覆盖 Full-Multiscale，U0/U1 不能覆盖 REENTER。
 
-| # | 主研究 | 覆盖研究族 | 完整问题 | 原冻结环境的结论 |
-|---:|---|---|---|---|
-| 1 | [报价动作与旧单更新门槛](/2026/08/29/NarrowGate-Fixed-Parameter-Racing-Research/) | F01、F09 | 系数/偏移改目标，固定/动态门槛改更新条件，如何区分？ | 系数与偏移有交互；方向化改善不稳定；单一动态尺度探索未改善合计净 PnL |
-| 2 | [Empirical P3：从十秒触达到 Reach-Time Hazard 与报价价值](/2026/08/29/NarrowGate-P3-Aggressive-Reach-Time-Hazard-Research/) | F02、F05 | P(touch) 能否经过策略时钟、queue 与终局价值变成报价动作？ | Prediction successor 有支持；scalar adapter 与 joint quote selector 关闭 |
-| 3 | [NarrowGate 新 13-Head：Tardis 因果特征、时间加权选型与负收益结果](/2026/08/29/NarrowGate-Causal-13-Head-Source-Aware-v12-Research/) | F03 | 共同特征、独立目标模型能否改善完整 maker 路径？ | 新 F03 四套模型、B100 选型及 858 次完成；H=inf 与 ML-OFF Final 仍均亏损，旧 v4–v12 范围另存 |
-| 4 | [External Market Alpha：三交易所参考、信息衰减与 Fair-Center](/2026/08/29/NarrowGate-Three-Venue-Global-Reference-Stage0-Research/) | F04、F09 | 外部市场信息如何从 receive-time state 走到本地报价动作？ | 短时信息与 fair coordinate 有证据；first-add/guard/action 链未闭合 |
-| 5 | [Fill Quality、First-Add Quote EV 与 E/C](/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/) | F05、F10 | 成交质量、风险加宽与 POST/WAIT、KEEP/CANCEL 如何分别检验？ | 原指定 soft-widen 分支负结果保留；E/C 十路径已完成，未证明稳定选择性，E 未替换 B0/live |
-| 6 | [Full-Multiscale Boolean Cooldown](/2026/08/29/NarrowGate-Full-Multiscale-Boolean-Cooldown-Research/) | F05 | 多尺度 EMA Boolean state 能否选择重复执行的 cooldown duration？ | 8月旧身份未获研究支持；10月17日要求先审查旧设计再重做，尚无新结果 |
-| 7 | [Order-Level Quote Value 与 U0/U1](/2026/08/29/NarrowGate-Active-Order-Queue-Value-Keep-Cancel-Research/) | F06、F07 | 报价应放多远、旧单何时评价及 KEEP/CANCEL/RE-ENTER？ | 原距离/队列价值动作未获支持；U1 八账户少亏但请求与库存代价增加，未晋升 |
-| 8 | [Side-Taker Lifecycle：微观流、双时钟与 Risk Set](/2026/08/29/NarrowGate-Side-Taker-Flow-Research/) | F08 | 主动成交流如何在合法可见时钟上进入订单动态风险集？ | 静态 M0 关闭；双时钟与 v2 risk-set 前置仍未完成 |
-| 9 | [Cooldown Temporal-Permission Action Frontier](/2026/08/29/NarrowGate-Volatility-Time-Add-Rearm-Research/) | F09 | One-cycle、stop-until-flat、state、recovery、variance-time 哪个控制强度有效？ | 从 near-noop 到 participation shutdown 均无稳定正终局价值 |
-| 10 | [Inventory Control：Budget、SELL 抑制与 Passive Repair](/2026/08/29/NarrowGate-Sell-Add-Inventory-Price-Penalty-Research/) | F09 | 少进入风险库存或更快减仓，能否同时改善 terminal value？ | 库存代理可改善，但 reward、tail 或 action resolution 失败 |
-| 11 | [Exposure Guards：BER Proxy、BUY q90 与 Ranked Toxicity](/2026/08/29/NarrowGate-Ranked-Toxicity-Exposure-Guard-Research/) | F09、F10 | 风险分数如何绑定合法订单、ACK 风险集和跨 库存生命周期 ownership？ | 旧 add-only guard 有经济伤害；q90 身份失效；新 guard 仅完成 plumbing |
-| 12 | [Replay Evidence Revalidation：时间、量纲与因果时钟](/2026/08/29/NarrowGate-Time-Unit-Causality-Repair-Research/) | F10、SYS | 基础时钟/单位修复后，旧回测证据还能保留什么？ | No-promotion 权限方向保留；旧 PnL、winner 与排名撤回 |
+扫描[机器可读研究族注册表](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/registry.json)中的 `research_questions`，选择 `pending_validation` 即可发现后续问题。索引记录具体缺口与既有归属，不自动启动实验。工程一致性、恢复与性能数据留在工程文档，不当作收益主张。
 
-## 研究之间的依赖
-
-**概率到报价。** P3 的条件概率、距离目标和实际报价映射是不同对象。触达之后还有激活、队列和撤改单；因此概率层的改进可以与报价动作的负结果同时存在。
-
-**下单到续单。** Placement 决定初始价格和排队位置，KEEP/CANCEL 决定是否保留已有队列位置的价值。二者需要共同的订单生命周期，不能将独立的填单概率模型直接当成订单净价值。
-
-**成交到库存。** 短期 markout、库存归因与完整终局分别回答价格变化、损失位置和账户结果。冷却或加仓限制可能减少风险，也可能切断后续修复；它们需要与参与度和终局收益一起比较。
-
-**特征到证据。** 本地与外部信息都必须在决策前可见，标签则可以读取后续结果。时钟或撮合规则修复可能使旧精确数字失效；保留历史失败决定不等于把旧数值重新当成当前标定。
-
-## 按研究族寻找文章
-
-| 研究族 | 应阅读的主文 |
-|---|---|
-| F01 Fixed Parameter Racing | 报价动作主文：系数＋偏移、四臂更新门槛、目标方差率动态门槛 |
-| F02 Empirical P3 | P3 主文 |
-| F03 Causal 13-Head | Causal 13-Head 主文 |
-| F04 External Market Alpha | External Market Alpha 主文 |
-| F05 Fill Quality / Quote EV | P3、Fill Quality、Full-Multiscale 三篇 |
-| F06 Placement Fill CIF | Order-Level Quote Value 主文 |
-| F07 Active Order Continuation | Order-Level Quote Value 主文：旧单价值与 U0/U1 评价时机；C 链接 Fill Quality |
-| F08 Side-Taker Lifecycle | Side-Taker Lifecycle 主文 |
-| F09 库存生命周期 Action Uplift | 报价动作、External、Cooldown、Inventory、Exposure Guards 五篇 |
-| F10 Live/Replay Attribution | Fill Quality、Exposure Guards、Replay Revalidation 三篇 |
-| SYS | Replay Evidence Revalidation 主文 |
-
-## 基础阅读与结果边界
-
-[Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift](/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/) 给出术语、价值函数与比较方法；[回测吞吐与 Live 尾延迟工程](/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/) 说明执行与运行时约束。
-
-阅读结果时，需要区分三种情况：负结果表示指定实验没有支持收益主张；支持不足表示信息量尚不能回答问题；已撤回表示旧精确数字不再可用，并不等于反向结论。历史候选关闭不证明整个研究族无效，工程组装通过也不表示已经开始实盘。
-
-公共文章提供方法、已公开聚合结果和来源链接。不同实验的数据、基线、候选、日期划分与统计方法分别保留，不合成一个看似连续的“总实验”。
+方法总入口：[Maker Quote EV](/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/)。当前响应模型：[Response baseline](/2026/10/08/NarrowGate-Response-Action-Baseline/)。

@@ -1,26 +1,16 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
-  <title id="title">Aggressive reach time hazard与first passage</title>
-  <desc id="desc">机制示意与冻结聚合结果。左侧价格路径穿越多个距离线，右侧展示随时间累积的距离条件CDF，底部标注BUY和SELL integrated Brier improvement。</desc>
-  <defs><linearGradient id="bg"><stop stop-color="#071426"/><stop offset="1" stop-color="#123752"/></linearGradient><style>.t{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;fill:#eef7ff}.m{fill:#aac0d2}.grid{stroke:#2d506b}.d1{stroke:#55d6be}.d2{stroke:#5ab0ff}.d3{stroke:#ffb84d}.price{stroke:#f1f5f9}.big{font-size:27px;font-weight:700}.label{font-size:17px}.small{font-size:14px}</style></defs>
-  <rect width="1200" height="620" rx="24" fill="url(#bg)"/><text x="52" y="53" class="t big">从“十秒是否触达”到完整 first-passage surface</text><text x="52" y="82" class="m small">机制示意与 Development 冻结聚合结果</text>
-  <g transform="translate(55 115)">
-    <rect width="520" height="340" rx="14" fill="#0a1d33" stroke="#365873"/><text x="20" y="32" class="t label">价格路径与首次触达</text>
-    <line x1="50" y1="275" x2="490" y2="275" class="d1" stroke-width="2" stroke-dasharray="7 6"/><line x1="50" y1="205" x2="490" y2="205" class="d2" stroke-width="2" stroke-dasharray="7 6"/><line x1="50" y1="135" x2="490" y2="135" class="d3" stroke-width="2" stroke-dasharray="7 6"/>
-    <text x="12" y="280" class="m small">d1</text><text x="12" y="210" class="m small">d2</text><text x="12" y="140" class="m small">d3</text>
-    <polyline points="50,304 90,290 130,297 170,260 210,272 250,222 290,235 330,178 370,190 410,120 450,148 490,88" fill="none" class="price" stroke-width="4"/>
-    <circle cx="170" cy="260" r="7" fill="#55d6be"/><circle cx="270" cy="205" r="7" fill="#5ab0ff"/><circle cx="400" cy="135" r="7" fill="#ffb84d"/>
-    <text x="140" y="327" class="m small">T(d1)</text><text x="252" y="327" class="m small">T(d2)</text><text x="380" y="327" class="m small">T(d3)</text>
-  </g>
-  <g transform="translate(620 115)">
-    <rect width="525" height="340" rx="14" fill="#0a1d33" stroke="#365873"/><text x="20" y="32" class="t label">F(t,d | x)：时间越长，距离越近，CDF 越高</text>
-    <path d="M55 55V295H490M55 235H490M55 175H490M55 115H490" class="grid" fill="none"/>
-    <path d="M55 286 C130 240 175 190 235 148 C310 98 390 70 490 55" fill="none" class="d1" stroke-width="4"/>
-    <path d="M55 292 C150 278 220 235 285 190 C360 135 420 110 490 92" fill="none" class="d2" stroke-width="4"/>
-    <path d="M55 296 C175 292 260 275 335 235 C410 195 455 170 490 155" fill="none" class="d3" stroke-width="4"/>
-    <text x="85" y="325" class="m small">0s</text><text x="450" y="325" class="m small">30s censor</text><text x="385" y="65" fill="#55d6be" class="small">near d1</text><text x="414" y="108" fill="#5ab0ff" class="small">d2</text><text x="420" y="168" fill="#ffb84d" class="small">far d3</text>
-  </g>
-  <g transform="translate(55 495)">
-    <rect width="1090" height="88" rx="14" fill="#102a43"/><text x="22" y="31" class="t label">BUY IBS improvement +0.004463 · 95% CI [+0.002155,+0.007202]</text><text x="22" y="59" class="t label">SELL IBS improvement +0.004428 · 95% CI [+0.002829,+0.006285]</text><text x="746" y="59" class="m small">Prediction only · no queue/fill/PnL authority</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="520" viewBox="0 0 1100 520" role="img" aria-labelledby="title desc">
+  <title id="title">触达、成交与报价价值：待验证问题</title>
+  <desc id="desc">原图主题：Aggressive reach time hazard与first passage。旧结果曲线、数值和通过／关闭判断已撤出。触达时间分布能否改善可执行的报价决策？ 当前已验收数据在对应研究报告中单独保留；本图是研究方法图，不是新实验结果。</desc>
+  <rect width="1100" height="520" fill="#f5f7fb"/>
+  <g font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif">
+    <text x="48" y="60" font-size="28" fill="#18243a">触达、成交与报价价值</text>
+    <text x="48" y="98" font-size="17" fill="#50617a">待验证假设 · 旧结果不作当前结论 · 方法图而非收益曲线</text>
+    <rect x="48" y="130" width="1004" height="100" rx="14" fill="#e7eefc"/>
+    <text x="70" y="170" font-size="21" fill="#183b73">触达时间分布能否改善可执行的报价决策？</text>
+    <rect x="48" y="266" width="320" height="110" rx="12" fill="white" stroke="#cbd5e4"/><text x="68" y="303" font-size="20" fill="#18243a">01 绑定问题</text><text x="68" y="342" font-size="17" fill="#50617a">源、模型、B0 与历史使用</text>
+    <rect x="390" y="266" width="320" height="110" rx="12" fill="white" stroke="#cbd5e4"/><text x="410" y="303" font-size="20" fill="#18243a">02 定义比较</text><text x="410" y="342" font-size="17" fill="#50617a">可见信息、动作与风险集</text>
+    <rect x="732" y="266" width="320" height="110" rx="12" fill="white" stroke="#cbd5e4"/><text x="752" y="303" font-size="20" fill="#18243a">03 验收完整路径</text><text x="752" y="342" font-size="17" fill="#50617a">总／单位净收益及库存</text>
+    <text x="48" y="422" font-size="16" fill="#50617a">工程一致性与性能保留其原范围；只有匹配的新实验才能更新假设状态。</text>
+    <a href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/research_questions.json"><text x="48" y="469" font-size="16" fill="#235caa">研究族索引：F02-REACH-TIME</text></a>
   </g>
 </svg>
