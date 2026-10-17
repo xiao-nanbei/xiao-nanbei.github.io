@@ -37,7 +37,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/order-lifecycle.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/paired-fixed-spread-curve-20260726.png">
 <meta property="article:published_time" content="2026-06-19T08:50:48.000Z">
-<meta property="article:modified_time" content="2026-10-17T06:00:00.000Z">
+<meta property="article:modified_time" content="2026-10-17T09:58:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="机器学习">
@@ -354,7 +354,7 @@
         
         
           <!-- compatible with older versions-->
-          694 分钟
+          693 分钟
         
       </span>
     
@@ -448,7 +448,9 @@
 <script type="math/tex; mode=display">
 P_{\mathrm{touch}}(\delta,x)=\Pr(\tau_{\mathrm{touch}}\le 10\,\mathrm{s}\mid\delta,x),\qquad k_{\mathrm{touch}}=-\partial_\delta\log P_{\mathrm{touch}}\ne k_{\mathrm{exec}}.</script><p>P3 的距离以实际同侧 BBO 原点为准，不能与 GLFT 相对 mid 的距离混用。报价模块先验证 P3 的期限、距离单位与来源；启用 <code>p3_pair_spread_projection_enabled</code> 时使用触达统计构造双边价差下限与斜率投影。这仍不把触达概率变成实际成交概率。双边价差下限也不保证偏斜和取整后每一侧到 BBO 的距离。</p>
 <p>盘口数量加权中价不等于通过状态转移估计的 $\mathbb{E}[S_{t+h}\mid \mathrm{LOB\ state}]$。P3 触达统计、成交强度加速保护和深度缩放因子各有用途，不能因符号相似就当成同一个模型参数。</p>
-<p>这也解释了为什么研究必须分开检验“预测更准”和“动作更好”：触达概率经两个标量压缩后，可能让报价过度靠近市场；成交后选择更长的冷却，则可能同时避开有毒成交和自然减仓机会。两者都需要完整账户的配对回放，不能用成交数量或某个局部收益指标代替。2026年8月的 F02 scalar-adapter 与 Full-Multiscale 冷却实验分别提供过这两类历史案例；其旧输入、旧基线和局部 Development 结果不代表10月的 Final107 或库存软控制实验。2026年10月17日已要求先审查旧设计，再以新的实验身份重做；在新结果验收前，不把旧数值改写成新结论。具体历史数值放在各自方法与范围说明之后，而不是作为本文当前研究成绩。F05 的机会级成交质量、风险加宽以及 POST/WAIT、KEEP/CANCEL 也分别回答不同问题，不能相互替代；模块存在不等于特定回测或 live 已启用。</p>
+<p>这里需要重新验证两个问题，而不是沿用旧实验的胜负结论：条件触达概率压缩为标量后，究竟改善了报价价值，还是主要增加了成交与库存暴露？多尺度冷却究竟避开了不利成交，还是同时延误了有价值的减仓？它们已分别登记为 F02 的 <code>F02-SCALAR-ADAPTER-CURRENT-SOURCE</code> 和 F05 的 <code>F05-MULTISCALE-COOLDOWN-CURRENT-SOURCE</code>，状态均为待验证。2026年8月的旧报告只供追溯原方法、观察和日期使用历史，不作为当前模型排名，也不代表这些方向已经被证明有效或无效。F05 的机会级成交质量、风险加宽以及 POST/WAIT、KEEP/CANCEL 仍是不同的问题，不能相互替代。</p>
+<p>另有两个待验证问题：是否存在挂单更新偏慢、容易在局部不利位置成交的情形，以及 markout 的观察期限应怎样关联持仓生命周期。30秒是现有部分模型的期限约定，不是已经证明最优的持仓尺度；短期成交质量与完整持仓净收益应分别检验。四个问题均可从<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/registry.json">研究族索引</a>找到，对应的<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/research_questions.json">F02问题清单</a>和<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/research_questions.json">F05问题清单</a>保留验证状态与缺口。</p>
+<p>以后遇到分散的旧结论，先归入研究族中的同一待验证问题：有旧报告就保留出处，方法不完整就注明待重建，无法考证就明确写“来源不可核实”，不补造基线、样本或结果。只有新的标准实验完成并验收后，才能在其实际范围内更新结论。下文历史章节不是当前研究结论目录；登记问题也不等于实验已经开跑。</p>
 <h2 id="阅读路线：先问题，再证据"><a href="#阅读路线：先问题，再证据" class="headerlink" title="阅读路线：先问题，再证据"></a>阅读路线：先问题，再证据</h2><p>如果只看现在的代码目录，很容易以为 NarrowGate 是一个“AS + LightGBM + tick replay”的技术拼盘。实际演进顺序恰好相反：每一层都是上一层暴露问题后的修正。</p>
 <div class="table-container">
 <table>
@@ -2316,7 +2318,7 @@ multi-level SHORT terminal value: -13.5910 USDC</code></pre></div>
 <h2 id="结论：窄门不是参数，而是证据门槛"><a href="#结论：窄门不是参数，而是证据门槛" class="headerlink" title="结论：窄门不是参数，而是证据门槛"></a>结论：窄门不是参数，而是证据门槛</h2><p>NarrowGate 从一个 AS 公式实验，走到了数据审计、跨市场冲击归因、逐侧 quote EV、库存时间积分、opportunity/executable 两层 null baseline、order-level denominator、版本化 100ms L2、causal artifact lineage 和 randomized action uplift。这个过程不断推翻自己的旧答案：更多 reference 不会自动带来更好 policy，严格的时钟与 lifecycle 会改变结论，score 能排序部分 markout、模型 A/B 中心为正，也都不代表固定 widen/recenter/skip/cancel action 已有正 value。</p>
 <p>最初的问题因此被越问越窄：不是“能不能预测 BTC”，而是“在这一侧、这个价格、这个盘口和这段库存暴露下，采取某个明确 action 是否比当前 baseline 更好”。两层 null baseline 检查 selection gap 是否存在，side-specific scorer 检查 decision-visible state 能否排序，randomized 或严格 paired action panel 才检查改变报价后、经过 queue 和后续库存路径的增量 value；三者不能互相替代。</p>
 <p>30 日 mechanics-safety successor 只定义 reduced-support mechanics comparator；v12 50 日 compatibility identity 是 daily-fresh-start、queue-disabled 且在账本/费用/inventory_lifecycle/spread/fill-order 修复后已经 stale 的历史 comparator，其 absolute PnL 为负，不应被写成 current economic/control default、continuous-live、strict order-path 或 实盘有效性证据。F06 已走到 direct marginal terminal value 后关闭；F09 成交强度加速保护的加仓侧动作、若干 cooldown、库存压制、被动 repair 与 symmetric fair-center 等<strong>精确动作</strong>也已关闭，但这些阴性结果不能扩大成整个库存控制、recovery 或 state-to-duration 函数空间已耗尽。</p>
-<p>multichannel Boolean cooldown 现在提供了更完整、但仍有限的答案。strict-native 历史标签仍因 same-millisecond ordering 不可识别而停止；2026-08-12 的受限 one-shot selector 没有晋级。后续 persistent SELL policy 在 modeled-queue 50/71 日 full-path 上得到正 point estimates，却没有正 lower bound；full-multiscale Development 的 BUY E3 也有跨四 fold 的正 point signal，却未通过 simultaneous lower-bound 与 feature-hierarchy gates。owner 可以显式接受这些未闭合风险并部署，但研究文章必须继续把 prediction、diagnostic economics、research-supported promotion 与 owner operational authority 分开。</p>
+<p>multichannel Boolean cooldown 的历史记录提供的是待复核线索，不是当前方向已经有效或无效的答案。旧标签可识别性、样本选择、基线与冷却动作的作用范围需要逐项重建；新结论以 <code>F05-MULTISCALE-COOLDOWN-CURRENT-SOURCE</code> 后续绑定的标准实验为准。过去的点估计、未通过条件或运维授权各自保留历史身份，不能代替这次验证，也不自动授权当前部署。</p>
 <p>下一扇窄门不是预设某个模型名字，而是要求同一个问题同时具备：decision-visible state、与主张匹配的 lifecycle/queue authority、当前 baseline 的 full-path counterfactual、assignment 后的 已结束库存生命周期 USDC value、明确的 state carry/restart 语义和不可补偿 tail gate。预测排序、低 candidate rate、更快减仓、较小库存或更漂亮的 day-end MTM，都不能单独替代这条因果链。</p>
 <p>这可能也是“窄门”最贴切的地方。一个研究系统的成熟，不在于它接入了多少模型和数据源，而在于它愿意用多少层约束拒绝一个看起来很诱人的结论。</p>
 <hr>

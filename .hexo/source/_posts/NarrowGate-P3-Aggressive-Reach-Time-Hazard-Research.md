@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate Empirical P3：从十秒触达曲线到 Reach-Time Hazard 与报价价值'
 date: 2026-08-29 13:30:00
-updated: 2026-10-17 14:00:00
+updated: 2026-10-17 17:58:00
 categories:
 - Market Making
 tags:
@@ -14,6 +14,8 @@ math: true
 ---
 
 ## 1. P3 研究真正经历了什么
+
+本文 scalar-adapter 的旧经济结论已转为当前**待验证问题**：`F02-SCALAR-ADAPTER-CURRENT-SOURCE`。需要核查条件触达概率的标量映射是否改善净价值，还是主要改变成交和库存暴露；不能用旧的成交数、价差或亏损直接判定当前方案。研究状态、原出处与方法缺口见[F02问题清单](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/research_questions.json)。下文是历史方法记录，新验证需重新绑定输入、训练支持和B0；无法考证的证据明确保留为缺口。
 
 P3 的主问题不是“能不能拟合一条好看的概率曲线”，而是：在决策时刻、给定 side、报价距离与当时市场状态，未来价格何时会主动触达该坐标；这个 first-passage 概率能否经过策略可见时钟、queue/lifecycle 与终局价值，最终支持一个报价动作？归一化 100ms 复现、source-aware 扩样本、波动率条件面、标量报价 adapter、policy-visible transport、joint quote value 和 reach-time hazard 都是这一个问题的连续阶段。
 

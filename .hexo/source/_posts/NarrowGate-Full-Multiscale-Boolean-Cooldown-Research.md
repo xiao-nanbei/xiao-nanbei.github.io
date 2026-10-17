@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate Full-Multiscale：从多尺度 EMA 到 Boolean Cooldown 的一次阴性研究'
 date: 2026-08-29 14:25:53
-updated: 2026-10-17 14:00:00
+updated: 2026-10-17 17:58:00
 categories:
 - Market Making
 tags:
@@ -14,6 +14,8 @@ math: true
 ---
 
 ## 阅读范围：2026年8月的历史实验，不是当前实验结论
+
+当前问题状态为**待验证**：`F05-MULTISCALE-COOLDOWN-CURRENT-SOURCE`。需要重新回答的是，多尺度市场状态选择冷却时长，能否改善完整账户净价值，而不是仅压低成交或延误减仓。状态与方法缺口统一维护在[F05问题清单](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/research_questions.json)；下文旧数值只描述原实验，不是对当前输入、B0或新策略的结论。来源无法核实的部分应注明缺口，不能用文章中的数字补成新证据。
 
 本文解释2026年8月13日方案与8月21日 Development 报告采用的方法。行情、基线、样本选择和执行口径均属于那个版本，不能拿来评价10月五候选 Final107 或当前库存软控制实验。10月17日已要求审查旧设计后重做；新结果尚未产生，旧报告暂作问题定位和前次使用记录，不作为当前模型排名。
 
