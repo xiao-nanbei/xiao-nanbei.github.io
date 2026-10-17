@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate Empirical P3：从十秒触达曲线到 Reach-Time Hazard 与报价价值'
 date: 2026-08-29 13:30:00
-updated: 2026-10-11 11:43:00
+updated: 2026-10-17 14:00:00
 categories:
 - Market Making
 tags:
@@ -680,17 +680,19 @@ $$
 
 ## 6. 标量报价 adapter
 
-### TL;DR：失败的是“压成两个标量再喂给旧公式”，不是条件 P3 本身
+### 2026年8月历史案例：两个标量能否保留报价价值？
+
+本节对应8月3日版本、8月12日修订说明的旧输入实验，不是10月当前 B0 的比较。10月17日已要求先审查旧设计再重做；新结果尚未验收，以下仅保留旧方法及其问题定位。
 
 volatility-conditioned P3 v4.1 在历史 Development 上给出了明显优于静态 v2 的 touch probability。一个很自然的下一步是：既然预测面更准，能否把它压缩成旧 quote ABI 已经认识的 `delta_star` 与 `kappa_eff`，从而自动改善报价？
 
 NarrowGate 冻结了一个没有可调 gain、cap、side weight 或事后 shrinkage 的适配器。它先把 BUY 与 SELL curves 等权平均，再取 $dP(d)$ 最大点作为动态 `delta_star`，用邻近网格的 log-probability slope 作为动态 `kappa_eff`，最后把这两个标量传入旧 AS/GLFT 报价公式。
 
-机制非常强：平均 raw half-spread 从 `24.5822` 收窄到 `13.4900 USDC/BTC`，matched executable quote 的 `99.073%` 发生变化，fills 从 `8,799` 增加到 `21,597`。经济结果却非常明确地更差：24 日 terminal MTM 从 `-59.4706` 变为 `-175.1314 USDC`，候选差值 `-115.6608 USDC`；平均日差 `-4.8192 USDC/day`，95% day-clustered interval 为 `[-5.9779,-3.6146]`，仅 1/24 日为正。
+这条映射确实显著收窄了报价、增加了成交，但旧面板上的完整账户结果反而变差。下文先展开它如何同时改变报价斜率与价差下限，再给出历史结果表，避免把更多成交误写为更好的策略。原24日包含已经读取过的 Validation OOF 与后期诊断日期，不是独立的新确认集。
 
 这不是“动作太弱”或 coverage 不足。它说明一个更深的 estimand mismatch：10 秒 touch probability 不是 1 秒 fill-arrival intensity；touch curve 的 log-slope 不是 AS/GLFT 强度弹性；同一曲线又同时改变 `kappa_eff` 与 spread floor，相当于让一个信号通过两个通道重复收窄报价。
 
-因此项目关闭 `conditional_p3_scalar_compression_adapter_v1`，但不关闭 side-specific conditional curve、queue conversion、fill value 与 库存生命周期 economics 联合决定报价的更一般路线。
+因此当时停止了 `conditional_p3_scalar_compression_adapter_v1` 这一旧身份。重做仍需检验触达概率到报价动作的这条映射，不能以接口兼容代替经济含义；旧身份的负结果也不关闭条件曲线、排队转换与成交后价值的其他研究问题。
 
 ![条件 P3 标量压缩如何收窄报价并增加有毒成交](/images/narrowgate/p3-conditional-scalar-adapter-kline.svg)
 
@@ -772,7 +774,7 @@ $Y_d$ 的 primary view 是 daily terminal MTM；同时检查 fills、inventory t
 
 若没有单独估计 queue conversion 与 fill value，适配器不知道某个 touch 是自然 repair、无害扫单还是有毒价格穿越。它优化的是 reach geometry，不是价值。
 
-### 5. 冻结结果
+### 5. 旧输入与旧基线下的24日历史结果
 
 机制层面，候选确实被执行：matched executable quote change rate 为 `99.0730%`；mean quote-time `delta_star` 从 `13.9991` 降到 `10.3851 USDC/BTC`，mean `kappa_eff` 从 `0.067356` 升到 `0.168434 (USDC/BTC)^-1`。
 
@@ -780,7 +782,7 @@ mean raw half-spread 从 `24.5822` 降到 `13.4900 USDC/BTC`。因此不能用�
 
 经济层面：
 
-| Metric | Current v2 | Conditional adapter | Candidate minus current |
+| Metric | 当时的静态 v2 基线 | 当时的条件适配器 | 候选减旧基线 |
 | --- | ---: | ---: | ---: |
 | Terminal MTM PnL | -59.4706 | -175.1314 | -115.6608 USDC |
 | Mean daily PnL | -2.4779 | -7.2971 | -4.8192 USDC/day |
@@ -832,7 +834,7 @@ P3 描述固定时间内市场价格是否触达某价位。除非 queue convers
 
 ### 冻结反例：更多成交为何带来更差终局
 
-这项研究最有解释力的不是 prediction 指标，而是完整路径反例。adapter 把平均半价差从约 24.58 缩到 13.49，fills 从 8,799 增到 21,597；如果只看参与度，会认为更准确的概率模型成功提高了成交机会。但终局 MTM 反而恶化约 115.66 USDC。
+前面的历史结果表展示了一条完整路径反例：报价收窄带来的新增成交，没有补偿终点价值的恶化。重点不是重复这些旧数值，而是定位触达、成交、库存和终局之间究竟在哪一环丢失了价值信息；新输入下是否仍如此，必须由重做结果回答。
 
 这组数字揭示了三件事。第一，报价更近确实改变了动作，不是 no-op。第二，更多 fills 没有被自动转化为更高价值，说明 fill conversion 与 adverse selection 的联合分布没有被两个标量表达。第三，路径反馈很强：新增 fill 改变库存，库存改变 reservation price，进而改变后续两侧 quotes 和 库存生命周期 tail。
 

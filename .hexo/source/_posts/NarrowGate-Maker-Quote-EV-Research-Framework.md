@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate：Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift'
 date: 2026-06-19 16:50:48
-updated: 2026-10-02 12:00:00
+updated: 2026-10-17 14:00:00
 categories:
 - Market Making
 tags:
@@ -13,7 +13,7 @@ tags:
 math: true
 ---
 
-Last materially modified: 2026-10-02
+Last materially modified: 2026-10-17
 
 ## 被动报价、成交质量与库存风险
 
@@ -55,7 +55,7 @@ P3 的距离以实际同侧 BBO 原点为准，不能与 GLFT 相对 mid 的距�
 
 盘口数量加权中价不等于通过状态转移估计的 $\mathbb{E}[S_{t+h}\mid \mathrm{LOB\ state}]$。P3 触达统计、成交强度加速保护和深度缩放因子各有用途，不能因符号相似就当成同一个模型参数。
 
-研究结果也有明确范围。F02 的一项 scalar-adapter 对照中，平均半价差由24.58缩到13.49、成交数由8,799增到21,597，终点 MTM 却恶化115.66 USDC，说明更多成交不是价值证据。Full-Multiscale 的30日 Development 中，BUY E3 相对改善为0.458577 USDC/day，但候选自身约为−2.445540 USDC/day；同时置信下界与特征层级门槛失败，`supported_sides=[]`，Validation 与 holdout 未读取。这只属于该冷却实验。F05 还包含机会级成交质量、风险加宽消费者，以及 POST/WAIT、KEEP/CANCEL 配对选择；它们的标签、动作、执行范围与经济结论分别记录，不能互相替代。公开聚合报告可以审计这些限制，未公开的逐行预测与输入则不能由第三方独立复算；模块存在不等于特定回测或 live 已启用。
+这也解释了为什么研究必须分开检验“预测更准”和“动作更好”：触达概率经两个标量压缩后，可能让报价过度靠近市场；成交后选择更长的冷却，则可能同时避开有毒成交和自然减仓机会。两者都需要完整账户的配对回放，不能用成交数量或某个局部收益指标代替。2026年8月的 F02 scalar-adapter 与 Full-Multiscale 冷却实验分别提供过这两类历史案例；其旧输入、旧基线和局部 Development 结果不代表10月的 Final107 或库存软控制实验。2026年10月17日已要求先审查旧设计，再以新的实验身份重做；在新结果验收前，不把旧数值改写成新结论。具体历史数值放在各自方法与范围说明之后，而不是作为本文当前研究成绩。F05 的机会级成交质量、风险加宽以及 POST/WAIT、KEEP/CANCEL 也分别回答不同问题，不能相互替代；模块存在不等于特定回测或 live 已启用。
 
 ## 阅读路线：先问题，再证据
 
@@ -81,7 +81,7 @@ P3 的距离以实际同侧 BBO 原点为准，不能与 GLFT 相对 mid 的距�
 | **causal-v4/v5/v9/v12 历史 checkpoint** | bucket-end visibility、normalized-100ms、merged clock 与 13-head lineage | 保留所属实验的因果/数据修复证据；本轮模型参照为新 Tardis F03/inf，不以 v12 替代其身份 |
 | **固定 local action 已否决** | BUY/SELL `prevent-over-widen / widen-1tick / recenter-1tick`，以及后续 BUY conditional-widen、SELL repair-trend skip 两个窄 family | development/validation 或 development gate 未过；对应 sealed holdout 保持未读，不等待新日期重跑同一 family |
 | **历史 source-aware 数据身份** | 原实验的 45 个 native days + 67 个 provider-normalized target days | 不是新 407 日输入定义；派生 top-20/100ms 不获得 native sequence/exact queue 权限 |
-| **Full-Multiscale research** | 30 日 Development、BUY E3 为最强 point candidate | `supported_sides=[]`；Validation/holdout 未读，不能据此确认报价动作有效 |
+| **2026年8月 Full-Multiscale 历史研究** | 原30日 Development 的模型选择与完整路径评价 | 原身份未获研究支持；10月17日要求先审查后重做，尚无新结果，不据旧报告关闭整个研究方向 |
 | **v12 50 日比较结果的适用范围** | causal-v12 semantics-v6、daily-fresh-start 实验 | 仅描述该实验采用的会计和成交顺序，不能替代当前执行器的经济验证 |
 | **指定固定参数搜索的负结果** | 原报价系数、cooldown/cap/max-inventory 与固定一档动作的 pooled winner search | 指定搜索未获支持，不代表 F01 永久关闭；后续方向化旧单更新条件另有比较，固定值不因字段名就成为论文估计量 |
 | **F06 placement-distance closure** | ordered surface、paired 1/2/4-tick resolution、direct marginal-fill terminal value | 0/24 正式 value cells 一侧区间通过，`closed_placement_distance_value_unidentified`；Value/Action 未创建 |
@@ -1861,13 +1861,13 @@ strict-native 历史标签路径先在数据可识别性处停止。41 个 forma
 
 权威来源与边界见 [strict-native failure](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/causal_multichannel_window_boolean_cooldown_duration_v2_strict_native_formal_execution_failure_20260811.md)、[owner modeled-queue Development closure](https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f05_fill_quality_quote_ev/docs/causal_multichannel_window_boolean_cooldown_duration_v2_owner_modeled_queue_v1_development_20260812.md) 与 [F05 current ledger](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/README.md)。
 
-### Development 结果与证据范围
+### 2026年8月 Development 历史结果与证据范围
 
 后续 `persistent-policy v3` 是新的 research identity，不是对 2026-08-12 predecessor 结果的补写。它实现 paired M0/M1/M2 hierarchy、更宽的 ordered rules、fold-distribution audit 与 shared UTC-day wild-max-t inference；两侧都未通过 M0 research gate，但 owner 另行冻结了一个 non-research-supported SELL M2 diagnostic policy，在 modeled-queue full-path 上继续做经济检查。
 
 50 日 repeated-policy replay 相对 predecessor control 的 terminal MTM 改善 `+11.372165 USDC`、已结束库存生命周期 value 改善 `+9.747065 USDC`，fill retention 为 96.04%；但两个 primary intervals 都跨零，只有 24/50 日改善。corrected 71 日 restart-aware replay 的 terminal MTM 改善 `+16.877254 USDC`、已结束库存生命周期 value 改善 `+16.895254 USDC`，fill retention 为 97.66%，q10/CVaR 与最大库存 point metrics 也更好；但两个 lower bounds 仍为负，只有 26/71 日改善。这些是正 point estimates 与有效 diagnostic，不是 research hard-gate pass。历史 operational record 随后记录了 owner 显式接受 statistical、strict-queue 与 transport 风险，将 unchanged SELL policy 标成 `owner_risk_accepted_promotion`；这只说明当时的权限来源。
 
-更晚的 full-multiscale offline successor 使用 30 个历史 Development days、3,516 个 opportunities 完成 nested chronological search。BUY E3 是最强 point candidate：相对 baseline 的 terminal value 差为 `+0.458577 USDC/day`、已结束库存生命周期 value 差为 `+0.604012 USDC/day`，fills 下降 2.71%，四个 outer-fold means 全为正。但 candidate 自身的 terminal value 仍约为 `-2.445540 USDC/day`；`+0.458577` 是“少亏”的相对差，不是盈利。相对 action-matched control 的 extra increment 为 `+0.193888 USDC/day`，这可以排除“仅因为少成交”的纯数量解释；但 semantic interval 仍跨零，所以不是因果确认。simultaneous day lower bounds 与 frozen feature hierarchy 也失败；SELL 没有正 non-baseline candidate。研究结论因此仍是 `research_supported=false`，Validation 与 sealed holdout 未读，不能从这些 Development 数值生成 经验证的动作收益或实盘有效性。
+8月的 full-multiscale offline successor 则在原30日面板上做 nested chronological search。它研究的是学习算法在外层测试日期上的表现，而不是某一个最终重训模型的独立确认。BUY 候选相对旧基线少亏，但本身仍亏损；匹配动作频率的控制也没有消除区间不确定性，原报告没有继续读取 Validation 或 sealed holdout。完整的样本构造、控制组和历史结果表集中放在 [Full-Multiscale 方法文章](/2026/08/29/NarrowGate-Full-Multiscale-Boolean-Cooldown-Research/)，不在框架概述中重复列数值。新一轮重做需要重新绑定当前输入与基线、核查完整训练支持，并保留日期已经使用过的事实；不能把旧停止决定解释成不允许再做必要回测。
 
 随后的历史 operational record 记录，owner 以 outcome-informed override 把 BUY E3 用于 exposure-increasing BUY executed fill。这个决定必须标记为 owner-risk exception，不能倒写成上段 scorecard 通过。公开 v13 只提供历史 locator prerequisite；mechanics-safety successor 只提供 30 日 reduced-support exact BUY E3、exact SELL B0、D+1 B0 与共同 `pause_exposure` overlay 的 mechanics resolution；冻结 v12 50 日结果只作为旧 mechanics 下的 stale historical comparator。精确现役 owner policy、配置和 EC2 进程依赖必须从私有 release manifest 与实际主机状态确认，不由本文公开。
 

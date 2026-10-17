@@ -43,7 +43,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/f02-p3-estimand-ladder.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/p3-research-synthesis.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-10-11T03:43:00.000Z">
+<meta property="article:modified_time" content="2026-10-17T06:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="Quote EV">
@@ -778,11 +778,12 @@ CE_c=\left|\frac1{n_c}\sum_{i\in c}y_i-\frac1{n_c}\sum_{i\in c}\hat p_i\right|,<
 <li><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f02_empirical_p3_touch/docs/p3_touch_volatility_conditioned_v4_spec_20260803.json">v4 冻结 Spec</a></li>
 </ul>
 <p>公共文档提供聚合 score、覆盖失败与权限；模型与逐窗口 artifacts 不随公共仓库分发。</p>
-<h2 id="6-标量报价-adapter"><a href="#6-标量报价-adapter" class="headerlink" title="6. 标量报价 adapter"></a>6. 标量报价 adapter</h2><h3 id="TL-DR：失败的是“压成两个标量再喂给旧公式”，不是条件-P3-本身"><a href="#TL-DR：失败的是“压成两个标量再喂给旧公式”，不是条件-P3-本身" class="headerlink" title="TL;DR：失败的是“压成两个标量再喂给旧公式”，不是条件 P3 本身"></a>TL;DR：失败的是“压成两个标量再喂给旧公式”，不是条件 P3 本身</h3><p>volatility-conditioned P3 v4.1 在历史 Development 上给出了明显优于静态 v2 的 touch probability。一个很自然的下一步是：既然预测面更准，能否把它压缩成旧 quote ABI 已经认识的 <code>delta_star</code> 与 <code>kappa_eff</code>，从而自动改善报价？</p>
+<h2 id="6-标量报价-adapter"><a href="#6-标量报价-adapter" class="headerlink" title="6. 标量报价 adapter"></a>6. 标量报价 adapter</h2><h3 id="2026年8月历史案例：两个标量能否保留报价价值？"><a href="#2026年8月历史案例：两个标量能否保留报价价值？" class="headerlink" title="2026年8月历史案例：两个标量能否保留报价价值？"></a>2026年8月历史案例：两个标量能否保留报价价值？</h3><p>本节对应8月3日版本、8月12日修订说明的旧输入实验，不是10月当前 B0 的比较。10月17日已要求先审查旧设计再重做；新结果尚未验收，以下仅保留旧方法及其问题定位。</p>
+<p>volatility-conditioned P3 v4.1 在历史 Development 上给出了明显优于静态 v2 的 touch probability。一个很自然的下一步是：既然预测面更准，能否把它压缩成旧 quote ABI 已经认识的 <code>delta_star</code> 与 <code>kappa_eff</code>，从而自动改善报价？</p>
 <p>NarrowGate 冻结了一个没有可调 gain、cap、side weight 或事后 shrinkage 的适配器。它先把 BUY 与 SELL curves 等权平均，再取 $dP(d)$ 最大点作为动态 <code>delta_star</code>，用邻近网格的 log-probability slope 作为动态 <code>kappa_eff</code>，最后把这两个标量传入旧 AS/GLFT 报价公式。</p>
-<p>机制非常强：平均 raw half-spread 从 <code>24.5822</code> 收窄到 <code>13.4900 USDC/BTC</code>，matched executable quote 的 <code>99.073%</code> 发生变化，fills 从 <code>8,799</code> 增加到 <code>21,597</code>。经济结果却非常明确地更差：24 日 terminal MTM 从 <code>-59.4706</code> 变为 <code>-175.1314 USDC</code>，候选差值 <code>-115.6608 USDC</code>；平均日差 <code>-4.8192 USDC/day</code>，95% day-clustered interval 为 <code>[-5.9779,-3.6146]</code>，仅 1/24 日为正。</p>
+<p>这条映射确实显著收窄了报价、增加了成交，但旧面板上的完整账户结果反而变差。下文先展开它如何同时改变报价斜率与价差下限，再给出历史结果表，避免把更多成交误写为更好的策略。原24日包含已经读取过的 Validation OOF 与后期诊断日期，不是独立的新确认集。</p>
 <p>这不是“动作太弱”或 coverage 不足。它说明一个更深的 estimand mismatch：10 秒 touch probability 不是 1 秒 fill-arrival intensity；touch curve 的 log-slope 不是 AS/GLFT 强度弹性；同一曲线又同时改变 <code>kappa_eff</code> 与 spread floor，相当于让一个信号通过两个通道重复收窄报价。</p>
-<p>因此项目关闭 <code>conditional_p3_scalar_compression_adapter_v1</code>，但不关闭 side-specific conditional curve、queue conversion、fill value 与 库存生命周期 economics 联合决定报价的更一般路线。</p>
+<p>因此当时停止了 <code>conditional_p3_scalar_compression_adapter_v1</code> 这一旧身份。重做仍需检验触达概率到报价动作的这条映射，不能以接口兼容代替经济含义；旧身份的负结果也不关闭条件曲线、排队转换与成交后价值的其他研究问题。</p>
 <p><img src="/images/narrowgate/p3-conditional-scalar-adapter-kline.svg" srcset="/img/loading.gif" lazyload alt="条件 P3 标量压缩如何收窄报价并增加有毒成交"></p>
 <p><em>图 1：机制示意。完整 BUY/SELL probability surfaces 被压成一对标量后同时作用于报价中心与 spread floor，报价明显收窄；更多 touches/fills 并不保证更高 terminal value。</em></p>
 <p>本文只讨论历史 OOF replay，不建议任何真实交易行为。</p>
@@ -837,7 +838,7 @@ P_{pair}(d\mid x)=\frac{P_{BUY}(d\mid x)+P_{SELL}(d\mid x)}2.</script><p>然后�
 <p>旧 quote core 可能同时通过两条通道响应：更大的 <code>kappa_eff</code> 改变 AS/GLFT spread term，更小的 <code>delta_star</code> 又让 P3 floor 向内。即使两者都来自同一张曲线，它们并不是两个独立证据，却会共同收窄最终报价。</p>
 <p>价格随后向 maker 不利方向移动时，近价订单更容易触达并成交；这些 fills 又增加库存，触发 cooldown、改变另一侧 reducing quote 与后续 库存生命周期 path。于是“预测到了高 touch probability”转化成了“更积极地接受高 touch state”，这可能恰好增加 adverse selection。</p>
 <p>若没有单独估计 queue conversion 与 fill value，适配器不知道某个 touch 是自然 repair、无害扫单还是有毒价格穿越。它优化的是 reach geometry，不是价值。</p>
-<h3 id="5-冻结结果"><a href="#5-冻结结果" class="headerlink" title="5. 冻结结果"></a>5. 冻结结果</h3><p>机制层面，候选确实被执行：matched executable quote change rate 为 <code>99.0730%</code>；mean quote-time <code>delta_star</code> 从 <code>13.9991</code> 降到 <code>10.3851 USDC/BTC</code>，mean <code>kappa_eff</code> 从 <code>0.067356</code> 升到 <code>0.168434 (USDC/BTC)^-1</code>。</p>
+<h3 id="5-旧输入与旧基线下的24日历史结果"><a href="#5-旧输入与旧基线下的24日历史结果" class="headerlink" title="5. 旧输入与旧基线下的24日历史结果"></a>5. 旧输入与旧基线下的24日历史结果</h3><p>机制层面，候选确实被执行：matched executable quote change rate 为 <code>99.0730%</code>；mean quote-time <code>delta_star</code> 从 <code>13.9991</code> 降到 <code>10.3851 USDC/BTC</code>，mean <code>kappa_eff</code> 从 <code>0.067356</code> 升到 <code>0.168434 (USDC/BTC)^-1</code>。</p>
 <p>mean raw half-spread 从 <code>24.5822</code> 降到 <code>13.4900 USDC/BTC</code>。因此不能用“候选几乎没有改变订单”解释阴性结果。</p>
 <p>经济层面：</p>
 <div class="table-container">
@@ -845,9 +846,9 @@ P_{pair}(d\mid x)=\frac{P_{BUY}(d\mid x)+P_{SELL}(d\mid x)}2.</script><p>然后�
 <thead>
 <tr>
 <th>Metric</th>
-<th style="text-align:right">Current v2</th>
-<th style="text-align:right">Conditional adapter</th>
-<th style="text-align:right">Candidate minus current</th>
+<th style="text-align:right">当时的静态 v2 基线</th>
+<th style="text-align:right">当时的条件适配器</th>
+<th style="text-align:right">候选减旧基线</th>
 </tr>
 </thead>
 <tbody>
@@ -900,7 +901,7 @@ P_{pair}(d\mid x)=\frac{P_{BUY}(d\mid x)+P_{SELL}(d\mid x)}2.</script><p>然后�
 \lambda(\delta)=A e^{-\kappa\delta}.</script><p>P3 描述固定时间内市场价格是否触达某价位。除非 queue conversion、order lifetime、cancel policy 与成交条件价值都有额外模型，把 P3 拟合斜率叫作 <code>kappa_eff</code> 也不会让它变成同一个 estimand。</p>
 <p><img src="/images/narrowgate/f02-p3-estimand-ladder.svg" srcset="/img/loading.gif" lazyload alt="曲面、hazard、fill 与动作价值不能跨级替代"></p>
 <p><em>图 2：scalar adapter 试图从第一级跨接到第五级；中间三层没有因为接口兼容而消失。</em></p>
-<h3 id="冻结反例：更多成交为何带来更差终局"><a href="#冻结反例：更多成交为何带来更差终局" class="headerlink" title="冻结反例：更多成交为何带来更差终局"></a>冻结反例：更多成交为何带来更差终局</h3><p>这项研究最有解释力的不是 prediction 指标，而是完整路径反例。adapter 把平均半价差从约 24.58 缩到 13.49，fills 从 8,799 增到 21,597；如果只看参与度，会认为更准确的概率模型成功提高了成交机会。但终局 MTM 反而恶化约 115.66 USDC。</p>
+<h3 id="冻结反例：更多成交为何带来更差终局"><a href="#冻结反例：更多成交为何带来更差终局" class="headerlink" title="冻结反例：更多成交为何带来更差终局"></a>冻结反例：更多成交为何带来更差终局</h3><p>前面的历史结果表展示了一条完整路径反例：报价收窄带来的新增成交，没有补偿终点价值的恶化。重点不是重复这些旧数值，而是定位触达、成交、库存和终局之间究竟在哪一环丢失了价值信息；新输入下是否仍如此，必须由重做结果回答。</p>
 <p>这组数字揭示了三件事。第一，报价更近确实改变了动作，不是 no-op。第二，更多 fills 没有被自动转化为更高价值，说明 fill conversion 与 adverse selection 的联合分布没有被两个标量表达。第三，路径反馈很强：新增 fill 改变库存，库存改变 reservation price，进而改变后续两侧 quotes 和 库存生命周期 tail。</p>
 <p>可以把增量粗略分解为：</p>
 <script type="math/tex; mode=display">

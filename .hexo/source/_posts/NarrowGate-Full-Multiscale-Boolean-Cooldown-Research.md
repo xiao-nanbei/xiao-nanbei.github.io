@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate Full-Multiscale：从多尺度 EMA 到 Boolean Cooldown 的一次阴性研究'
 date: 2026-08-29 14:25:53
-updated: 2026-09-27 10:45:00
+updated: 2026-10-17 14:00:00
 categories:
 - Market Making
 tags:
@@ -13,7 +13,9 @@ tags:
 math: true
 ---
 
-## TL;DR：这是一个有正信号、但没有通过研究门槛的实验
+## 阅读范围：2026年8月的历史实验，不是当前实验结论
+
+本文解释2026年8月13日方案与8月21日 Development 报告采用的方法。行情、基线、样本选择和执行口径均属于那个版本，不能拿来评价10月五候选 Final107 或当前库存软控制实验。10月17日已要求审查旧设计后重做；新结果尚未产生，旧报告暂作问题定位和前次使用记录，不作为当前模型排名。
 
 NarrowGate 的 Full-Multiscale 研究问了一个很具体的问题：**在一次 maker 成交增加库存以后，能否根据从 0.5 秒到 256 秒的多尺度市场状态，动态决定下一次允许继续加仓前要等待多久，并且比实验冻结时的精确 owner baseline 获得更好的 库存生命周期-terminal USDC value？**
 
@@ -21,9 +23,9 @@ NarrowGate 的 Full-Multiscale 研究问了一个很具体的问题：**在一�
 
 这里的“三值”也不是三种动作，而是每个条件有 `true / false / unobserved` 三种状态：数据缺失不能被当成 `false`，取反以后也不能凭空变成证据。动作空间仍是 BUY 与 SELL 各自预先冻结的八档 duration。第 4 节会把 EMA、pair state 和 policy 分别写成式子。
 
-结果并不是“没有信号”。BUY 侧最强候选 `E3_HIGHER_ORDER_BOOLEAN` 相对精确 baseline 的 terminal value 改善 `+0.458577 USDC/day`，已结束库存生命周期 value 改善 `+0.604012 USDC/day`，保留 97.29% 的 fills，四个 outer-fold 平均值全部为正；在匹配 action rate 与 duration distribution 的控制组之上，仍有 `+0.193888 USDC/day` 的额外点估计。
+这项历史研究最值得讨论的是一个区别：候选在模型选择面板上相对旧基线少亏，不等于候选本身盈利，更不等于对新行情具有可迁移的优势。下文先说明机会样本、顺序执行和控制组如何构造，再在历史结果小节给出数值；不把一个被挑中的点估计孤立地放在开头当作模型成绩。
 
-但它仍然没有通过研究门槛：day-level simultaneous interval 跨过零，语义增量的区间也跨过零，冻结的 feature hierarchy 第一层未通过，tail 与 lifecycle gates 同样失败。SELL 没有正的 non-baseline candidate。因此，正确结论是：**这个冻结的 30 日 Development 研究族关闭，`supported_sides=[]`，没有 final refit、没有 Validation、没有 sealed holdout、没有 research-supported action 或 实盘有效性证据。**
+原报告的 day-level simultaneous interval 与语义增量区间跨零，特征层级、尾部和库存生命周期评价也未全部通过；因此当时没有继续生成 final refit、Validation 或 sealed holdout 结果。这是原30日身份的停止记录，不是禁止必要复测的次数配额，也不是多尺度冷却方向永久无效的结论。重做将先核查旧输入、基线、机会覆盖、训练支持和选择后偏差，不能只取消未通过的统计条件来制造“通过”。
 
 这篇文章讲的不是一个“成功上线的策略”，而是一个更有代表性的研究结果：为什么看起来相当漂亮的点估计，仍然不足以证明一个做市动作具有可迁移的增量价值。
 
@@ -649,7 +651,7 @@ BUY E3 可以被保留为高优先级 hypothesis，但未来若确认，必须�
 
 ## 14. 从这项研究得到的五个方法论结论
 
-第一，**点估计与证据等级是两回事。** `+0.458577 USDC/day`、4/4 正 fold、13/20 正 day 和 97.29% fill retention 足以产生 hypothesis，却不足以覆盖 simultaneous uncertainty、tail 和 lifecycle failure。
+第一，**相对改善、绝对盈利和可迁移性是三件事。** 历史结果小节中的正点估计可以提出假设，但不能替代对区间不确定性、尾部和库存路径的检查，也不能沿用为新输入下的结果。
 
 第二，**matched control 比单独报告 fill retention 更有解释力。** E3 超出 action-matched control 的正点估计说明信号不完全来自减少参与，但区间跨零又说明这个语义增量尚不稳定。
 

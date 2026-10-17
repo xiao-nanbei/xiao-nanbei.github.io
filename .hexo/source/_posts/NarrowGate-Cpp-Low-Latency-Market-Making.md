@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate：回测吞吐与 Live 尾延迟工程'
 date: 2026-07-01 08:03:00
-updated: 2026-10-02 12:00:00
+updated: 2026-10-17 14:00:00
 categories:
 - C++
 tags:
@@ -2558,7 +2558,7 @@ NarrowGate 的工程迁移不是从“我要写一个高速交易系统”开始
 
 所以 C++ 在 NarrowGate 里的定位不是外置加速器，而是 maker 策略工程化的一部分：离线侧让严格 replay、反例搜索、null baseline、order-level evidence 和参数 racing 变得可负担；live 侧把稳定、高频、低基数的状态和决策边界收紧到更少动态对象、更少无意义 replace、更可控的尾延迟。低延时本身不是 alpha 结论，但它决定了一个 maker alpha 能否被真实验证、稳定执行，并在风险变坏时及时撤退。
 
-公开结论是：Full-Multiscale 的 `supported_sides=[]`，50/71 日 SELL 与 BUY E3 Development 虽有改善的 point estimates，但 lower-bound、feature-hierarchy、strict-queue/transport 或独立确认门槛仍未全部闭合。历史两侧 owner policy 都不能重写为 research pass；30 日 mechanics-safety successor 只定义 reduced-support mechanics comparator，v12 50 日 compatibility identity 是禁用 raw native queue、latency 与 live transport，且在账本/费用/inventory_lifecycle/spread/fill-order 修复后已经 stale 的历史 comparator。精确当前 live 依赖需从私有 release manifest 和实际 EC2 状态确认，不由本文推断。生产代码可以继续变快、变清楚，owner 也可以做可回滚的运营选择，但 benchmark、单日 mechanics、诊断 PnL、preactivation resource gate、模型可加载、PID 存活和 frozen health 都不能替未通过的 Prediction、Value、Action、Live 或 当前进程状态 证据。
+工程结论与研究结论应分开：加速与恢复一致性说明执行器能更可靠地运行相同计算，不说明某个策略更赚钱。2026年8月 Full-Multiscale、50/71日 SELL 和 mechanics-safety 等记录属于不同的旧研究身份，不能在这篇工程文章中合并成“当前模型结论”；10月17日要求审查后重做的研究也尚无新结果。历史 v12 的数据、会计和执行边界不能冒充当前控制组。当前策略和运行状态以各实验的新结果及实际进程为准，不由旧文章、模型能加载或 PID 存活推断。
 
 面向开源版本，C++ 还有另一层价值：它迫使项目把边界说清楚。哪些路径有 Python/C++ parity，哪些只能 fast screening，哪些仍必须由 Python replay 做正式证据，都应该在 public README、CI 和 examples 里体现出来。否则一个看起来很快的 extension 只会让陌生人更快踩进旧结论。
 

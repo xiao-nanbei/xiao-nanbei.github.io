@@ -19,12 +19,12 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Last materially modified: 2026-10-02 被动报价、成交质量与库存风险NarrowGate 是研究被动报价的框架：一笔限价单被成交，到底是在获得价差，还是在承接更快的信息交易者转移的风险？回答这个问题需要一起观察报价动作、排队与撤改单、成交后的价格变化，以及库存持有期间的完整账务，而不是只看成交次数或最后一个 PnL 数字。 库存生命周期是库存从空仓变为非零，经历持">
+    <meta name="description" content="Last materially modified: 2026-10-17 被动报价、成交质量与库存风险NarrowGate 是研究被动报价的框架：一笔限价单被成交，到底是在获得价差，还是在承接更快的信息交易者转移的风险？回答这个问题需要一起观察报价动作、排队与撤改单、成交后的价格变化，以及库存持有期间的完整账务，而不是只看成交次数或最后一个 PnL 数字。 库存生命周期是库存从空仓变为非零，经历持">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate：Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/06/19/NarrowGate-Maker-Quote-EV-Research-Framework/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="Last materially modified: 2026-10-02 被动报价、成交质量与库存风险NarrowGate 是研究被动报价的框架：一笔限价单被成交，到底是在获得价差，还是在承接更快的信息交易者转移的风险？回答这个问题需要一起观察报价动作、排队与撤改单、成交后的价格变化，以及库存持有期间的完整账务，而不是只看成交次数或最后一个 PnL 数字。 库存生命周期是库存从空仓变为非零，经历持">
+<meta property="og:description" content="Last materially modified: 2026-10-17 被动报价、成交质量与库存风险NarrowGate 是研究被动报价的框架：一笔限价单被成交，到底是在获得价差，还是在承接更快的信息交易者转移的风险？回答这个问题需要一起观察报价动作、排队与撤改单、成交后的价格变化，以及库存持有期间的完整账务，而不是只看成交次数或最后一个 PnL 数字。 库存生命周期是库存从空仓变为非零，经历持">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/maker-hot-path.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/data-lineage.svg">
@@ -37,7 +37,7 @@
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/order-lifecycle.svg">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/paired-fixed-spread-curve-20260726.png">
 <meta property="article:published_time" content="2026-06-19T08:50:48.000Z">
-<meta property="article:modified_time" content="2026-10-02T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-10-17T06:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="机器学习">
@@ -354,7 +354,7 @@
         
         
           <!-- compatible with older versions-->
-          696 分钟
+          694 分钟
         
       </span>
     
@@ -398,7 +398,7 @@
             
               <div class="markdown-body">
                 
-                <p>Last materially modified: 2026-10-02</p>
+                <p>Last materially modified: 2026-10-17</p>
 <h2 id="被动报价、成交质量与库存风险"><a href="#被动报价、成交质量与库存风险" class="headerlink" title="被动报价、成交质量与库存风险"></a>被动报价、成交质量与库存风险</h2><p><strong>NarrowGate</strong> 是研究被动报价的框架：一笔限价单被成交，到底是在获得价差，还是在承接更快的信息交易者转移的风险？回答这个问题需要一起观察报价动作、排队与撤改单、成交后的价格变化，以及库存持有期间的完整账务，而不是只看成交次数或最后一个 PnL 数字。</p>
 <p>库存生命周期是库存从空仓变为非零，经历持有和加减仓，直到重新归零的过程。一段库存生命周期可以包含多张订单和多次成交；风险需要沿整个持仓过程衡量，而不能只看某次成交后的短期价格变化。下单未成交不建立库存，撤单不结束已有库存；跨零成交拆为平掉原持仓与建立反向持仓。观察窗口结束仍有库存时按终点价格 MTM，不视作已经平仓，也不自动强平。</p>
 <p>源码：<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker">NarrowGateMaker</a>。文中代码链接用于定位相关实现；具体实验结论以对应的数据范围、配置和结果说明为准。工程细节见<a href="/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/">回测吞吐与尾延迟工程</a>。公开源码不含私有行情、模型权重和运行配置。</p>
@@ -448,7 +448,7 @@
 <script type="math/tex; mode=display">
 P_{\mathrm{touch}}(\delta,x)=\Pr(\tau_{\mathrm{touch}}\le 10\,\mathrm{s}\mid\delta,x),\qquad k_{\mathrm{touch}}=-\partial_\delta\log P_{\mathrm{touch}}\ne k_{\mathrm{exec}}.</script><p>P3 的距离以实际同侧 BBO 原点为准，不能与 GLFT 相对 mid 的距离混用。报价模块先验证 P3 的期限、距离单位与来源；启用 <code>p3_pair_spread_projection_enabled</code> 时使用触达统计构造双边价差下限与斜率投影。这仍不把触达概率变成实际成交概率。双边价差下限也不保证偏斜和取整后每一侧到 BBO 的距离。</p>
 <p>盘口数量加权中价不等于通过状态转移估计的 $\mathbb{E}[S_{t+h}\mid \mathrm{LOB\ state}]$。P3 触达统计、成交强度加速保护和深度缩放因子各有用途，不能因符号相似就当成同一个模型参数。</p>
-<p>研究结果也有明确范围。F02 的一项 scalar-adapter 对照中，平均半价差由24.58缩到13.49、成交数由8,799增到21,597，终点 MTM 却恶化115.66 USDC，说明更多成交不是价值证据。Full-Multiscale 的30日 Development 中，BUY E3 相对改善为0.458577 USDC/day，但候选自身约为−2.445540 USDC/day；同时置信下界与特征层级门槛失败，<code>supported_sides=[]</code>，Validation 与 holdout 未读取。这只属于该冷却实验。F05 还包含机会级成交质量、风险加宽消费者，以及 POST/WAIT、KEEP/CANCEL 配对选择；它们的标签、动作、执行范围与经济结论分别记录，不能互相替代。公开聚合报告可以审计这些限制，未公开的逐行预测与输入则不能由第三方独立复算；模块存在不等于特定回测或 live 已启用。</p>
+<p>这也解释了为什么研究必须分开检验“预测更准”和“动作更好”：触达概率经两个标量压缩后，可能让报价过度靠近市场；成交后选择更长的冷却，则可能同时避开有毒成交和自然减仓机会。两者都需要完整账户的配对回放，不能用成交数量或某个局部收益指标代替。2026年8月的 F02 scalar-adapter 与 Full-Multiscale 冷却实验分别提供过这两类历史案例；其旧输入、旧基线和局部 Development 结果不代表10月的 Final107 或库存软控制实验。2026年10月17日已要求先审查旧设计，再以新的实验身份重做；在新结果验收前，不把旧数值改写成新结论。具体历史数值放在各自方法与范围说明之后，而不是作为本文当前研究成绩。F05 的机会级成交质量、风险加宽以及 POST/WAIT、KEEP/CANCEL 也分别回答不同问题，不能相互替代；模块存在不等于特定回测或 live 已启用。</p>
 <h2 id="阅读路线：先问题，再证据"><a href="#阅读路线：先问题，再证据" class="headerlink" title="阅读路线：先问题，再证据"></a>阅读路线：先问题，再证据</h2><p>如果只看现在的代码目录，很容易以为 NarrowGate 是一个“AS + LightGBM + tick replay”的技术拼盘。实际演进顺序恰好相反：每一层都是上一层暴露问题后的修正。</p>
 <div class="table-container">
 <table>
@@ -548,9 +548,9 @@ P_{\mathrm{touch}}(\delta,x)=\Pr(\tau_{\mathrm{touch}}\le 10\,\mathrm{s}\mid\del
 <td>不是新 407 日输入定义；派生 top-20/100ms 不获得 native sequence/exact queue 权限</td>
 </tr>
 <tr>
-<td><strong>Full-Multiscale research</strong></td>
-<td>30 日 Development、BUY E3 为最强 point candidate</td>
-<td><code>supported_sides=[]</code>；Validation/holdout 未读，不能据此确认报价动作有效</td>
+<td><strong>2026年8月 Full-Multiscale 历史研究</strong></td>
+<td>原30日 Development 的模型选择与完整路径评价</td>
+<td>原身份未获研究支持；10月17日要求先审查后重做，尚无新结果，不据旧报告关闭整个研究方向</td>
 </tr>
 <tr>
 <td><strong>v12 50 日比较结果的适用范围</strong></td>
@@ -2309,9 +2309,9 @@ multi-level SHORT terminal value: -13.5910 USDC</code></pre></div>
 <p>训练/测试没有发现直接 outcome leakage：outer fold 只使用过去的 purged train rows，所有 train-arm washout end 都严格早于当前 test assignment，Validation 与 sealed holdout 未读。但分布并不均匀。M2 的 33 日是从 40 日中按 source completeness 选出的 common-support subset，不是连续的前 33 日；它有 6,991 个 opportunities、2.26% censoring，被排除的 7 日有 1,609 个、0.81% censoring，所以 M2 与 M1 只有在同一 Prefix33 denominator 上才可比较。171 个 censored opportunities 也明显集中于 BUY：BUY <code>142/4,499=3.16%</code>、SELL <code>29/4,101=0.71%</code>，其中 BUY add 为 <code>115/1,871=6.15%</code>；2026-06-13 一日占 36 个。完整连续特征 SMD/PSI 与 predicate prevalence audit 尚未完成，所以不能声称 train/test feature distribution 已经稳定。</p>
 <p>在这个 2026-08-12 predecessor identity 的冻结晋级合同下，<code>supported_sides=[]</code> 使统一 policy、repeated-policy ABI、40/10/50 full-path、restart-aware 与 transport 阶段结构性停止，Validation/holdout 也保持未读；这不是漏跑一个当时已经合法晋级的 candidate。这个结论只描述该 predecessor identity，不能继续用现在时概括后来新建的 persistent-policy 与 full-multiscale successor。</p>
 <p>权威来源与边界见 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/docs/causal_multichannel_window_boolean_cooldown_duration_v2_strict_native_formal_execution_failure_20260811.md">strict-native failure</a>、<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/3abc02ff91ce76cc69a4263dcc326dcd1226eba6/research/families/f05_fill_quality_quote_ev/docs/causal_multichannel_window_boolean_cooldown_duration_v2_owner_modeled_queue_v1_development_20260812.md">owner modeled-queue Development closure</a> 与 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f05_fill_quality_quote_ev/README.md">F05 current ledger</a>。</p>
-<h3 id="Development-结果与证据范围"><a href="#Development-结果与证据范围" class="headerlink" title="Development 结果与证据范围"></a>Development 结果与证据范围</h3><p>后续 <code>persistent-policy v3</code> 是新的 research identity，不是对 2026-08-12 predecessor 结果的补写。它实现 paired M0/M1/M2 hierarchy、更宽的 ordered rules、fold-distribution audit 与 shared UTC-day wild-max-t inference；两侧都未通过 M0 research gate，但 owner 另行冻结了一个 non-research-supported SELL M2 diagnostic policy，在 modeled-queue full-path 上继续做经济检查。</p>
+<h3 id="2026年8月-Development-历史结果与证据范围"><a href="#2026年8月-Development-历史结果与证据范围" class="headerlink" title="2026年8月 Development 历史结果与证据范围"></a>2026年8月 Development 历史结果与证据范围</h3><p>后续 <code>persistent-policy v3</code> 是新的 research identity，不是对 2026-08-12 predecessor 结果的补写。它实现 paired M0/M1/M2 hierarchy、更宽的 ordered rules、fold-distribution audit 与 shared UTC-day wild-max-t inference；两侧都未通过 M0 research gate，但 owner 另行冻结了一个 non-research-supported SELL M2 diagnostic policy，在 modeled-queue full-path 上继续做经济检查。</p>
 <p>50 日 repeated-policy replay 相对 predecessor control 的 terminal MTM 改善 <code>+11.372165 USDC</code>、已结束库存生命周期 value 改善 <code>+9.747065 USDC</code>，fill retention 为 96.04%；但两个 primary intervals 都跨零，只有 24/50 日改善。corrected 71 日 restart-aware replay 的 terminal MTM 改善 <code>+16.877254 USDC</code>、已结束库存生命周期 value 改善 <code>+16.895254 USDC</code>，fill retention 为 97.66%，q10/CVaR 与最大库存 point metrics 也更好；但两个 lower bounds 仍为负，只有 26/71 日改善。这些是正 point estimates 与有效 diagnostic，不是 research hard-gate pass。历史 operational record 随后记录了 owner 显式接受 statistical、strict-queue 与 transport 风险，将 unchanged SELL policy 标成 <code>owner_risk_accepted_promotion</code>；这只说明当时的权限来源。</p>
-<p>更晚的 full-multiscale offline successor 使用 30 个历史 Development days、3,516 个 opportunities 完成 nested chronological search。BUY E3 是最强 point candidate：相对 baseline 的 terminal value 差为 <code>+0.458577 USDC/day</code>、已结束库存生命周期 value 差为 <code>+0.604012 USDC/day</code>，fills 下降 2.71%，四个 outer-fold means 全为正。但 candidate 自身的 terminal value 仍约为 <code>-2.445540 USDC/day</code>；<code>+0.458577</code> 是“少亏”的相对差，不是盈利。相对 action-matched control 的 extra increment 为 <code>+0.193888 USDC/day</code>，这可以排除“仅因为少成交”的纯数量解释；但 semantic interval 仍跨零，所以不是因果确认。simultaneous day lower bounds 与 frozen feature hierarchy 也失败；SELL 没有正 non-baseline candidate。研究结论因此仍是 <code>research_supported=false</code>，Validation 与 sealed holdout 未读，不能从这些 Development 数值生成 经验证的动作收益或实盘有效性。</p>
+<p>8月的 full-multiscale offline successor 则在原30日面板上做 nested chronological search。它研究的是学习算法在外层测试日期上的表现，而不是某一个最终重训模型的独立确认。BUY 候选相对旧基线少亏，但本身仍亏损；匹配动作频率的控制也没有消除区间不确定性，原报告没有继续读取 Validation 或 sealed holdout。完整的样本构造、控制组和历史结果表集中放在 <a href="/2026/08/29/NarrowGate-Full-Multiscale-Boolean-Cooldown-Research/">Full-Multiscale 方法文章</a>，不在框架概述中重复列数值。新一轮重做需要重新绑定当前输入与基线、核查完整训练支持，并保留日期已经使用过的事实；不能把旧停止决定解释成不允许再做必要回测。</p>
 <p>随后的历史 operational record 记录，owner 以 outcome-informed override 把 BUY E3 用于 exposure-increasing BUY executed fill。这个决定必须标记为 owner-risk exception，不能倒写成上段 scorecard 通过。公开 v13 只提供历史 locator prerequisite；mechanics-safety successor 只提供 30 日 reduced-support exact BUY E3、exact SELL B0、D+1 B0 与共同 <code>pause_exposure</code> overlay 的 mechanics resolution；冻结 v12 50 日结果只作为旧 mechanics 下的 stale historical comparator。精确现役 owner policy、配置和 EC2 进程依赖必须从私有 release manifest 与实际主机状态确认，不由本文公开。</p>
 <h2 id="结论：窄门不是参数，而是证据门槛"><a href="#结论：窄门不是参数，而是证据门槛" class="headerlink" title="结论：窄门不是参数，而是证据门槛"></a>结论：窄门不是参数，而是证据门槛</h2><p>NarrowGate 从一个 AS 公式实验，走到了数据审计、跨市场冲击归因、逐侧 quote EV、库存时间积分、opportunity/executable 两层 null baseline、order-level denominator、版本化 100ms L2、causal artifact lineage 和 randomized action uplift。这个过程不断推翻自己的旧答案：更多 reference 不会自动带来更好 policy，严格的时钟与 lifecycle 会改变结论，score 能排序部分 markout、模型 A/B 中心为正，也都不代表固定 widen/recenter/skip/cancel action 已有正 value。</p>
 <p>最初的问题因此被越问越窄：不是“能不能预测 BTC”，而是“在这一侧、这个价格、这个盘口和这段库存暴露下，采取某个明确 action 是否比当前 baseline 更好”。两层 null baseline 检查 selection gap 是否存在，side-specific scorer 检查 decision-visible state 能否排序，randomized 或严格 paired action panel 才检查改变报价后、经过 queue 和后续库存路径的增量 value；三者不能互相替代。</p>

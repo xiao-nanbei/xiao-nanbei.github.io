@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate 研究地图：从市场预测、订单决策到完整账户收益'
 date: 2026-08-29 13:30:00
-updated: 2026-10-04 12:00:00
+updated: 2026-10-17 14:00:00
 categories:
 - Market Making
 tags:
@@ -47,7 +47,7 @@ math: true
 | 3 | [NarrowGate 新 13-Head：Tardis 因果特征、时间加权选型与负收益结果](/2026/08/29/NarrowGate-Causal-13-Head-Source-Aware-v12-Research/) | F03 | 共同特征、独立目标模型能否改善完整 maker 路径？ | 新 F03 四套模型、B100 选型及 858 次完成；H=inf 与 ML-OFF Final 仍均亏损，旧 v4–v12 范围另存 |
 | 4 | [External Market Alpha：三交易所参考、信息衰减与 Fair-Center](/2026/08/29/NarrowGate-Three-Venue-Global-Reference-Stage0-Research/) | F04、F09 | 外部市场信息如何从 receive-time state 走到本地报价动作？ | 短时信息与 fair coordinate 有证据；first-add/guard/action 链未闭合 |
 | 5 | [Fill Quality、First-Add Quote EV 与 E/C](/2026/08/29/NarrowGate-Decision-Visible-Negative-Fill-Value-Research/) | F05、F10 | 成交质量、风险加宽与 POST/WAIT、KEEP/CANCEL 如何分别检验？ | 原指定 soft-widen 分支负结果保留；E/C 十路径已完成，未证明稳定选择性，E 未替换 B0/live |
-| 6 | [Full-Multiscale Boolean Cooldown](/2026/08/29/NarrowGate-Full-Multiscale-Boolean-Cooldown-Research/) | F05 | 多尺度 EMA Boolean state 能否选择重复执行的 cooldown duration？ | BUY 有 point signal，但 simultaneous gate 未过；`supported_sides=[]` |
+| 6 | [Full-Multiscale Boolean Cooldown](/2026/08/29/NarrowGate-Full-Multiscale-Boolean-Cooldown-Research/) | F05 | 多尺度 EMA Boolean state 能否选择重复执行的 cooldown duration？ | 8月旧身份未获研究支持；10月17日要求先审查旧设计再重做，尚无新结果 |
 | 7 | [Order-Level Quote Value 与 U0/U1](/2026/08/29/NarrowGate-Active-Order-Queue-Value-Keep-Cancel-Research/) | F06、F07 | 报价应放多远、旧单何时评价及 KEEP/CANCEL/RE-ENTER？ | 原距离/队列价值动作未获支持；U1 八账户少亏但请求与库存代价增加，未晋升 |
 | 8 | [Side-Taker Lifecycle：微观流、双时钟与 Risk Set](/2026/08/29/NarrowGate-Side-Taker-Flow-Research/) | F08 | 主动成交流如何在合法可见时钟上进入订单动态风险集？ | 静态 M0 关闭；双时钟与 v2 risk-set 前置仍未完成 |
 | 9 | [Cooldown Temporal-Permission Action Frontier](/2026/08/29/NarrowGate-Volatility-Time-Add-Rearm-Research/) | F09 | One-cycle、stop-until-flat、state、recovery、variance-time 哪个控制强度有效？ | 从 near-noop 到 participation shutdown 均无稳定正终局价值 |
