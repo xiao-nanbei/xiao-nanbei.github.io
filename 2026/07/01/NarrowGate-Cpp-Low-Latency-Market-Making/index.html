@@ -330,7 +330,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          3k 字
+          3.2k 字
         
       </span>
     
@@ -342,7 +342,7 @@
         
         
           <!-- compatible with older versions-->
-          26 分钟
+          27 分钟
         
       </span>
     
@@ -387,7 +387,7 @@
               <div class="markdown-body">
                 
                 <p>NarrowGate 现在把研究与实盘分开：Python 负责研究、训练、回测编排和分析，独立 C++ 程序负责实盘行情、推理、策略、订单和账户恢复。实盘不再是 Python 主循环加扩展，也不通过 Python 子进程运行策略。</p>
-<p>截至本次更新，原生 Linux 程序已完成选定账户的部署、状态恢复、真实输入暖机及订单链运行检查，旧 Python 生产入口和启动器已退役。离线配置、策略和协议参考库仍供研究与差分测试使用。这是已实施的运行边界，但不等于所有可选政策、任意账户与完整历史轨迹均已证明一致。</p>
+<p>截至本次更新，原生 Linux 程序已完成选定账户的部署、状态恢复、真实输入暖机及订单链运行检查，旧 Python 生产入口和启动器已退役。离线配置、策略和协议参考库仍供研究与差分测试使用，分别归属 narrowgate、strategy、features 与 execution，不再混放在 live 内。旧 Python 网络客户端和激活链不作为第二套服务保留。这是运行与源码职责边界，不等于所有可选政策、任意账户与完整历史轨迹均已证明一致。</p>
 <p>本文重写此前累积的扩展与性能实验叙述，不沿用旧环境的性能倍数。</p>
 <span id="more"></span>
 <h2 id="一、共享计算与实盘应用分开"><a href="#一、共享计算与实盘应用分开" class="headerlink" title="一、共享计算与实盘应用分开"></a>一、共享计算与实盘应用分开</h2><div class="code-wrapper"><pre><code class="hljs text">cpp/narrowgate_cpp/       共享计算核、研究原生实现
@@ -397,6 +397,7 @@ strategy/                Python 策略参考与研究消费者
 features/                特征定义和参考实现
 models/                  模型及回测相关实现
 narrowgate/replay/        研究回放编排与执行
+narrowgate/migration/     显式离线配置／账户转换，不启动实盘
 research/                实验合同、政策与分析</code></pre></div>
 <p>这次拆分不是把一个大文件从 cpp 搬到 live。报价计算、深簿、特征、订单状态和会计等可共享组件留在 cpp；网络会话、实盘运行顺序、对账与恢复由 live/native 装配。研究不能反向依赖实盘应用。</p>
 <p>研究侧仍可使用原生加速与 Python 绑定，但独立实盘构建关闭它们。原生模型推理通过 LightGBM C API 完成，不启动 Python 解释器。</p>
