@@ -27,7 +27,7 @@
 <meta property="og:description" content="一个贯穿完整路径的问题预测概率并不是报价价值。报价必须经历可见信息、计算、提交、生效、排队、成交、库存持有与修复，最后在费用、资金费和终点库存估值后解释净收益。一个环节的改进不自动传给下一个环节。 术语与可验证对象    对象 需要声明的口径 常见误读     P(touch) 距离起">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-06-19T08:50:48.000Z">
-<meta property="article:modified_time" content="2026-10-17T14:06:04.000Z">
+<meta property="article:modified_time" content="2026-10-25T16:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="机器学习">
@@ -331,7 +331,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          1.3k 字
+          1.9k 字
         
       </span>
     
@@ -343,7 +343,7 @@
         
         
           <!-- compatible with older versions-->
-          12 分钟
+          16 分钟
         
       </span>
     
@@ -488,6 +488,9 @@
 </tbody>
 </table>
 </div>
+<h2 id="AS-终点、固定风险窗与持仓退出"><a href="#AS-终点、固定风险窗与持仓退出" class="headerlink" title="AS 终点、固定风险窗与持仓退出"></a>AS 终点、固定风险窗与持仓退出</h2><p>2026-10-26 补充：当前 AS-shaped 核心的库存中心项和价差风险项使用 <code>sigma_sq * risk_horizon_s</code>。H 是显式配置的固定积分长度，不随持仓年龄、普通报价周期、日切或回放剩余时间自动递减。<code>quote_horizon_s</code>、P3／预测标签期限与 <code>pnl_volatility_horizon_s</code> 分别有自己的消费者。持仓时间紧迫度和超时另有启用条件，不等于 AS 的 <code>T-t</code>。对应实现见固定版本的 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/a086ff4b59ba2766ca3c50af476f9b31cb0c318a/strategy/quote_core.py#L1701-L1740">Python 核心</a>和 <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/a086ff4b59ba2766ca3c50af476f9b31cb0c318a/cpp/narrowgate_cpp/quote_core.cpp#L735-L749">C++ 核心</a>。</p>
+<p><a target="_blank" rel="noopener" href="https://math.nyu.edu/~avellane/HighFrequencyTrading.pdf">AS 2008 正式发表版</a>第 221 页式 (29)–(30)的近似 reservation price 为 <code>s-q*gamma*sigma²*(T-t)</code>，总价差为 <code>gamma*sigma²*(T-t)+(2/gamma)*log(1+gamma/k)</code>，不能漏掉风险期限项。其终端财富目标 <code>X_T+q_T*S_T</code> 不自动要求 <code>q_T=0</code>；固定其他量时，库存风险偏移随剩余期限缩短而减弱，不是临近截止就强制清仓。当前归一化库存、经验系数、固定 H 和后续投影不是论文最优解。</p>
+<p>库存容忍度还涉及价格判断、退出能力和资金约束，振幅或方差都不能单独证明回归。这里澄清的是机制与期限，不授权改变参数，也没有给历史实验补写新的收益或实盘验收。</p>
 <h2 id="当前已验收结果代替对应旧结论"><a href="#当前已验收结果代替对应旧结论" class="headerlink" title="当前已验收结果代替对应旧结论"></a>当前已验收结果代替对应旧结论</h2><div class="table-container">
 <table>
 <thead>

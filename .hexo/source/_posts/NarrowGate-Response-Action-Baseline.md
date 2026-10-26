@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate B0_RESPONSE：407 日响应动作研究完成，不等于 live 验收完成'
 date: 2026-10-08 16:00:00
-updated: 2026-10-08 16:00:00
+updated: 2026-10-26
 categories:
 - Market Making
 tags:
@@ -35,17 +35,21 @@ math: false
 
 候选在真实旧订单价格取响应特征，正分 UPDATE、负分 KEEP、零分沿用原判断，仅介入可选更新价格意图。原 15 ticks 不再是所有更新的绝对下限，但年龄、pending、数量、库存和强制风险约束不能放宽。决策意图不等于请求，更不等于撤单生效或成交。研究使用可见 ready 时钟，live 使用真实接收／提交时钟；离线模拟计入的响应计算预算不能在 live 再人为 sleep 一次。
 
-## 已有接线与仍需证据
+<span id="已有接线与仍需证据"></span>
 
-现有路径是 execution_v1 个体 trade → LivePublicSignalEngine → LiveResponseHistory → 报价快照 sequence／盘口 generation → 真实旧价 frame → 冻结响应评分 → 原可选更新价格门槛 → OrderManager 与请求生命周期。它不是普通 aggTrade 路径，也不是等待重新写一个 live 引擎。模型字节、特征顺序、scale、角色、目标范围和 restart-only 配置已有校验。
+## 2026-10-08 的 Python 候选接线及当时验收边界
+
+2026-10-26 补充：本节记录当时的 Python／扩展接线，不是当前原生 live 的配置指令。后续独立 C++ 实盘入口和原生响应／订单链见[Python 研究与纯 C++ 实盘架构](/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/)及[固定版本原生指南](https://github.com/xiao-nanbei/NarrowGateMaker/blob/a086ff4b59ba2766ca3c50af476f9b31cb0c318a/docs/native-live.zh-CN.md)。旧开关限制不能直接套用到独立程序；新实现按自己的版本与验收范围读取，也不能反过来给旧实验补写验收。
+
+当时路径是 execution_v1 个体 trade → LivePublicSignalEngine → LiveResponseHistory → 报价快照 sequence／盘口 generation → 真实旧价 frame → 冻结响应评分 → 原可选更新价格门槛 → OrderManager 与请求生命周期。它不是普通 aggTrade 路径；这些类名描述当时的实现，不是当前生产入口。模型字节、特征顺序、scale、角色、目标范围和 restart-only 配置当时已有校验。
 
 但合同标识映射不是 47 特征等价证明，合成分段测试也不是交易所端到端验收。必须在同一事件、可见水位、盘口版本和旧单身份下比较原始特征／缺失、标准化、score 与意图，使用真实报价上下文；网络可用 fake gateway，特征和订单状态机不能一起 mock。特别需要覆盖部分成交与撤单竞态、私有 ACK 先于 HTTP、超时未知、拒单、终态承接、订单身份变化及断线重预热。
 
-响应候选拒绝三条不兼容 native 订单规划开关：`NARROWGATE_CPP_LIVE_ROUTING`、`NARROWGATE_CPP_ORDER_ACTION_PLAN`、`NARROWGATE_CPP_FINAL_ORDER_PLAN`；应使用当前支持的 Python 订单规划路径，不是禁用所有 C++。不能复制旧机器环境后仅凭参数相同宣称一致。
+该历史响应候选拒绝三条不兼容 native 订单规划开关：`NARROWGATE_CPP_LIVE_ROUTING`、`NARROWGATE_CPP_ORDER_ACTION_PLAN`、`NARROWGATE_CPP_FINAL_ORDER_PLAN`；当时要求使用其支持的 Python 订单规划路径，不是禁用所有 C++，也不是今天独立原生程序的启动要求。不能复制旧机器环境后仅凭参数相同宣称一致。
 
 sequence／generation 失配回退是在阻止未来状态进入旧决策，不应删掉。应按同一机会联合记录合资格、必要字段、旧价覆盖、版本一致、评分、改变意图、请求及后续阻断，不能把边际计数相乘成覆盖率。约一秒盘口年龄和十秒响应预热的支持范围也不能为了覆盖率随意放宽。
 
-此次补充的离线集成测试实际构造 MakerEngine、LivePublicSignalEngine、报价消费者、OrderManager、库存回调及 cooldown 存储，仅用 fake gateway 替代网络。合成记录贯通了评分、原订单路由、撤单期间部分成交、私有通知先于 HTTP、未知／拒绝结果和终态重新报价；另对照同一可见记录的全部 47 特征、缺失、标准化与评分。定向测试 295 项通过。还修复了一整 tick 的浮点资格误拒，并增加活动订单对象身份检查；不修改历史冻结回测。
+当时补充的离线集成测试实际构造 MakerEngine、LivePublicSignalEngine、报价消费者、OrderManager、库存回调及 cooldown 存储，仅用 fake gateway 替代网络。合成记录贯通了评分、原订单路由、撤单期间部分成交、私有通知先于 HTTP、未知／拒绝结果和终态重新报价；另对照同一可见记录的全部 47 特征、缺失、标准化与评分。定向测试 295 项通过。还修复了一整 tick 的浮点资格误拒，并增加活动订单对象身份检查；不修改历史冻结回测。
 
 这仍是合成模型／消息的离线验收，不是冻结生产模型在真实记录上的全部 47 特征等价证明。生产同一机会联合覆盖率尚未实测，不能从现有边际计数推算。真实 USD-M BTCUSDC 消息、存储准入、重启对账和部署环境仍需单独取证；本次研究不证明交易所已接受订单，也不授权交易。源码测试、工程验证和经济价值必须分开报告。
 

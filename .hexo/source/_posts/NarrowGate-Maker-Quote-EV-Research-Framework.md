@@ -1,7 +1,7 @@
 ---
 title: 'NarrowGate：Maker Quote EV、Order-Level Evidence 与 Causal Action Uplift'
 date: 2026-06-19 16:50:48
-updated: 2026-10-17 22:06:04
+updated: 2026-10-26
 categories:
 - Market Making
 tags:
@@ -84,6 +84,14 @@ math: true
 | Quote EV | POST/WAIT 或 KEEP/CANCEL 的动作与完整成本 | 只删除坏成交后重算 |
 | 库存生命周期 | 部分减仓、flat-to-flat、终点删失 | 和订单存续时间混用 |
 | 完整账户 | 独立重置或连续状态、费用与资金费 | 任意跨实验相加 |
+
+## AS 终点、固定风险窗与持仓退出
+
+2026-10-26 补充：当前 AS-shaped 核心的库存中心项和价差风险项使用 `sigma_sq * risk_horizon_s`。H 是显式配置的固定积分长度，不随持仓年龄、普通报价周期、日切或回放剩余时间自动递减。`quote_horizon_s`、P3／预测标签期限与 `pnl_volatility_horizon_s` 分别有自己的消费者。持仓时间紧迫度和超时另有启用条件，不等于 AS 的 `T-t`。对应实现见固定版本的 [Python 核心](https://github.com/xiao-nanbei/NarrowGateMaker/blob/a086ff4b59ba2766ca3c50af476f9b31cb0c318a/strategy/quote_core.py#L1701-L1740)和 [C++ 核心](https://github.com/xiao-nanbei/NarrowGateMaker/blob/a086ff4b59ba2766ca3c50af476f9b31cb0c318a/cpp/narrowgate_cpp/quote_core.cpp#L735-L749)。
+
+[AS 2008 正式发表版](https://math.nyu.edu/~avellane/HighFrequencyTrading.pdf)第 221 页式 (29)–(30)的近似 reservation price 为 `s-q*gamma*sigma²*(T-t)`，总价差为 `gamma*sigma²*(T-t)+(2/gamma)*log(1+gamma/k)`，不能漏掉风险期限项。其终端财富目标 `X_T+q_T*S_T` 不自动要求 `q_T=0`；固定其他量时，库存风险偏移随剩余期限缩短而减弱，不是临近截止就强制清仓。当前归一化库存、经验系数、固定 H 和后续投影不是论文最优解。
+
+库存容忍度还涉及价格判断、退出能力和资金约束，振幅或方差都不能单独证明回归。这里澄清的是机制与期限，不授权改变参数，也没有给历史实验补写新的收益或实盘验收。
 
 ## 当前已验收结果代替对应旧结论
 

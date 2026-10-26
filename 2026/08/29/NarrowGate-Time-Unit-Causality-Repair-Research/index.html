@@ -28,7 +28,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/replay-revalidation-research-synthesis.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-10-17T14:06:04.000Z">
+<meta property="article:modified_time" content="2026-10-25T16:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="Replay">
@@ -333,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          784 字
+          1.3k 字
         
       </span>
     
@@ -345,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          7 分钟
+          11 分钟
         
       </span>
     
@@ -462,6 +462,49 @@
 
 
 <h2 id="四种时刻"><a href="#四种时刻" class="headerlink" title="四种时刻"></a>四种时刻</h2><p>市场事件发生、数据可见、策略决策和订单生效是不同的时刻。已完成窗口才能进入特征；无成交期间也必须推进定时器、撤单与其他合法事件。修复这些语义会改变路径，但路径改变本身不是 alpha。</p>
+<h2 id="统计窗口与经济期限也要分开"><a href="#统计窗口与经济期限也要分开" class="headerlink" title="统计窗口与经济期限也要分开"></a>统计窗口与经济期限也要分开</h2><p>2026-10-26 补充：四种事件时刻之外，回看、采样、预测、风险积分和调度也不是同一只钟。以下按<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/docs/native-live.zh-CN.md">当前原生策略说明</a>的消费者区分，不从字段名字反推某台实例的配置值。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>必须说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>历史回看窗口</td>
+<td>用哪些已完成、已可见的数据估计，不是未来持有期限</td>
+</tr>
+<tr>
+<td>增量采样间隔</td>
+<td>一秒、事件级等决定统计对象与单位</td>
+</tr>
+<tr>
+<td>方差率与累计风险</td>
+<td>P²/s 与 P² 不同；乘期限必须声明模型假设</td>
+</tr>
+<tr>
+<td><code>risk_horizon_s</code></td>
+<td>两项核心报价风险的配置积分长度，不是动态倒计时</td>
+</tr>
+<tr>
+<td><code>quote_horizon_s</code>／预测标签期限</td>
+<td>各自生产与动作兼容性合同，不能凭字段相似互换</td>
+</tr>
+<tr>
+<td><code>pnl_volatility_horizon_s</code></td>
+<td>亏损金额尺度的归一化期限，不是实测回归时间</td>
+</tr>
+<tr>
+<td>持仓年龄、订单年龄、下一评价间隔</td>
+<td>三者各自计时，不是同一个 T-t</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>这里 P 表示价格单位。区间振幅 max-min 是 P，净移动也是 P 但带方向；方差／二阶矩是平方价格尺度，按采样契约进一步区分每步量和每秒速率。不能把 range 直接写进方差字段，也不能把“60 秒回看”“10 秒预测”“1 秒风险窗”“5 秒报价间隔”仅因都用秒就互换。</p>
+<p>量纲与时钟的工程回归不自动成为经济通过；行为改变仍需按完整账户净 PnL、单位收益、库存路径与终点会计评价。本次只修订说明，不改变风险期限。</p>
 <h2 id="什么保留，什么重做"><a href="#什么保留，什么重做" class="headerlink" title="什么保留，什么重做"></a>什么保留，什么重做</h2><div class="table-container">
 <table>
 <thead>

@@ -19,16 +19,16 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="本文按 2026-10-17 的当前研究口径重新整理。旧数值、图表和关闭判断不作为当前结论；下文把可引用的新数据结果、待验证假设与工程证据分开。                                                                 先分清三个控制层报价系数与方向偏移改变目标价格；向内、向外更新门槛决定旧单相对目标移动多远才更新；评价时机决定何时重新计算。三">
+    <meta name="description" content="本文保留 2026-10-17 整理时的研究状态与原比较身份。2026-10-26 仅补充期限消费者及历史状态边界，不替当时待办补写完成结论。下文把该版本可引用的数据结果、待验证假设与工程证据分开。                                                                 先分清三个控制层报价系数与方向偏移改变目标价格；向内、向外更新门槛决定旧">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate 报价控制研究：当前结果与待验证交互">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/08/29/NarrowGate-Fixed-Parameter-Racing-Research/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="本文按 2026-10-17 的当前研究口径重新整理。旧数值、图表和关闭判断不作为当前结论；下文把可引用的新数据结果、待验证假设与工程证据分开。                                                                 先分清三个控制层报价系数与方向偏移改变目标价格；向内、向外更新门槛决定旧单相对目标移动多远才更新；评价时机决定何时重新计算。三">
+<meta property="og:description" content="本文保留 2026-10-17 整理时的研究状态与原比较身份。2026-10-26 仅补充期限消费者及历史状态边界，不替当时待办补写完成结论。下文把该版本可引用的数据结果、待验证假设与工程证据分开。                                                                 先分清三个控制层报价系数与方向偏移改变目标价格；向内、向外更新门槛决定旧">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://xiao-nanbei.github.io/images/narrowgate/fixed-parameter-research-synthesis.svg">
 <meta property="article:published_time" content="2026-08-29T05:30:00.000Z">
-<meta property="article:modified_time" content="2026-10-17T14:06:04.000Z">
+<meta property="article:modified_time" content="2026-10-25T16:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="报价动作">
@@ -333,7 +333,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          1k 字
+          1.4k 字
         
       </span>
     
@@ -345,7 +345,7 @@
         
         
           <!-- compatible with older versions-->
-          9 分钟
+          12 分钟
         
       </span>
     
@@ -389,7 +389,7 @@
             
               <div class="markdown-body">
                 
-                <p>本文按 2026-10-17 的当前研究口径重新整理。旧数值、图表和关闭判断不作为当前结论；下文把可引用的新数据结果、待验证假设与工程证据分开。</p>
+                <p>本文保留 2026-10-17 整理时的研究状态与原比较身份。2026-10-26 仅补充期限消费者及历史状态边界，不替当时待办补写完成结论。下文把该版本可引用的数据结果、待验证假设与工程证据分开。</p>
 <!-- Preserve historical inbound section links; content now uses the current question/evidence scope. -->
 <div aria-hidden="true" style="height:0;overflow:hidden">
 <span id="报价动作要估计什么"></span>
@@ -488,10 +488,12 @@
 </tbody>
 </table>
 </div>
+<p>2026-10-26 机制补充：目标价格层的 <code>risk_horizon_s</code> 同时影响库存中心项与价差风险项，改 H 不等于只提高减仓积极性，也不等于改普通评价间隔。P3、cap、取整和订单响应可能覆盖部分价格变化，不能从某个局部系数增大直接推断最终减仓或 PnL 方向。消费者见<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/a086ff4b59ba2766ca3c50af476f9b31cb0c318a/strategy/quote_core.py#L1701-L1740">固定版本报价核心</a>。</p>
 <h2 id="已验收范围继续保留"><a href="#已验收范围继续保留" class="headerlink" title="已验收范围继续保留"></a>已验收范围继续保留</h2><p>当前 Tardis 的系数轴单账户、54 账户方向化门槛及两账户动态尺度比较，保留在 F01 当前报告中；它们不是早期旧数据网格排名。方向化门槛 A10 的合计少亏伴随集中收益、负配对中位数与更高库存；动态 D/S 的两账户合计均弱于各自 B0。这些有限结果不证明固定或动态规则普遍无效。</p>
-<p>当前完整 Defense/Urgency 与后续不完整机制消融分开列示，不把独立账户与连续账户拼成一个收益样本。当前库存软控制尚需自己的完整配对结果。</p>
+<p>截至 2026-10-17，完整 Defense/Urgency 与后续不完整机制消融分开列示，不把独立账户与连续账户拼成一个收益样本；当时库存软控制尚需自己的完整配对结果。这是该时点的状态，不是对今天进度的查询。</p>
 <h2 id="怎样继续验证"><a href="#怎样继续验证" class="headerlink" title="怎样继续验证"></a>怎样继续验证</h2><p>固定候选和匹配账户，不根据局部盈亏挑日期。除了总净收益，同时看两种单位收益、成交量、请求负担和库存风险。先说明干预改变的是目标、条件还是时机，再解释收益差异。历史“固定参数族已关闭”不再作为停止新研究的依据。</p>
-<h2 id="当前数据结果与适用边界"><a href="#当前数据结果与适用边界" class="headerlink" title="当前数据结果与适用边界"></a>当前数据结果与适用边界</h2><p>新 Tardis 的 Defense/Urgency 原九臂比较已完成：407 日独立账户合计，原 B0 净收益 −1603.031182 USDC，DEFENSE_ON__URGENCY_OFF 为 −1455.222759 USDC。两者仍亏损，库存敞口增加；选择其为后续 B0 不代表已盈利。后来的机制消融扩展由用户看过结果后停止，覆盖不完整。正在进行的库存软控制是另一实验，本文不替它宣布完成。</p>
+<h2 id="当前数据结果与适用边界"><a href="#当前数据结果与适用边界" class="headerlink" title="当前数据结果与适用边界"></a>当前数据结果与适用边界</h2><p>截至 2026-10-17，新 Tardis 的 Defense/Urgency 原九臂比较已完成：407 日独立账户合计，原 B0 净收益 −1603.031182 USDC，DEFENSE_ON__URGENCY_OFF 为 −1455.222759 USDC。两者仍亏损，库存敞口增加；当时选择其为后续研究参照 <code>B0_DEFENSE_URGENCY_OFF_20261011</code> 不代表已盈利。后来的机制消融扩展由用户看过结果后停止，覆盖不完整。当时正在进行的库存软控制是另一实验，本次文档修订不推断其后来完成或失败。</p>
+<p>当前研究导航见下方研究族报告，独立原生配置绑定见<a href="/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/">原生架构文章</a>与<a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/docs/native-live.zh-CN.md">原生指南</a>。后者的 <code>B0_20261026_01 / LOCAL_DYNAMIC</code> 不回填进上面的旧比较。</p>
 <p><a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/README.zh-CN.md">当前研究族报告</a> · <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/recompute_407.json">原始聚合结果索引</a> · <a target="_blank" rel="noopener" href="https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/final107_comparison.json">五候选 Final 聚合</a></p>
 <p><img src="/images/narrowgate/fixed-parameter-research-synthesis.svg" srcset="/img/loading.gif" lazyload alt="当前研究问题与验证路径"></p>
 <h2 id="统一待验证登记"><a href="#统一待验证登记" class="headerlink" title="统一待验证登记"></a>统一待验证登记</h2><ul>

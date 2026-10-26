@@ -1,7 +1,7 @@
 ---
 title: "NarrowGate 报价控制研究：当前结果与待验证交互"
 date: 2026-08-29 13:30:00
-updated: 2026-10-17 22:06:04
+updated: 2026-10-26
 categories:
 - Market Making
 tags:
@@ -13,7 +13,7 @@ tags:
 math: true
 ---
 
-本文按 2026-10-17 的当前研究口径重新整理。旧数值、图表和关闭判断不作为当前结论；下文把可引用的新数据结果、待验证假设与工程证据分开。
+本文保留 2026-10-17 整理时的研究状态与原比较身份。2026-10-26 仅补充期限消费者及历史状态边界，不替当时待办补写完成结论。下文把该版本可引用的数据结果、待验证假设与工程证据分开。
 
 <!-- Preserve historical inbound section links; content now uses the current question/evidence scope. -->
 <div aria-hidden="true" style="height:0;overflow:hidden">
@@ -90,11 +90,13 @@ math: true
 | 动态门槛与固定典型尺度 | 就绪与回退规则 | 动态关系是否提供额外价值？ |
 | 评价时机 U0/U1 | 价格门槛与原风险规则 | 更多评价是否值得请求和库存成本？ |
 
+2026-10-26 机制补充：目标价格层的 `risk_horizon_s` 同时影响库存中心项与价差风险项，改 H 不等于只提高减仓积极性，也不等于改普通评价间隔。P3、cap、取整和订单响应可能覆盖部分价格变化，不能从某个局部系数增大直接推断最终减仓或 PnL 方向。消费者见[固定版本报价核心](https://github.com/xiao-nanbei/NarrowGateMaker/blob/a086ff4b59ba2766ca3c50af476f9b31cb0c318a/strategy/quote_core.py#L1701-L1740)。
+
 ## 已验收范围继续保留
 
 当前 Tardis 的系数轴单账户、54 账户方向化门槛及两账户动态尺度比较，保留在 F01 当前报告中；它们不是早期旧数据网格排名。方向化门槛 A10 的合计少亏伴随集中收益、负配对中位数与更高库存；动态 D/S 的两账户合计均弱于各自 B0。这些有限结果不证明固定或动态规则普遍无效。
 
-当前完整 Defense/Urgency 与后续不完整机制消融分开列示，不把独立账户与连续账户拼成一个收益样本。当前库存软控制尚需自己的完整配对结果。
+截至 2026-10-17，完整 Defense/Urgency 与后续不完整机制消融分开列示，不把独立账户与连续账户拼成一个收益样本；当时库存软控制尚需自己的完整配对结果。这是该时点的状态，不是对今天进度的查询。
 
 ## 怎样继续验证
 
@@ -102,7 +104,9 @@ math: true
 
 ## 当前数据结果与适用边界
 
-新 Tardis 的 Defense/Urgency 原九臂比较已完成：407 日独立账户合计，原 B0 净收益 −1603.031182 USDC，DEFENSE_ON__URGENCY_OFF 为 −1455.222759 USDC。两者仍亏损，库存敞口增加；选择其为后续 B0 不代表已盈利。后来的机制消融扩展由用户看过结果后停止，覆盖不完整。正在进行的库存软控制是另一实验，本文不替它宣布完成。
+截至 2026-10-17，新 Tardis 的 Defense/Urgency 原九臂比较已完成：407 日独立账户合计，原 B0 净收益 −1603.031182 USDC，DEFENSE_ON__URGENCY_OFF 为 −1455.222759 USDC。两者仍亏损，库存敞口增加；当时选择其为后续研究参照 `B0_DEFENSE_URGENCY_OFF_20261011` 不代表已盈利。后来的机制消融扩展由用户看过结果后停止，覆盖不完整。当时正在进行的库存软控制是另一实验，本次文档修订不推断其后来完成或失败。
+
+当前研究导航见下方研究族报告，独立原生配置绑定见[原生架构文章](/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/)与[原生指南](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/docs/native-live.zh-CN.md)。后者的 `B0_20261026_01 / LOCAL_DYNAMIC` 不回填进上面的旧比较。
 
 [当前研究族报告](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/families/f01_fixed_parameter_racing/README.zh-CN.md) · [原始聚合结果索引](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/recompute_407.json) · [五候选 Final 聚合](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/research/final107_comparison.json)
 
