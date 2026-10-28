@@ -13,7 +13,7 @@ tags:
 math: true
 ---
 
-> 2026-10-29 公开范围更新：NarrowGate 的具体研究内容、实验方案、生产策略实现、实效参数及结果不再对外公布。对研究或课题感兴趣、有疑问的朋友，欢迎邮件私聊：[xuantan650@gmail.com](mailto:xuantan650@gmail.com)。以下为历史文章导航，不代表当前研究状态；旧仓库链接可能已不再提供相关内容。当前公开入口为[基础研究方向](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/docs/research_directions.zh-CN.md)。
+> 公开范围说明：NarrowGate 的具体研究内容、实验方案、生产策略实现、实效参数及结果不公开。对研究或课题感兴趣、有疑问的朋友，欢迎邮件私聊：[xuantan650@gmail.com](mailto:xuantan650@gmail.com)。以下为历史文章导航，不代表当前研究状态；部分仓库链接可能不可用。当前公开入口为[基础研究方向](https://github.com/xiao-nanbei/NarrowGateMaker/blob/main/docs/research_directions.zh-CN.md)。
 
 这张地图把原文更新时的已验收证据、待验证问题和工程验证分开。历史报告的胜负、概率指标或关闭决定，不应作为当前研究状态。
 
