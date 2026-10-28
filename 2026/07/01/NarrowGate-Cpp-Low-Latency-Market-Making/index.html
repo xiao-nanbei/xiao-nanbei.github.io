@@ -19,15 +19,15 @@
   <meta name="author" content="Xuan Tan">
   <meta name="keywords" content="">
   
-    <meta name="description" content="NarrowGate 现在把研究与实盘分开：Python 负责研究、训练、回测编排和分析，独立 C++ 程序负责实盘行情、推理、策略、订单和账户恢复。实盘不再是 Python 主循环加扩展，也不通过 Python 子进程运行策略。 截至本次更新，原生 Linux 程序已完成选定账户的部署、状态恢复、真实输入暖机及订单链运行检查，旧 Python 生产入口和启动器已退役。离线配置、策略和协议参考库仍">
+    <meta name="description" content="2026-10-29 公开范围更新：NarrowGate 的具体研究内容、实验方案、生产策略实现、实效参数及结果不再对外公布。本文保留为历史架构记录，不代表当前部署或公开源码范围，旧源码链接可能已不可用。对研究或课题感兴趣、有疑问的朋友，欢迎邮件私聊：xuantan650@gmail.com。  NarrowGate 现在把研究与实盘分开：Python 负责研究、训练、回测编排和分析，独立 C+">
 <meta property="og:type" content="article">
 <meta property="og:title" content="NarrowGate：Python 研究与纯 C++ 实盘架构">
 <meta property="og:url" content="https://xiao-nanbei.github.io/2026/07/01/NarrowGate-Cpp-Low-Latency-Market-Making/index.html">
 <meta property="og:site_name" content="databrains">
-<meta property="og:description" content="NarrowGate 现在把研究与实盘分开：Python 负责研究、训练、回测编排和分析，独立 C++ 程序负责实盘行情、推理、策略、订单和账户恢复。实盘不再是 Python 主循环加扩展，也不通过 Python 子进程运行策略。 截至本次更新，原生 Linux 程序已完成选定账户的部署、状态恢复、真实输入暖机及订单链运行检查，旧 Python 生产入口和启动器已退役。离线配置、策略和协议参考库仍">
+<meta property="og:description" content="2026-10-29 公开范围更新：NarrowGate 的具体研究内容、实验方案、生产策略实现、实效参数及结果不再对外公布。本文保留为历史架构记录，不代表当前部署或公开源码范围，旧源码链接可能已不可用。对研究或课题感兴趣、有疑问的朋友，欢迎邮件私聊：xuantan650@gmail.com。  NarrowGate 现在把研究与实盘分开：Python 负责研究、训练、回测编排和分析，独立 C+">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-07-01T00:03:00.000Z">
-<meta property="article:modified_time" content="2026-10-25T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-10-28T16:00:00.000Z">
 <meta property="article:author" content="Xuan Tan">
 <meta property="article:tag" content="Market Making">
 <meta property="article:tag" content="C++">
@@ -330,7 +330,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          3.5k 字
+          3.7k 字
         
       </span>
     
@@ -342,7 +342,7 @@
         
         
           <!-- compatible with older versions-->
-          30 分钟
+          31 分钟
         
       </span>
     
@@ -386,7 +386,10 @@
             
               <div class="markdown-body">
                 
-                <p>NarrowGate 现在把研究与实盘分开：Python 负责研究、训练、回测编排和分析，独立 C++ 程序负责实盘行情、推理、策略、订单和账户恢复。实盘不再是 Python 主循环加扩展，也不通过 Python 子进程运行策略。</p>
+                <blockquote>
+<p>2026-10-29 公开范围更新：NarrowGate 的具体研究内容、实验方案、生产策略实现、实效参数及结果不再对外公布。本文保留为历史架构记录，不代表当前部署或公开源码范围，旧源码链接可能已不可用。对研究或课题感兴趣、有疑问的朋友，欢迎邮件私聊：<a href="mailto:xuantan650@gmail.com">xuantan650@gmail.com</a>。</p>
+</blockquote>
+<p>NarrowGate 现在把研究与实盘分开：Python 负责研究、训练、回测编排和分析，独立 C++ 程序负责实盘行情、推理、策略、订单和账户恢复。实盘不再是 Python 主循环加扩展，也不通过 Python 子进程运行策略。</p>
 <p>截至本次更新，原生 Linux 程序已完成选定账户的部署、状态恢复、真实输入暖机及订单链运行检查，旧 Python 生产入口和启动器已退役。离线配置、策略和协议参考库仍供研究与差分测试使用，分别归属 narrowgate、strategy、features 与 execution，不再混放在 live 内。旧 Python 网络客户端和激活链不作为第二套服务保留。这是运行与源码职责边界，不等于所有可选政策、任意账户与完整历史轨迹均已证明一致。</p>
 <p>本文重写此前累积的扩展与性能实验叙述，不沿用旧环境的性能倍数。</p>
 <span id="more"></span>
